@@ -154,7 +154,7 @@ export default function ArticleDetail({
           <div className="space-y-0">
             <InfoRow icon={Factory} label="Tillverkare" value={article.manufacturer} />
             <InfoRow icon={Calendar} label="Tillverkningsdatum" value={
-              article.manufacturing_date 
+              article.manufacturing_date && !isNaN(new Date(article.manufacturing_date).getTime())
                 ? format(new Date(article.manufacturing_date), "d MMM yyyy", { locale: sv })
                 : null
             } />
