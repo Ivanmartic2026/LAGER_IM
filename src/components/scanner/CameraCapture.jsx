@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function CameraCapture({ onImageCaptured, isProcessing }) {
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
   const [preview, setPreview] = useState(null);
   const [dragActive, setDragActive] = useState(false);
 
@@ -48,16 +49,26 @@ export default function CameraCapture({ onImageCaptured, isProcessing }) {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+    }
   };
 
   return (
     <div className="w-full">
       <input
         type="file"
-        ref={fileInputRef}
+        ref={cameraInputRef}
         onChange={handleFileChange}
         accept="image/*"
         capture="environment"
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
         className="hidden"
       />
 
@@ -105,7 +116,7 @@ export default function CameraCapture({ onImageCaptured, isProcessing }) {
                   className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
                   onClick={(e) => {
                     e.stopPropagation();
-                    fileInputRef.current?.click();
+                    cameraInputRef.current?.click();
                   }}
                 >
                   <Camera className="w-4 h-4 mr-2" />
