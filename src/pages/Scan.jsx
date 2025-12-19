@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { 
   Package, ClipboardList, ArrowLeft, Sparkles, 
-  CheckCircle2, Camera 
+  CheckCircle2, Camera, Download 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CameraCapture from "@/components/scanner/CameraCapture";
@@ -393,12 +393,37 @@ export default function ScanPage() {
               </div>
 
               {imageUrl && (
-                <div className="rounded-xl overflow-hidden bg-slate-800 mb-4">
+                <div className="rounded-xl overflow-hidden bg-slate-800 mb-4 relative group">
                   <img 
                     src={imageUrl} 
                     alt="Scannad bild" 
                     className="w-full h-40 object-contain"
                   />
+                  <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm"
+                      onClick={() => window.open(imageUrl, '_blank')}
+                    >
+                      <Package className="w-4 h-4 mr-1" />
+                      Visa
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm"
+                      onClick={() => {
+                        const a = document.createElement('a');
+                        a.href = imageUrl;
+                        a.download = `artikel-${extractedData.batch_number || 'bild'}.jpg`;
+                        a.click();
+                      }}
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      Ladda ner
+                    </Button>
+                  </div>
                 </div>
               )}
 
