@@ -3,6 +3,7 @@ import Inventory from './pages/Inventory';
 import Home from './pages/Home';
 import Find from './pages/Find';
 import Movements from './pages/Movements';
+import Reports from './pages/Reports';
 import __Layout from './Layout.jsx';
 
 
@@ -12,6 +13,7 @@ export const PAGES = {
     "Home": Home,
     "Find": Find,
     "Movements": Movements,
+    "Reports": Reports,
 }
 
 export const pagesConfig = {
