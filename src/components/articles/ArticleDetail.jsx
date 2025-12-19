@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Package, MapPin, Calendar, Hash, Factory, Ruler, 
-  Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus
+  Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import PrintLabelModal from "@/components/labels/PrintLabelModal";
 
 export default function ArticleDetail({ 
   article, 
@@ -17,6 +18,8 @@ export default function ArticleDetail({
   onDelete,
   onAdjustStock 
 }) {
+  const [printModalOpen, setPrintModalOpen] = useState(false);
+
   const getStatusConfig = (status) => {
     switch (status) {
       case "low_stock":
@@ -58,6 +61,15 @@ export default function ArticleDetail({
           Tillbaka
         </Button>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setPrintModalOpen(true)}
+            className="bg-slate-800 border-slate-600 hover:bg-slate-700"
+            title="Skriv ut hylletikett"
+          >
+            <Printer className="w-4 h-4" />
+          </Button>
           <Button
             variant="outline"
             size="icon"
@@ -177,6 +189,12 @@ export default function ArticleDetail({
           <p className="text-slate-300">{article.notes}</p>
         </div>
       )}
+
+      <PrintLabelModal 
+        article={article}
+        isOpen={printModalOpen}
+        onClose={() => setPrintModalOpen(false)}
+      />
     </motion.div>
   );
 }
