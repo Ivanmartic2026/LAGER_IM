@@ -9,7 +9,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { 
   Search, Camera, Package, AlertTriangle, Filter,
-  Grid3X3, List, Plus, SlidersHorizontal
+  Grid3X3, List, Plus, SlidersHorizontal, Sparkles,
+  ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -17,6 +18,14 @@ import { createPageUrl } from "@/utils";
 import ArticleCard from "@/components/articles/ArticleCard";
 import ArticleDetail from "@/components/articles/ArticleDetail";
 import StockAdjustmentModal from "@/components/articles/StockAdjustmentModal";
+import QuickInventory from "@/components/inventory/QuickInventory";
+import PickListGenerator from "@/components/inventory/PickListGenerator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,6 +33,8 @@ export default function InventoryPage() {
   const [viewMode, setViewMode] = useState("grid");
   const [statusFilter, setStatusFilter] = useState("all");
   const [adjustmentModal, setAdjustmentModal] = useState({ open: false, type: null });
+  const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
+  const [pickListOpen, setPickListOpen] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -133,13 +144,31 @@ export default function InventoryPage() {
             <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Lager</h1>
             <p className="text-slate-400">{articles.length} artiklar registrerade</p>
           </div>
-          
-          <Link to={createPageUrl("Scan")}>
-            <Button className="bg-blue-600 hover:bg-blue-500 w-full md:w-auto">
-              <Camera className="w-4 h-4 mr-2" />
-              Skanna artikel
+
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setQuickInventoryOpen(true)}
+              variant="outline"
+              className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+            >
+              <ClipboardList className="w-4 h-4 mr-2" />
+              Snabbinventering
             </Button>
-          </Link>
+            <Button
+              onClick={() => setPickListOpen(true)}
+              variant="outline"
+              className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI Plocklista
+            </Button>
+            <Link to={createPageUrl("Scan")}>
+              <Button className="bg-blue-600 hover:bg-blue-500">
+                <Camera className="w-4 h-4 mr-2" />
+                Skanna
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats */}
@@ -245,9 +274,34 @@ export default function InventoryPage() {
                 />
               ))}
             </AnimatePresence>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+            </div>
+            )}
+
+            {/* Modals */}
+            <Dialog open={quickInventoryOpen} onOpenChange={setQuickInventoryOpen}>
+            <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ClipboardList className="w-5 h-5" />
+                Snabbinventering
+              </DialogTitle>
+            </DialogHeader>
+            <QuickInventory articles={articles} />
+            </DialogContent>
+            </Dialog>
+
+            <Dialog open={pickListOpen} onOpenChange={setPickListOpen}>
+            <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-2xl max-h-[90vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-blue-400" />
+                AI Plocklistegenerator
+              </DialogTitle>
+            </DialogHeader>
+            <PickListGenerator articles={articles} />
+            </DialogContent>
+            </Dialog>
+            </div>
+            </div>
+            );
+            }

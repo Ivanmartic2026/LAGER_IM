@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Camera, Package, Menu, X, MapPin } from "lucide-react";
+import { Home, Camera, Package, Menu, X, MapPin, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -10,7 +10,8 @@ const NAV_ITEMS = [
   { name: "Home", label: "Hem", icon: Home },
   { name: "Find", label: "Hitta", icon: MapPin },
   { name: "Scan", label: "Skanna", icon: Camera },
-  { name: "Inventory", label: "Lager", icon: Package }
+  { name: "Inventory", label: "Lager", icon: Package },
+  { name: "Movements", label: "Rörelser", icon: Activity }
 ];
 
 export default function Layout({ children, currentPageName }) {
