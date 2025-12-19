@@ -169,9 +169,9 @@ export default function ScanPage() {
 
       } catch (error) {
       console.error("Error processing image:", error);
-      toast.error("Kunde inte analysera bilden. Försök igen.");
-    } finally {
+      toast.error(`Kunde inte analysera bilden: ${error.message || 'Okänt fel'}`);
       setIsProcessing(false);
+      setStep("capture");
     }
   };
 
