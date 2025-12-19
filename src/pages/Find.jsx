@@ -8,16 +8,24 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Search, MapPin, Package, Hash, Factory, 
   Ruler, Scale, Calendar, Grid3X3, X,
-  ArrowRight, ScanLine, Sparkles
+  ArrowRight, ScanLine, Sparkles, Camera, Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { toast } from "sonner";
+import CameraCapture from "@/components/scanner/CameraCapture";
 
 export default function FindPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [mode, setMode] = useState("search"); // "search" or "scan"
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [scanResult, setScanResult] = useState(null); // "found" or "not_found"
+  const [extractedData, setExtractedData] = useState({});
   const searchInputRef = useRef(null);
 
   const { data: articles = [] } = useQuery({
@@ -51,7 +59,72 @@ export default function FindPage() {
     setSelectedArticle(null);
     setSearchQuery("");
     setSearchResults([]);
+    setMode("search");
+    setScanResult(null);
+    setExtractedData({});
     searchInputRef.current?.focus();
+  };
+
+  const handleImageCaptured = async (file) => {
+    setIsProcessing(true);
+
+    try {
+      // Upload image
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      // Extract data using AI
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Analysera denna bild av en artikel/etikett och extrahera följande information:
+        - Batchnummer/artikelnummer
+        - Artikelnamn
+        - Tillverkare
+        
+Returnera informationen i JSON-format.`,
+        file_urls: [file_url],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            batch_number: { type: "string" },
+            name: { type: "string" },
+            manufacturer: { type: "string" }
+          }
+        }
+      });
+
+      setExtractedData({ ...result, image_url: file_url });
+
+      // Search for article in database
+      let found = null;
+      
+      if (result.batch_number) {
+        const byBatch = await base44.entities.Article.filter({ 
+          batch_number: result.batch_number 
+        });
+        if (byBatch.length > 0) found = byBatch[0];
+      }
+      
+      if (!found && result.name) {
+        const byName = articles.filter(a => 
+          a.name?.toLowerCase() === result.name?.toLowerCase()
+        );
+        if (byName.length > 0) found = byName[0];
+      }
+
+      if (found) {
+        setSelectedArticle(found);
+        setScanResult("found");
+        toast.success("Artikel hittad i lagret!");
+      } else {
+        setScanResult("not_found");
+        toast.info("Artikeln finns inte i lagret");
+      }
+      
+    } catch (error) {
+      console.error("Error processing image:", error);
+      toast.error("Kunde inte analysera bilden. Försök igen.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -71,17 +144,57 @@ export default function FindPage() {
             Hitta i lager
           </h1>
           <p className="text-slate-400">
-            Sök artikel för att se exakt hyllplats
+            Sök eller skanna artikel för att se om den finns i lagret
           </p>
         </motion.div>
 
-        {/* Search Box */}
+        {/* Mode Toggle */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="relative mb-6"
+          transition={{ delay: 0.05 }}
+          className="flex gap-2 mb-6"
         >
+          <Button
+            onClick={() => setMode("search")}
+            variant={mode === "search" ? "default" : "outline"}
+            className={cn(
+              "flex-1",
+              mode === "search" 
+                ? "bg-emerald-600 hover:bg-emerald-500 text-white" 
+                : "bg-slate-800 border-slate-600 hover:bg-slate-700 text-slate-300"
+            )}
+          >
+            <Search className="w-4 h-4 mr-2" />
+            Sök
+          </Button>
+          <Button
+            onClick={() => {
+              setMode("scan");
+              setSelectedArticle(null);
+              setScanResult(null);
+            }}
+            variant={mode === "scan" ? "default" : "outline"}
+            className={cn(
+              "flex-1",
+              mode === "scan" 
+                ? "bg-emerald-600 hover:bg-emerald-500 text-white" 
+                : "bg-slate-800 border-slate-600 hover:bg-slate-700 text-slate-300"
+            )}
+          >
+            <Camera className="w-4 h-4 mr-2" />
+            Skanna
+          </Button>
+        </motion.div>
+
+        {/* Search or Scan Mode */}
+        {mode === "search" ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="relative mb-6"
+          >
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
@@ -146,11 +259,90 @@ export default function FindPage() {
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-6"
+          >
+            <CameraCapture
+              onImageCaptured={handleImageCaptured}
+              isProcessing={isProcessing}
+            />
+          </motion.div>
+        )}
 
-        {/* Selected Article - Location Display */}
+        {/* Scan Result - Not Found */}
         <AnimatePresence mode="wait">
-          {selectedArticle ? (
+          {scanResult === "not_found" && (
+            <motion.div
+              key="not-found"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="space-y-6"
+            >
+              <div className="p-8 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center">
+                <Package className="w-16 h-16 text-amber-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">
+                  Artikeln finns inte i lagret
+                </h3>
+                <p className="text-slate-400 mb-6">
+                  Vill du lägga till denna artikel som en ny vara?
+                </p>
+
+                {extractedData.name && (
+                  <div className="bg-slate-800/50 rounded-xl p-4 mb-6 text-left">
+                    <p className="text-sm text-slate-400 mb-3">Extraherad information:</p>
+                    <div className="space-y-2 text-sm">
+                      {extractedData.name && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Namn:</span>
+                          <span className="text-white font-medium">{extractedData.name}</span>
+                        </div>
+                      )}
+                      {extractedData.batch_number && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Batchnummer:</span>
+                          <span className="text-white font-medium">{extractedData.batch_number}</span>
+                        </div>
+                      )}
+                      {extractedData.manufacturer && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Tillverkare:</span>
+                          <span className="text-white font-medium">{extractedData.manufacturer}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleClear}
+                    variant="outline"
+                    className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                  >
+                    Avbryt
+                  </Button>
+                  <Link 
+                    to={createPageUrl("Scan")}
+                    className="flex-1"
+                  >
+                    <Button className="w-full bg-emerald-600 hover:bg-emerald-500">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Lägg till artikel
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Selected Article - Location Display */}
+          {selectedArticle && scanResult !== "not_found" ? (
             <motion.div
               key="result"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -327,11 +519,11 @@ export default function FindPage() {
                   className="flex-1 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600"
                 >
                   <Search className="w-4 h-4 mr-2" />
-                  Sök igen
+                  {mode === "scan" ? "Skanna igen" : "Sök igen"}
                 </Button>
               </div>
             </motion.div>
-          ) : !searchQuery && (
+          ) : !searchQuery && mode === "search" && !scanResult && (
             <motion.div
               key="empty"
               initial={{ opacity: 0 }}
@@ -343,10 +535,10 @@ export default function FindPage() {
                 <Search className="w-10 h-10 text-slate-600" />
               </div>
               <p className="text-slate-400 mb-2">
-                Börja skriva för att söka artiklar
+                {mode === "search" ? "Börja skriva för att söka artiklar" : "Ta foto av artikel för att kontrollera om den finns i lagret"}
               </p>
               <p className="text-sm text-slate-500">
-                Sök på artikelnamn, batchnummer eller hyllplats
+                {mode === "search" ? "Sök på artikelnamn, batchnummer eller hyllplats" : "AI kommer att analysera bilden och söka automatiskt"}
               </p>
 
               {/* Quick tips */}
@@ -371,6 +563,18 @@ export default function FindPage() {
                     <p className="text-sm font-medium text-white mb-1">Hitta hyllplats</p>
                     <p className="text-xs text-slate-400">
                       Se stor och tydlig hyllplats när du hittat rätt artikel
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-800/30 border border-slate-700/30 text-left">
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                    <Camera className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white mb-1">Skanna & kontrollera</p>
+                    <p className="text-xs text-slate-400">
+                      Ta foto för att se om artikeln finns eller lägg till ny
                     </p>
                   </div>
                 </div>
