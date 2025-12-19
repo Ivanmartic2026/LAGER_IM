@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Search, MapPin, Package, Hash, Factory, 
   Ruler, Scale, Calendar, Grid3X3, X,
-  ArrowRight, ScanLine, Sparkles, Camera, Plus
+  ArrowRight, ScanLine, Sparkles, Camera, Plus, Printer
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import CameraCapture from "@/components/scanner/CameraCapture";
+import PrintableLabels from "@/components/labels/PrintableLabels";
 
 export default function FindPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,12 +27,27 @@ export default function FindPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [scanResult, setScanResult] = useState(null); // "found" or "not_found"
   const [extractedData, setExtractedData] = useState({});
+  const [showPrintModal, setShowPrintModal] = useState(false);
   const searchInputRef = useRef(null);
 
   const { data: articles = [] } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list(),
   });
+
+  // Check for articleId in URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.split('?')[1]);
+    const articleId = params.get('articleId');
+    
+    if (articleId && articles.length > 0) {
+      const article = articles.find(a => a.id === articleId);
+      if (article) {
+        setSelectedArticle(article);
+        setScanResult("found");
+      }
+    }
+  }, [articles]);
 
   useEffect(() => {
     if (searchQuery.trim()) {
@@ -515,6 +531,14 @@ Returnera informationen i JSON-format.`,
               {/* Action Buttons */}
               <div className="flex gap-3">
                 <Button
+                  onClick={() => setShowPrintModal(true)}
+                  variant="outline"
+                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600"
+                >
+                  <Printer className="w-4 h-4 mr-2" />
+                  Skriv ut etikett
+                </Button>
+                <Button
                   onClick={handleClear}
                   className="flex-1 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600"
                 >
@@ -581,10 +605,16 @@ Returnera informationen i JSON-format.`,
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
+          </AnimatePresence>
 
-        {/* Recent searches could go here */}
-      </div>
-    </div>
-  );
-}
+          {/* Print Modal */}
+          {showPrintModal && selectedArticle && (
+          <PrintableLabels
+            articles={[selectedArticle]}
+            onClose={() => setShowPrintModal(false)}
+          />
+          )}
+          </div>
+          </div>
+          );
+          }

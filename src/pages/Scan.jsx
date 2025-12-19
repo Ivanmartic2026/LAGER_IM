@@ -106,73 +106,68 @@ export default function ScanPage() {
         }
       });
 
-      // Enrich with web search if we have basic product info
+      // Enrich data with web search if we have manufacturer and name
+      let enrichedData = { ...result };
       if (result.name || result.manufacturer) {
         try {
-          const enrichedData = await base44.integrations.Core.InvokeLLM({
-            prompt: `Sök på internet efter produkten "${result.name || ''}" från tillverkare "${result.manufacturer || ''}" och hitta ytterligare information som kan vara användbar för ett lagersystem. 
+          const webInfo = await base44.integrations.Core.InvokeLLM({
+            prompt: `Sök på internet efter produkten "${result.name || ''}" från tillverkare "${result.manufacturer || ''}" och hitta ytterligare information som:
+            - Fullständigt produktnamn
+            - Korrekt tillverkarnamn
+            - Tekniska specifikationer (pixel pitch, dimensioner, vikt)
+            - Kategori
+            - Länk till produktsida eller datasheet om möjligt
 
-      Fokusera på att hitta:
-      - Fullständigt produktnamn
-      - Komplett tillverkarinformation och kontaktuppgifter
-      - Tekniska specifikationer (dimensioner, vikt, pixel pitch om det är en LED-modul/skärm)
-      - Produktkategori
-      - Eventuella varningar eller särskilda hanteringsinstruktioner
-
-      Returnera endast information du hittar med hög säkerhet från tillförlitliga källor.`,
+            Returnera bara information du hittar med hög säkerhet.`,
             add_context_from_internet: true,
             response_json_schema: {
               type: "object",
               properties: {
-                full_product_name: { type: "string" },
-                manufacturer_details: { type: "string" },
-                technical_specs: { type: "string" },
-                category_suggestion: { type: "string" },
-                additional_notes: { type: "string" }
+                name: { type: "string" },
+                manufacturer: { type: "string" },
+                pixel_pitch_mm: { type: "number" },
+                dimensions_width_mm: { type: "number" },
+                dimensions_height_mm: { type: "number" },
+                dimensions_depth_mm: { type: "number" },
+                weight_kg: { type: "number" },
+                category: { type: "string" },
+                product_url: { type: "string" },
+                notes: { type: "string" }
               }
             }
           });
 
-          // Merge enriched data with confidence boost for internet-sourced info
-          if (enrichedData.full_product_name && !result.name) {
-            result.name = enrichedData.full_product_name;
-            result.name_confidence = 0.8;
-          }
-          if (enrichedData.manufacturer_details && !result.manufacturer) {
-            result.manufacturer = enrichedData.manufacturer_details;
-            result.manufacturer_confidence = 0.8;
-          }
-          if (enrichedData.category_suggestion && !result.category) {
-            result.category = enrichedData.category_suggestion;
-            result.category_confidence = 0.75;
-          }
-          if (enrichedData.additional_notes) {
-            result.notes = enrichedData.additional_notes;
-          }
-        } catch (error) {
-          console.log("Could not enrich with web data:", error);
-          // Continue without enrichment
+          // Merge web info with extracted data (prefer web info if confidence is low)
+          Object.keys(webInfo).forEach(key => {
+            if (webInfo[key] && (!enrichedData[key] || (enrichedData[`${key}_confidence`] || 0) < 0.7)) {
+              enrichedData[key] = webInfo[key];
+              enrichedData[`${key}_confidence`] = 0.9; // High confidence from web
+            }
+          });
+        } catch (webError) {
+          console.log("Could not enrich data from web:", webError);
+          // Continue with original data
         }
       }
 
       // Separate data and confidence values
       const data = {};
       const confs = {};
-      
-      Object.keys(result).forEach(key => {
+
+      Object.keys(enrichedData).forEach(key => {
         if (key.endsWith('_confidence')) {
           const fieldName = key.replace('_confidence', '');
-          confs[fieldName] = result[key] || 0.5;
+          confs[fieldName] = enrichedData[key] || 0.5;
         } else {
-          data[key] = result[key];
+          data[key] = enrichedData[key];
         }
       });
 
       setExtractedData({ ...data, image_url: file_url });
       setConfidences(confs);
       setStep("review");
-      
-    } catch (error) {
+
+      } catch (error) {
       console.error("Error processing image:", error);
       toast.error("Kunde inte analysera bilden. Försök igen.");
     } finally {
