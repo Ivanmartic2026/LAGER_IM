@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Camera, Upload, X, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function CameraCapture({ onImageCaptured, isProcessing }) {
+export default function CameraCapture({ onImageCaptured, isProcessing, progress = 0 }) {
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const [preview, setPreview] = useState(null);
@@ -151,9 +151,18 @@ export default function CameraCapture({ onImageCaptured, isProcessing }) {
             
             {isProcessing && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col items-center gap-4 max-w-xs w-full px-4">
                   <div className="w-12 h-12 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-white font-medium">Analyserar bild med AI...</p>
+                  <div className="w-full">
+                    <p className="text-white font-medium text-center mb-2">Analyserar bild med AI...</p>
+                    <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-blue-500 transition-all duration-300 ease-out"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <p className="text-slate-300 text-sm text-center mt-1">{progress}%</p>
+                  </div>
                 </div>
               </div>
             )}

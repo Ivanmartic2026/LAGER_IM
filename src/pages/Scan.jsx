@@ -36,6 +36,7 @@ export default function ScanPage() {
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [extractedData, setExtractedData] = useState({});
   const [confidences, setConfidences] = useState({});
@@ -49,13 +50,17 @@ export default function ScanPage() {
   const handleImageCaptured = async (file) => {
     setImageFile(file);
     setIsProcessing(true);
+    setProgress(0);
 
     try {
       // Upload image first
+      setProgress(10);
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setImageUrl(file_url);
+      setProgress(30);
 
       // Extract data using AI
+      setProgress(40);
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Analysera denna bild av en artikel/etikett/följesedel och extrahera all relevant information för ett lagersystem.
 
@@ -105,11 +110,13 @@ export default function ScanPage() {
           }
         }
       });
+      setProgress(70);
 
       // Enrich data with web search if we have manufacturer and name
       let enrichedData = { ...result };
       if (result.name || result.manufacturer) {
         try {
+          setProgress(75);
           const webInfo = await base44.integrations.Core.InvokeLLM({
             prompt: `Sök på internet efter produkten "${result.name || ''}" från tillverkare "${result.manufacturer || ''}" och hitta ytterligare information som:
             - Fullständigt produktnamn
@@ -149,6 +156,7 @@ export default function ScanPage() {
           // Continue with original data
         }
       }
+      setProgress(90);
 
       // Separate data and confidence values
       const data = {};
@@ -163,14 +171,17 @@ export default function ScanPage() {
         }
       });
 
+      setProgress(95);
       setExtractedData({ ...data, image_url: file_url });
       setConfidences(confs);
+      setProgress(100);
       setStep("review");
 
       } catch (error) {
       console.error("Error processing image:", error);
       toast.error(`Kunde inte analysera bilden: ${error.message || 'Okänt fel'}`);
       setIsProcessing(false);
+      setProgress(0);
       setStep("capture");
     }
   };
@@ -245,6 +256,7 @@ export default function ScanPage() {
     setExtractedData({});
     setConfidences({});
     setSavedArticle(null);
+    setProgress(0);
   };
 
   return (
@@ -352,6 +364,7 @@ export default function ScanPage() {
               <CameraCapture 
                 onImageCaptured={handleImageCaptured}
                 isProcessing={isProcessing}
+                progress={progress}
               />
 
               <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
