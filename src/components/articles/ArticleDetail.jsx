@@ -9,7 +9,7 @@ import {
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import PrintLabelModal from "@/components/labels/PrintLabelModal";
+import PrintableLabels from "../labels/PrintableLabels";
 
 export default function ArticleDetail({ 
   article, 
@@ -18,8 +18,8 @@ export default function ArticleDetail({
   onDelete,
   onAdjustStock 
 }) {
-  const [printModalOpen, setPrintModalOpen] = useState(false);
-
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  
   const getStatusConfig = (status) => {
     switch (status) {
       case "low_stock":
@@ -63,12 +63,11 @@ export default function ArticleDetail({
         <div className="flex gap-2">
           <Button
             variant="outline"
-            size="icon"
-            onClick={() => setPrintModalOpen(true)}
+            onClick={() => setShowPrintModal(true)}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700"
-            title="Skriv ut hylletikett"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-4 h-4 mr-2" />
+            Etikett
           </Button>
           <Button
             variant="outline"
@@ -190,11 +189,13 @@ export default function ArticleDetail({
         </div>
       )}
 
-      <PrintLabelModal 
-        article={article}
-        isOpen={printModalOpen}
-        onClose={() => setPrintModalOpen(false)}
-      />
+      {/* Print Modal */}
+      {showPrintModal && (
+        <PrintableLabels
+          articles={[article]}
+          onClose={() => setShowPrintModal(false)}
+        />
+      )}
     </motion.div>
   );
 }
