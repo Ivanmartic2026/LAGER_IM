@@ -17,7 +17,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import CameraCapture from "@/components/scanner/CameraCapture";
-import PrintableLabels from "@/components/labels/PrintableLabels";
+import LabelDownloader from "@/components/labels/LabelDownloader";
 
 export default function FindPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -609,10 +609,10 @@ Returnera informationen i JSON-format.`,
 
           {/* Print Modal */}
           {showPrintModal && selectedArticle && (
-          <PrintableLabels
-            articles={[selectedArticle]}
-            onClose={() => setShowPrintModal(false)}
-          />
+            <LabelDownloader
+              articles={[selectedArticle]}
+              onClose={() => setShowPrintModal(false)}
+            />
           )}
           </div>
           </div>

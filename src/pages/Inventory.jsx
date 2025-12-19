@@ -229,6 +229,7 @@ export default function InventoryPage() {
                 <TabsTrigger value="active" className="text-xs">I lager</TabsTrigger>
                 <TabsTrigger value="low_stock" className="text-xs">Lågt</TabsTrigger>
                 <TabsTrigger value="out_of_stock" className="text-xs">Slut</TabsTrigger>
+                <TabsTrigger value="on_repair" className="text-xs">Reparation</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
