@@ -31,10 +31,21 @@ export default function HomePage() {
     outOfStock: articles.filter(a => a.status === "out_of_stock").length
   };
 
+  // Check for expiring articles (manufacturing_date older than 2 years)
+  const expiringArticles = articles.filter(article => {
+    if (!article.manufacturing_date) return false;
+    const mfgDate = new Date(article.manufacturing_date);
+    const twoYearsAgo = new Date();
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+    return mfgDate < twoYearsAgo;
+  });
+
   const recentArticles = articles.slice(0, 5);
   const alertArticles = articles.filter(a => 
     a.status === "low_stock" || a.status === "out_of_stock"
   ).slice(0, 3);
+  
+  const hasAlerts = alertArticles.length > 0 || expiringArticles.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6">
@@ -140,7 +151,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Alerts */}
-          {alertArticles.length > 0 && (
+          {hasAlerts && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -185,6 +196,35 @@ export default function HomePage() {
                     </div>
                   </Link>
                 ))}
+                
+                {expiringArticles.length > 0 && (
+                  <>
+                    {alertArticles.length > 0 && (
+                      <div className="border-t border-slate-700 my-3 pt-3">
+                        <p className="text-xs text-slate-500 mb-2">Gamla artiklar (2+ år)</p>
+                      </div>
+                    )}
+                    {expiringArticles.slice(0, 3).map(article => (
+                      <Link 
+                        key={article.id} 
+                        to={createPageUrl("Inventory")}
+                        className="flex items-center justify-between p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                            <Clock className="w-4 h-4 text-purple-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-white text-sm">{article.name}</p>
+                            <p className="text-xs text-purple-300">
+                              {article.manufacturing_date && format(new Date(article.manufacturing_date), "MMM yyyy", { locale: sv })}
+                            </p>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </>
+                )}
               </div>
             </motion.div>
           )}
@@ -258,7 +298,7 @@ export default function HomePage() {
           </motion.div>
 
           {/* Recent Articles */}
-          {recentArticles.length > 0 && alertArticles.length === 0 && (
+          {recentArticles.length > 0 && !hasAlerts && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
