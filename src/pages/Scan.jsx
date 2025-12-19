@@ -58,20 +58,20 @@ export default function ScanPage() {
       // Extract data using AI
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Analysera denna bild av en artikel/etikett/följesedel och extrahera all relevant information för ett lagersystem.
-        
-Bilden kan innehålla:
-- Batchnummer/artikelnummer
-- Artikelnamn
-- Tillverkare
-- Tillverkningsdatum
-- Pixel pitch (mm)
-- Hyllplats/lagerlokation
-- Dimensioner (bredd, höjd, djup i mm)
-- Vikt (kg)
-- Antal
-- Kategori (LED Module, Cabinet, Controller, Power Supply, Cable, Accessory, Other)
 
-Returnera all information du kan hitta. För varje fält, ge ett confidence-värde (0-1) baserat på hur säker du är.`,
+      Bilden kan innehålla:
+      - Batchnummer/artikelnummer
+      - Artikelnamn
+      - Tillverkare
+      - Tillverkningsdatum
+      - Pixel pitch (mm)
+      - Hyllplats/lagerlokation
+      - Dimensioner (bredd, höjd, djup i mm)
+      - Vikt (kg)
+      - Antal
+      - Kategori (LED Module, Cabinet, Controller, Power Supply, Cable, Accessory, Other)
+
+      Returnera all information du kan hitta. För varje fält, ge ett confidence-värde (0-1) baserat på hur säker du är.`,
         file_urls: [file_url],
         response_json_schema: {
           type: "object",
@@ -105,6 +105,55 @@ Returnera all information du kan hitta. För varje fält, ge ett confidence-vär
           }
         }
       });
+
+      // Enrich with web search if we have basic product info
+      if (result.name || result.manufacturer) {
+        try {
+          const enrichedData = await base44.integrations.Core.InvokeLLM({
+            prompt: `Sök på internet efter produkten "${result.name || ''}" från tillverkare "${result.manufacturer || ''}" och hitta ytterligare information som kan vara användbar för ett lagersystem. 
+
+      Fokusera på att hitta:
+      - Fullständigt produktnamn
+      - Komplett tillverkarinformation och kontaktuppgifter
+      - Tekniska specifikationer (dimensioner, vikt, pixel pitch om det är en LED-modul/skärm)
+      - Produktkategori
+      - Eventuella varningar eller särskilda hanteringsinstruktioner
+
+      Returnera endast information du hittar med hög säkerhet från tillförlitliga källor.`,
+            add_context_from_internet: true,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                full_product_name: { type: "string" },
+                manufacturer_details: { type: "string" },
+                technical_specs: { type: "string" },
+                category_suggestion: { type: "string" },
+                additional_notes: { type: "string" }
+              }
+            }
+          });
+
+          // Merge enriched data with confidence boost for internet-sourced info
+          if (enrichedData.full_product_name && !result.name) {
+            result.name = enrichedData.full_product_name;
+            result.name_confidence = 0.8;
+          }
+          if (enrichedData.manufacturer_details && !result.manufacturer) {
+            result.manufacturer = enrichedData.manufacturer_details;
+            result.manufacturer_confidence = 0.8;
+          }
+          if (enrichedData.category_suggestion && !result.category) {
+            result.category = enrichedData.category_suggestion;
+            result.category_confidence = 0.75;
+          }
+          if (enrichedData.additional_notes) {
+            result.notes = enrichedData.additional_notes;
+          }
+        } catch (error) {
+          console.log("Could not enrich with web data:", error);
+          // Continue without enrichment
+        }
+      }
 
       // Separate data and confidence values
       const data = {};
