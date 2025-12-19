@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { 
   Camera, Package, TrendingUp, TrendingDown, 
-  AlertTriangle, Clock, ArrowRight, Zap
+  AlertTriangle, Clock, ArrowRight, Zap, MapPin
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -305,8 +305,16 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-8 grid grid-cols-2 gap-4"
+          className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4"
         >
+          <Link to={createPageUrl("Find")}>
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-purple-600/20 to-purple-700/10 border border-purple-500/30 hover:border-purple-500/50 transition-colors cursor-pointer">
+              <MapPin className="w-6 h-6 text-purple-400 mb-3" />
+              <h3 className="font-semibold text-white mb-1">Hitta</h3>
+              <p className="text-sm text-slate-400">Sök hyllplats</p>
+            </div>
+          </Link>
+          
           <Link to={createPageUrl("Scan") + "?mode=inbound"}>
             <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 border border-emerald-500/30 hover:border-emerald-500/50 transition-colors cursor-pointer">
               <Package className="w-6 h-6 text-emerald-400 mb-3" />

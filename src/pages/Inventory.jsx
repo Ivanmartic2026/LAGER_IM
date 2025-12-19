@@ -188,7 +188,7 @@ export default function InventoryPage() {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Sök artikel, batchnummer eller tillverkare..."
+              placeholder="Sök artikel, batchnummer, tillverkare eller hyllplats..."
               className="pl-10 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
             />
           </div>
