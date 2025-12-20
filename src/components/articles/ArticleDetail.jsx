@@ -177,7 +177,7 @@ export default function ArticleDetail({
           Tillbaka
         </Button>
         <div className="flex flex-wrap gap-2">
-          {article.status === "on_repair" ? (
+          {article.status === "on_repair" && (
             <Button
               onClick={() => setReturnFromRepairModalOpen(true)}
               disabled={updateArticleMutation.isPending}
@@ -185,14 +185,6 @@ export default function ArticleDetail({
             >
               <CheckCircle2 className="w-5 h-5 mr-2" />
               Återför från reparation
-            </Button>
-          ) : (
-            <Button
-              onClick={() => setRepairModalOpen(true)}
-              className="bg-orange-600 hover:bg-orange-500 text-white font-semibold"
-            >
-              <Wrench className="w-4 h-4 mr-2" />
-              Skicka på reparation
             </Button>
           )}
           <Button
@@ -290,22 +282,13 @@ export default function ArticleDetail({
               </Button>
             </div>
 
-            {article.status === "on_repair" ? (
-              <Button
-                onClick={() => setReturnFromRepairModalOpen(true)}
-                disabled={updateArticleMutation.isPending}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium h-10"
-              >
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                Återför från reparation
-              </Button>
-            ) : (
+            {article.status !== "on_repair" && (
               <Button
                 onClick={() => setRepairModalOpen(true)}
                 className="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium h-10"
               >
                 <Wrench className="w-4 h-4 mr-2" />
-                Rapportera för reparation
+                Rapportera till Reparation
               </Button>
             )}
           </div>
