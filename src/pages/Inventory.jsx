@@ -28,10 +28,13 @@ import {
 } from "@/components/ui/dialog";
 
 export default function InventoryPage() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialStatus = urlParams.get('status') || 'all';
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [viewMode, setViewMode] = useState("grid");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [adjustmentModal, setAdjustmentModal] = useState({ open: false, type: null });
   const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
   const [pickListOpen, setPickListOpen] = useState(false);

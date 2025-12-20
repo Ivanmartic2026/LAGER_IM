@@ -73,81 +73,91 @@ export default function HomePage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                <Package className="w-5 h-5 text-blue-400" />
+          <Link to={createPageUrl("Inventory") + "?status=all"}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                  <Package className="w-5 h-5 text-blue-400" />
+                </div>
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
               </div>
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
-            </div>
-            <p className="text-3xl font-bold text-white mb-1">{stats.total}</p>
-            <p className="text-sm text-slate-400">Artiklar</p>
-          </motion.div>
+              <p className="text-3xl font-bold text-white mb-1">{stats.total}</p>
+              <p className="text-sm text-slate-400">Artiklar</p>
+            </motion.div>
+          </Link>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                <Package className="w-5 h-5 text-emerald-400" />
+          <Link to={createPageUrl("Inventory") + "?status=active"}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                  <Package className="w-5 h-5 text-emerald-400" />
+                </div>
               </div>
-            </div>
-            <p className="text-3xl font-bold text-white mb-1">{stats.totalValue}</p>
-            <p className="text-sm text-slate-400">Totalt i lager</p>
-          </motion.div>
+              <p className="text-3xl font-bold text-white mb-1">{stats.totalValue}</p>
+              <p className="text-sm text-slate-400">Totalt i lager</p>
+            </motion.div>
+          </Link>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-amber-400" />
+          <Link to={createPageUrl("Inventory") + "?status=low_stock"}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-amber-400" />
+                </div>
               </div>
-            </div>
-            <p className="text-3xl font-bold text-white mb-1">{stats.lowStock}</p>
-            <p className="text-sm text-slate-400">Lågt lager</p>
-          </motion.div>
+              <p className="text-3xl font-bold text-white mb-1">{stats.lowStock}</p>
+              <p className="text-sm text-slate-400">Lågt lager</p>
+            </motion.div>
+          </Link>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
-                <Package className="w-5 h-5 text-red-400" />
+          <Link to={createPageUrl("Inventory") + "?status=out_of_stock"}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                  <Package className="w-5 h-5 text-red-400" />
+                </div>
               </div>
-            </div>
-            <p className="text-3xl font-bold text-white mb-1">{stats.outOfStock}</p>
-            <p className="text-sm text-slate-400">Slut i lager</p>
-          </motion.div>
+              <p className="text-3xl font-bold text-white mb-1">{stats.outOfStock}</p>
+              <p className="text-sm text-slate-400">Slut i lager</p>
+            </motion.div>
+          </Link>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-                <Package className="w-5 h-5 text-orange-400" />
+          <Link to={createPageUrl("Inventory") + "?status=on_repair"}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                  <Package className="w-5 h-5 text-orange-400" />
+                </div>
               </div>
-            </div>
-            <p className="text-3xl font-bold text-white mb-1">{stats.onRepair}</p>
-            <p className="text-sm text-slate-400">På reparation</p>
-          </motion.div>
+              <p className="text-3xl font-bold text-white mb-1">{stats.onRepair}</p>
+              <p className="text-sm text-slate-400">På reparation</p>
+            </motion.div>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
