@@ -251,7 +251,7 @@ export default function ArticleDetail({
             </Badge>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
               <p className="text-sm text-blue-300 mb-1">I lager</p>
               <p className="text-3xl font-bold text-white">{article.stock_qty || 0}</p>
@@ -260,6 +260,14 @@ export default function ArticleDetail({
               <p className="text-sm text-slate-400 mb-1">Min. lagernivå</p>
               <p className="text-3xl font-bold text-white">{article.min_stock_level || "—"}</p>
             </div>
+            {article.status === 'on_repair' && article.repair_notes && (
+              <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/30">
+                <p className="text-sm text-orange-300 mb-1">På reparation</p>
+                <p className="text-3xl font-bold text-white">
+                  {article.repair_notes.match(/^(\d+)\s*st/) ? article.repair_notes.match(/^(\d+)\s*st/)[1] : "—"}
+                </p>
+              </div>
+            )}
           </div>
           </div>
           </div>
