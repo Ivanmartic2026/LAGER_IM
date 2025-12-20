@@ -12,6 +12,7 @@ import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import LabelDownloader from "../labels/LabelDownloader";
 import RepairModal from "./RepairModal";
+import ReturnFromRepairModal from "./ReturnFromRepairModal";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -25,6 +26,7 @@ export default function ArticleDetail({
 }) {
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [repairModalOpen, setRepairModalOpen] = useState(false);
+  const [returnFromRepairModalOpen, setReturnFromRepairModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const queryClient = useQueryClient();
 
@@ -93,27 +95,48 @@ export default function ArticleDetail({
     }
   };
 
-  const handleReturnFromRepair = async () => {
+  const handleReturnFromRepair = async (returnedQuantity, discardedQuantity, returnNotes) => {
     try {
+      const previousQty = article.stock_qty || 0;
+      const newQty = previousQty + returnedQuantity;
+      
       await updateArticleMutation.mutateAsync({
         id: article.id,
         data: {
-          status: "active",
+          status: newQty <= 0 ? "out_of_stock" : 
+                 newQty <= (article.min_stock_level || 5) ? "low_stock" : "active",
           repair_notes: null,
-          repair_date: null
+          repair_date: null,
+          stock_qty: newQty
         }
       });
 
-      await createMovementMutation.mutateAsync({
-        article_id: article.id,
-        movement_type: "adjustment",
-        quantity: 0,
-        previous_qty: article.stock_qty,
-        new_qty: article.stock_qty,
-        reason: "Återkommen från reparation"
-      });
+      // Create movement for returned items
+      if (returnedQuantity > 0) {
+        await createMovementMutation.mutateAsync({
+          article_id: article.id,
+          movement_type: "inbound",
+          quantity: returnedQuantity,
+          previous_qty: previousQty,
+          new_qty: newQty,
+          reason: `Återkommen från reparation${returnNotes ? ': ' + returnNotes : ''}`
+        });
+      }
 
-      toast.success("Artikel markerad som aktiv");
+      // Create movement for discarded items
+      if (discardedQuantity > 0) {
+        await createMovementMutation.mutateAsync({
+          article_id: article.id,
+          movement_type: "adjustment",
+          quantity: -discardedQuantity,
+          previous_qty: newQty,
+          new_qty: newQty,
+          reason: `Kasserad efter reparation (${discardedQuantity} st)${returnNotes ? ': ' + returnNotes : ''}`
+        });
+      }
+
+      toast.success(`${returnedQuantity} st återförda till lager${discardedQuantity > 0 ? `, ${discardedQuantity} st kasserade` : ''}`);
+      setReturnFromRepairModalOpen(false);
     } catch (error) {
       toast.error("Kunde inte uppdatera artikel");
     }
@@ -149,12 +172,12 @@ export default function ArticleDetail({
         <div className="flex flex-wrap gap-2">
           {article.status === "on_repair" ? (
             <Button
-              onClick={handleReturnFromRepair}
+              onClick={() => setReturnFromRepairModalOpen(true)}
               disabled={updateArticleMutation.isPending}
               className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6"
             >
               <CheckCircle2 className="w-5 h-5 mr-2" />
-              Markera som reparerad
+              Återför från reparation
             </Button>
           ) : (
             <Button
@@ -403,6 +426,14 @@ export default function ArticleDetail({
         onSubmit={handleSendToRepair}
         isSubmitting={updateArticleMutation.isPending}
       />
-    </motion.div>
-  );
-}
+
+      <ReturnFromRepairModal
+        isOpen={returnFromRepairModalOpen}
+        onClose={() => setReturnFromRepairModalOpen(false)}
+        article={article}
+        onSubmit={handleReturnFromRepair}
+        isSubmitting={updateArticleMutation.isPending}
+      />
+      </motion.div>
+      );
+      }
