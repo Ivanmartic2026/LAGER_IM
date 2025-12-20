@@ -132,30 +132,29 @@ export default function ArticleDetail({
           <ArrowLeft className="w-4 h-4 mr-2" />
           Tillbaka
         </Button>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {article.status === "on_repair" ? (
             <Button
               onClick={handleReturnFromRepair}
               disabled={updateArticleMutation.isPending}
-              className="bg-emerald-600 hover:bg-emerald-500"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6"
             >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
+              <CheckCircle2 className="w-5 h-5 mr-2" />
               Markera som reparerad
             </Button>
           ) : (
             <Button
               onClick={() => setRepairModalOpen(true)}
-              variant="outline"
-              className="bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20 text-orange-400"
+              className="bg-orange-600 hover:bg-orange-500 text-white font-semibold"
             >
               <Wrench className="w-4 h-4 mr-2" />
-              Reparation
+              Skicka på reparation
             </Button>
           )}
           <Button
             variant="outline"
             onClick={() => setShowPrintModal(true)}
-            className="bg-slate-800 border-slate-600 hover:bg-slate-700"
+            className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
           >
             <Printer className="w-4 h-4 mr-2" />
             Etikett
@@ -164,7 +163,7 @@ export default function ArticleDetail({
             variant="outline"
             size="icon"
             onClick={onEdit}
-            className="bg-slate-800 border-slate-600 hover:bg-slate-700"
+            className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
           >
             <Edit className="w-4 h-4" />
           </Button>
@@ -172,7 +171,7 @@ export default function ArticleDetail({
             variant="outline"
             size="icon"
             onClick={onDelete}
-            className="bg-slate-800 border-slate-600 hover:bg-red-900/50 hover:border-red-500/50"
+            className="bg-slate-800 border-slate-600 hover:bg-red-900/50 hover:border-red-500/50 text-white"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
