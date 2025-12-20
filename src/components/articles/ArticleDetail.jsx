@@ -272,7 +272,7 @@ export default function ArticleDetail({
           </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Button
           onClick={() => onAdjustStock("add")}
           className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-14 text-base"
@@ -287,6 +287,24 @@ export default function ArticleDetail({
           <Minus className="w-5 h-5 mr-2" />
           Ta ut från lager
           </Button>
+          {article.status === "on_repair" ? (
+            <Button
+              onClick={() => setReturnFromRepairModalOpen(true)}
+              disabled={updateArticleMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-14 text-base"
+            >
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              Återför från reparation
+            </Button>
+          ) : (
+            <Button
+              onClick={() => setRepairModalOpen(true)}
+              className="bg-orange-600 hover:bg-orange-500 text-white font-semibold h-14 text-base"
+            >
+              <Wrench className="w-5 h-5 mr-2" />
+              Skicka på reparation
+            </Button>
+          )}
           </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
