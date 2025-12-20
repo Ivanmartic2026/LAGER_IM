@@ -64,60 +64,86 @@ export default function ScanPage() {
       setImageUrls(urls);
       setProgress(30);
       
-      // Use first image for AI extraction
-      const primaryUrl = urls[0];
-
-      // Extract data using AI from primary image
+      // Extract data using AI from all images
       setProgress(40);
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analysera denna bild av en artikel/etikett/följesedel och extrahera all relevant information för ett lagersystem.
-
-      Bilden kan innehålla:
-      - Batchnummer/artikelnummer
-      - Artikelnamn
-      - Tillverkare
-      - Tillverkningsdatum
-      - Pixel pitch (mm)
-      - Hyllplats/lagerlokation
-      - Dimensioner (bredd, höjd, djup i mm)
-      - Vikt (kg)
-      - Antal
-      - Kategori (LED Module, Cabinet, Controller, Power Supply, Cable, Accessory, Other)
-
-      Returnera all information du kan hitta. För varje fält, ge ett confidence-värde (0-1) baserat på hur säker du är.`,
-        file_urls: [primaryUrl],
-        response_json_schema: {
-          type: "object",
-          properties: {
-            batch_number: { type: "string" },
-            batch_number_confidence: { type: "number" },
-            name: { type: "string" },
-            name_confidence: { type: "number" },
-            manufacturer: { type: "string" },
-            manufacturer_confidence: { type: "number" },
-            manufacturing_date: { type: "string" },
-            manufacturing_date_confidence: { type: "number" },
-            pixel_pitch_mm: { type: "number" },
-            pixel_pitch_mm_confidence: { type: "number" },
-            shelf_address: { type: "string" },
-            shelf_address_confidence: { type: "number" },
-            dimensions_width_mm: { type: "number" },
-            dimensions_width_mm_confidence: { type: "number" },
-            dimensions_height_mm: { type: "number" },
-            dimensions_height_mm_confidence: { type: "number" },
-            dimensions_depth_mm: { type: "number" },
-            dimensions_depth_mm_confidence: { type: "number" },
-            weight_kg: { type: "number" },
-            weight_kg_confidence: { type: "number" },
-            stock_qty: { type: "number" },
-            stock_qty_confidence: { type: "number" },
-            category: { type: "string" },
-            category_confidence: { type: "number" },
-            warehouse: { type: "string" },
-            warehouse_confidence: { type: "number" }
-          }
+      
+      const schema = {
+        type: "object",
+        properties: {
+          batch_number: { type: "string" },
+          batch_number_confidence: { type: "number" },
+          name: { type: "string" },
+          name_confidence: { type: "number" },
+          manufacturer: { type: "string" },
+          manufacturer_confidence: { type: "number" },
+          manufacturing_date: { type: "string" },
+          manufacturing_date_confidence: { type: "number" },
+          pixel_pitch_mm: { type: "number" },
+          pixel_pitch_mm_confidence: { type: "number" },
+          shelf_address: { type: "string" },
+          shelf_address_confidence: { type: "number" },
+          dimensions_width_mm: { type: "number" },
+          dimensions_width_mm_confidence: { type: "number" },
+          dimensions_height_mm: { type: "number" },
+          dimensions_height_mm_confidence: { type: "number" },
+          dimensions_depth_mm: { type: "number" },
+          dimensions_depth_mm_confidence: { type: "number" },
+          weight_kg: { type: "number" },
+          weight_kg_confidence: { type: "number" },
+          stock_qty: { type: "number" },
+          stock_qty_confidence: { type: "number" },
+          category: { type: "string" },
+          category_confidence: { type: "number" },
+          warehouse: { type: "string" },
+          warehouse_confidence: { type: "number" }
         }
+      };
+
+      // Analyze all images in parallel
+      const analysisPromises = urls.map(url => 
+        base44.integrations.Core.InvokeLLM({
+          prompt: `Analysera denna bild av en artikel/etikett/följesedel och extrahera all relevant information för ett lagersystem.
+
+        Bilden kan innehålla:
+        - Batchnummer/artikelnummer
+        - Artikelnamn
+        - Tillverkare
+        - Tillverkningsdatum
+        - Pixel pitch (mm)
+        - Hyllplats/lagerlokation
+        - Dimensioner (bredd, höjd, djup i mm)
+        - Vikt (kg)
+        - Antal
+        - Kategori (LED Module, Cabinet, Controller, Power Supply, Cable, Accessory, Other)
+
+        Returnera all information du kan hitta. För varje fält, ge ett confidence-värde (0-1) baserat på hur säker du är.`,
+          file_urls: [url],
+          response_json_schema: schema
+        })
+      );
+
+      const results = await Promise.all(analysisPromises);
+      setProgress(60);
+
+      // Merge results from all images, keeping the value with highest confidence for each field
+      let result = {};
+      results.forEach(imageResult => {
+        Object.keys(imageResult).forEach(key => {
+          if (key.endsWith('_confidence')) {
+            const fieldName = key.replace('_confidence', '');
+            const currentConfidence = result[key] || 0;
+            const newConfidence = imageResult[key] || 0;
+            
+            if (newConfidence > currentConfidence) {
+              result[key] = newConfidence;
+              if (imageResult[fieldName]) {
+                result[fieldName] = imageResult[fieldName];
+              }
+            }
+          }
+        });
       });
+      
       setProgress(70);
 
       // Enrich data with web search if we have manufacturer and name
