@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Find from './pages/Find';
 import Movements from './pages/Movements';
 import Reports from './pages/Reports';
+import Analytics from './pages/Analytics';
 import __Layout from './Layout.jsx';
 
 
@@ -14,6 +15,7 @@ export const PAGES = {
     "Find": Find,
     "Movements": Movements,
     "Reports": Reports,
+    "Analytics": Analytics,
 }
 
 export const pagesConfig = {

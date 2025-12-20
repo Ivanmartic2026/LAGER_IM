@@ -12,7 +12,8 @@ const NAV_ITEMS = [
   { name: "Scan", label: "Skanna", icon: Camera },
   { name: "Inventory", label: "Lager", icon: Package },
   { name: "Movements", label: "Rörelser", icon: Activity },
-  { name: "Reports", label: "Rapporter", icon: FileText }
+  { name: "Analytics", label: "Analys", icon: FileText },
+  { name: "Reports", label: "Schemalagda", icon: FileText }
 ];
 
 export default function Layout({ children, currentPageName }) {
