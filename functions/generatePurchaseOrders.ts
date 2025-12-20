@@ -9,16 +9,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all articles
+    // Get all articles, movements, suppliers
     const articles = await base44.asServiceRole.entities.Article.list('-updated_date', 1000);
-    
-    // Get all stock movements for historical analysis
     const movements = await base44.asServiceRole.entities.StockMovement.list('-created_date', 1000);
+    const suppliers = await base44.asServiceRole.entities.Supplier.list();
     
     // Get existing pending purchase orders to avoid duplicates
     const existingOrders = await base44.asServiceRole.entities.PurchaseOrder.filter({ 
       status: 'pending' 
     });
+
+    // Create supplier lookup map
+    const supplierMap = {};
+    suppliers.forEach(s => supplierMap[s.id] = s);
 
     const existingArticleIds = new Set(existingOrders.map(o => o.article_id));
     
@@ -40,6 +43,12 @@ Deno.serve(async (req) => {
 
     // Generate AI suggestions for each low stock article
     const orderPromises = lowStockArticles.map(async (article) => {
+      // Get supplier information
+      const supplier = article.supplier_id ? supplierMap[article.supplier_id] : null;
+      const supplierName = supplier?.name || article.manufacturer || 'Ej angiven';
+      const deliveryDays = supplier?.standard_delivery_days || 10;
+      const supplierPrice = article.supplier_price || null;
+
       // Get movement history for this article
       const articleMovements = movements.filter(m => m.article_id === article.id);
       
@@ -66,15 +75,18 @@ Antal uttag senaste 30 dagarna: ${outboundMovements.length} st
 Total förbrukning senaste 30 dagarna: ${totalOutbound} st
 
 Kategori: ${article.category || 'Okänd'}
-Tillverkare: ${article.manufacturer || 'Okänd'}
+Leverantör: ${supplierName}
+Standard leveranstid: ${deliveryDays} dagar
+${supplierPrice ? `Pris per enhet: ${supplierPrice} kr` : ''}
 
 Föreslå en lämplig beställningsmängd som:
-1. Täcker minst 60 dagars förbrukning
-2. Tar hänsyn till leveranstider (anta 7-14 dagar)
+1. Täcker förbrukningen under leveranstiden (${deliveryDays} dagar) + 30-60 dagars buffert
+2. Tar hänsyn till leveranstider från leverantören
 3. Undviker överlager men säkerställer buffert
 4. Anpassas till förbrukningsmönster
+${supplierPrice ? '5. Beräkna total beställningskostnad' : ''}
 
-Returnera ett JSON-objekt med föreslagna mängden och motivering.`;
+Returnera ett JSON-objekt med föreslagna mängden, motivering, prioritet och uppskattad leveranstid.`;
 
       try {
         const aiResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
@@ -88,14 +100,15 @@ Returnera ett JSON-objekt med föreslagna mängden och motivering.`;
                 type: "string",
                 enum: ["low", "medium", "high", "urgent"]
               },
-              estimated_delivery_days: { type: "number" }
+              estimated_delivery_days: { type: "number" },
+              estimated_cost: { type: "number" }
             }
           }
         });
 
         // Calculate estimated delivery date
         const deliveryDate = new Date();
-        deliveryDate.setDate(deliveryDate.getDate() + (aiResponse.estimated_delivery_days || 10));
+        deliveryDate.setDate(deliveryDate.getDate() + (aiResponse.estimated_delivery_days || deliveryDays));
 
         // Determine priority based on current stock level
         let priority = aiResponse.priority || 'medium';
@@ -106,7 +119,7 @@ Returnera ett JSON-objekt med föreslagna mängden och motivering.`;
         }
 
         // Create purchase order
-        const order = await base44.asServiceRole.entities.PurchaseOrder.create({
+        const orderData = {
           article_id: article.id,
           article_name: article.name,
           article_batch_number: article.batch_number,
@@ -116,9 +129,15 @@ Returnera ett JSON-objekt med föreslagna mängden och motivering.`;
           ai_reasoning: aiResponse.reasoning,
           status: 'pending',
           priority: priority,
-          supplier: article.manufacturer,
+          supplier: supplierName,
           estimated_delivery_date: deliveryDate.toISOString().split('T')[0]
-        });
+        };
+
+        if (aiResponse.estimated_cost) {
+          orderData.estimated_cost = aiResponse.estimated_cost;
+        }
+
+        const order = await base44.asServiceRole.entities.PurchaseOrder.create(orderData);
 
         return order;
       } catch (error) {
@@ -131,7 +150,7 @@ Returnera ett JSON-objekt med föreslagna mängden och motivering.`;
         );
 
         const deliveryDate = new Date();
-        deliveryDate.setDate(deliveryDate.getDate() + 10);
+        deliveryDate.setDate(deliveryDate.getDate() + deliveryDays);
 
         return await base44.asServiceRole.entities.PurchaseOrder.create({
           article_id: article.id,
@@ -143,7 +162,7 @@ Returnera ett JSON-objekt med föreslagna mängden och motivering.`;
           ai_reasoning: 'Automatiskt genererad baserat på minsta lagernivå (AI otillgänglig)',
           status: 'pending',
           priority: article.stock_qty <= 0 ? 'urgent' : 'medium',
-          supplier: article.manufacturer,
+          supplier: supplierName,
           estimated_delivery_date: deliveryDate.toISOString().split('T')[0]
         });
       }
