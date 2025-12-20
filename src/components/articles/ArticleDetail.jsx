@@ -38,6 +38,13 @@ export default function ArticleDetail({
       return allMovements.filter(m => m.article_id === article.id);
     },
   });
+
+  const { data: allArticles = [] } = useQuery({
+    queryKey: ['articles'],
+    queryFn: () => base44.entities.Article.list('-updated_date'),
+  });
+
+  const articlesOnRepair = allArticles.filter(a => a.status === 'on_repair');
   
   const updateArticleMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Article.update(id, data),
@@ -284,6 +291,10 @@ export default function ArticleDetail({
             <History className="w-4 h-4" />
             Historik
           </TabsTrigger>
+          <TabsTrigger value="repairs" className="flex items-center gap-2">
+            <Wrench className="w-4 h-4" />
+            På reparation
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="space-y-6 mt-6">
@@ -409,7 +420,72 @@ export default function ArticleDetail({
             )}
           </div>
         </TabsContent>
-      </Tabs>
+
+        <TabsContent value="repairs" className="mt-6">
+          <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+            <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+              <Wrench className="w-5 h-5 text-orange-400" />
+              Artiklar på reparation
+            </h3>
+
+            {articlesOnRepair.length === 0 ? (
+              <div className="text-center py-8">
+                <Wrench className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <p className="text-slate-400">Inga artiklar på reparation</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {articlesOnRepair.map((repairArticle) => (
+                  <div
+                    key={repairArticle.id}
+                    className="p-4 rounded-xl bg-slate-900/50 border border-orange-500/30 hover:border-orange-500/50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      if (repairArticle.id !== article.id) {
+                        window.location.href = `#/Inventory?articleId=${repairArticle.id}`;
+                      }
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-white">{repairArticle.name}</span>
+                          <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs">
+                            #{repairArticle.batch_number}
+                          </Badge>
+                        </div>
+                        {repairArticle.repair_notes && (
+                          <p className="text-sm text-orange-200 mb-2">
+                            {repairArticle.repair_notes}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-4 text-xs text-slate-400">
+                          {repairArticle.repair_date && (
+                            <span>
+                              Skickad: {format(new Date(repairArticle.repair_date), "d MMM yyyy", { locale: sv })}
+                            </span>
+                          )}
+                          {repairArticle.shelf_address && (
+                            <>
+                              <span>•</span>
+                              <span>{repairArticle.shelf_address}</span>
+                            </>
+                          )}
+                          {repairArticle.manufacturer && (
+                            <>
+                              <span>•</span>
+                              <span>{repairArticle.manufacturer}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        </Tabs>
 
       {/* Modals */}
       {showPrintModal && (
