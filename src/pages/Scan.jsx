@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { 
   Package, ClipboardList, ArrowLeft, Sparkles, 
-  CheckCircle2, Camera, Download 
+  CheckCircle2, Camera, Download, AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CameraCapture from "@/components/scanner/CameraCapture";
@@ -41,6 +41,8 @@ export default function ScanPage() {
   const [extractedData, setExtractedData] = useState({});
   const [confidences, setConfidences] = useState({});
   const [savedArticle, setSavedArticle] = useState(null);
+  const [existingArticle, setExistingArticle] = useState(null);
+  const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
 
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
@@ -235,6 +237,14 @@ export default function ScanPage() {
         batch_number: extractedData.batch_number 
       });
 
+      if (existing.length > 0 && !existingArticle) {
+        // Found duplicate - show confirmation
+        setExistingArticle(existing[0]);
+        setShowDuplicateConfirm(true);
+        setIsSaving(false);
+        return;
+      }
+
       let article;
       let previousQty = 0;
 
@@ -272,6 +282,8 @@ export default function ScanPage() {
 
       setSavedArticle(article);
       setStep("success");
+      setShowDuplicateConfirm(false);
+      setExistingArticle(null);
       toast.success(existing.length > 0 ? "Artikel uppdaterad!" : "Ny artikel skapad!");
       
     } catch (error) {
@@ -282,6 +294,16 @@ export default function ScanPage() {
     }
   };
 
+  const handleConfirmDuplicate = async () => {
+    await handleSave();
+  };
+
+  const handleCancelDuplicate = () => {
+    setShowDuplicateConfirm(false);
+    setExistingArticle(null);
+    setIsSaving(false);
+  };
+
   const handleReset = () => {
     setMode(null);
     setStep("mode");
@@ -290,6 +312,8 @@ export default function ScanPage() {
     setExtractedData({});
     setConfidences({});
     setSavedArticle(null);
+    setExistingArticle(null);
+    setShowDuplicateConfirm(false);
     setProgress(0);
   };
 
@@ -462,6 +486,72 @@ export default function ScanPage() {
                 isSaving={isSaving}
                 mode={mode}
               />
+
+              {/* Duplicate Confirmation Modal */}
+              {showDuplicateConfirm && existingArticle && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                  onClick={handleCancelDuplicate}
+                >
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-slate-900 border border-amber-500/30 rounded-2xl p-6 max-w-md w-full"
+                  >
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                        <AlertTriangle className="w-6 h-6 text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white mb-2">
+                          Artikel finns redan
+                        </h3>
+                        <p className="text-sm text-slate-300">
+                          En artikel med batchnummer <span className="font-semibold text-white">{extractedData.batch_number}</span> finns redan i systemet.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 mb-4">
+                      <p className="text-sm text-slate-400 mb-2">Befintlig artikel:</p>
+                      <p className="font-medium text-white mb-1">{existingArticle.name}</p>
+                      <div className="flex items-center gap-4 text-xs text-slate-400">
+                        <span>Lagersaldo: {existingArticle.stock_qty || 0} st</span>
+                        {existingArticle.shelf_address && (
+                          <span>Plats: {existingArticle.shelf_address}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-slate-400 mb-6">
+                      {mode === "inbound" 
+                        ? `Vill du lägga till ${extractedData.stock_qty || 0} st till befintligt lager?`
+                        : "Vill du uppdatera artikelns information?"
+                      }
+                    </p>
+
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleCancelDuplicate}
+                        variant="outline"
+                        className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                      >
+                        Avbryt
+                      </Button>
+                      <Button
+                        onClick={handleConfirmDuplicate}
+                        disabled={isSaving}
+                        className="flex-1 bg-amber-600 hover:bg-amber-500 text-white"
+                      >
+                        {isSaving ? "Sparar..." : mode === "inbound" ? "Lägg till" : "Uppdatera"}
+                      </Button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
             </motion.div>
           )}
 
