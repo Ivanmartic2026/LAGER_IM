@@ -236,7 +236,7 @@ export default function ArticleDetail({
               <h1 className="text-2xl font-bold text-white mb-1">{article.name}</h1>
               <p className="text-slate-400 flex items-center gap-2">
                 <Hash className="w-4 h-4" />
-                {article.batch_number}
+                <span className="text-slate-500">Batch:</span> {article.batch_number}
               </p>
             </div>
             <Badge className={cn("border text-sm", statusConfig.color)}>
