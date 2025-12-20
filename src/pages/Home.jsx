@@ -52,16 +52,11 @@ export default function HomePage() {
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl transform -translate-x-10 translate-y-10" />
           
           <div className="relative z-10">
-            <div className="flex items-center gap-2 text-blue-200 text-sm mb-3">
-              <Zap className="w-4 h-4" />
-              <span>AI-driven lagerskanning</span>
-            </div>
-            
             <h1 className="text-2xl md:text-4xl font-bold text-white mb-3">
               Smart Lagerhantering
             </h1>
             <p className="text-blue-100 mb-6 max-w-lg">
-              Fotografera en etikett och låt AI fylla i alla artikeluppgifter automatiskt. 
+              Fotografera en etikett och fyll i alla artikeluppgifter automatiskt. 
               Snabb inleverans och inventering.
             </p>
             
