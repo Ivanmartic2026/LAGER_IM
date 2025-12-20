@@ -6,23 +6,33 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function CameraCapture({ onImageCaptured, isProcessing, progress = 0 }) {
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
-  const [preview, setPreview] = useState(null);
+  const [previews, setPreviews] = useState([]);
   const [dragActive, setDragActive] = useState(false);
 
   const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      processFile(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      processFiles(files);
     }
   };
 
-  const processFile = (file) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setPreview(e.target.result);
-    };
-    reader.readAsDataURL(file);
-    onImageCaptured(file);
+  const processFiles = (files) => {
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) return;
+
+    const previewPromises = imageFiles.map(file => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(previewPromises).then(urls => {
+      setPreviews(urls);
+    });
+
+    onImageCaptured(imageFiles);
   };
 
   const handleDrag = (e) => {
@@ -39,13 +49,14 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      processFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files) {
+      const files = Array.from(e.dataTransfer.files);
+      processFiles(files);
     }
   };
 
   const clearPreview = () => {
-    setPreview(null);
+    setPreviews([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -62,6 +73,7 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
         onChange={handleFileChange}
         accept="image/*"
         capture="environment"
+        multiple
         className="hidden"
       />
       <input
@@ -69,6 +81,7 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
         ref={fileInputRef}
         onChange={handleFileChange}
         accept="image/*"
+        multiple
         className="hidden"
       />
 
@@ -143,18 +156,25 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
             exit={{ opacity: 0, scale: 0.95 }}
             className="relative rounded-2xl overflow-hidden bg-slate-900"
           >
-            <img
-              src={preview}
-              alt="Preview"
-              className="w-full h-auto max-h-[400px] object-contain"
-            />
+            <div className={previews.length > 1 ? "grid grid-cols-2 gap-2 p-2" : ""}>
+              {previews.map((preview, index) => (
+                <img
+                  key={index}
+                  src={preview}
+                  alt={`Preview ${index + 1}`}
+                  className={previews.length > 1 ? "w-full h-32 object-contain rounded-lg" : "w-full h-auto max-h-[400px] object-contain"}
+                />
+              ))}
+            </div>
             
             {isProcessing && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4 max-w-xs w-full px-4">
                   <div className="w-12 h-12 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
                   <div className="w-full">
-                    <p className="text-white font-medium text-center mb-2">Analyserar bild med AI...</p>
+                    <p className="text-white font-medium text-center mb-2">
+                      Analyserar {previews.length} bild{previews.length > 1 ? 'er' : ''} med AI...
+                    </p>
                     <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-blue-500 transition-all duration-300 ease-out"
