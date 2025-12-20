@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wrench, X } from "lucide-react";
 
 export default function RepairModal({ isOpen, onClose, article, onSubmit, isSubmitting }) {
   const [repairNotes, setRepairNotes] = useState("");
+  const [quantity, setQuantity] = useState(article?.stock_qty || 1);
 
   const handleSubmit = () => {
     if (!repairNotes.trim()) return;
-    onSubmit(repairNotes);
+    onSubmit(repairNotes, quantity);
     setRepairNotes("");
   };
 
@@ -53,6 +55,23 @@ export default function RepairModal({ isOpen, onClose, article, onSubmit, isSubm
           </div>
 
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-300">
+                Antal som skickas på reparation *
+              </Label>
+              <Input
+                type="number"
+                min="1"
+                max={article?.stock_qty || 1}
+                value={quantity}
+                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                className="bg-slate-800/50 border-slate-700 text-white"
+              />
+              <p className="text-xs text-slate-500">
+                Tillgängligt i lager: {article?.stock_qty || 0} st
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label className="text-sm font-medium text-slate-300">
                 Anledning till reparation *

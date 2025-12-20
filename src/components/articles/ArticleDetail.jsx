@@ -63,27 +63,30 @@ export default function ArticleDetail({
     }
   };
 
-  const handleSendToRepair = async (repairNotes) => {
+  const handleSendToRepair = async (repairNotes, quantity) => {
     try {
+      const newQty = (article.stock_qty || 0) - quantity;
+      
       await updateArticleMutation.mutateAsync({
         id: article.id,
         data: {
           status: "on_repair",
-          repair_notes: repairNotes,
-          repair_date: new Date().toISOString().split('T')[0]
+          repair_notes: `${quantity} st - ${repairNotes}`,
+          repair_date: new Date().toISOString().split('T')[0],
+          stock_qty: newQty
         }
       });
 
       await createMovementMutation.mutateAsync({
         article_id: article.id,
         movement_type: "adjustment",
-        quantity: 0,
+        quantity: -quantity,
         previous_qty: article.stock_qty,
-        new_qty: article.stock_qty,
-        reason: `Skickad på reparation: ${repairNotes}`
+        new_qty: newQty,
+        reason: `Skickad på reparation (${quantity} st): ${repairNotes}`
       });
 
-      toast.success("Artikel markerad som på reparation");
+      toast.success(`${quantity} st skickad på reparation`);
       setRepairModalOpen(false);
     } catch (error) {
       toast.error("Kunde inte uppdatera artikel");
