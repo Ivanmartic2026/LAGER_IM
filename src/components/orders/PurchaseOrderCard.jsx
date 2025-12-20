@@ -172,6 +172,12 @@ export default function PurchaseOrderCard({
               </span>
             </div>
           )}
+          {order.estimated_cost && (
+            <div className="flex items-center gap-1 font-semibold text-emerald-400">
+              <TrendingUp className="w-3 h-3" />
+              <span>{Math.round(order.estimated_cost)} kr</span>
+            </div>
+          )}
         </div>
 
         {/* Actions */}

@@ -11,7 +11,8 @@ const NAV_ITEMS = [
   { name: "Find", label: "Hitta", icon: MapPin },
   { name: "Scan", label: "Skanna", icon: Camera },
   { name: "Inventory", label: "Lager", icon: Package },
-  { name: "PurchaseOrders", label: "Inköp", icon: Activity },
+  { name: "Suppliers", label: "Leverantörer", icon: Activity },
+  { name: "PurchaseOrders", label: "Inköp", icon: ShoppingCart },
   { name: "Movements", label: "Rörelser", icon: Activity },
   { name: "Analytics", label: "Analys", icon: FileText },
   { name: "Reports", label: "Schemalagda", icon: FileText }
