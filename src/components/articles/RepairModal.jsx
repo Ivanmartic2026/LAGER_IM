@@ -19,15 +19,20 @@ export default function RepairModal({ isOpen, onClose, article, onSubmit, isSubm
     if (!repairNotes.trim()) return;
     
     const repairDate = new Date().toISOString();
-    await onSubmit(repairNotes, quantity);
     
-    // Show label after successful submission
-    setLabelData({
-      repairNotes,
-      quantity,
-      repairDate
-    });
-    setShowLabel(true);
+    try {
+      await onSubmit(repairNotes, quantity);
+      
+      // Show label after successful submission
+      setLabelData({
+        repairNotes,
+        quantity,
+        repairDate
+      });
+      setShowLabel(true);
+    } catch (error) {
+      console.error("Failed to submit repair:", error);
+    }
   };
 
   const downloadLabel = async () => {
