@@ -174,7 +174,15 @@ export default function InventoryPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+          <button
+            onClick={() => setStatusFilter("all")}
+            className={cn(
+              "p-4 rounded-xl border transition-all text-left",
+              statusFilter === "all"
+                ? "bg-blue-500/20 border-blue-500/50 ring-2 ring-blue-500/30"
+                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
+            )}
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
                 <Package className="w-5 h-5 text-blue-400" />
@@ -184,9 +192,17 @@ export default function InventoryPage() {
                 <p className="text-xs text-slate-400">Totalt</p>
               </div>
             </div>
-          </div>
+          </button>
 
-          <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+          <button
+            onClick={() => setStatusFilter("low_stock")}
+            className={cn(
+              "p-4 rounded-xl border transition-all text-left",
+              statusFilter === "low_stock"
+                ? "bg-amber-500/20 border-amber-500/50 ring-2 ring-amber-500/30"
+                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
+            )}
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-amber-400" />
@@ -196,9 +212,17 @@ export default function InventoryPage() {
                 <p className="text-xs text-slate-400">Lågt lager</p>
               </div>
             </div>
-          </div>
+          </button>
 
-          <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+          <button
+            onClick={() => setStatusFilter("out_of_stock")}
+            className={cn(
+              "p-4 rounded-xl border transition-all text-left",
+              statusFilter === "out_of_stock"
+                ? "bg-red-500/20 border-red-500/50 ring-2 ring-red-500/30"
+                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
+            )}
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
                 <Package className="w-5 h-5 text-red-400" />
@@ -208,9 +232,17 @@ export default function InventoryPage() {
                 <p className="text-xs text-slate-400">Slut</p>
               </div>
             </div>
-          </div>
+          </button>
 
-          <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+          <button
+            onClick={() => setStatusFilter("on_repair")}
+            className={cn(
+              "p-4 rounded-xl border transition-all text-left",
+              statusFilter === "on_repair"
+                ? "bg-orange-500/20 border-orange-500/50 ring-2 ring-orange-500/30"
+                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
+            )}
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
                 <Package className="w-5 h-5 text-orange-400" />
@@ -220,7 +252,7 @@ export default function InventoryPage() {
                 <p className="text-xs text-slate-400">Reparation</p>
               </div>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* Search & Filters */}
