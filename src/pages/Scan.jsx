@@ -3,10 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import { 
   Package, ClipboardList, ArrowLeft, Sparkles, 
-  CheckCircle2, Camera, Download, AlertTriangle 
+  CheckCircle2, Camera, Download 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CameraCapture from "@/components/scanner/CameraCapture";
@@ -42,7 +41,6 @@ export default function ScanPage() {
   const [extractedData, setExtractedData] = useState({});
   const [confidences, setConfidences] = useState({});
   const [savedArticle, setSavedArticle] = useState(null);
-  const [duplicateWarning, setDuplicateWarning] = useState(null);
 
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
@@ -229,20 +227,14 @@ export default function ScanPage() {
   };
 
   const handleSave = async () => {
-    // Check if article with same batch number exists
-    const existing = await base44.entities.Article.filter({ 
-      batch_number: extractedData.batch_number 
-    });
-
-    if (existing.length > 0 && !duplicateWarning) {
-      // Show duplicate warning
-      setDuplicateWarning(existing[0]);
-      return;
-    }
-
     setIsSaving(true);
 
     try {
+      // Check if article with same batch number exists
+      const existing = await base44.entities.Article.filter({ 
+        batch_number: extractedData.batch_number 
+      });
+
       let article;
       let previousQty = 0;
 
@@ -279,7 +271,6 @@ export default function ScanPage() {
       });
 
       setSavedArticle(article);
-      setDuplicateWarning(null);
       setStep("success");
       toast.success(existing.length > 0 ? "Artikel uppdaterad!" : "Ny artikel skapad!");
       
@@ -299,7 +290,6 @@ export default function ScanPage() {
     setExtractedData({});
     setConfidences({});
     setSavedArticle(null);
-    setDuplicateWarning(null);
     setProgress(0);
   };
 
@@ -463,85 +453,15 @@ export default function ScanPage() {
                 </div>
               )}
 
-              {duplicateWarning ? (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="p-6 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30"
-                >
-                  <div className="flex items-start gap-3 mb-4">
-                    <AlertTriangle className="w-6 h-6 text-amber-400 flex-shrink-0" />
-                    <div>
-                      <h3 className="text-lg font-semibold text-white mb-1">
-                        Artikel finns redan!
-                      </h3>
-                      <p className="text-amber-200 text-sm">
-                        En artikel med batch {duplicateWarning.batch_number} finns redan i systemet.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-lg bg-slate-900/50 border border-slate-700 mb-4">
-                    <p className="text-white font-medium mb-1">{duplicateWarning.name}</p>
-                    <p className="text-slate-400 text-sm">
-                      Nuvarande lagersaldo: {duplicateWarning.stock_qty || 0} st
-                    </p>
-                    {duplicateWarning.shelf_address && (
-                      <p className="text-slate-400 text-sm">
-                        Hyllplats: {duplicateWarning.shelf_address}
-                      </p>
-                    )}
-                  </div>
-
-                  <p className="text-slate-300 text-sm mb-4">
-                    Vad vill du göra?
-                  </p>
-
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      onClick={handleSave}
-                      disabled={isSaving}
-                      className="w-full bg-blue-600 hover:bg-blue-500"
-                    >
-                      {isSaving ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Uppdaterar...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 mr-2" />
-                          Uppdatera befintlig artikel
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setDuplicateWarning(null)}
-                      className="w-full bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-                    >
-                      Ändra information
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleReset}
-                      className="w-full bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-                    >
-                      Avbryt
-                    </Button>
-                  </div>
-                </motion.div>
-              ) : (
-                <ReviewForm
-                  extractedData={extractedData}
-                  confidences={confidences}
-                  onFieldChange={handleFieldChange}
-                  onSave={handleSave}
-                  onCancel={handleReset}
-                  isSaving={isSaving}
-                  mode={mode}
-                />
-              )}
+              <ReviewForm
+                extractedData={extractedData}
+                confidences={confidences}
+                onFieldChange={handleFieldChange}
+                onSave={handleSave}
+                onCancel={handleReset}
+                isSaving={isSaving}
+                mode={mode}
+              />
             </motion.div>
           )}
 
