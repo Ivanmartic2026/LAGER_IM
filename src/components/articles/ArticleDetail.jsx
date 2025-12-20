@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import LabelDownloader from "../labels/LabelDownloader";
 import RepairModal from "./RepairModal";
 import ReturnFromRepairModal from "./ReturnFromRepairModal";
+import ImageGallery from "./ImageGallery";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -215,19 +216,17 @@ export default function ArticleDetail({
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
-        {article.image_url ? (
-          <div className="w-full md:w-48 h-48 rounded-2xl overflow-hidden bg-slate-800 flex-shrink-0">
-            <img 
-              src={article.image_url} 
-              alt={article.name}
-              className="w-full h-full object-contain"
-            />
-          </div>
-        ) : (
-          <div className="w-full md:w-48 h-48 rounded-2xl bg-slate-800/50 flex items-center justify-center flex-shrink-0">
-            <Package className="w-16 h-16 text-slate-600" />
-          </div>
-        )}
+        <div className="w-full md:w-64 flex-shrink-0">
+          <ImageGallery 
+            images={article.image_urls || (article.image_url ? [article.image_url] : [])} 
+            editable={false}
+          />
+          {(!article.image_urls || article.image_urls.length === 0) && !article.image_url && (
+            <div className="w-full h-48 rounded-2xl bg-slate-800/50 flex items-center justify-center">
+              <Package className="w-16 h-16 text-slate-600" />
+            </div>
+          )}
+        </div>
 
         <div className="flex-1">
           <div className="flex items-start justify-between gap-4 mb-4">

@@ -33,8 +33,8 @@ const MODE_OPTIONS = [
 export default function ScanPage() {
   const [mode, setMode] = useState(null);
   const [step, setStep] = useState("mode"); // mode, capture, review, success
-  const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imageUrls, setImageUrls] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
@@ -47,19 +47,27 @@ export default function ScanPage() {
     setStep("capture");
   };
 
-  const handleImageCaptured = async (file) => {
-    setImageFile(file);
+  const handleImageCaptured = async (files) => {
+    const fileArray = Array.isArray(files) ? files : [files];
+    setImageFiles(fileArray);
     setIsProcessing(true);
     setProgress(0);
 
     try {
-      // Upload image first
+      // Upload images first
       setProgress(10);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setImageUrl(file_url);
+      const uploadPromises = fileArray.map(file => 
+        base44.integrations.Core.UploadFile({ file })
+      );
+      const uploadResults = await Promise.all(uploadPromises);
+      const urls = uploadResults.map(r => r.file_url);
+      setImageUrls(urls);
       setProgress(30);
+      
+      // Use first image for AI extraction
+      const primaryUrl = urls[0];
 
-      // Extract data using AI
+      // Extract data using AI from primary image
       setProgress(40);
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Analysera denna bild av en artikel/etikett/följesedel och extrahera all relevant information för ett lagersystem.
@@ -77,7 +85,7 @@ export default function ScanPage() {
       - Kategori (LED Module, Cabinet, Controller, Power Supply, Cable, Accessory, Other)
 
       Returnera all information du kan hitta. För varje fält, ge ett confidence-värde (0-1) baserat på hur säker du är.`,
-        file_urls: [file_url],
+        file_urls: [primaryUrl],
         response_json_schema: {
           type: "object",
           properties: {
@@ -172,7 +180,7 @@ export default function ScanPage() {
       });
 
       setProgress(95);
-      setExtractedData({ ...data, image_url: file_url });
+      setExtractedData({ ...data, image_urls: urls });
       setConfidences(confs);
       setProgress(100);
       setStep("review");
@@ -251,8 +259,8 @@ export default function ScanPage() {
   const handleReset = () => {
     setMode(null);
     setStep("mode");
-    setImageFile(null);
-    setImageUrl(null);
+    setImageFiles([]);
+    setImageUrls([]);
     setExtractedData({});
     setConfidences({});
     setSavedArticle(null);
@@ -392,37 +400,29 @@ export default function ScanPage() {
                 </p>
               </div>
 
-              {imageUrl && (
-                <div className="rounded-xl overflow-hidden bg-slate-800 mb-4 relative group">
-                  <img 
-                    src={imageUrl} 
-                    alt="Scannad bild" 
-                    className="w-full h-40 object-contain"
-                  />
-                  <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm"
-                      onClick={() => window.open(imageUrl, '_blank')}
-                    >
-                      <Package className="w-4 h-4 mr-1" />
-                      Visa
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm"
-                      onClick={() => {
-                        const a = document.createElement('a');
-                        a.href = imageUrl;
-                        a.download = `artikel-${extractedData.batch_number || 'bild'}.jpg`;
-                        a.click();
-                      }}
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      Ladda ner
-                    </Button>
+              {imageUrls.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm text-slate-400 mb-2">{imageUrls.length} bild{imageUrls.length > 1 ? 'er' : ''} uppladdad{imageUrls.length > 1 ? 'e' : ''}</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {imageUrls.map((url, index) => (
+                      <div key={index} className="rounded-lg overflow-hidden bg-slate-800 relative group">
+                        <img 
+                          src={url} 
+                          alt={`Bild ${index + 1}`} 
+                          className="w-full h-24 object-contain"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-8 w-8 bg-slate-900/80 hover:bg-slate-800"
+                            onClick={() => window.open(url, '_blank')}
+                          >
+                            <Package className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
