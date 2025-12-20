@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Package, MapPin, Calendar, Hash, Factory, Ruler, 
-  Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2
+  Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2, History
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -13,7 +14,7 @@ import LabelDownloader from "../labels/LabelDownloader";
 import RepairModal from "./RepairModal";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
 export default function ArticleDetail({ 
   article, 
@@ -24,7 +25,17 @@ export default function ArticleDetail({
 }) {
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [repairModalOpen, setRepairModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
   const queryClient = useQueryClient();
+
+  // Fetch stock movements for this article
+  const { data: movements = [] } = useQuery({
+    queryKey: ['article-movements', article.id],
+    queryFn: async () => {
+      const allMovements = await base44.entities.StockMovement.list('-created_date', 100);
+      return allMovements.filter(m => m.article_id === article.id);
+    },
+  });
   
   const updateArticleMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Article.update(id, data),
@@ -217,82 +228,162 @@ export default function ArticleDetail({
               <p className="text-3xl font-bold text-white">{article.min_stock_level || "—"}</p>
             </div>
           </div>
-        </div>
-      </div>
+          </div>
+          </div>
 
-      <div className="flex gap-3">
-        <Button
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Button
           onClick={() => onAdjustStock("add")}
-          className="flex-1 bg-emerald-600 hover:bg-emerald-500"
-        >
-          <Plus className="w-4 h-4 mr-2" />
+          className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-14 text-base"
+          >
+          <Plus className="w-5 h-5 mr-2" />
           Lägg till lager
-        </Button>
-        <Button
+          </Button>
+          <Button
           onClick={() => onAdjustStock("remove")}
-          variant="outline"
-          className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700"
-        >
-          <Minus className="w-4 h-4 mr-2" />
+          className="bg-red-600 hover:bg-red-500 text-white font-semibold h-14 text-base"
+          >
+          <Minus className="w-5 h-5 mr-2" />
           Ta ut från lager
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-          <h3 className="font-semibold text-white mb-4">Artikelinformation</h3>
-          <div className="space-y-0">
-            <InfoRow icon={Factory} label="Tillverkare" value={article.manufacturer} />
-            <InfoRow icon={Calendar} label="Tillverkningsdatum" value={
-              article.manufacturing_date && !isNaN(new Date(article.manufacturing_date).getTime())
-                ? format(new Date(article.manufacturing_date), "d MMM yyyy", { locale: sv })
-                : null
-            } />
-            <InfoRow icon={Grid3X3} label="Pixel Pitch" value={
-              article.pixel_pitch_mm ? `${article.pixel_pitch_mm} mm` : null
-            } />
-            <InfoRow icon={Package} label="Kategori" value={article.category} />
+          </Button>
           </div>
-        </div>
 
-        <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-          <h3 className="font-semibold text-white mb-4">Lagerplats & Mått</h3>
-          <div className="space-y-0">
-            <InfoRow icon={MapPin} label="Hyllplats" value={article.shelf_address} />
-            <InfoRow icon={MapPin} label="Lager" value={article.warehouse} />
-            <InfoRow icon={Ruler} label="Dimensioner" value={
-              article.dimensions_width_mm || article.dimensions_height_mm || article.dimensions_depth_mm
-                ? `${article.dimensions_width_mm || "—"} × ${article.dimensions_height_mm || "—"} × ${article.dimensions_depth_mm || "—"} mm`
-                : null
-            } />
-            <InfoRow icon={Scale} label="Vikt" value={
-              article.weight_kg ? `${article.weight_kg} kg` : null
-            } />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="bg-slate-800/50 border border-slate-700 w-full md:w-auto">
+          <TabsTrigger value="details" className="flex items-center gap-2">
+            <Package className="w-4 h-4" />
+            Detaljer
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <History className="w-4 h-4" />
+            Historik
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="details" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+              <h3 className="font-semibold text-white mb-4">Artikelinformation</h3>
+              <div className="space-y-0">
+                <InfoRow icon={Factory} label="Tillverkare" value={article.manufacturer} />
+                <InfoRow icon={Calendar} label="Tillverkningsdatum" value={
+                  article.manufacturing_date && !isNaN(new Date(article.manufacturing_date).getTime())
+                    ? format(new Date(article.manufacturing_date), "d MMM yyyy", { locale: sv })
+                    : null
+                } />
+                <InfoRow icon={Grid3X3} label="Pixel Pitch" value={
+                  article.pixel_pitch_mm ? `${article.pixel_pitch_mm} mm` : null
+                } />
+                <InfoRow icon={Package} label="Kategori" value={article.category} />
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+              <h3 className="font-semibold text-white mb-4">Lagerplats & Mått</h3>
+              <div className="space-y-0">
+                <InfoRow icon={MapPin} label="Hyllplats" value={article.shelf_address} />
+                <InfoRow icon={MapPin} label="Lager" value={article.warehouse} />
+                <InfoRow icon={Ruler} label="Dimensioner" value={
+                  article.dimensions_width_mm || article.dimensions_height_mm || article.dimensions_depth_mm
+                    ? `${article.dimensions_width_mm || "—"} × ${article.dimensions_height_mm || "—"} × ${article.dimensions_depth_mm || "—"} mm`
+                    : null
+                } />
+                <InfoRow icon={Scale} label="Vikt" value={
+                  article.weight_kg ? `${article.weight_kg} kg` : null
+                } />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {article.notes && (
-        <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-          <h3 className="font-semibold text-white mb-3">Anteckningar</h3>
-          <p className="text-slate-300">{article.notes}</p>
-        </div>
-      )}
-
-      {article.status === "on_repair" && article.repair_notes && (
-        <div className="p-5 rounded-2xl bg-orange-500/10 border border-orange-500/30">
-          <div className="flex items-center gap-2 mb-3">
-            <Wrench className="w-4 h-4 text-orange-400" />
-            <h3 className="font-semibold text-white">Reparationsinformation</h3>
-          </div>
-          <p className="text-orange-200 mb-2">{article.repair_notes}</p>
-          {article.repair_date && (
-            <p className="text-xs text-orange-300">
-              Skickad: {format(new Date(article.repair_date), "d MMM yyyy", { locale: sv })}
-            </p>
+          {article.notes && (
+            <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+              <h3 className="font-semibold text-white mb-3">Anteckningar</h3>
+              <p className="text-slate-300">{article.notes}</p>
+            </div>
           )}
-        </div>
-      )}
+
+          {article.status === "on_repair" && article.repair_notes && (
+            <div className="p-5 rounded-2xl bg-orange-500/10 border border-orange-500/30">
+              <div className="flex items-center gap-2 mb-3">
+                <Wrench className="w-4 h-4 text-orange-400" />
+                <h3 className="font-semibold text-white">Reparationsinformation</h3>
+              </div>
+              <p className="text-orange-200 mb-2">{article.repair_notes}</p>
+              {article.repair_date && (
+                <p className="text-xs text-orange-300">
+                  Skickad: {format(new Date(article.repair_date), "d MMM yyyy", { locale: sv })}
+                </p>
+              )}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-6">
+          <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+            <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+              <History className="w-5 h-5" />
+              Lagerrörelser för {article.name}
+            </h3>
+
+            {movements.length === 0 ? (
+              <div className="text-center py-8">
+                <History className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <p className="text-slate-400">Ingen historik ännu</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {movements.map((movement) => {
+                  const typeConfig = {
+                    inbound: { label: "Inleverans", icon: "📥", color: "text-emerald-400" },
+                    outbound: { label: "Uttag", icon: "📤", color: "text-red-400" },
+                    adjustment: { label: "Justering", icon: "⚙️", color: "text-blue-400" },
+                    inventory: { label: "Inventering", icon: "📋", color: "text-purple-400" }
+                  }[movement.movement_type] || { label: movement.movement_type, icon: "•", color: "text-slate-400" };
+
+                  return (
+                    <div
+                      key={movement.id}
+                      className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/30"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-lg">{typeConfig.icon}</span>
+                            <span className={cn("font-medium", typeConfig.color)}>
+                              {typeConfig.label}
+                            </span>
+                            <Badge variant="outline" className="bg-slate-800 text-slate-300 text-xs">
+                              {movement.quantity > 0 ? '+' : ''}{movement.quantity} st
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-slate-400 mb-2">
+                            {movement.reason || "Ingen anledning angiven"}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-slate-500">
+                            <span>
+                              {format(new Date(movement.created_date), "d MMM yyyy HH:mm", { locale: sv })}
+                            </span>
+                            <span>•</span>
+                            <span>
+                              {movement.previous_qty} → {movement.new_qty} st
+                            </span>
+                            {movement.created_by && (
+                              <>
+                                <span>•</span>
+                                <span>{movement.created_by}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Modals */}
       {showPrintModal && (
