@@ -190,11 +190,35 @@ export default function ArticleDetail({
           )}
           <Button
             variant="outline"
+            onClick={async () => {
+              try {
+                const response = await base44.functions.invoke('generateA4Label', { articleId: article.id });
+                const blob = new Blob([response.data], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `artikel_${article.batch_number}_${Date.now()}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+                toast.success('A4-etikett nedladdad');
+              } catch (error) {
+                toast.error('Kunde inte generera etikett');
+              }
+            }}
+            className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+          >
+            <Printer className="w-4 h-4 mr-2" />
+            A4 Etikett
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => setShowPrintModal(true)}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
           >
             <Printer className="w-4 h-4 mr-2" />
-            Etikett
+            Liten Etikett
           </Button>
           <Button
             variant="outline"
