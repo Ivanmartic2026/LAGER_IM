@@ -106,7 +106,8 @@ export default function InventoryPage() {
   const stats = {
     total: articles.length,
     lowStock: articles.filter(a => a.status === "low_stock").length,
-    outOfStock: articles.filter(a => a.status === "out_of_stock").length
+    outOfStock: articles.filter(a => a.status === "out_of_stock").length,
+    onRepair: articles.filter(a => a.status === "on_repair").length
   };
 
   if (selectedArticle) {
@@ -172,7 +173,7 @@ export default function InventoryPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
@@ -184,7 +185,7 @@ export default function InventoryPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
@@ -196,7 +197,7 @@ export default function InventoryPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
@@ -205,6 +206,18 @@ export default function InventoryPage() {
               <div>
                 <p className="text-2xl font-bold text-white">{stats.outOfStock}</p>
                 <p className="text-xs text-slate-400">Slut</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                <Package className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-white">{stats.onRepair}</p>
+                <p className="text-xs text-slate-400">Reparation</p>
               </div>
             </div>
           </div>
