@@ -25,34 +25,32 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 flex-col items-center py-6 bg-slate-900/80 backdrop-blur-xl border-r border-slate-800 z-50">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-8">
+      {/* Desktop Navigation - Bottom */}
+      <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-slate-900/90 backdrop-blur-xl border-t border-slate-800 z-50 items-center justify-center gap-2 px-4">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mr-4">
           <Package className="w-5 h-5 text-white" />
         </div>
-        
-        <nav className="flex flex-col items-center gap-3 flex-1">
-          {NAV_ITEMS.map(item => (
-            <Link 
-              key={item.name}
-              to={createPageUrl(item.name)}
-              className="group relative"
-            >
-              <div className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center transition-all",
-                currentPageName === item.name
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800"
-              )}>
-                <item.icon className="w-5 h-5" />
-              </div>
-              <div className="absolute left-full ml-3 px-2 py-1 rounded bg-slate-800 text-white text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
-                {item.label}
-              </div>
-            </Link>
-          ))}
-        </nav>
-      </aside>
+
+        {NAV_ITEMS.map(item => (
+          <Link 
+            key={item.name}
+            to={createPageUrl(item.name)}
+            className="group relative"
+          >
+            <div className={cn(
+              "w-12 h-12 rounded-xl flex items-center justify-center transition-all",
+              currentPageName === item.name
+                ? "bg-blue-600 text-white"
+                : "text-slate-400 hover:text-white hover:bg-slate-800"
+            )}>
+              <item.icon className="w-5 h-5" />
+            </div>
+            <div className="absolute bottom-full mb-3 px-2 py-1 rounded bg-slate-800 text-white text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+              {item.label}
+            </div>
+          </Link>
+        ))}
+      </nav>
 
       {/* Mobile Header */}
       <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800 z-50 flex items-center justify-between px-4">
@@ -117,7 +115,7 @@ export default function Layout({ children, currentPageName }) {
       </nav>
 
       {/* Main Content */}
-      <main className="md:ml-20 pt-16 md:pt-0 pb-24 md:pb-0 min-h-screen">
+      <main className="pt-16 md:pt-0 pb-24 md:pb-24 min-h-screen">
         {children}
       </main>
     </div>
