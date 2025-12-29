@@ -478,10 +478,11 @@ export default function InventoryPage() {
         ) : (
           <div className="space-y-2">
             {/* Header Row */}
-            <div className="px-4 py-2 grid grid-cols-1 md:grid-cols-[80px_80px_minmax(200px,1fr)_minmax(150px,200px)_minmax(150px,200px)_150px] gap-4 text-xs font-medium text-slate-500 uppercase tracking-wider border-b border-slate-700/50">
+            <div className="px-4 py-2 grid grid-cols-1 md:grid-cols-[80px_80px_minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_120px] gap-4 text-xs font-medium text-slate-500 uppercase tracking-wider border-b border-slate-700/50">
               <div></div> {/* Image */}
               <div>Saldo</div>
-              <div>Artikel</div>
+              <div>Artikelnummer</div>
+              <div>Benämning</div>
               <div>Hyllplats</div>
               <div>Lager</div>
               <div className="text-right">Status</div>
@@ -530,24 +531,29 @@ export default function InventoryPage() {
                       </div>
 
                       {/* Article Info */}
-                      <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-[minmax(200px,1fr)_minmax(150px,200px)_minmax(150px,200px)_150px] gap-4">
-                        {/* Name & SKU */}
+                      <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-[minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_120px] gap-4">
+                        {/* SKU / Artikelnummer */}
+                        <div className="min-w-0">
+                          {article.sku ? (
+                            <div className="text-sm font-mono text-blue-400 truncate">
+                              {article.sku}
+                            </div>
+                          ) : article.batch_number ? (
+                            <div className="text-sm font-mono text-slate-500 truncate">
+                              #{article.batch_number}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-600">—</span>
+                          )}
+                        </div>
+
+                        {/* Benämning / Name */}
                         <div className="min-w-0">
                           <div className="font-semibold text-white text-sm mb-1 truncate">
                             {article.customer_name || article.name}
                           </div>
-                          {article.sku && (
-                            <div className="text-xs font-mono text-blue-400 truncate">
-                              {article.sku}
-                            </div>
-                          )}
-                          {!article.sku && article.batch_number && (
-                            <div className="text-xs font-mono text-slate-500 truncate">
-                              #{article.batch_number}
-                            </div>
-                          )}
                           {article.manufacturer && (
-                            <div className="text-xs text-slate-500 truncate mt-0.5">
+                            <div className="text-xs text-slate-500 truncate">
                               {article.manufacturer}
                               {article.series && ` • ${article.series}`}
                               {article.pitch_value && ` • ${article.pitch_value}`}
