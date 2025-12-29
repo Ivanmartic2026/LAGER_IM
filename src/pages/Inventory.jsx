@@ -15,9 +15,10 @@ import {
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import ArticleCard from "@/components/articles/ArticleCard";
 import ArticleDetail from "@/components/articles/ArticleDetail";
 import StockAdjustmentModal from "@/components/articles/StockAdjustmentModal";
+import { format } from "date-fns";
+import { sv } from "date-fns/locale";
 import QuickInventory from "@/components/inventory/QuickInventory";
 import PickListGenerator from "@/components/inventory/PickListGenerator";
 import {
@@ -381,11 +382,11 @@ export default function InventoryPage() {
           </div>
         </div>
 
-        {/* Articles Grid */}
+        {/* Articles List */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 rounded-2xl bg-slate-800/50 animate-pulse" />
+          <div className="space-y-2">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-20 rounded-xl bg-slate-800/50 animate-pulse" />
             ))}
           </div>
         ) : filteredArticles.length === 0 ? (
@@ -411,18 +412,128 @@ export default function InventoryPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
             <AnimatePresence>
-              {filteredArticles.map((article) => (
-                <ArticleCard
-                  key={article.id}
-                  article={article}
-                  onClick={() => setSelectedArticle(article)}
-                />
-              ))}
+              {filteredArticles.map((article) => {
+                const hasLowStock = article.stock_qty <= (article.min_stock_level || 5);
+                const imageUrl = article.image_urls?.[0] || article.image_url;
+
+                return (
+                  <motion.div
+                    key={article.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    onClick={() => setSelectedArticle(article)}
+                    className="group p-4 rounded-xl cursor-pointer transition-all bg-slate-800/30 border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50"
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Image */}
+                      {imageUrl ? (
+                        <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-slate-900/50">
+                          <img 
+                            src={imageUrl} 
+                            alt={article.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-slate-900/50 flex items-center justify-center">
+                          <Package className="w-6 h-6 text-slate-600" />
+                        </div>
+                      )}
+
+                      {/* Stock Quantity */}
+                      <div className="w-20 text-center flex-shrink-0">
+                        <div className={cn(
+                          "text-2xl font-bold leading-none mb-1",
+                          article.stock_qty <= 0 ? "text-red-400" : 
+                          hasLowStock ? "text-amber-400" : "text-white"
+                        )}>
+                          {article.stock_qty || 0}
+                        </div>
+                        <div className="text-xs text-slate-500">st</div>
+                      </div>
+
+                      {/* Article Info */}
+                      <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-4 gap-4">
+                        {/* Name & SKU */}
+                        <div className="min-w-0">
+                          <div className="font-semibold text-white text-sm mb-1 truncate">
+                            {article.customer_name || article.name}
+                          </div>
+                          {article.sku && (
+                            <div className="text-xs font-mono text-blue-400 truncate">
+                              {article.sku}
+                            </div>
+                          )}
+                          {!article.sku && article.batch_number && (
+                            <div className="text-xs font-mono text-slate-500 truncate">
+                              #{article.batch_number}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Shelf & Warehouse */}
+                        <div className="min-w-0">
+                          {article.shelf_address && (
+                            <div className="flex items-center gap-1 text-xs text-slate-300 mb-1">
+                              <MapPin className="w-3 h-3 flex-shrink-0" />
+                              <span className="truncate">{article.shelf_address}</span>
+                            </div>
+                          )}
+                          {article.warehouse && (
+                            <div className="text-xs text-slate-500 truncate">
+                              {article.warehouse}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Manufacturer & Series */}
+                        <div className="min-w-0">
+                          {article.manufacturer && (
+                            <div className="text-xs text-slate-300 mb-1 truncate">
+                              {article.manufacturer}
+                            </div>
+                          )}
+                          {article.series && (
+                            <div className="text-xs text-slate-500 truncate">
+                              {article.series}
+                              {article.pitch_value && ` • ${article.pitch_value}`}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Status & Date */}
+                        <div className="flex items-center justify-end gap-2 min-w-0">
+                          {article.status !== 'active' && (
+                            <Badge className={cn(
+                              "text-xs border px-2 py-0.5 flex-shrink-0",
+                              article.status === 'low_stock' ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
+                              article.status === 'out_of_stock' ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                              article.status === 'on_repair' ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
+                              "bg-slate-500/20 text-slate-400 border-slate-500/30"
+                            )}>
+                              {article.status === 'low_stock' ? 'Lågt' :
+                               article.status === 'out_of_stock' ? 'Slut' :
+                               article.status === 'on_repair' ? 'Reparation' : 
+                               article.status === 'discontinued' ? 'Utgått' : article.status}
+                            </Badge>
+                          )}
+                          {article.updated_date && (
+                            <div className="text-xs text-slate-500 whitespace-nowrap">
+                              {format(new Date(article.updated_date), "d MMM", { locale: sv })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
-            </div>
-            )}
+          </div>
+        )}
 
             {/* Modals */}
             <Dialog open={quickInventoryOpen} onOpenChange={setQuickInventoryOpen}>
