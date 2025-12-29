@@ -106,10 +106,11 @@ export default function InventoryPage() {
 
   const handleExport = async () => {
     try {
-      const response = await fetch('/api/functions/exportArticles', {
+      const token = await base44.auth.getToken();
+      const response = await fetch(`${import.meta.env.VITE_BASE44_API_URL || ''}/api/functions/exportArticles`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${await base44.auth.getToken()}`
+          'Authorization': `Bearer ${token}`
         }
       });
 
@@ -128,7 +129,8 @@ export default function InventoryPage() {
       a.remove();
       toast.success('Excel-fil nedladdad');
     } catch (error) {
-      toast.error('Kunde inte exportera artiklar');
+      toast.error('Kunde inte exportera artiklar: ' + error.message);
+      console.error('Export error:', error);
     }
   };
 
@@ -138,23 +140,25 @@ export default function InventoryPage() {
 
     setIsImporting(true);
     const loadingToast = toast.loading(`Importerar ${file.name}...`);
-    
+
     try {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/functions/importArticles', {
+      const token = await base44.auth.getToken();
+
+      const response = await fetch(`${import.meta.env.VITE_BASE44_API_URL || ''}/api/functions/importArticles`, {
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${await base44.auth.getToken()}`
+          'Authorization': `Bearer ${token}`
         }
       });
 
       const result = await response.json();
-      
+
       toast.dismiss(loadingToast);
-      
+
       if (result.success) {
         toast.success(result.message, { duration: 5000 });
         queryClient.invalidateQueries({ queryKey: ['articles'] });
@@ -168,7 +172,8 @@ export default function InventoryPage() {
       }
     } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error('Kunde inte importera artiklar');
+      toast.error('Kunde inte importera artiklar: ' + error.message);
+      console.error('Import error:', error);
     } finally {
       setIsImporting(false);
       if (fileInputRef.current) {
