@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { 
   Search, Camera, Package, AlertTriangle, Filter,
   Grid3X3, List, Plus, SlidersHorizontal, Sparkles,
-  ClipboardList, Download, Upload
+  ClipboardList, Download, Upload, ArrowUpDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -39,6 +39,7 @@ export default function InventoryPage() {
   const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
   const [pickListOpen, setPickListOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [sortBy, setSortBy] = useState('name');
   const fileInputRef = React.useRef(null);
   
   const queryClient = useQueryClient();
@@ -46,6 +47,11 @@ export default function InventoryPage() {
   const { data: articles = [], isLoading } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list('-updated_date'),
+  });
+
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: () => base44.entities.Supplier.list(),
   });
 
   const updateArticleMutation = useMutation({
@@ -156,16 +162,38 @@ export default function InventoryPage() {
     }
   };
 
-  const filteredArticles = articles.filter(article => {
-    const matchesSearch = !searchQuery || 
-      article.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.batch_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || article.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  const supplierMap = {};
+  suppliers.forEach(s => supplierMap[s.id] = s.name);
+
+  const filteredArticles = articles
+    .filter(article => {
+      const matchesSearch = !searchQuery || 
+        article.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.batch_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = statusFilter === "all" || article.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      switch(sortBy) {
+        case 'name':
+          return (a.name || '').localeCompare(b.name || '');
+        case 'shelf':
+          return (a.shelf_address || '').localeCompare(b.shelf_address || '');
+        case 'supplier':
+          const supplierA = supplierMap[a.supplier_id] || a.manufacturer || '';
+          const supplierB = supplierMap[b.supplier_id] || b.manufacturer || '';
+          return supplierA.localeCompare(supplierB);
+        case 'stock':
+          return (b.stock_qty || 0) - (a.stock_qty || 0);
+        case 'batch':
+          return (a.batch_number || '').localeCompare(b.batch_number || '');
+        default:
+          return 0;
+      }
+    });
 
   const stats = {
     total: articles.length,
@@ -292,6 +320,19 @@ export default function InventoryPage() {
               />
             </div>
             
+            <Tabs value={sortBy} onValueChange={setSortBy}>
+              <TabsList className="h-9 bg-slate-800/50 border border-slate-700">
+                <TabsTrigger value="name" className="text-xs h-7">
+                  <ArrowUpDown className="w-3 h-3 mr-1" />
+                  Namn
+                </TabsTrigger>
+                <TabsTrigger value="batch" className="text-xs h-7">Batch</TabsTrigger>
+                <TabsTrigger value="shelf" className="text-xs h-7">Hylla</TabsTrigger>
+                <TabsTrigger value="supplier" className="text-xs h-7">Leverantör</TabsTrigger>
+                <TabsTrigger value="stock" className="text-xs h-7">Saldo</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
             <Tabs value={statusFilter} onValueChange={setStatusFilter}>
               <TabsList className="h-9 bg-slate-800/50 border border-slate-700">
                 <TabsTrigger value="all" className="text-xs h-7">Alla</TabsTrigger>
