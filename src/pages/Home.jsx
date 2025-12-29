@@ -1,19 +1,34 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { 
   Camera, Package, TrendingUp, TrendingDown, 
-  AlertTriangle, Clock, ArrowRight, Zap, MapPin
+  AlertTriangle, Clock, ArrowRight, Zap, MapPin,
+  Search, X, Hash, Factory, Printer
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import { toast } from "sonner";
+import CameraCapture from "@/components/scanner/CameraCapture";
+import BarcodeScanner from "@/components/scanner/BarcodeScanner";
+import LabelDownloader from "@/components/labels/LabelDownloader";
 
 export default function HomePage() {
+  const [mode, setMode] = useState("dashboard"); // "dashboard", "search", "scan", "barcode"
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const searchInputRef = useRef(null);
+
   const { data: articles = [] } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list('-updated_date', 50),
@@ -38,6 +53,166 @@ export default function HomePage() {
   ).slice(0, 3);
   
   const hasAlerts = alertArticles.length > 0;
+
+  // Search functionality
+  React.useEffect(() => {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const results = articles.filter(article => 
+        article.name?.toLowerCase().includes(query) ||
+        article.batch_number?.toLowerCase().includes(query) ||
+        article.manufacturer?.toLowerCase().includes(query) ||
+        article.shelf_address?.toLowerCase().includes(query)
+      ).slice(0, 10);
+      setSearchResults(results);
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery, articles]);
+
+  const handleSelectArticle = (article) => {
+    setSelectedArticle(article);
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+
+  const handleBarcodeDetected = async (code) => {
+    try {
+      const articles = await base44.entities.Article.filter({ batch_number: code });
+      if (articles.length === 0) {
+        const articlesBySku = await base44.entities.Article.filter({ sku: code });
+        if (articlesBySku.length > 0) {
+          setSelectedArticle(articlesBySku[0]);
+          toast.success(`Artikel hittad: ${articlesBySku[0].name}`);
+        } else {
+          toast.info("Artikel ej funnen");
+        }
+      } else {
+        setSelectedArticle(articles[0]);
+        toast.success(`Artikel hittad: ${articles[0].name}`);
+      }
+    } catch (error) {
+      toast.error("Kunde inte söka efter artikel");
+    }
+  };
+
+  const handleImageCaptured = async (file) => {
+    setIsProcessing(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Analysera denna bild av en artikel/etikett och extrahera batchnummer och artikelnamn.`,
+        file_urls: [file_url],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            batch_number: { type: "string" },
+            name: { type: "string" }
+          }
+        }
+      });
+
+      if (result.batch_number) {
+        const found = await base44.entities.Article.filter({ batch_number: result.batch_number });
+        if (found.length > 0) {
+          setSelectedArticle(found[0]);
+          toast.success("Artikel hittad!");
+        } else {
+          toast.info("Artikeln finns inte i lagret");
+        }
+      }
+    } catch (error) {
+      toast.error("Kunde inte analysera bilden");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleReset = () => {
+    setMode("dashboard");
+    setSelectedArticle(null);
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+
+  // Show selected article details
+  if (selectedArticle) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6">
+        <div className="max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="space-y-6"
+          >
+            {selectedArticle.shelf_address ? (
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-emerald-700 p-8 md:p-12 text-center">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-center gap-2 text-emerald-200 text-sm mb-4">
+                    <MapPin className="w-5 h-5" />
+                    <span>Hyllplats</span>
+                  </div>
+                  <div className="text-7xl md:text-8xl font-bold text-white mb-4 tracking-tight">
+                    {selectedArticle.shelf_address}
+                  </div>
+                  {selectedArticle.warehouse && (
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 text-white text-sm">
+                      <Package className="w-4 h-4" />
+                      {selectedArticle.warehouse}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="p-8 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center">
+                <MapPin className="w-12 h-12 text-amber-400 mx-auto mb-3" />
+                <p className="text-lg font-medium text-amber-200">Ingen hyllplats registrerad</p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+                <h3 className="font-semibold text-white mb-3">Artikel</h3>
+                <div className="space-y-2 text-sm">
+                  <div><span className="text-slate-400">Namn:</span> <span className="text-white font-medium">{selectedArticle.name}</span></div>
+                  <div><span className="text-slate-400">Batch:</span> <span className="text-white font-medium">{selectedArticle.batch_number}</span></div>
+                  {selectedArticle.manufacturer && (
+                    <div><span className="text-slate-400">Tillverkare:</span> <span className="text-white font-medium">{selectedArticle.manufacturer}</span></div>
+                  )}
+                </div>
+              </div>
+              <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+                <h3 className="font-semibold text-white mb-3">Lagerstatus</h3>
+                <div className="text-3xl font-bold text-white mb-2">{selectedArticle.stock_qty || 0} <span className="text-sm text-slate-400">st</span></div>
+                <Badge className={cn(
+                  selectedArticle.status === "active" && "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+                  selectedArticle.status === "low_stock" && "bg-amber-500/20 text-amber-400 border-amber-500/30",
+                  selectedArticle.status === "out_of_stock" && "bg-red-500/20 text-red-400 border-red-500/30"
+                )}>
+                  {selectedArticle.status === "active" ? "I lager" : selectedArticle.status === "low_stock" ? "Lågt lager" : "Slut"}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button onClick={() => setShowPrintModal(true)} variant="outline" className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white">
+                <Printer className="w-4 h-4 mr-2" />
+                Skriv ut etikett
+              </Button>
+              <Button onClick={handleReset} className="flex-1 bg-blue-600 hover:bg-blue-500">
+                Tillbaka
+              </Button>
+            </div>
+          </motion.div>
+
+          {showPrintModal && (
+            <LabelDownloader articles={[selectedArticle]} onClose={() => setShowPrintModal(false)} />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6">
@@ -323,21 +498,166 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Quick Actions */}
+        {/* Search & Scan Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4"
+          className="mt-8"
         >
-          <Link to={createPageUrl("Find")}>
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-purple-600/20 to-purple-700/10 border border-purple-500/30 hover:border-purple-500/50 transition-colors cursor-pointer">
-              <MapPin className="w-6 h-6 text-purple-400 mb-3" />
-              <h3 className="font-semibold text-white mb-1">Hitta</h3>
-              <p className="text-sm text-slate-400">Sök hyllplats</p>
+          <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-white">Hitta & Skanna</h2>
+                <p className="text-sm text-slate-400">Sök eller skanna för att hitta artiklar i lagret</p>
+              </div>
             </div>
-          </Link>
-          
+
+            <div className="flex gap-2 mb-4">
+              <Button
+                onClick={() => setMode("search")}
+                variant={mode === "search" ? "default" : "outline"}
+                className={cn("flex-1", mode === "search" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-800 border-slate-600 hover:bg-slate-700")}
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Sök
+              </Button>
+              <Button
+                onClick={() => setMode("barcode")}
+                variant={mode === "barcode" ? "default" : "outline"}
+                className={cn("flex-1", mode === "barcode" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-800 border-slate-600 hover:bg-slate-700")}
+              >
+                <Package className="w-4 h-4 mr-2" />
+                Streckkod
+              </Button>
+              <Button
+                onClick={() => setMode("scan")}
+                variant={mode === "scan" ? "default" : "outline"}
+                className={cn("flex-1", mode === "scan" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-800 border-slate-600 hover:bg-slate-700")}
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Skanna
+              </Button>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {mode === "search" && (
+                <motion.div
+                  key="search"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="relative"
+                >
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <Input
+                    ref={searchInputRef}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Sök artikel, batch eller hyllplats..."
+                    className="pl-12 pr-12 h-12 bg-slate-900/50 border-slate-700 text-white"
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+
+                  {searchResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl max-h-[300px] overflow-y-auto">
+                      {searchResults.map((article) => (
+                        <button
+                          key={article.id}
+                          onClick={() => handleSelectArticle(article)}
+                          className="w-full p-4 text-left hover:bg-slate-700/50 transition-colors border-b border-slate-700/50 last:border-0"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <p className="font-medium text-white">{article.name}</p>
+                              <p className="text-sm text-slate-400">#{article.batch_number}</p>
+                            </div>
+                            {article.shelf_address && (
+                              <div className="flex items-center gap-2 text-emerald-400">
+                                <MapPin className="w-4 h-4" />
+                                <span className="font-bold">{article.shelf_address}</span>
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {mode === "barcode" && (
+                <motion.div
+                  key="barcode"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <BarcodeScanner 
+                    onBarcodeDetected={handleBarcodeDetected}
+                    onClose={() => setMode("dashboard")}
+                  />
+                </motion.div>
+              )}
+
+              {mode === "scan" && (
+                <motion.div
+                  key="scan"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <CameraCapture
+                    onImageCaptured={handleImageCaptured}
+                    isProcessing={isProcessing}
+                  />
+                </motion.div>
+              )}
+
+              {mode === "dashboard" && (
+                <motion.div
+                  key="dashboard"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center py-8"
+                >
+                  <p className="text-slate-400 mb-4">Välj ett alternativ ovan för att hitta artiklar</p>
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div className="p-3 rounded-lg bg-slate-900/50">
+                      <Search className="w-5 h-5 text-slate-500 mx-auto mb-2" />
+                      <p className="text-slate-400">Snabbsök</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-slate-900/50">
+                      <Package className="w-5 h-5 text-slate-500 mx-auto mb-2" />
+                      <p className="text-slate-400">Streckkod</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-slate-900/50">
+                      <Camera className="w-5 h-5 text-slate-500 mx-auto mb-2" />
+                      <p className="text-slate-400">AI Skanning</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="mt-6 grid grid-cols-2 gap-4"
+        >
           <Link to={createPageUrl("Scan") + "?mode=inbound"}>
             <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 border border-emerald-500/30 hover:border-emerald-500/50 transition-colors cursor-pointer">
               <Package className="w-6 h-6 text-emerald-400 mb-3" />
