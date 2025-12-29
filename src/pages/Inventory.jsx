@@ -136,6 +136,8 @@ export default function InventoryPage() {
     if (!file) return;
 
     setIsImporting(true);
+    const loadingToast = toast.loading(`Importerar ${file.name}...`);
+    
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -150,17 +152,21 @@ export default function InventoryPage() {
 
       const result = await response.json();
       
+      toast.dismiss(loadingToast);
+      
       if (result.success) {
-        toast.success(result.message);
+        toast.success(result.message, { duration: 5000 });
         queryClient.invalidateQueries({ queryKey: ['articles'] });
       } else {
-        toast.error(result.error || 'Import misslyckades');
+        toast.error(result.error || 'Import misslyckades', { duration: 5000 });
       }
 
       if (result.results?.errors?.length > 0) {
         console.error('Import errors:', result.results.errors);
+        toast.error(`${result.results.errors.length} fel uppstod`, { duration: 5000 });
       }
     } catch (error) {
+      toast.dismiss(loadingToast);
       toast.error('Kunde inte importera artiklar');
     } finally {
       setIsImporting(false);
@@ -305,7 +311,13 @@ export default function InventoryPage() {
                 size="sm"
                 className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
               >
-                <Upload className="w-4 h-4" />
+                {isImporting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-slate-400 border-t-blue-400 rounded-full animate-spin" />
+                  </>
+                ) : (
+                  <Upload className="w-4 h-4" />
+                )}
               </Button>
               <Button
                 onClick={() => setQuickInventoryOpen(true)}
