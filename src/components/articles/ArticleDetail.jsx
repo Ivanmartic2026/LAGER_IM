@@ -338,6 +338,10 @@ export default function ArticleDetail({
             <Package className="w-4 h-4" />
             Detaljer
           </TabsTrigger>
+          <TabsTrigger value="files" className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4" />
+            Filer
+          </TabsTrigger>
           <TabsTrigger value="history" className="flex items-center gap-2">
             <History className="w-4 h-4" />
             Historik
@@ -480,6 +484,62 @@ export default function ArticleDetail({
               )}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="files" className="mt-6">
+          <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+            <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+              <DollarSign className="w-5 h-5" />
+              Uppladdade filer
+            </h3>
+
+            {(!article.image_urls || article.image_urls.length === 0) ? (
+              <div className="text-center py-8">
+                <DollarSign className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <p className="text-slate-400">Inga filer uppladdade</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {article.image_urls.map((url, index) => {
+                  const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url);
+                  const fileName = url.split('/').pop().split('?')[0];
+                  
+                  return (
+                    <a
+                      key={index}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group relative rounded-xl overflow-hidden bg-slate-900/50 border border-slate-700/50 hover:border-slate-600 transition-all"
+                    >
+                      {isImage ? (
+                        <div className="aspect-square">
+                          <img 
+                            src={url} 
+                            alt={`Fil ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white text-sm font-medium">Öppna</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="aspect-square flex flex-col items-center justify-center p-4">
+                          <div className="text-4xl mb-2">📄</div>
+                          <div className="text-xs text-slate-400 text-center truncate w-full px-2">
+                            {fileName}
+                          </div>
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white text-sm font-medium">Öppna</span>
+                          </div>
+                        </div>
+                      )}
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="history" className="mt-6">

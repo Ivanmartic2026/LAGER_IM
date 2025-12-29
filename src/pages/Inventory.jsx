@@ -38,6 +38,7 @@ export default function InventoryPage() {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [viewMode, setViewMode] = useState("grid");
   const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [warehouseFilter, setWarehouseFilter] = useState("all");
   const [adjustmentModal, setAdjustmentModal] = useState({ open: false, type: null });
   const [editingArticle, setEditingArticle] = useState(null);
   const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
@@ -57,6 +58,11 @@ export default function InventoryPage() {
   const { data: suppliers = [] } = useQuery({
     queryKey: ['suppliers'],
     queryFn: () => base44.entities.Supplier.list(),
+  });
+
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: () => base44.entities.Warehouse.list(),
   });
 
   const updateArticleMutation = useMutation({
@@ -223,8 +229,9 @@ export default function InventoryPage() {
         article.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesStatus = statusFilter === "all" || article.status === statusFilter;
+      const matchesWarehouse = warehouseFilter === "all" || article.warehouse === warehouseFilter;
       
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesStatus && matchesWarehouse;
     })
     .sort((a, b) => {
       switch(sortBy) {
@@ -443,6 +450,20 @@ export default function InventoryPage() {
                 <TabsTrigger value="on_repair" className="text-xs h-7">Reparation</TabsTrigger>
               </TabsList>
             </Tabs>
+
+            <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
+              <SelectTrigger className="w-48 h-9 bg-slate-800/50 border-slate-700 text-white">
+                <SelectValue placeholder="Lager" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alla lager</SelectItem>
+                {warehouses.map(warehouse => (
+                  <SelectItem key={warehouse.id} value={warehouse.name}>
+                    {warehouse.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
