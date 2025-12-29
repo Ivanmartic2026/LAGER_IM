@@ -3,17 +3,17 @@ import { jsPDF } from 'npm:jspdf@2.5.1';
 
 Deno.serve(async (req) => {
   try {
+    const { articleId } = await req.json();
+
+    if (!articleId) {
+      return Response.json({ error: 'Article ID required' }, { status: 400 });
+    }
+
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { articleId } = await req.json();
-
-    if (!articleId) {
-      return Response.json({ error: 'Article ID required' }, { status: 400 });
     }
 
     // Get article details
@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
       addField('Dimensioner (B×H×D)', dims);
     }
     
-    addField('Vikt', article.weight_kg ? `${article.weight_kg} kg` : null);
+    addField('Vikt', article.weight_g ? `${article.weight_g} g` : null);
 
     y += 5;
 
