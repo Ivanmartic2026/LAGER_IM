@@ -414,12 +414,12 @@ export default function InventoryPage() {
         ) : (
           <div className="space-y-2">
             {/* Header Row */}
-            <div className="px-4 py-2 grid grid-cols-1 md:grid-cols-[80px_80px_1fr_1fr_1fr_150px] gap-4 text-xs font-medium text-slate-500 uppercase tracking-wider border-b border-slate-700/50">
+            <div className="px-4 py-2 grid grid-cols-1 md:grid-cols-[80px_80px_minmax(200px,1fr)_minmax(150px,200px)_minmax(150px,200px)_150px] gap-4 text-xs font-medium text-slate-500 uppercase tracking-wider border-b border-slate-700/50">
               <div></div> {/* Image */}
               <div>Saldo</div>
               <div>Artikel</div>
-              <div>Plats</div>
-              <div>Tillverkare</div>
+              <div>Hyllplats</div>
+              <div>Lager</div>
               <div className="text-right">Status</div>
             </div>
 
@@ -466,7 +466,7 @@ export default function InventoryPage() {
                       </div>
 
                       {/* Article Info */}
-                      <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_150px] gap-4">
+                      <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-[minmax(200px,1fr)_minmax(150px,200px)_minmax(150px,200px)_150px] gap-4">
                         {/* Name & SKU */}
                         <div className="min-w-0">
                           <div className="font-semibold text-white text-sm mb-1 truncate">
@@ -482,35 +482,40 @@ export default function InventoryPage() {
                               #{article.batch_number}
                             </div>
                           )}
-                        </div>
-
-                        {/* Shelf & Warehouse */}
-                        <div className="min-w-0">
-                          {article.shelf_address && (
-                            <div className="flex items-center gap-1 text-xs text-slate-300 mb-1">
-                              <MapPin className="w-3 h-3 flex-shrink-0" />
-                              <span className="truncate">{article.shelf_address}</span>
-                            </div>
-                          )}
-                          {article.warehouse && (
-                            <div className="text-xs text-slate-500 truncate">
-                              {article.warehouse}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Manufacturer & Series */}
-                        <div className="min-w-0">
                           {article.manufacturer && (
-                            <div className="text-xs text-slate-300 mb-1 truncate">
+                            <div className="text-xs text-slate-500 truncate mt-0.5">
                               {article.manufacturer}
-                            </div>
-                          )}
-                          {article.series && (
-                            <div className="text-xs text-slate-500 truncate">
-                              {article.series}
+                              {article.series && ` • ${article.series}`}
                               {article.pitch_value && ` • ${article.pitch_value}`}
                             </div>
+                          )}
+                        </div>
+
+                        {/* Shelf Address */}
+                        <div className="min-w-0 flex items-center">
+                          {article.shelf_address ? (
+                            <div className="flex items-center gap-1.5">
+                              <MapPin className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                              <span className="text-sm font-medium text-white truncate">
+                                {article.shelf_address}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-600">—</span>
+                          )}
+                        </div>
+
+                        {/* Warehouse */}
+                        <div className="min-w-0 flex items-center">
+                          {article.warehouse ? (
+                            <div className="flex items-center gap-1.5">
+                              <Package className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                              <span className="text-sm font-medium text-white truncate">
+                                {article.warehouse}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-600">—</span>
                           )}
                         </div>
 

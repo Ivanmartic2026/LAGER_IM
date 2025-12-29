@@ -60,8 +60,14 @@ Deno.serve(async (req) => {
       try {
         // Map Excel columns to article fields
         const articleData = {
+          customer_name: row['Kundnamn']?.toString().trim() || undefined,
+          sku: row['SKU']?.toString().trim() || undefined,
           batch_number: row['Batchnummer']?.toString().trim(),
           name: row['Artikelnamn']?.toString().trim(),
+          pitch_value: row['Pitch']?.toString().trim() || undefined,
+          series: row['Serie']?.toString().trim() || undefined,
+          product_version: row['Version']?.toString().trim() || undefined,
+          brightness_nits: row['Ljusstyrka (nits)'] ? parseFloat(row['Ljusstyrka (nits)']) : undefined,
           manufacturer: row['Tillverkare']?.toString().trim() || undefined,
           manufacturing_date: row['Tillverkningsdatum'] || undefined,
           pixel_pitch_mm: row['Pixel Pitch (mm)'] ? parseFloat(row['Pixel Pitch (mm)']) : undefined,
