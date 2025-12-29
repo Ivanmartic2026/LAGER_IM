@@ -40,6 +40,7 @@ export default function InventoryPage() {
   const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
   const [pickListOpen, setPickListOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [sortBy, setSortBy] = useState('name');
   const fileInputRef = React.useRef(null);
   
@@ -105,8 +106,13 @@ export default function InventoryPage() {
   };
 
   const handleExport = async () => {
+    setIsExporting(true);
+    const loadingToast = toast.loading('Förbereder export...');
+    
     try {
       const token = await base44.auth.getToken();
+      
+      console.log('Starting export...');
       const response = await fetch(`${import.meta.env.VITE_BASE44_API_URL || ''}/api/functions/exportArticles`, {
         method: 'POST',
         headers: {
@@ -114,9 +120,15 @@ export default function InventoryPage() {
         }
       });
 
+      console.log('Export response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Export failed');
+        const errorText = await response.text();
+        console.error('Export error response:', errorText);
+        throw new Error('Export misslyckades');
       }
+
+      toast.loading('Laddar ner fil...', { id: loadingToast });
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -127,19 +139,26 @@ export default function InventoryPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
-      toast.success('Excel-fil nedladdad');
+      
+      toast.success('Excel-fil nedladdad!', { id: loadingToast });
     } catch (error) {
-      toast.error('Kunde inte exportera artiklar: ' + error.message);
       console.error('Export error:', error);
+      toast.error('Kunde inte exportera: ' + error.message, { id: loadingToast });
+    } finally {
+      setIsExporting(false);
     }
   };
 
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
 
+    console.log('Starting import for file:', file.name);
     setIsImporting(true);
-    const loadingToast = toast.loading(`Importerar ${file.name}...`);
+    const loadingToast = toast.loading(`Läser in ${file.name}...`);
 
     try {
       const formData = new FormData();
@@ -147,6 +166,9 @@ export default function InventoryPage() {
 
       const token = await base44.auth.getToken();
 
+      toast.loading('Skickar fil till server...', { id: loadingToast });
+
+      console.log('Sending request to import endpoint...');
       const response = await fetch(`${import.meta.env.VITE_BASE44_API_URL || ''}/api/functions/importArticles`, {
         method: 'POST',
         body: formData,
@@ -155,25 +177,27 @@ export default function InventoryPage() {
         }
       });
 
-      const result = await response.json();
+      console.log('Import response status:', response.status);
 
-      toast.dismiss(loadingToast);
+      toast.loading('Bearbetar artiklar...', { id: loadingToast });
+
+      const result = await response.json();
+      console.log('Import result:', result);
 
       if (result.success) {
-        toast.success(result.message, { duration: 5000 });
+        toast.success(result.message || 'Import slutförd!', { id: loadingToast, duration: 5000 });
         queryClient.invalidateQueries({ queryKey: ['articles'] });
       } else {
-        toast.error(result.error || 'Import misslyckades', { duration: 5000 });
+        toast.error(result.error || 'Import misslyckades', { id: loadingToast, duration: 5000 });
       }
 
       if (result.results?.errors?.length > 0) {
         console.error('Import errors:', result.results.errors);
-        toast.error(`${result.results.errors.length} fel uppstod`, { duration: 5000 });
+        toast.error(`${result.results.errors.length} fel uppstod vid import`, { duration: 5000 });
       }
     } catch (error) {
-      toast.dismiss(loadingToast);
-      toast.error('Kunde inte importera artiklar: ' + error.message);
       console.error('Import error:', error);
+      toast.error('Kunde inte importera: ' + error.message, { id: loadingToast });
     } finally {
       setIsImporting(false);
       if (fileInputRef.current) {
@@ -307,12 +331,22 @@ export default function InventoryPage() {
               />
               <Button
                 onClick={handleExport}
+                disabled={isExporting}
                 variant="outline"
                 size="sm"
                 className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
               >
-                <Download className="w-4 h-4 mr-2" />
-                Exportera
+                {isExporting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-slate-400 border-t-blue-400 rounded-full animate-spin mr-2" />
+                    Exporterar...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Exportera
+                  </>
+                )}
               </Button>
               <Button
                 onClick={() => fileInputRef.current?.click()}
