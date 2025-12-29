@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     }
 
     // Get article details
-    const articles = await base44.entities.Article.filter({ id: articleId });
+    const articles = await base44.asServiceRole.entities.Article.filter({ id: articleId });
     
     if (!articles || articles.length === 0) {
       return Response.json({ error: 'Article not found' }, { status: 404 });
