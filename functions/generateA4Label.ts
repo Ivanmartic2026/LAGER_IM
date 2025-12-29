@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
+import QRCode from 'npm:qrcode';
 
 Deno.serve(async (req) => {
   try {
@@ -50,10 +51,25 @@ Deno.serve(async (req) => {
     doc.setFont(undefined, 'normal');
     doc.text(`Batch: ${article.batch_number}`, margin, 35);
 
-    // QR Code URL (simplified)
-    const qrUrl = `https://app.base44.com/article/${articleId}`;
-    doc.setFontSize(8);
-    doc.text(qrUrl, margin, 42);
+    // Generate and add QR code if batch number exists
+    if (article.batch_number) {
+      try {
+        const qrDataUrl = await QRCode.toDataURL(article.batch_number, {
+          width: 200,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#ffffff'
+          }
+        });
+        
+        // Add QR code to top right corner
+        const qrSize = 40;
+        doc.addImage(qrDataUrl, 'PNG', pageWidth - margin - qrSize, 5, qrSize, qrSize);
+      } catch (qrError) {
+        console.error('Error generating QR code:', qrError);
+      }
+    }
 
     // Reset text color
     doc.setTextColor(0, 0, 0);
