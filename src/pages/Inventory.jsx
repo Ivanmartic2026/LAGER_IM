@@ -311,7 +311,8 @@ export default function InventoryPage() {
                 size="sm"
                 className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-4 h-4 mr-2" />
+                Exportera
               </Button>
               <Button
                 onClick={() => fileInputRef.current?.click()}
@@ -322,10 +323,14 @@ export default function InventoryPage() {
               >
                 {isImporting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-slate-400 border-t-blue-400 rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-slate-400 border-t-blue-400 rounded-full animate-spin mr-2" />
+                    Importerar...
                   </>
                 ) : (
-                  <Upload className="w-4 h-4" />
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Importera
+                  </>
                 )}
               </Button>
               <Button
@@ -334,7 +339,8 @@ export default function InventoryPage() {
                 size="sm"
                 className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
               >
-                <ClipboardList className="w-4 h-4" />
+                <ClipboardList className="w-4 h-4 mr-2" />
+                Inventering
               </Button>
               <Button
                 onClick={() => setPickListOpen(true)}
@@ -342,7 +348,8 @@ export default function InventoryPage() {
                 size="sm"
                 className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI Plocklista
               </Button>
               <Link to={createPageUrl("Scan")}>
                 <Button size="sm" className="bg-blue-600 hover:bg-blue-500">
