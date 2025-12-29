@@ -105,10 +105,18 @@ export default function InventoryPage() {
 
   const handleExport = async () => {
     try {
-      const response = await base44.functions.invoke('exportArticles');
-      const blob = new Blob([response.data], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      const response = await fetch('/api/functions/exportArticles', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${await base44.auth.getToken()}`
+        }
       });
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
