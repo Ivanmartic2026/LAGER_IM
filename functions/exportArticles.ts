@@ -15,29 +15,31 @@ Deno.serve(async (req) => {
 
     // Prepare data for Excel
     const excelData = articles.map(article => ({
+      'Artikelnummer': article.sku || '',
+      'Benämning': article.name || '',
+      'Leverantör': article.supplier_id ? supplierMap[article.supplier_id] : (article.supplier_name || ''),
+      'Leverantörspris': article.supplier_price || '',
+      'Typ av artikel': article.category || '',
+      'Lagervara': article.is_stock_item !== false ? 'Ja' : 'Nej',
+      'Bredd (mm)': article.dimensions_width_mm || '',
+      'Höjd (mm)': article.dimensions_height_mm || '',
+      'Djup (mm)': article.dimensions_depth_mm || '',
+      'Vikt (g)': article.weight_g || (article.weight_kg ? article.weight_kg * 1000 : ''),
+      'I lager': article.stock_qty || 0,
+      'Lagerställe': article.warehouse || '',
+      'Lagerplats': article.shelf_address || '',
+      'Kalkylkostnad': article.calculated_cost || '',
+      'Batch Nummer': article.batch_number || '',
+      'Pixel Pitch': article.pixel_pitch_mm || '',
       'Kundnamn': article.customer_name || '',
-      'SKU': article.sku || '',
-      'Batchnummer': article.batch_number || '',
-      'Artikelnamn': article.name || '',
-      'Pitch': article.pitch_value || '',
+      'Pitch värde': article.pitch_value || '',
       'Serie': article.series || '',
       'Version': article.product_version || '',
       'Ljusstyrka (nits)': article.brightness_nits || '',
       'Tillverkare': article.manufacturer || '',
       'Tillverkningsdatum': article.manufacturing_date || '',
-      'Pixel Pitch (mm)': article.pixel_pitch_mm || '',
-      'Hyllplats': article.shelf_address || '',
-      'Bredd (mm)': article.dimensions_width_mm || '',
-      'Höjd (mm)': article.dimensions_height_mm || '',
-      'Djup (mm)': article.dimensions_depth_mm || '',
-      'Vikt (kg)': article.weight_kg || '',
-      'Lagersaldo': article.stock_qty || 0,
       'Min. Lagernivå': article.min_stock_level || '',
-      'Lager': article.warehouse || '',
-      'Kategori': article.category || '',
       'Status': article.status || 'active',
-      'Leverantör': article.supplier_id ? supplierMap[article.supplier_id] : '',
-      'Leverantörspris': article.supplier_price || '',
       'Produktkod': article.supplier_product_code || '',
       'Anteckningar': article.notes || '',
       'Skapad': article.created_date || '',
@@ -51,29 +53,31 @@ Deno.serve(async (req) => {
 
     // Set column widths
     worksheet['!cols'] = [
+      { wch: 20 }, // Artikelnummer
+      { wch: 30 }, // Benämning
+      { wch: 20 }, // Leverantör
+      { wch: 12 }, // Leverantörspris
+      { wch: 15 }, // Typ av artikel
+      { wch: 10 }, // Lagervara
+      { wch: 10 }, // Bredd
+      { wch: 10 }, // Höjd
+      { wch: 10 }, // Djup
+      { wch: 10 }, // Vikt
+      { wch: 10 }, // I lager
+      { wch: 15 }, // Lagerställe
+      { wch: 15 }, // Lagerplats
+      { wch: 12 }, // Kalkylkostnad
+      { wch: 15 }, // Batch Nummer
+      { wch: 12 }, // Pixel Pitch
       { wch: 30 }, // Kundnamn
-      { wch: 25 }, // SKU
-      { wch: 15 }, // Batchnummer
-      { wch: 30 }, // Artikelnamn
-      { wch: 10 }, // Pitch
+      { wch: 10 }, // Pitch värde
       { wch: 15 }, // Serie
       { wch: 10 }, // Version
       { wch: 12 }, // Ljusstyrka
       { wch: 20 }, // Tillverkare
       { wch: 15 }, // Tillverkningsdatum
-      { wch: 12 }, // Pixel Pitch
-      { wch: 15 }, // Hyllplats
-      { wch: 10 }, // Bredd
-      { wch: 10 }, // Höjd
-      { wch: 10 }, // Djup
-      { wch: 10 }, // Vikt
-      { wch: 12 }, // Lagersaldo
       { wch: 12 }, // Min. Lagernivå
-      { wch: 15 }, // Lager
-      { wch: 15 }, // Kategori
       { wch: 12 }, // Status
-      { wch: 20 }, // Leverantör
-      { wch: 12 }, // Leverantörspris
       { wch: 15 }, // Produktkod
       { wch: 40 }, // Anteckningar
       { wch: 20 }, // Skapad
