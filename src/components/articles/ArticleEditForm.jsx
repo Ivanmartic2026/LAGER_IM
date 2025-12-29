@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Save } from "lucide-react";
+import { X, Save, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ArticleEditForm({ article, onSave, onCancel, isSaving }) {
@@ -37,8 +37,11 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
     manufacturing_date: article.manufacturing_date || '',
     min_stock_level: article.min_stock_level || '',
     supplier_product_code: article.supplier_product_code || '',
-    notes: article.notes || ''
+    notes: article.notes || '',
+    image_urls: article.image_urls || []
   });
+
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   // Fetch warehouses and shelves
   const { data: warehouses = [] } = useQuery({
@@ -61,6 +64,36 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setUploadingImages(true);
+    try {
+      const uploadPromises = files.map(file => 
+        base44.integrations.Core.UploadFile({ file })
+      );
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.map(r => r.file_url);
+      
+      setFormData(prev => ({
+        ...prev,
+        image_urls: [...(prev.image_urls || []), ...newUrls]
+      }));
+    } catch (error) {
+      console.error('Upload error:', error);
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  const handleRemoveImage = (urlToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      image_urls: (prev.image_urls || []).filter(url => url !== urlToRemove)
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -92,7 +125,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col"
+        className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"
       >
         {/* Header */}
         <div className="p-6 border-b border-slate-700 flex items-center justify-between">
@@ -415,6 +448,60 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     className="bg-slate-800 border-slate-700 text-white"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Bilder */}
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">Bilder</h3>
+              
+              {formData.image_urls && formData.image_urls.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+                  {formData.image_urls.map((url, index) => (
+                    <div key={index} className="relative group">
+                      <img 
+                        src={url} 
+                        alt={`Bild ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg bg-slate-800"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(url)}
+                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
+                  disabled={uploadingImages}
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="flex items-center justify-center gap-2 p-4 rounded-lg border-2 border-dashed border-slate-700 hover:border-slate-600 bg-slate-800/50 cursor-pointer transition-colors"
+                >
+                  {uploadingImages ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-slate-400 border-t-blue-400 rounded-full animate-spin" />
+                      <span className="text-slate-400">Laddar upp...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-5 h-5 text-slate-400" />
+                      <span className="text-slate-400">Lägg till bilder</span>
+                    </>
+                  )}
+                </label>
               </div>
             </div>
 
