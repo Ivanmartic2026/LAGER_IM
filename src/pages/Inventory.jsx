@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ArticleDetail from "@/components/articles/ArticleDetail";
 import StockAdjustmentModal from "@/components/articles/StockAdjustmentModal";
+import ArticleEditForm from "@/components/articles/ArticleEditForm";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import QuickInventory from "@/components/inventory/QuickInventory";
@@ -38,6 +39,7 @@ export default function InventoryPage() {
   const [viewMode, setViewMode] = useState("grid");
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [adjustmentModal, setAdjustmentModal] = useState({ open: false, type: null });
+  const [editingArticle, setEditingArticle] = useState(null);
   const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
   const [pickListOpen, setPickListOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -61,6 +63,8 @@ export default function InventoryPage() {
     mutationFn: ({ id, data }) => base44.entities.Article.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
+      setEditingArticle(null);
+      toast.success("Artikel uppdaterad");
     }
   });
 
@@ -255,10 +259,7 @@ export default function InventoryPage() {
           <ArticleDetail
             article={selectedArticle}
             onBack={() => setSelectedArticle(null)}
-            onEdit={() => {
-              // Navigate to scan page with edit mode
-              window.location.href = createPageUrl("Scan") + `?edit=${selectedArticle.id}`;
-            }}
+            onEdit={() => setEditingArticle(selectedArticle)}
             onDelete={() => deleteArticleMutation.mutate(selectedArticle.id)}
             onAdjustStock={(type) => setAdjustmentModal({ open: true, type })}
           />
@@ -271,6 +272,18 @@ export default function InventoryPage() {
             onSubmit={handleAdjustStock}
             isSubmitting={updateArticleMutation.isPending}
           />
+
+          {editingArticle && (
+            <ArticleEditForm
+              article={editingArticle}
+              onSave={(data) => {
+                updateArticleMutation.mutate({ id: editingArticle.id, data });
+                setSelectedArticle({ ...selectedArticle, ...data });
+              }}
+              onCancel={() => setEditingArticle(null)}
+              isSaving={updateArticleMutation.isPending}
+            />
+          )}
         </div>
       </div>
     );
