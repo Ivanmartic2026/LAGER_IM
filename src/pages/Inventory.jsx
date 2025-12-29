@@ -21,6 +21,7 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import QuickInventory from "@/components/inventory/QuickInventory";
 import PickListGenerator from "@/components/inventory/PickListGenerator";
+import ImportPreview from "@/components/inventory/ImportPreview";
 import {
   Dialog,
   DialogContent,
@@ -139,6 +140,8 @@ export default function InventoryPage() {
     }
   };
 
+  const [importPreview, setImportPreview] = useState(null);
+
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) {
@@ -157,32 +160,51 @@ export default function InventoryPage() {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
       console.log('File uploaded:', file_url);
-      toast.loading('Importerar artiklar...', { id: loadingToast });
+      toast.loading('Analyserar artiklar...', { id: loadingToast });
       
-      // Send file URL to import function
-      const result = await base44.functions.invoke('importArticles', { file_url });
+      // Parse file to get preview
+      const result = await base44.functions.invoke('parseImportFile', { file_url });
       
-      console.log('Import result:', result);
+      console.log('Parse result:', result);
 
       if (result.data?.success) {
-        toast.success(result.data.message || 'Import slutförd!', { id: loadingToast, duration: 5000 });
-        queryClient.invalidateQueries({ queryKey: ['articles'] });
+        toast.dismiss(loadingToast);
+        setImportPreview(result.data.articles);
       } else {
-        toast.error(result.data?.error || 'Import misslyckades', { id: loadingToast, duration: 5000 });
-      }
-
-      if (result.data?.results?.errors?.length > 0) {
-        console.error('Import errors:', result.data.results.errors);
-        toast.error(`${result.data.results.errors.length} fel uppstod vid import`, { duration: 5000 });
+        toast.error(result.data?.error || 'Kunde inte läsa filen', { id: loadingToast });
       }
     } catch (error) {
       console.error('Import error:', error);
-      toast.error('Kunde inte importera: ' + error.message, { id: loadingToast });
+      toast.error('Kunde inte läsa filen: ' + error.message, { id: loadingToast });
     } finally {
       setIsImporting(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleConfirmImport = async (selectedArticles) => {
+    setIsImporting(true);
+    const loadingToast = toast.loading('Importerar artiklar...');
+
+    try {
+      const result = await base44.functions.invoke('confirmImportArticles', { 
+        articles: selectedArticles 
+      });
+
+      if (result.data?.success) {
+        toast.success(result.data.message || 'Import slutförd!', { id: loadingToast });
+        queryClient.invalidateQueries({ queryKey: ['articles'] });
+        setImportPreview(null);
+      } else {
+        toast.error(result.data?.error || 'Import misslyckades', { id: loadingToast });
+      }
+    } catch (error) {
+      console.error('Confirm import error:', error);
+      toast.error('Kunde inte importera: ' + error.message, { id: loadingToast });
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -601,6 +623,17 @@ export default function InventoryPage() {
               </DialogTitle>
             </DialogHeader>
             <PickListGenerator articles={articles} />
+            </DialogContent>
+            </Dialog>
+
+            <Dialog open={!!importPreview} onOpenChange={(open) => !open && setImportPreview(null)}>
+            <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-4xl p-0">
+              <ImportPreview
+                articles={importPreview || []}
+                onConfirm={handleConfirmImport}
+                onCancel={() => setImportPreview(null)}
+                isSubmitting={isImporting}
+              />
             </DialogContent>
             </Dialog>
             </div>
