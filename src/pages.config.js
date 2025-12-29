@@ -4,10 +4,10 @@ import Home from './pages/Home';
 import Inventory from './pages/Inventory';
 import Movements from './pages/Movements';
 import PurchaseOrders from './pages/PurchaseOrders';
+import Repairs from './pages/Repairs';
 import Reports from './pages/Reports';
 import Scan from './pages/Scan';
 import Suppliers from './pages/Suppliers';
-import Repairs from './pages/Repairs';
 import __Layout from './Layout.jsx';
 
 
@@ -18,10 +18,10 @@ export const PAGES = {
     "Inventory": Inventory,
     "Movements": Movements,
     "PurchaseOrders": PurchaseOrders,
+    "Repairs": Repairs,
     "Reports": Reports,
     "Scan": Scan,
     "Suppliers": Suppliers,
-    "Repairs": Repairs,
 }
 
 export const pagesConfig = {

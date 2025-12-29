@@ -110,27 +110,17 @@ export default function InventoryPage() {
     const loadingToast = toast.loading('Förbereder export...');
     
     try {
-      const token = await base44.auth.getToken();
-      
       console.log('Starting export...');
-      const response = await fetch(`${import.meta.env.VITE_BASE44_API_URL || ''}/api/functions/exportArticles`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      console.log('Export response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Export error response:', errorText);
-        throw new Error('Export misslyckades');
-      }
-
+      
+      toast.loading('Skapar Excel-fil...', { id: loadingToast });
+      
+      const response = await base44.functions.invoke('exportArticles', {});
+      
+      console.log('Export complete, downloading...');
+      
       toast.loading('Laddar ner fil...', { id: loadingToast });
 
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -161,39 +151,41 @@ export default function InventoryPage() {
     const loadingToast = toast.loading(`Läser in ${file.name}...`);
 
     try {
+      toast.loading('Laddar upp fil...', { id: loadingToast });
+      
+      // Upload file first
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      console.log('File uploaded, fetching to get array buffer...');
+      toast.loading('Bearbetar fil...', { id: loadingToast });
+      
+      // Fetch the file to convert to proper format for backend
+      const fileResponse = await fetch(file_url);
+      const arrayBuffer = await fileResponse.arrayBuffer();
+      const blob = new Blob([arrayBuffer], { type: file.type });
+      const newFile = new File([blob], file.name, { type: file.type });
+      
+      // Now send to import function
       const formData = new FormData();
-      formData.append('file', file);
-
-      const token = await base44.auth.getToken();
-
-      toast.loading('Skickar fil till server...', { id: loadingToast });
-
-      console.log('Sending request to import endpoint...');
-      const response = await fetch(`${import.meta.env.VITE_BASE44_API_URL || ''}/api/functions/importArticles`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      console.log('Import response status:', response.status);
-
-      toast.loading('Bearbetar artiklar...', { id: loadingToast });
-
-      const result = await response.json();
+      formData.append('file', newFile);
+      
+      console.log('Sending to import function...');
+      toast.loading('Importerar artiklar...', { id: loadingToast });
+      
+      const result = await base44.functions.invoke('importArticles', formData);
+      
       console.log('Import result:', result);
 
-      if (result.success) {
-        toast.success(result.message || 'Import slutförd!', { id: loadingToast, duration: 5000 });
+      if (result.data?.success) {
+        toast.success(result.data.message || 'Import slutförd!', { id: loadingToast, duration: 5000 });
         queryClient.invalidateQueries({ queryKey: ['articles'] });
       } else {
-        toast.error(result.error || 'Import misslyckades', { id: loadingToast, duration: 5000 });
+        toast.error(result.data?.error || 'Import misslyckades', { id: loadingToast, duration: 5000 });
       }
 
-      if (result.results?.errors?.length > 0) {
-        console.error('Import errors:', result.results.errors);
-        toast.error(`${result.results.errors.length} fel uppstod vid import`, { duration: 5000 });
+      if (result.data?.results?.errors?.length > 0) {
+        console.error('Import errors:', result.data.results.errors);
+        toast.error(`${result.data.results.errors.length} fel uppstod vid import`, { duration: 5000 });
       }
     } catch (error) {
       console.error('Import error:', error);
