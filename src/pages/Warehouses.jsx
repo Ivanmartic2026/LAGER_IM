@@ -19,6 +19,7 @@ export default function WarehousesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+  const [layoutWarehouse, setLayoutWarehouse] = useState(null);
   
   const queryClient = useQueryClient();
 
