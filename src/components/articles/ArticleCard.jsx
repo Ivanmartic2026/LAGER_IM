@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { Package, MapPin, Calendar, Hash, ArrowRight } from "lucide-react";
+import { Package, MapPin, Calendar, Hash, ArrowRight, AlertTriangle, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,9 @@ export default function ArticleCard({ article, onClick }) {
 
   const statusConfig = getStatusConfig(article.status);
 
+  const hasLowStock = article.stock_qty <= (article.min_stock_level || 5);
+  const imageUrl = article.image_urls?.[0] || article.image_url;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -29,14 +32,27 @@ export default function ArticleCard({ article, onClick }) {
       onClick={onClick}
       className="group p-4 rounded-xl cursor-pointer transition-all bg-slate-800/30 border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50"
     >
-      <div className="flex items-center gap-3">
-        {/* Compact Stock Display */}
-        <div className="flex-shrink-0 text-center">
-          <div className="text-xl font-bold text-white leading-none mb-0.5">
-            {article.stock_qty || 0}
+      <div className="flex items-start gap-3">
+        {/* Image or Stock Display */}
+        {imageUrl ? (
+          <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-slate-900/50 relative">
+            <img 
+              src={imageUrl} 
+              alt={article.name}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute bottom-1 right-1 bg-slate-900/90 backdrop-blur-sm px-1.5 py-0.5 rounded text-xs font-bold text-white">
+              {article.stock_qty || 0}
+            </div>
           </div>
-          <div className="text-xs text-slate-500">st</div>
-        </div>
+        ) : (
+          <div className="flex-shrink-0 text-center w-16">
+            <div className="text-2xl font-bold text-white leading-none mb-0.5">
+              {article.stock_qty || 0}
+            </div>
+            <div className="text-xs text-slate-500">st</div>
+          </div>
+        )}
 
         {/* Main Info */}
         <div className="flex-1 min-w-0">
@@ -51,7 +67,7 @@ export default function ArticleCard({ article, onClick }) {
             )}
           </div>
           
-          <div className="flex items-center gap-2 text-xs text-slate-400">
+          <div className="flex items-center gap-2 text-xs text-slate-400 mb-1.5">
             <span className="font-mono">#{article.batch_number}</span>
             {article.shelf_address && (
               <>
@@ -67,9 +83,31 @@ export default function ArticleCard({ article, onClick }) {
               </>
             )}
           </div>
+
+          {/* Additional info row */}
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            {hasLowStock && article.stock_qty > 0 && (
+              <div className="flex items-center gap-1 text-amber-400">
+                <AlertTriangle className="w-3 h-3" />
+                <span>Lågt saldo</span>
+              </div>
+            )}
+            {article.updated_date && (
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span>{format(new Date(article.updated_date), "d MMM", { locale: sv })}</span>
+              </div>
+            )}
+            {article.notes && (
+              <div className="flex items-center gap-1 text-blue-400">
+                <span>📝</span>
+                <span className="truncate max-w-[120px]">{article.notes}</span>
+              </div>
+            )}
+          </div>
         </div>
 
-        <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-colors flex-shrink-0" />
+        <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-colors flex-shrink-0 mt-1" />
       </div>
     </motion.div>
   );
