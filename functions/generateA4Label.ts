@@ -26,6 +26,25 @@ Deno.serve(async (req) => {
 
     const article = articles[0];
 
+    // Generate QR code first if we have batch number
+    let qrDataUrl = null;
+    if (article.batch_number) {
+      try {
+        qrDataUrl = await QRCode.toDataURL(article.batch_number, {
+          width: 400,
+          margin: 2,
+          errorCorrectionLevel: 'M',
+          type: 'image/png',
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        });
+      } catch (qrError) {
+        console.error('Error generating QR code:', qrError);
+      }
+    }
+
     // Create PDF
     const doc = new jsPDF({
       orientation: 'portrait',
@@ -53,26 +72,10 @@ Deno.serve(async (req) => {
     const batchText = unescape(encodeURIComponent(`Batch: ${article.batch_number}`));
     doc.text(batchText, margin, 35);
 
-    // Generate and add QR code if batch number exists
-    if (article.batch_number) {
-      try {
-        const qrDataUrl = await QRCode.toDataURL(article.batch_number, {
-          width: 400,
-          margin: 2,
-          errorCorrectionLevel: 'M',
-          type: 'image/png',
-          color: {
-            dark: '#000000',
-            light: '#FFFFFF'
-          }
-        });
-        
-        // Add QR code to top right corner
-        const qrSize = 45;
-        doc.addImage(qrDataUrl, 'PNG', pageWidth - margin - qrSize, 5, qrSize, qrSize);
-      } catch (qrError) {
-        console.error('Error generating QR code:', qrError);
-      }
+    // Add QR code if it was generated
+    if (qrDataUrl) {
+      const qrSize = 45;
+      doc.addImage(qrDataUrl, 'PNG', pageWidth - margin - qrSize, 5, qrSize, qrSize);
     }
 
     // Reset text color
