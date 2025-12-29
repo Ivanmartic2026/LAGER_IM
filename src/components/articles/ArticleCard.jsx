@@ -26,68 +26,50 @@ export default function ArticleCard({ article, onClick }) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.01 }}
       onClick={onClick}
-      className={cn(
-        "group p-5 rounded-2xl cursor-pointer transition-all duration-300",
-        "bg-gradient-to-br from-slate-800/80 to-slate-800/40",
-        "border border-slate-700/50 hover:border-slate-600",
-        "hover:shadow-lg hover:shadow-blue-500/5"
-      )}
+      className="group p-4 rounded-xl cursor-pointer transition-all bg-slate-800/30 border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50"
     >
-      <div className="flex items-start gap-4">
-        {article.image_url ? (
-          <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-700 flex-shrink-0">
-            <img 
-              src={article.image_url} 
-              alt={article.name}
-              className="w-full h-full object-cover"
-            />
+      <div className="flex items-center gap-3">
+        {/* Compact Stock Display */}
+        <div className="flex-shrink-0 text-center">
+          <div className="text-xl font-bold text-white leading-none mb-0.5">
+            {article.stock_qty || 0}
           </div>
-        ) : (
-          <div className="w-16 h-16 rounded-xl bg-slate-700/50 flex items-center justify-center flex-shrink-0">
-            <Package className="w-7 h-7 text-slate-500" />
-          </div>
-        )}
+          <div className="text-xs text-slate-500">st</div>
+        </div>
 
+        {/* Main Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <div>
-              <h3 className="font-semibold text-white truncate group-hover:text-blue-400 transition-colors">
-                {article.name}
-              </h3>
-              <p className="text-sm text-slate-400 flex items-center gap-1.5 mt-0.5">
-                <Hash className="w-3.5 h-3.5" />
-                {article.batch_number}
-              </p>
-            </div>
-            <Badge className={cn("border flex-shrink-0", statusConfig.color)}>
-              {statusConfig.label}
-            </Badge>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400 mt-3">
-            <div className="flex items-center gap-1.5">
-              <Package className="w-4 h-4" />
-              <span className="font-medium text-white">{article.stock_qty || 0}</span> st
-            </div>
-            
-            {article.shelf_address && (
-              <div className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4" />
-                <span>{article.shelf_address}</span>
-              </div>
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-semibold text-white text-base truncate">
+              {article.name}
+            </h3>
+            {article.status !== 'active' && (
+              <Badge className={cn("text-xs border px-1.5 py-0", statusConfig.color)}>
+                {statusConfig.label}
+              </Badge>
             )}
-
+          </div>
+          
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <span className="font-mono">#{article.batch_number}</span>
+            {article.shelf_address && (
+              <>
+                <span>•</span>
+                <MapPin className="w-3 h-3" />
+                <span>{article.shelf_address}</span>
+              </>
+            )}
             {article.manufacturer && (
-              <div className="flex items-center gap-1.5">
-                <span>{article.manufacturer}</span>
-              </div>
+              <>
+                <span>•</span>
+                <span className="truncate">{article.manufacturer}</span>
+              </>
             )}
           </div>
         </div>
 
-        <ArrowRight className="w-5 h-5 text-slate-600 group-hover:text-blue-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
+        <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-colors flex-shrink-0" />
       </div>
     </motion.div>
   );
