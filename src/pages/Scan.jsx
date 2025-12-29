@@ -5,15 +5,23 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { 
   Package, ClipboardList, ArrowLeft, Sparkles, 
-  CheckCircle2, Camera, Download, AlertTriangle
+  CheckCircle2, Camera, Download, AlertTriangle, Scan as ScanIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CameraCapture from "@/components/scanner/CameraCapture";
 import ReviewForm from "@/components/scanner/ReviewForm";
+import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 
 const MODE_OPTIONS = [
+  {
+    id: "barcode",
+    title: "Skanna Streckkod",
+    description: "Snabbsök artikel med streckkod eller QR-kod",
+    icon: ScanIcon,
+    color: "from-purple-500 to-purple-600"
+  },
   {
     id: "inbound",
     title: "Inleverans",
@@ -32,7 +40,9 @@ const MODE_OPTIONS = [
 
 export default function ScanPage() {
   const [mode, setMode] = useState(null);
-  const [step, setStep] = useState("mode"); // mode, capture, review, success
+  const [step, setStep] = useState("mode"); // mode, capture, barcode, review, success
+  const [barcodeResult, setBarcodeResult] = useState(null);
+  const [searchingArticle, setSearchingArticle] = useState(false);
   const [imageFiles, setImageFiles] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -46,7 +56,58 @@ export default function ScanPage() {
 
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
-    setStep("capture");
+    if (selectedMode === "barcode") {
+      setStep("barcode");
+    } else {
+      setStep("capture");
+    }
+  };
+
+  const handleBarcodeDetected = async (code, format) => {
+    setBarcodeResult({ code, format });
+    setSearchingArticle(true);
+
+    try {
+      // Search for article by batch_number or sku
+      const articles = await base44.entities.Article.filter({ 
+        batch_number: code 
+      });
+
+      if (articles.length === 0) {
+        // Try searching by SKU
+        const articlesBySku = await base44.entities.Article.filter({ 
+          sku: code 
+        });
+
+        if (articlesBySku.length > 0) {
+          // Found by SKU - show article
+          setSelectedArticle(articlesBySku[0]);
+          setStep("success");
+          toast.success(`Artikel hittad: ${articlesBySku[0].name}`);
+        } else {
+          // Not found - create new with barcode
+          setExtractedData({ 
+            batch_number: code,
+            stock_qty: 1,
+            image_urls: []
+          });
+          setConfidences({ batch_number: 1.0 });
+          setStep("review");
+          toast.info("Artikel ej funnen - skapa ny med streckkod");
+        }
+      } else {
+        // Found by batch number - show article
+        setSelectedArticle(articles[0]);
+        setStep("success");
+        toast.success(`Artikel hittad: ${articles[0].name}`);
+      }
+    } catch (error) {
+      console.error("Error searching article:", error);
+      toast.error("Kunde inte söka efter artikel");
+      setStep("barcode");
+    } finally {
+      setSearchingArticle(false);
+    }
   };
 
   const handleImageCaptured = async (files) => {
@@ -315,6 +376,8 @@ export default function ScanPage() {
     setExistingArticle(null);
     setShowDuplicateConfirm(false);
     setProgress(0);
+    setBarcodeResult(null);
+    setSearchingArticle(false);
   };
 
   return (
@@ -326,7 +389,15 @@ export default function ScanPage() {
           {step !== "mode" && step !== "success" ? (
             <Button
               variant="ghost"
-              onClick={() => setStep(step === "review" ? "capture" : "mode")}
+              onClick={() => {
+                if (step === "review") {
+                  setStep(mode === "barcode" ? "barcode" : "capture");
+                } else if (step === "barcode") {
+                  setStep("mode");
+                } else {
+                  setStep("mode");
+                }
+              }}
               className="text-slate-400 hover:text-white hover:bg-slate-800"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -335,7 +406,7 @@ export default function ScanPage() {
           ) : (
             <div />
           )}
-          
+
           <Link to={createPageUrl("Inventory")}>
             <Button variant="ghost" className="text-slate-400 hover:text-white">
               <Package className="w-4 h-4 mr-2" />
@@ -397,6 +468,54 @@ export default function ScanPage() {
                     </div>
                   </motion.button>
                 ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step: Barcode Scanning */}
+          {step === "barcode" && (
+            <motion.div
+              key="barcode"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-white mb-2">
+                  Skanna Streckkod
+                </h2>
+                <p className="text-slate-400">
+                  Rikta kameran mot streckkod eller QR-kod
+                </p>
+              </div>
+
+              <BarcodeScanner 
+                onBarcodeDetected={handleBarcodeDetected}
+                onClose={() => setStep("mode")}
+              />
+
+              {searchingArticle && (
+                <div className="flex items-center justify-center gap-3 p-4 rounded-xl bg-slate-800/50 border border-slate-700">
+                  <div className="w-5 h-5 border-2 border-slate-400 border-t-blue-400 rounded-full animate-spin" />
+                  <span className="text-slate-300">Söker efter artikel...</span>
+                </div>
+              )}
+
+              {barcodeResult && !searchingArticle && (
+                <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
+                  <div className="flex items-center gap-3 mb-2">
+                    <ScanIcon className="w-5 h-5 text-blue-400" />
+                    <span className="text-white font-medium">Kod läst</span>
+                  </div>
+                  <p className="text-slate-300 font-mono text-sm">{barcodeResult.code}</p>
+                  <p className="text-slate-500 text-xs mt-1">Format: {barcodeResult.format}</p>
+                </div>
+              )}
+
+              <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+                <Sparkles className="w-4 h-4" />
+                <span>Artikeln hämtas automatiskt från databasen</span>
               </div>
             </motion.div>
           )}
@@ -574,11 +693,54 @@ export default function ScanPage() {
               </motion.div>
 
               <h2 className="text-2xl font-bold text-white mb-2">
-                Sparat!
+                {savedArticle ? "Sparat!" : "Hittad!"}
               </h2>
               <p className="text-slate-400 mb-8">
-                {savedArticle?.name} har registrerats i lagret
+                {savedArticle ? 
+                  `${savedArticle.name} har registrerats i lagret` :
+                  selectedArticle ? 
+                    `${selectedArticle.name} finns i lagret` :
+                    "Artikeln har bearbetats"
+                }
               </p>
+
+              {selectedArticle && (
+                <div className="mb-8 p-6 rounded-2xl bg-slate-800/50 border border-slate-700 text-left max-w-md mx-auto">
+                  <h3 className="text-lg font-semibold text-white mb-4">
+                    {selectedArticle.name}
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Batch:</span>
+                      <span className="text-white font-mono">{selectedArticle.batch_number}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Lagersaldo:</span>
+                      <span className="text-white font-semibold">{selectedArticle.stock_qty || 0} st</span>
+                    </div>
+                    {selectedArticle.shelf_address && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Hyllplats:</span>
+                        <span className="text-white">{selectedArticle.shelf_address}</span>
+                      </div>
+                    )}
+                    {selectedArticle.warehouse && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Lagerställe:</span>
+                        <span className="text-white">{selectedArticle.warehouse}</span>
+                      </div>
+                    )}
+                  </div>
+                  <Link to={`${createPageUrl("Inventory")}?articleId=${selectedArticle.id}`}>
+                    <Button
+                      variant="outline"
+                      className="w-full mt-4 bg-slate-700 border-slate-600 hover:bg-slate-600 text-white"
+                    >
+                      Visa detaljer
+                    </Button>
+                  </Link>
+                </div>
+              )}
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
