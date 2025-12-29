@@ -58,7 +58,7 @@ export default function ArticleCard({ article, onClick }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-semibold text-white text-base truncate">
-              {article.name}
+              {article.customer_name || article.name}
             </h3>
             {article.status !== 'active' && (
               <Badge className={cn("text-xs border px-1.5 py-0", statusConfig.color)}>
@@ -68,7 +68,12 @@ export default function ArticleCard({ article, onClick }) {
           </div>
           
           <div className="flex items-center gap-2 text-xs text-slate-400 mb-1.5">
-            <span className="font-mono">#{article.batch_number}</span>
+            {article.sku && (
+              <span className="font-mono text-blue-400">SKU: {article.sku}</span>
+            )}
+            {!article.sku && article.batch_number && (
+              <span className="font-mono">#{article.batch_number}</span>
+            )}
             {article.shelf_address && (
               <>
                 <span>•</span>
