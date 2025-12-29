@@ -224,7 +224,10 @@ export default function InventoryPage() {
           <ArticleDetail
             article={selectedArticle}
             onBack={() => setSelectedArticle(null)}
-            onEdit={() => {}}
+            onEdit={() => {
+              // Navigate to scan page with edit mode
+              window.location.href = createPageUrl("Scan") + `?edit=${selectedArticle.id}`;
+            }}
             onDelete={() => deleteArticleMutation.mutate(selectedArticle.id)}
             onAdjustStock={(type) => setAdjustmentModal({ open: true, type })}
           />
