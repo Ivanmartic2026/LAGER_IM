@@ -203,166 +203,102 @@ export default function InventoryPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Lager</h1>
-            <p className="text-slate-400">{articles.length} artiklar registrerade</p>
-          </div>
+        {/* Compact Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-white">Lager</h1>
+              <div className="flex items-center gap-3 text-sm">
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                  {stats.total} totalt
+                </Badge>
+                {stats.lowStock > 0 && (
+                  <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30">
+                    {stats.lowStock} lågt
+                  </Badge>
+                )}
+                {stats.outOfStock > 0 && (
+                  <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30">
+                    {stats.outOfStock} slut
+                  </Badge>
+                )}
+                {stats.onRepair > 0 && (
+                  <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/30">
+                    {stats.onRepair} reparation
+                  </Badge>
+                )}
+              </div>
+            </div>
 
-          <div className="flex flex-wrap gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleImport}
-              className="hidden"
-            />
-            <Button
-              onClick={handleExport}
-              variant="outline"
-              className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Exportera</span>
-            </Button>
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isImporting}
-              variant="outline"
-              className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">{isImporting ? 'Importerar...' : 'Importera'}</span>
-            </Button>
-            <Button
-              onClick={() => setQuickInventoryOpen(true)}
-              variant="outline"
-              className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-            >
-              <ClipboardList className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Inventering</span>
-            </Button>
-            <Button
-              onClick={() => setPickListOpen(true)}
-              variant="outline"
-              className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">AI Lista</span>
-            </Button>
-            <Link to={createPageUrl("Scan")}>
-              <Button className="bg-blue-600 hover:bg-blue-500">
-                <Camera className="w-4 h-4 mr-2" />
-                Skanna
+            <div className="flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleImport}
+                className="hidden"
+              />
+              <Button
+                onClick={handleExport}
+                variant="outline"
+                size="sm"
+                className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+              >
+                <Download className="w-4 h-4" />
               </Button>
-            </Link>
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isImporting}
+                variant="outline"
+                size="sm"
+                className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+              >
+                <Upload className="w-4 h-4" />
+              </Button>
+              <Button
+                onClick={() => setQuickInventoryOpen(true)}
+                variant="outline"
+                size="sm"
+                className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+              >
+                <ClipboardList className="w-4 h-4" />
+              </Button>
+              <Button
+                onClick={() => setPickListOpen(true)}
+                variant="outline"
+                size="sm"
+                className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+              >
+                <Sparkles className="w-4 h-4" />
+              </Button>
+              <Link to={createPageUrl("Scan")}>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-500">
+                  <Camera className="w-4 h-4 mr-2" />
+                  Skanna
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <button
-            onClick={() => setStatusFilter("all")}
-            className={cn(
-              "p-4 rounded-xl border transition-all text-left",
-              statusFilter === "all"
-                ? "bg-blue-500/20 border-blue-500/50 ring-2 ring-blue-500/30"
-                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <Package className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{stats.total}</p>
-                <p className="text-xs text-slate-400">Totalt</p>
-              </div>
+          {/* Compact Search & Filters */}
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Sök artikel, batch, tillverkare eller hyllplats..."
+                className="pl-10 h-9 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+              />
             </div>
-          </button>
-
-          <button
-            onClick={() => setStatusFilter("low_stock")}
-            className={cn(
-              "p-4 rounded-xl border transition-all text-left",
-              statusFilter === "low_stock"
-                ? "bg-amber-500/20 border-amber-500/50 ring-2 ring-amber-500/30"
-                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-amber-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{stats.lowStock}</p>
-                <p className="text-xs text-slate-400">Lågt lager</p>
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setStatusFilter("out_of_stock")}
-            className={cn(
-              "p-4 rounded-xl border transition-all text-left",
-              statusFilter === "out_of_stock"
-                ? "bg-red-500/20 border-red-500/50 ring-2 ring-red-500/30"
-                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
-                <Package className="w-5 h-5 text-red-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{stats.outOfStock}</p>
-                <p className="text-xs text-slate-400">Slut</p>
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setStatusFilter("on_repair")}
-            className={cn(
-              "p-4 rounded-xl border transition-all text-left",
-              statusFilter === "on_repair"
-                ? "bg-orange-500/20 border-orange-500/50 ring-2 ring-orange-500/30"
-                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                <Package className="w-5 h-5 text-orange-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{stats.onRepair}</p>
-                <p className="text-xs text-slate-400">Reparation</p>
-              </div>
-            </div>
-          </button>
-        </div>
-
-        {/* Search & Filters */}
-        <div className="flex flex-col md:flex-row gap-3 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Sök artikel, batchnummer, tillverkare eller hyllplats..."
-              className="pl-10 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
-            />
-          </div>
-          
-          <div className="flex gap-2">
+            
             <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-              <TabsList className="bg-slate-800/50 border border-slate-700">
-                <TabsTrigger value="all" className="text-xs">Alla</TabsTrigger>
-                <TabsTrigger value="active" className="text-xs">I lager</TabsTrigger>
-                <TabsTrigger value="low_stock" className="text-xs">Lågt</TabsTrigger>
-                <TabsTrigger value="out_of_stock" className="text-xs">Slut</TabsTrigger>
-                <TabsTrigger value="on_repair" className="text-xs">Reparation</TabsTrigger>
+              <TabsList className="h-9 bg-slate-800/50 border border-slate-700">
+                <TabsTrigger value="all" className="text-xs h-7">Alla</TabsTrigger>
+                <TabsTrigger value="active" className="text-xs h-7">I lager</TabsTrigger>
+                <TabsTrigger value="low_stock" className="text-xs h-7">Lågt</TabsTrigger>
+                <TabsTrigger value="out_of_stock" className="text-xs h-7">Slut</TabsTrigger>
+                <TabsTrigger value="on_repair" className="text-xs h-7">Reparation</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
