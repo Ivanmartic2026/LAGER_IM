@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Package, MapPin, Calendar, Hash, Factory, Ruler, 
-  Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2, History
+  Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2, History,
+  DollarSign, Warehouse, Tag, Check, X
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -348,19 +349,94 @@ export default function ArticleDetail({
         </TabsList>
 
         <TabsContent value="details" className="space-y-6 mt-6">
-          {/* IM Vision Product Info */}
-          {(article.customer_name || article.sku) && (
+          {/* Grundläggande information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+              <h3 className="font-semibold text-white mb-4">Artikelinformation</h3>
+              <div className="space-y-0">
+                {article.sku && (
+                  <InfoRow icon={Hash} label="Artikelnummer" value={article.sku} />
+                )}
+                <InfoRow icon={Package} label="Benämning" value={article.name} />
+                {article.supplier_name && (
+                  <InfoRow icon={Factory} label="Leverantör" value={article.supplier_name} />
+                )}
+                {article.supplier_price && (
+                  <InfoRow icon={DollarSign} label="Leverantörspris" value={`${article.supplier_price} kr`} />
+                )}
+                {article.category && (
+                  <InfoRow icon={Tag} label="Typ av artikel" value={article.category} />
+                )}
+                <InfoRow 
+                  icon={article.is_stock_item !== false ? Check : X} 
+                  label="Lagervara" 
+                  value={article.is_stock_item !== false ? "Ja" : "Nej"} 
+                />
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+              <h3 className="font-semibold text-white mb-4">Mått & Vikt</h3>
+              <div className="space-y-0">
+                <InfoRow icon={Ruler} label="Bredd" value={
+                  article.dimensions_width_mm ? `${article.dimensions_width_mm} mm` : null
+                } />
+                <InfoRow icon={Ruler} label="Höjd" value={
+                  article.dimensions_height_mm ? `${article.dimensions_height_mm} mm` : null
+                } />
+                <InfoRow icon={Ruler} label="Djup" value={
+                  article.dimensions_depth_mm ? `${article.dimensions_depth_mm} mm` : null
+                } />
+                <InfoRow icon={Scale} label="Vikt" value={
+                  article.weight_g ? `${article.weight_g} g` : (article.weight_kg ? `${article.weight_kg * 1000} g` : null)
+                } />
+              </div>
+            </div>
+          </div>
+
+          {/* Lagerplats & Kostnader */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+              <h3 className="font-semibold text-white mb-4">Lagerplats</h3>
+              <div className="space-y-0">
+                {article.warehouse && (
+                  <InfoRow icon={Warehouse} label="Lagerställe" value={article.warehouse} />
+                )}
+                {article.shelf_address && (
+                  <InfoRow icon={MapPin} label="Lagerplats" value={article.shelf_address} />
+                )}
+                {article.batch_number && (
+                  <InfoRow icon={Hash} label="Batch Nummer" value={article.batch_number} />
+                )}
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+              <h3 className="font-semibold text-white mb-4">Kostnader & Teknisk info</h3>
+              <div className="space-y-0">
+                {article.calculated_cost && (
+                  <InfoRow icon={DollarSign} label="Kalkylkostnad" value={`${article.calculated_cost} kr`} />
+                )}
+                {article.pixel_pitch_mm && (
+                  <InfoRow icon={Grid3X3} label="Pixel Pitch" value={`${article.pixel_pitch_mm} mm`} />
+                )}
+                {article.supplier_product_code && (
+                  <InfoRow icon={Hash} label="Produktkod" value={article.supplier_product_code} />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Tilläggsinfo (IM Vision specifik) */}
+          {(article.customer_name || article.pitch_value || article.series || article.brightness_nits) && (
             <div className="p-5 rounded-2xl bg-blue-500/10 border border-blue-500/30">
-              <h3 className="font-semibold text-white mb-4">IM Vision Produktinformation</h3>
+              <h3 className="font-semibold text-white mb-4">Tilläggsinfo</h3>
               <div className="space-y-0">
                 {article.customer_name && (
                   <InfoRow icon={Package} label="Kundnamn" value={article.customer_name} />
                 )}
-                {article.sku && (
-                  <InfoRow icon={Hash} label="SKU" value={article.sku} />
-                )}
                 {article.pitch_value && (
-                  <InfoRow icon={Grid3X3} label="Pitch" value={article.pitch_value} />
+                  <InfoRow icon={Grid3X3} label="Pitch värde" value={article.pitch_value} />
                 )}
                 {article.series && (
                   <InfoRow icon={Package} label="Serie" value={article.series} />
@@ -371,43 +447,17 @@ export default function ArticleDetail({
                 {article.brightness_nits && (
                   <InfoRow icon={Grid3X3} label="Ljusstyrka" value={`${article.brightness_nits} nits`} />
                 )}
+                {article.manufacturer && (
+                  <InfoRow icon={Factory} label="Tillverkare" value={article.manufacturer} />
+                )}
+                {article.manufacturing_date && !isNaN(new Date(article.manufacturing_date).getTime()) && (
+                  <InfoRow icon={Calendar} label="Tillverkningsdatum" value={
+                    format(new Date(article.manufacturing_date), "d MMM yyyy", { locale: sv })
+                  } />
+                )}
               </div>
             </div>
           )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <h3 className="font-semibold text-white mb-4">Artikelinformation</h3>
-              <div className="space-y-0">
-                <InfoRow icon={Factory} label="Tillverkare" value={article.manufacturer} />
-                <InfoRow icon={Calendar} label="Tillverkningsdatum" value={
-                  article.manufacturing_date && !isNaN(new Date(article.manufacturing_date).getTime())
-                    ? format(new Date(article.manufacturing_date), "d MMM yyyy", { locale: sv })
-                    : null
-                } />
-                <InfoRow icon={Grid3X3} label="Pixel Pitch" value={
-                  article.pixel_pitch_mm ? `${article.pixel_pitch_mm} mm` : null
-                } />
-                <InfoRow icon={Package} label="Kategori" value={article.category} />
-              </div>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <h3 className="font-semibold text-white mb-4">Lagerplats & Mått</h3>
-              <div className="space-y-0">
-                <InfoRow icon={MapPin} label="Hyllplats" value={article.shelf_address} />
-                <InfoRow icon={MapPin} label="Lager" value={article.warehouse} />
-                <InfoRow icon={Ruler} label="Dimensioner" value={
-                  article.dimensions_width_mm || article.dimensions_height_mm || article.dimensions_depth_mm
-                    ? `${article.dimensions_width_mm || "—"} × ${article.dimensions_height_mm || "—"} × ${article.dimensions_depth_mm || "—"} mm`
-                    : null
-                } />
-                <InfoRow icon={Scale} label="Vikt" value={
-                  article.weight_kg ? `${article.weight_kg} kg` : null
-                } />
-              </div>
-            </div>
-          </div>
 
           {article.notes && (
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
