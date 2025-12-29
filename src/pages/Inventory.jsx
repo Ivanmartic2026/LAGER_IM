@@ -413,6 +413,16 @@ export default function InventoryPage() {
           </div>
         ) : (
           <div className="space-y-2">
+            {/* Header Row */}
+            <div className="px-4 py-2 grid grid-cols-1 md:grid-cols-[80px_80px_1fr_1fr_1fr_150px] gap-4 text-xs font-medium text-slate-500 uppercase tracking-wider border-b border-slate-700/50">
+              <div></div> {/* Image */}
+              <div>Saldo</div>
+              <div>Artikel</div>
+              <div>Plats</div>
+              <div>Tillverkare</div>
+              <div className="text-right">Status</div>
+            </div>
+
             <AnimatePresence>
               {filteredArticles.map((article) => {
                 const hasLowStock = article.stock_qty <= (article.min_stock_level || 5);
@@ -456,7 +466,7 @@ export default function InventoryPage() {
                       </div>
 
                       {/* Article Info */}
-                      <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_150px] gap-4">
                         {/* Name & SKU */}
                         <div className="min-w-0">
                           <div className="font-semibold text-white text-sm mb-1 truncate">
