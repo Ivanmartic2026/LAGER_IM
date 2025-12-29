@@ -255,11 +255,26 @@ export default function ArticleDetail({
         <div className="flex-1">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">{article.name}</h1>
-              <p className="text-slate-400 flex items-center gap-2">
-                <Hash className="w-4 h-4" />
-                <span className="text-slate-500">Batch:</span> {article.batch_number}
-              </p>
+              <h1 className="text-2xl font-bold text-white mb-1">
+                {article.customer_name || article.name}
+              </h1>
+              {article.customer_name && article.name !== article.customer_name && (
+                <p className="text-sm text-slate-500 mb-1">({article.name})</p>
+              )}
+              <div className="flex flex-col gap-1 text-sm">
+                {article.sku && (
+                  <p className="text-blue-400 flex items-center gap-2 font-mono">
+                    <Hash className="w-4 h-4" />
+                    SKU: {article.sku}
+                  </p>
+                )}
+                {article.batch_number && (
+                  <p className="text-slate-400 flex items-center gap-2">
+                    <Hash className="w-4 h-4" />
+                    <span className="text-slate-500">Batch:</span> {article.batch_number}
+                  </p>
+                )}
+              </div>
             </div>
             <Badge className={cn("border text-sm", statusConfig.color)}>
               {statusConfig.label}
@@ -333,6 +348,33 @@ export default function ArticleDetail({
         </TabsList>
 
         <TabsContent value="details" className="space-y-6 mt-6">
+          {/* IM Vision Product Info */}
+          {(article.customer_name || article.sku) && (
+            <div className="p-5 rounded-2xl bg-blue-500/10 border border-blue-500/30">
+              <h3 className="font-semibold text-white mb-4">IM Vision Produktinformation</h3>
+              <div className="space-y-0">
+                {article.customer_name && (
+                  <InfoRow icon={Package} label="Kundnamn" value={article.customer_name} />
+                )}
+                {article.sku && (
+                  <InfoRow icon={Hash} label="SKU" value={article.sku} />
+                )}
+                {article.pitch_value && (
+                  <InfoRow icon={Grid3X3} label="Pitch" value={article.pitch_value} />
+                )}
+                {article.series && (
+                  <InfoRow icon={Package} label="Serie" value={article.series} />
+                )}
+                {article.product_version && (
+                  <InfoRow icon={Hash} label="Version" value={article.product_version} />
+                )}
+                {article.brightness_nits && (
+                  <InfoRow icon={Grid3X3} label="Ljusstyrka" value={`${article.brightness_nits} nits`} />
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
               <h3 className="font-semibold text-white mb-4">Artikelinformation</h3>
