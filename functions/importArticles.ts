@@ -10,16 +10,20 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get form data with uploaded file
-    const formData = await req.formData();
-    const file = formData.get('file');
+    // Get file_url from request body
+    const { file_url } = await req.json();
 
-    if (!file) {
-      return Response.json({ error: 'Ingen fil uppladdad' }, { status: 400 });
+    if (!file_url) {
+      return Response.json({ error: 'Ingen fil-URL angiven' }, { status: 400 });
     }
 
-    // Read file buffer
-    const arrayBuffer = await file.arrayBuffer();
+    // Fetch file from URL
+    const fileResponse = await fetch(file_url);
+    if (!fileResponse.ok) {
+      return Response.json({ error: 'Kunde inte ladda fil' }, { status: 400 });
+    }
+
+    const arrayBuffer = await fileResponse.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
 
     // Parse Excel file

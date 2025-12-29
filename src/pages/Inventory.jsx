@@ -156,23 +156,11 @@ export default function InventoryPage() {
       // Upload file first
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      console.log('File uploaded, fetching to get array buffer...');
-      toast.loading('Bearbetar fil...', { id: loadingToast });
-      
-      // Fetch the file to convert to proper format for backend
-      const fileResponse = await fetch(file_url);
-      const arrayBuffer = await fileResponse.arrayBuffer();
-      const blob = new Blob([arrayBuffer], { type: file.type });
-      const newFile = new File([blob], file.name, { type: file.type });
-      
-      // Now send to import function
-      const formData = new FormData();
-      formData.append('file', newFile);
-      
-      console.log('Sending to import function...');
+      console.log('File uploaded:', file_url);
       toast.loading('Importerar artiklar...', { id: loadingToast });
       
-      const result = await base44.functions.invoke('importArticles', formData);
+      // Send file URL to import function
+      const result = await base44.functions.invoke('importArticles', { file_url });
       
       console.log('Import result:', result);
 
