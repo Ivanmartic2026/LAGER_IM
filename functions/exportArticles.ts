@@ -20,8 +20,14 @@ Deno.serve(async (req) => {
 
     // Prepare data for Excel
     const excelData = articles.map(article => ({
+      'Kundnamn': article.customer_name || '',
+      'SKU': article.sku || '',
       'Batchnummer': article.batch_number || '',
       'Artikelnamn': article.name || '',
+      'Pitch': article.pitch_value || '',
+      'Serie': article.series || '',
+      'Version': article.product_version || '',
+      'Ljusstyrka (nits)': article.brightness_nits || '',
       'Tillverkare': article.manufacturer || '',
       'Tillverkningsdatum': article.manufacturing_date || '',
       'Pixel Pitch (mm)': article.pixel_pitch_mm || '',
@@ -50,8 +56,14 @@ Deno.serve(async (req) => {
 
     // Set column widths
     worksheet['!cols'] = [
+      { wch: 30 }, // Kundnamn
+      { wch: 25 }, // SKU
       { wch: 15 }, // Batchnummer
       { wch: 30 }, // Artikelnamn
+      { wch: 10 }, // Pitch
+      { wch: 15 }, // Serie
+      { wch: 10 }, // Version
+      { wch: 12 }, // Ljusstyrka
       { wch: 20 }, // Tillverkare
       { wch: 15 }, // Tillverkningsdatum
       { wch: 12 }, // Pixel Pitch
