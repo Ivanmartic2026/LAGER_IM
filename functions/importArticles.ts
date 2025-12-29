@@ -31,6 +31,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Excel-filen är tom' }, { status: 400 });
     }
 
+    // Log available columns for debugging
+    const availableColumns = data.length > 0 ? Object.keys(data[0]) : [];
+    console.log('Excel columns found:', availableColumns);
+
     // Get existing articles and suppliers
     const existingArticles = await base44.asServiceRole.entities.Article.list('-created_date', 10000);
     const suppliers = await base44.asServiceRole.entities.Supplier.list();
@@ -61,8 +65,8 @@ Deno.serve(async (req) => {
         const articleData = {
           customer_name: row['Kundnamn']?.toString().trim() || undefined,
           sku: row['SKU']?.toString().trim() || undefined,
-          batch_number: row['Batchnummer']?.toString().trim(),
-          name: row['Artikelnamn']?.toString().trim(),
+          batch_number: row['Batchnummer']?.toString().trim() || `BATCH-${Date.now()}-${i}`,
+          name: row['Artikelnamn']?.toString().trim() || row['Kundnamn']?.toString().trim(),
           pitch_value: row['Pitch']?.toString().trim() || undefined,
           series: row['Serie']?.toString().trim() || undefined,
           product_version: row['Version']?.toString().trim() || undefined,
@@ -92,8 +96,8 @@ Deno.serve(async (req) => {
         }
 
         // Validate required fields
-        if (!articleData.batch_number || !articleData.name) {
-          results.errors.push(`Rad ${i + 2}: Batchnummer och Artikelnamn är obligatoriska`);
+        if (!articleData.name) {
+          results.errors.push(`Rad ${i + 2}: Artikelnamn eller Kundnamn måste finnas`);
           results.skipped++;
           continue;
         }
