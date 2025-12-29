@@ -451,35 +451,48 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
               </div>
             </div>
 
-            {/* Bilder */}
+            {/* Bilder & Filer */}
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Bilder</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Bilder & Filer</h3>
               
               {formData.image_urls && formData.image_urls.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
-                  {formData.image_urls.map((url, index) => (
-                    <div key={index} className="relative group">
-                      <img 
-                        src={url} 
-                        alt={`Bild ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg bg-slate-800"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(url)}
-                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
-                  ))}
+                  {formData.image_urls.map((url, index) => {
+                    const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url);
+                    const fileName = url.split('/').pop().split('?')[0];
+                    
+                    return (
+                      <div key={index} className="relative group">
+                        {isImage ? (
+                          <img 
+                            src={url} 
+                            alt={`Bild ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg bg-slate-800"
+                          />
+                        ) : (
+                          <div className="w-full h-32 flex flex-col items-center justify-center rounded-lg bg-slate-800 p-2">
+                            <div className="text-2xl mb-2">📄</div>
+                            <div className="text-xs text-slate-400 text-center truncate w-full px-2">
+                              {fileName}
+                            </div>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(url)}
+                          className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
               <div>
                 <input
                   type="file"
-                  accept="image/*"
                   multiple
                   onChange={handleImageUpload}
                   className="hidden"
@@ -498,7 +511,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   ) : (
                     <>
                       <Plus className="w-5 h-5 text-slate-400" />
-                      <span className="text-slate-400">Lägg till bilder</span>
+                      <span className="text-slate-400">Lägg till bilder & filer</span>
                     </>
                   )}
                 </label>
