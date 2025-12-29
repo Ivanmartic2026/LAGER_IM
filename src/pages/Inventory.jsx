@@ -237,21 +237,37 @@ export default function InventoryPage() {
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold text-white">Lager</h1>
               <div className="flex items-center gap-3 text-sm">
-                <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                <Badge 
+                  variant="outline" 
+                  className="bg-blue-500/10 text-blue-400 border-blue-500/30 cursor-pointer hover:bg-blue-500/20 transition-colors"
+                  onClick={() => setStatusFilter('all')}
+                >
                   {stats.total} totalt
                 </Badge>
                 {stats.lowStock > 0 && (
-                  <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30">
+                  <Badge 
+                    variant="outline" 
+                    className="bg-amber-500/10 text-amber-400 border-amber-500/30 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                    onClick={() => setStatusFilter('low_stock')}
+                  >
                     {stats.lowStock} lågt
                   </Badge>
                 )}
                 {stats.outOfStock > 0 && (
-                  <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30">
+                  <Badge 
+                    variant="outline" 
+                    className="bg-red-500/10 text-red-400 border-red-500/30 cursor-pointer hover:bg-red-500/20 transition-colors"
+                    onClick={() => setStatusFilter('out_of_stock')}
+                  >
                     {stats.outOfStock} slut
                   </Badge>
                 )}
                 {stats.onRepair > 0 && (
-                  <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/30">
+                  <Badge 
+                    variant="outline" 
+                    className="bg-orange-500/10 text-orange-400 border-orange-500/30 cursor-pointer hover:bg-orange-500/20 transition-colors"
+                    onClick={() => setStatusFilter('on_repair')}
+                  >
                     {stats.onRepair} reparation
                   </Badge>
                 )}
