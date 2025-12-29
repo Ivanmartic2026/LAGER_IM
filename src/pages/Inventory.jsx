@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { 
   Search, Camera, Package, AlertTriangle, Filter,
   Grid3X3, List, Plus, SlidersHorizontal, Sparkles,
-  ClipboardList, Download, Upload, ArrowUpDown
+  ClipboardList, Download, Upload, ArrowUpDown, MapPin
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
