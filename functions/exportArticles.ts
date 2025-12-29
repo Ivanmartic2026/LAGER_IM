@@ -4,11 +4,6 @@ import * as XLSX from 'npm:xlsx@0.18.5';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     // Get all articles and suppliers
     const articles = await base44.asServiceRole.entities.Article.list('-created_date', 10000);
