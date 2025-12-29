@@ -66,11 +66,14 @@ Deno.serve(async (req) => {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(28);
     doc.setFont('helvetica', 'bold');
-    doc.text(article.name || 'Artikel', margin, 25);
+    // Properly encode Swedish characters
+    const encodedName = decodeURIComponent(escape(article.name || 'Artikel'));
+    doc.text(encodedName, margin, 25);
     
     doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Batch: ${article.batch_number || ''}`, margin, 35);
+    const encodedBatch = decodeURIComponent(escape(`Batch: ${article.batch_number || ''}`));
+    doc.text(encodedBatch, margin, 35);
 
     // Add QR code if it was generated
     if (qrImageData) {
@@ -93,7 +96,7 @@ Deno.serve(async (req) => {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(51, 65, 85); // slate-700
-    doc.text('Artikelinformation', margin + 3, y + 7);
+    doc.text(decodeURIComponent(escape('Artikelinformation')), margin + 3, y + 7);
     
     y += 15;
     doc.setFontSize(11);
@@ -103,9 +106,11 @@ Deno.serve(async (req) => {
     const addField = (label, value) => {
       if (value !== null && value !== undefined && value !== '') {
         doc.setFont('helvetica', 'bold');
-        doc.text(`${label}:`, margin + 5, y);
+        const encodedLabel = decodeURIComponent(escape(`${label}:`));
+        doc.text(encodedLabel, margin + 5, y);
         doc.setFont('helvetica', 'normal');
-        doc.text(String(value), margin + 60, y);
+        const encodedValue = decodeURIComponent(escape(String(value)));
+        doc.text(encodedValue, margin + 60, y);
         y += 8;
       }
     };
@@ -123,7 +128,7 @@ Deno.serve(async (req) => {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(51, 65, 85);
-    doc.text('Lagerplats & Matt', margin + 3, y + 7);
+    doc.text(decodeURIComponent(escape('Lagerplats & Mått')), margin + 3, y + 7);
     
     y += 15;
     doc.setFontSize(11);
@@ -148,7 +153,7 @@ Deno.serve(async (req) => {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(51, 65, 85);
-    doc.text('Lagerstatus', margin + 3, y + 7);
+    doc.text(decodeURIComponent(escape('Lagerstatus')), margin + 3, y + 7);
     
     y += 15;
     doc.setFontSize(11);
@@ -156,7 +161,7 @@ Deno.serve(async (req) => {
     doc.setTextColor(0, 0, 0);
 
     addField('Lagersaldo', article.stock_qty || 0);
-    addField('Min. lagerniiva', article.min_stock_level);
+    addField('Min. lagernivå', article.min_stock_level);
     addField('Status', article.status);
 
     // Notes section if exists
@@ -167,14 +172,15 @@ Deno.serve(async (req) => {
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(51, 65, 85);
-      doc.text('Anteckningar', margin + 3, y + 7);
+      doc.text(decodeURIComponent(escape('Anteckningar')), margin + 3, y + 7);
       
       y += 15;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
       
-      const notesLines = doc.splitTextToSize(article.notes, contentWidth - 10);
+      const encodedNotes = decodeURIComponent(escape(article.notes));
+      const notesLines = doc.splitTextToSize(encodedNotes, contentWidth - 10);
       doc.text(notesLines, margin + 5, y);
       y += notesLines.length * 5;
     }
@@ -187,27 +193,31 @@ Deno.serve(async (req) => {
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(180, 83, 9); // amber-700
-      doc.text('PA REPARATION', margin + 3, y + 7);
+      doc.text(decodeURIComponent(escape('⚠ PÅ REPARATION')), margin + 3, y + 7);
       
       y += 15;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
       
-      const repairLines = doc.splitTextToSize(article.repair_notes, contentWidth - 10);
+      const encodedRepair = decodeURIComponent(escape(article.repair_notes));
+      const repairLines = doc.splitTextToSize(encodedRepair, contentWidth - 10);
       doc.text(repairLines, margin + 5, y);
       
       if (article.repair_date) {
         y += repairLines.length * 5 + 5;
-        doc.text(`Skickad: ${article.repair_date}`, margin + 5, y);
+        const encodedDate = decodeURIComponent(escape(`Skickad: ${article.repair_date}`));
+        doc.text(encodedDate, margin + 5, y);
       }
     }
 
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Genererad: ${new Date().toLocaleString('sv-SE')}`, margin, 285);
-    doc.text(`Anvandare: ${user.email}`, pageWidth - margin, 285, { align: 'right' });
+    const footerLeft = decodeURIComponent(escape(`Genererad: ${new Date().toLocaleString('sv-SE')}`));
+    const footerRight = decodeURIComponent(escape(`Användare: ${user.email}`));
+    doc.text(footerLeft, margin, 285);
+    doc.text(footerRight, pageWidth - margin, 285, { align: 'right' });
 
     // Generate PDF
     const pdfBytes = doc.output('arraybuffer');
