@@ -9,6 +9,8 @@ import Reports from './pages/Reports';
 import Scan from './pages/Scan';
 import Suppliers from './pages/Suppliers';
 import Warehouses from './pages/Warehouses';
+import Orders from './pages/Orders';
+import PickOrder from './pages/PickOrder';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +26,8 @@ export const PAGES = {
     "Scan": Scan,
     "Suppliers": Suppliers,
     "Warehouses": Warehouses,
+    "Orders": Orders,
+    "PickOrder": PickOrder,
 }
 
 export const pagesConfig = {
