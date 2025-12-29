@@ -2,14 +2,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 Deno.serve(async (req) => {
   try {
+    const { report_type, filters = {}, date_range = {}, email_recipients = [] } = await req.json();
+
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const { report_type, filters = {}, date_range = {}, email_recipients = [] } = await req.json();
 
     // Fetch articles with filters
     const allArticles = await base44.asServiceRole.entities.Article.list('-updated_date', 1000);
