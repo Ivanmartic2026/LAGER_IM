@@ -8,11 +8,12 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Warehouse, Plus, Search, Edit, Trash2, MapPin,
-  Building2, ChevronRight
+  Building2, ChevronRight, Map
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import WarehouseForm from "@/components/warehouses/WarehouseForm";
 import ShelfManager from "@/components/warehouses/ShelfManager";
+import WarehouseLayout from "@/components/warehouses/WarehouseLayout";
 
 export default function WarehousesPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -97,6 +98,15 @@ export default function WarehousesPage() {
     w.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     w.code?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (layoutWarehouse) {
+    return (
+      <WarehouseLayout 
+        warehouseId={layoutWarehouse.id}
+        onBack={() => setLayoutWarehouse(null)} 
+      />
+    );
+  }
 
   if (selectedWarehouse) {
     return (
@@ -234,6 +244,15 @@ export default function WarehousesPage() {
 
                       <div className="flex items-center gap-2">
                         <Button
+                          onClick={() => setLayoutWarehouse(warehouse)}
+                          variant="outline"
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-500 text-white border-0"
+                        >
+                          <Map className="w-4 h-4 mr-2" />
+                          Schema
+                        </Button>
+                        <Button
                           onClick={() => setSelectedWarehouse(warehouse)}
                           variant="outline"
                           size="sm"
@@ -241,7 +260,6 @@ export default function WarehousesPage() {
                         >
                           <MapPin className="w-4 h-4 mr-2" />
                           Hyllor
-                          <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
                         <Button
                           onClick={() => handleEdit(warehouse)}
