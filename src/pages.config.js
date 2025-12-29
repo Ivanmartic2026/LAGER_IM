@@ -1,24 +1,24 @@
-import Scan from './pages/Scan';
-import Inventory from './pages/Inventory';
-import Home from './pages/Home';
-import Find from './pages/Find';
-import Movements from './pages/Movements';
-import Reports from './pages/Reports';
 import Analytics from './pages/Analytics';
+import Find from './pages/Find';
+import Home from './pages/Home';
+import Inventory from './pages/Inventory';
+import Movements from './pages/Movements';
 import PurchaseOrders from './pages/PurchaseOrders';
+import Reports from './pages/Reports';
+import Scan from './pages/Scan';
 import Suppliers from './pages/Suppliers';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Scan": Scan,
-    "Inventory": Inventory,
-    "Home": Home,
-    "Find": Find,
-    "Movements": Movements,
-    "Reports": Reports,
     "Analytics": Analytics,
+    "Find": Find,
+    "Home": Home,
+    "Inventory": Inventory,
+    "Movements": Movements,
     "PurchaseOrders": PurchaseOrders,
+    "Reports": Reports,
+    "Scan": Scan,
     "Suppliers": Suppliers,
 }
 

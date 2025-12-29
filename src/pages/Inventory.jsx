@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { 
   Search, Camera, Package, AlertTriangle, Filter,
   Grid3X3, List, Plus, SlidersHorizontal, Sparkles,
-  ClipboardList
+  ClipboardList, Download, Upload
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -38,6 +38,8 @@ export default function InventoryPage() {
   const [adjustmentModal, setAdjustmentModal] = useState({ open: false, type: null });
   const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
   const [pickListOpen, setPickListOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = React.useRef(null);
   
   const queryClient = useQueryClient();
 
@@ -95,6 +97,65 @@ export default function InventoryPage() {
     toast.success("Lagersaldo uppdaterat");
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await base44.functions.invoke('exportArticles');
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `artiklar_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.success('Excel-fil nedladdad');
+    } catch (error) {
+      toast.error('Kunde inte exportera artiklar');
+    }
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/functions/importArticles', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${await base44.auth.getToken()}`
+        }
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success(result.message);
+        queryClient.invalidateQueries({ queryKey: ['articles'] });
+      } else {
+        toast.error(result.error || 'Import misslyckades');
+      }
+
+      if (result.results?.errors?.length > 0) {
+        console.error('Import errors:', result.results.errors);
+      }
+    } catch (error) {
+      toast.error('Kunde inte importera artiklar');
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   const filteredArticles = articles.filter(article => {
     const matchesSearch = !searchQuery || 
       article.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -149,14 +210,38 @@ export default function InventoryPage() {
             <p className="text-slate-400">{articles.length} artiklar registrerade</p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleImport}
+              className="hidden"
+            />
+            <Button
+              onClick={handleExport}
+              variant="outline"
+              className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Exportera</span>
+            </Button>
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isImporting}
+              variant="outline"
+              className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">{isImporting ? 'Importerar...' : 'Importera'}</span>
+            </Button>
             <Button
               onClick={() => setQuickInventoryOpen(true)}
               variant="outline"
               className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
             >
               <ClipboardList className="w-4 h-4 mr-2" />
-              Snabbinventering
+              <span className="hidden sm:inline">Inventering</span>
             </Button>
             <Button
               onClick={() => setPickListOpen(true)}
@@ -164,7 +249,7 @@ export default function InventoryPage() {
               className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              AI Plocklista
+              <span className="hidden sm:inline">AI Lista</span>
             </Button>
             <Link to={createPageUrl("Scan")}>
               <Button className="bg-blue-600 hover:bg-blue-500">
