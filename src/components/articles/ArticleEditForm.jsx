@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +39,25 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
     supplier_product_code: article.supplier_product_code || '',
     notes: article.notes || ''
   });
+
+  // Fetch warehouses and shelves
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: () => base44.entities.Warehouse.list(),
+  });
+
+  const { data: shelves = [] } = useQuery({
+    queryKey: ['shelves'],
+    queryFn: () => base44.entities.Shelf.list(),
+  });
+
+  // Filter shelves based on selected warehouse
+  const availableShelves = formData.warehouse 
+    ? shelves.filter(s => {
+        const warehouse = warehouses.find(w => w.name === formData.warehouse);
+        return warehouse && s.warehouse_id === warehouse.id;
+      })
+    : [];
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -215,21 +236,44 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-slate-300">Lagerställe</Label>
-                  <Input
-                    value={formData.warehouse}
-                    onChange={(e) => handleChange('warehouse', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                    placeholder="t.ex. Huvudlager"
-                  />
+                  <Select 
+                    value={formData.warehouse} 
+                    onValueChange={(value) => {
+                      handleChange('warehouse', value);
+                      // Reset shelf when warehouse changes
+                      handleChange('shelf_address', '');
+                    }}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                      <SelectValue placeholder="Välj lagerställe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {warehouses.map((warehouse) => (
+                        <SelectItem key={warehouse.id} value={warehouse.name}>
+                          {warehouse.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label className="text-slate-300">Lagerplats</Label>
-                  <Input
-                    value={formData.shelf_address}
-                    onChange={(e) => handleChange('shelf_address', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                    placeholder="t.ex. A1-B2"
-                  />
+                  <Select 
+                    value={formData.shelf_address} 
+                    onValueChange={(value) => handleChange('shelf_address', value)}
+                    disabled={!formData.warehouse}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                      <SelectValue placeholder={formData.warehouse ? "Välj lagerplats" : "Välj lagerställe först"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableShelves.map((shelf) => (
+                        <SelectItem key={shelf.id} value={shelf.shelf_code}>
+                          {shelf.shelf_code}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label className="text-slate-300">Batch Nummer</Label>
