@@ -3,6 +3,8 @@ import { jsPDF } from 'npm:jspdf@2.5.1';
 import QRCode from 'npm:qrcode';
 
 Deno.serve(async (req) => {
+  const base44 = createClientFromRequest(req);
+  
   try {
     const { articleId } = await req.json();
 
@@ -10,7 +12,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Article ID required' }, { status: 400 });
     }
 
-    const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
     if (!user) {
