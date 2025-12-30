@@ -55,21 +55,9 @@ Deno.serve(async (req) => {
     const margin = 20;
     const contentWidth = pageWidth - (margin * 2);
 
-    // Add QR code FIRST if it was generated (before header)
-    if (qrImageData) {
-      const qrSize = 80;
-      const qrX = pageWidth - margin - qrSize;
-      const qrY = 5;
-      try {
-        doc.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
-      } catch (imgError) {
-        console.error('Error adding QR image:', imgError);
-      }
-    }
-
     // Header with gradient effect (simulated with rectangles)
     doc.setFillColor(30, 41, 59); // slate-800
-    doc.rect(0, 0, pageWidth - 90, 50, 'F');
+    doc.rect(0, 0, pageWidth, 50, 'F');
     
     // Title
     doc.setTextColor(255, 255, 255);
@@ -215,11 +203,27 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Footer
+    // Footer with QR code
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
     const footerLeft = `Genererad: ${new Date().toLocaleString('sv-SE')}`;
-    doc.text(footerLeft, margin, 285);
+    doc.text(footerLeft, margin, 280);
+
+    // Add QR code at the bottom if it was generated
+    if (qrImageData) {
+      const qrSize = 50;
+      const qrX = pageWidth - margin - qrSize;
+      const qrY = 240;
+      try {
+        doc.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
+        // Add batch number under QR code
+        doc.setFontSize(8);
+        doc.setTextColor(0, 0, 0);
+        doc.text(article.batch_number || '', qrX + qrSize/2, qrY + qrSize + 5, { align: 'center' });
+      } catch (imgError) {
+        console.error('Error adding QR image:', imgError);
+      }
+    }
 
     // Generate PDF
     const pdfBytes = doc.output('arraybuffer');
