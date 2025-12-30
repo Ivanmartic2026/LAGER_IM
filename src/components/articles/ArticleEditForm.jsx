@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, Save, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -141,7 +140,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
         </div>
 
         {/* Form */}
-        <ScrollArea className="flex-1 p-6">
+        <div className="flex-1 overflow-y-auto p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Grundläggande information */}
             <div>
@@ -529,7 +528,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
               />
             </div>
           </form>
-        </ScrollArea>
+        </div>
 
         {/* Footer */}
         <div className="p-6 border-t border-slate-700 flex gap-3">
