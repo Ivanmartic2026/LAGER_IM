@@ -223,11 +223,11 @@ export default function ArticleDetail({
             onClick={async () => {
               try {
                 const response = await base44.functions.invoke('generateA4Label', { articleId: article.id });
-                const blob = new Blob([response.data], { type: 'image/png' });
+                const blob = new Blob([response.data], { type: 'application/pdf' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `artikel_${article.batch_number}_${Date.now()}.png`;
+                a.download = `artikel_${article.batch_number}_${Date.now()}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
