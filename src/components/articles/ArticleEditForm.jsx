@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Save, Plus } from "lucide-react";
+import { X, Save, Plus, Sparkles, MapPin, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ArticleEditForm({ article, onSave, onCancel, isSaving }) {
@@ -41,6 +41,8 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
   });
 
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [placementSuggestions, setPlacementSuggestions] = useState(null);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   // Fetch warehouses and shelves
   const { data: warehouses = [] } = useQuery({
@@ -113,6 +115,30 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
     };
 
     onSave(dataToSave);
+  };
+
+  const handleGetPlacementSuggestions = async () => {
+    if (!formData.dimensions_width_mm || !formData.dimensions_height_mm || !formData.dimensions_depth_mm) {
+      return;
+    }
+
+    setLoadingSuggestions(true);
+    try {
+      const warehouseObj = warehouses.find(w => w.name === formData.warehouse);
+      const response = await base44.functions.invoke('suggestPlacements', {
+        items: [{
+          article_id: article.id,
+          quantity: 1
+        }],
+        warehouseId: warehouseObj?.id || null
+      });
+
+      setPlacementSuggestions(response.data);
+    } catch (error) {
+      console.error('Error getting placement suggestions:', error);
+    } finally {
+      setLoadingSuggestions(false);
+    }
   };
 
   return (
@@ -264,7 +290,65 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
 
             {/* Lagerplats */}
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Lagerplats</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">Lagerplats</h3>
+                {formData.dimensions_width_mm && formData.dimensions_height_mm && formData.dimensions_depth_mm && (
+                  <Button
+                    type="button"
+                    onClick={handleGetPlacementSuggestions}
+                    disabled={loadingSuggestions}
+                    size="sm"
+                    variant="outline"
+                    className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-purple-500/30 hover:from-purple-600/30 hover:to-blue-600/30 text-purple-300"
+                  >
+                    {loadingSuggestions ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Beräknar...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Föreslå plats
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+
+              {placementSuggestions && (
+                <div className="mb-4 p-4 rounded-lg bg-purple-500/10 border border-purple-500/30">
+                  <h4 className="text-sm font-semibold text-purple-300 mb-2">Föreslagna platser:</h4>
+                  {placementSuggestions.suggestions.length > 0 ? (
+                    <div className="space-y-2">
+                      {placementSuggestions.suggestions.slice(0, 3).map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            handleChange('shelf_address', suggestion.shelf_code);
+                            setPlacementSuggestions(null);
+                          }}
+                          className="w-full p-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500/50 transition-all text-left"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-purple-400" />
+                              <span className="text-white font-medium">{suggestion.shelf_code}</span>
+                            </div>
+                            <span className="text-xs text-slate-400">
+                              {suggestion.occupancyAfter.toFixed(0)}% beläggning
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-amber-300">Inga tillgängliga platser hittades</p>
+                  )}
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-slate-300">Lagerställe</Label>
