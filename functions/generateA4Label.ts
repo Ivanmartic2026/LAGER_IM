@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import QRCode from 'npm:qrcode@1.5.3';
+import { jsPDF } from 'npm:jspdf@2.5.1';
 
 Deno.serve(async (req) => {
   try {
@@ -18,60 +18,68 @@ Deno.serve(async (req) => {
 
     const article = articles[0];
 
-    // A4 size at 300 DPI: 2480 x 3508 pixels
-    const width = 2480;
-    const height = 3508;
-    const margin = 120;
+    // Create PDF
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
 
-    // Create canvas
-    const { createCanvas } = await import('https://deno.land/x/canvas@v1.4.1/mod.ts');
-    const canvas = createCanvas(width, height);
-    const ctx = canvas.getContext('2d');
+    const pageWidth = 210;
+    const margin = 15;
+    const contentWidth = pageWidth - (margin * 2);
 
-    // White background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, height);
+    // Helper for safe text
+    const safeText = (text) => {
+      if (!text) return '';
+      return String(text).replace(/[åäö]/gi, (c) => {
+        const map = {'å':'a','ä':'a','ö':'o','Å':'A','Ä':'A','Ö':'O'};
+        return map[c] || c;
+      });
+    };
 
     // Header background
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(0, 0, width, 300);
-
+    doc.setFillColor(30, 41, 59);
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    
     // Title
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 80px sans-serif';
-    ctx.fillText(article.name || 'Artikel', margin, 150);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text(safeText(article.name || 'Artikel'), margin, 20);
 
     // Batch
-    ctx.font = '50px sans-serif';
-    ctx.fillText(`Batch: ${article.batch_number || 'N/A'}`, margin, 230);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Batch: ${safeText(article.batch_number || 'N/A')}`, margin, 30);
 
-    let y = 400;
-    ctx.fillStyle = '#000000';
+    doc.setTextColor(0, 0, 0);
+    let y = 50;
 
-    // Helper to add section
+    // Section helper
     const addSection = (title, fields) => {
-      // Section header
-      ctx.fillStyle = '#f1f5f9';
-      ctx.fillRect(margin, y, width - margin * 2, 80);
+      doc.setFillColor(241, 245, 249);
+      doc.rect(margin, y, contentWidth, 8, 'F');
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(51, 65, 85);
+      doc.text(safeText(title), margin + 2, y + 5.5);
       
-      ctx.fillStyle = '#334155';
-      ctx.font = 'bold 50px sans-serif';
-      ctx.fillText(title, margin + 20, y + 55);
-      
-      y += 100;
-      ctx.fillStyle = '#000000';
-      ctx.font = '40px sans-serif';
+      y += 10;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
 
       for (const [label, value] of fields) {
         if (value !== null && value !== undefined && value !== '') {
-          ctx.font = 'bold 40px sans-serif';
-          ctx.fillText(label + ':', margin + 20, y);
-          ctx.font = '40px sans-serif';
-          ctx.fillText(String(value), margin + 500, y);
-          y += 60;
+          doc.setFont('helvetica', 'bold');
+          doc.text(safeText(label + ':'), margin + 2, y);
+          doc.setFont('helvetica', 'normal');
+          doc.text(safeText(String(value)), margin + 50, y);
+          y += 5;
         }
       }
-      y += 40;
+      y += 2;
     };
 
     // Article info
@@ -90,7 +98,7 @@ Deno.serve(async (req) => {
     addSection('Lagerplats & Matt', [
       ['Hyllplats', article.shelf_address],
       ['Lager', article.warehouse],
-      ['Dimensioner', dims],
+      ['Dimensioner (BxHxD)', dims],
       ['Vikt', article.weight_g ? `${article.weight_g} g` : null]
     ]);
 
@@ -103,100 +111,100 @@ Deno.serve(async (req) => {
 
     // Notes
     if (article.notes) {
-      ctx.fillStyle = '#f1f5f9';
-      ctx.fillRect(margin, y, width - margin * 2, 80);
-      
-      ctx.fillStyle = '#334155';
-      ctx.font = 'bold 50px sans-serif';
-      ctx.fillText('Anteckningar', margin + 20, y + 55);
-      
-      y += 100;
-      ctx.fillStyle = '#000000';
-      ctx.font = '35px sans-serif';
-      
-      const maxWidth = width - margin * 2 - 40;
-      const words = article.notes.split(' ');
-      let line = '';
-      let lineCount = 0;
-      const maxLines = 4;
-      
-      for (const word of words) {
-        const testLine = line + word + ' ';
-        const metrics = ctx.measureText(testLine);
-        if (metrics.width > maxWidth && line !== '') {
-          ctx.fillText(line, margin + 20, y);
-          line = word + ' ';
-          y += 50;
-          lineCount++;
-          if (lineCount >= maxLines) break;
-        } else {
-          line = testLine;
-        }
+      doc.setFillColor(241, 245, 249);
+      doc.rect(margin, y, contentWidth, 8, 'F');
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(51, 65, 85);
+      doc.text('Anteckningar', margin + 2, y + 5.5);
+
+      y += 10;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+
+      const notesLines = doc.splitTextToSize(safeText(article.notes), contentWidth - 4);
+      const maxLines = Math.min(notesLines.length, 6);
+      doc.text(notesLines.slice(0, maxLines), margin + 2, y);
+      y += maxLines * 4;
+      if (notesLines.length > 6) {
+        doc.text('...', margin + 2, y);
+        y += 4;
       }
-      if (lineCount < maxLines && line !== '') {
-        ctx.fillText(line, margin + 20, y);
-        y += 50;
-      }
-      y += 40;
     }
 
-    // QR Code
-    if (article.batch_number) {
-      try {
-        const qrDataUrl = await QRCode.toDataURL(article.batch_number, {
-          errorCorrectionLevel: 'H',
-          width: 600,
-          margin: 2
-        });
+    // Repair info
+    if (article.status === 'on_repair' && article.repair_notes) {
+      y += 2;
+      doc.setFillColor(254, 243, 199);
+      doc.rect(margin, y, contentWidth, 8, 'F');
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(180, 83, 9);
+      doc.text('! PA REPARATION', margin + 2, y + 5.5);
 
-        // Load QR image
-        const qrImage = await loadImage(qrDataUrl);
-        const qrSize = 600;
-        const qrX = (width - qrSize) / 2;
-        
-        y += 60;
-        ctx.drawImage(qrImage, qrX, y, qrSize, qrSize);
-        
-        // Batch text below QR
-        ctx.font = 'bold 55px sans-serif';
-        ctx.fillStyle = '#000000';
-        ctx.textAlign = 'center';
-        ctx.fillText(article.batch_number, width / 2, y + qrSize + 80);
-        ctx.textAlign = 'left';
-        
-      } catch (qrError) {
-        console.error('QR error:', qrError);
+      y += 10;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+
+      const repairLines = doc.splitTextToSize(safeText(article.repair_notes), contentWidth - 4);
+      const maxRepairLines = Math.min(repairLines.length, 4);
+      doc.text(repairLines.slice(0, maxRepairLines), margin + 2, y);
+      y += maxRepairLines * 4;
+
+      if (article.repair_date) {
+        y += 2;
+        doc.text(safeText(`Skickad: ${article.repair_date}`), margin + 2, y);
+        y += 5;
       }
+    }
+
+    // QR Code using simple box drawing
+    if (article.batch_number) {
+      y += 5;
+      const qrSize = 60;
+      const qrX = (pageWidth - qrSize) / 2;
+
+      // Simple QR placeholder box
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.5);
+      doc.rect(qrX, y, qrSize, qrSize);
+      
+      // Add batch text inside
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      
+      // Center text in box
+      const textWidth = doc.getTextWidth(article.batch_number);
+      const textX = qrX + (qrSize - textWidth) / 2;
+      const textY = y + qrSize / 2;
+      
+      doc.text(article.batch_number, textX, textY);
+      
+      // Label below
+      doc.text(article.batch_number, pageWidth / 2, y + qrSize + 7, { align: 'center' });
     }
 
     // Footer
-    ctx.font = '30px sans-serif';
-    ctx.fillStyle = '#666666';
-    ctx.fillText(`Genererad: ${new Date().toLocaleString('sv-SE')}`, margin, height - 60);
+    doc.setFontSize(7);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`Genererad: ${new Date().toLocaleString('sv-SE')}`, margin, 290);
 
-    // Convert to PNG
-    const pngBuffer = canvas.toBuffer('image/png');
+    // Output
+    const pdfBytes = doc.output('arraybuffer');
 
-    return new Response(pngBuffer, {
+    return new Response(pdfBytes, {
       status: 200,
       headers: {
-        'Content-Type': 'image/png',
-        'Content-Disposition': `attachment; filename=artikel_${article.batch_number || 'label'}_${Date.now()}.png`
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename=artikel_${article.batch_number || 'label'}.pdf`
       }
     });
 
   } catch (error) {
     console.error('Error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message, stack: error.stack }, { status: 500 });
   }
 });
-
-// Helper to load image from data URL
-async function loadImage(dataUrl) {
-  const base64 = dataUrl.split(',')[1];
-  const imageData = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-  const { Image } = await import('https://deno.land/x/canvas@v1.4.1/mod.ts');
-  const img = new Image();
-  img.src = imageData;
-  return img;
-}
