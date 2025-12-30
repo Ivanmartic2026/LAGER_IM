@@ -203,11 +203,12 @@ export default function ArticleDetail({
           variant="ghost"
           onClick={onBack}
           className="text-slate-400 hover:text-white hover:bg-slate-800"
+          size="sm"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Tillbaka
+          <ArrowLeft className="w-4 h-4 md:mr-2" />
+          <span className="hidden md:inline">Tillbaka</span>
         </Button>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 md:gap-2">
           {article.status === "on_repair" && (
             <Button
               onClick={() => setReturnFromRepairModalOpen(true)}
@@ -239,17 +240,19 @@ export default function ArticleDetail({
               }
             }}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+            size="sm"
           >
-            <Printer className="w-4 h-4 mr-2" />
-            A4 Etikett
+            <Printer className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">A4</span>
           </Button>
           <Button
             variant="outline"
             onClick={() => setShowPrintModal(true)}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+            size="sm"
           >
-            <Printer className="w-4 h-4 mr-2" />
-            Liten Etikett
+            <Printer className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">Liten</span>
           </Button>
           <Button
             variant="outline"
@@ -312,19 +315,19 @@ export default function ArticleDetail({
             </Badge>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
-              <p className="text-sm text-blue-300 mb-1">I lager</p>
-              <p className="text-3xl font-bold text-white">{article.stock_qty || 0}</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+            <div className="p-3 md:p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
+              <p className="text-xs md:text-sm text-blue-300 mb-1">I lager</p>
+              <p className="text-2xl md:text-3xl font-bold text-white">{article.stock_qty || 0}</p>
             </div>
-            <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
-              <p className="text-sm text-slate-400 mb-1">Min. lagernivå</p>
-              <p className="text-3xl font-bold text-white">{article.min_stock_level || "—"}</p>
+            <div className="p-3 md:p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+              <p className="text-xs md:text-sm text-slate-400 mb-1">Min. lagernivå</p>
+              <p className="text-2xl md:text-3xl font-bold text-white">{article.min_stock_level || "—"}</p>
             </div>
             {article.status === 'on_repair' && article.repair_notes && (
-              <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/30">
-                <p className="text-sm text-orange-300 mb-1">På reparation</p>
-                <p className="text-3xl font-bold text-white">
+              <div className="p-3 md:p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 col-span-2 md:col-span-1">
+                <p className="text-xs md:text-sm text-orange-300 mb-1">På reparation</p>
+                <p className="text-2xl md:text-3xl font-bold text-white">
                   {article.repair_notes.match(/^(\d+)\s*st/) ? article.repair_notes.match(/^(\d+)\s*st/)[1] : "—"}
                 </p>
               </div>
