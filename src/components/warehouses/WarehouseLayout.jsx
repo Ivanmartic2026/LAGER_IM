@@ -249,7 +249,7 @@ export default function WarehouseLayout({ warehouseId, onBack }) {
     queryFn: () => base44.entities.Article.list(),
   });
 
-  // Calculate shelf occupancy
+  // Calculate shelf occupancy based on volume
   const shelfData = useMemo(() => {
     return shelves.map(shelf => {
       const shelfArticles = articles.filter(a => 
@@ -257,14 +257,28 @@ export default function WarehouseLayout({ warehouseId, onBack }) {
       );
       
       const totalQty = shelfArticles.reduce((sum, a) => sum + (a.stock_qty || 0), 0);
-      const maxCapacity = shelf.max_capacity || 100;
-      const occupancy = maxCapacity > 0 ? (totalQty / maxCapacity) * 100 : 0;
+      
+      // Calculate shelf volume in cm³
+      const shelfVolume = (shelf.width_cm || 0) * (shelf.height_cm || 0) * (shelf.depth_cm || 0);
+      
+      // Calculate total volume of articles in cm³
+      const articlesVolume = shelfArticles.reduce((sum, article) => {
+        const articleVolume = ((article.dimensions_width_mm || 0) / 10) * 
+                            ((article.dimensions_height_mm || 0) / 10) * 
+                            ((article.dimensions_depth_mm || 0) / 10);
+        return sum + (articleVolume * (article.stock_qty || 0));
+      }, 0);
+      
+      // Calculate occupancy percentage
+      const occupancy = shelfVolume > 0 ? (articlesVolume / shelfVolume) * 100 : 0;
       
       return {
         ...shelf,
         articleCount: shelfArticles.length,
         totalQty,
         occupancy,
+        shelfVolume,
+        articlesVolume,
         articles: shelfArticles
       };
     });
@@ -560,19 +574,33 @@ export default function WarehouseLayout({ warehouseId, onBack }) {
                                           <p className="text-sm text-slate-300">{shelf.description}</p>
                                         </div>
                                       )}
-                                      <div className="flex justify-between gap-4">
-                                        <div>
-                                          <p className="text-xs text-slate-400">Artiklar</p>
-                                          <p className="text-sm font-semibold text-white">{shelf.articleCount}</p>
-                                        </div>
-                                        <div>
-                                          <p className="text-xs text-slate-400">Antal</p>
-                                          <p className="text-sm font-semibold text-white">{shelf.totalQty}</p>
-                                        </div>
-                                        <div>
-                                          <p className="text-xs text-slate-400">Max</p>
-                                          <p className="text-sm font-semibold text-white">{shelf.max_capacity || '—'}</p>
-                                        </div>
+                                      <div className="space-y-2">
+                                       <div className="flex justify-between gap-4">
+                                         <div>
+                                           <p className="text-xs text-slate-400">Artiklar</p>
+                                           <p className="text-sm font-semibold text-white">{shelf.articleCount}</p>
+                                         </div>
+                                         <div>
+                                           <p className="text-xs text-slate-400">Antal</p>
+                                           <p className="text-sm font-semibold text-white">{shelf.totalQty}</p>
+                                         </div>
+                                       </div>
+                                       {shelf.shelfVolume > 0 && (
+                                         <div>
+                                           <p className="text-xs text-slate-400">Volym</p>
+                                           <p className="text-sm text-slate-300">
+                                             {(shelf.articlesVolume / 1000).toFixed(1)} / {(shelf.shelfVolume / 1000).toFixed(1)} L
+                                           </p>
+                                         </div>
+                                       )}
+                                       {(shelf.width_cm || shelf.height_cm || shelf.depth_cm) && (
+                                         <div>
+                                           <p className="text-xs text-slate-400">Storlek</p>
+                                           <p className="text-sm text-slate-300">
+                                             {shelf.width_cm || '-'} × {shelf.height_cm || '-'} × {shelf.depth_cm || '-'} cm
+                                           </p>
+                                         </div>
+                                       )}
                                       </div>
                                       {shelf.articles.length > 0 && (
                                         <div>

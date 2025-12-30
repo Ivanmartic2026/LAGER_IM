@@ -220,14 +220,21 @@ export default function ShelfManager({ warehouse, onBack }) {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-4 text-sm text-slate-400 mb-3">
-                      <div className="flex items-center gap-1.5">
-                        <Package className="w-4 h-4" />
-                        <span>{shelfArticles.length} artiklar</span>
+                    <div className="space-y-2 mb-3">
+                      <div className="flex items-center gap-4 text-sm text-slate-400">
+                        <div className="flex items-center gap-1.5">
+                          <Package className="w-4 h-4" />
+                          <span>{shelfArticles.length} artiklar</span>
+                        </div>
+                        <div>
+                          <span className="text-white font-medium">{totalStock}</span> st
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-white font-medium">{totalStock}</span> st
-                      </div>
+                      {(shelf.width_cm || shelf.height_cm || shelf.depth_cm) && (
+                        <div className="text-xs text-slate-500">
+                          Storlek: {shelf.width_cm || '-'} × {shelf.height_cm || '-'} × {shelf.depth_cm || '-'} cm
+                        </div>
+                      )}
                     </div>
 
                     {(shelf.aisle || shelf.rack || shelf.level) && (

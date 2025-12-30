@@ -14,7 +14,9 @@ export default function ShelfForm({ shelf, onSave, onCancel, isSaving }) {
     aisle: shelf?.aisle || '',
     rack: shelf?.rack || '',
     level: shelf?.level || '',
-    max_capacity: shelf?.max_capacity || '',
+    width_cm: shelf?.width_cm || '',
+    height_cm: shelf?.height_cm || '',
+    depth_cm: shelf?.depth_cm || '',
     is_active: shelf?.is_active !== false,
     notes: shelf?.notes || ''
   });
@@ -28,7 +30,9 @@ export default function ShelfForm({ shelf, onSave, onCancel, isSaving }) {
     
     const dataToSave = {
       ...formData,
-      max_capacity: formData.max_capacity ? parseInt(formData.max_capacity) : undefined
+      width_cm: formData.width_cm ? parseFloat(formData.width_cm) : undefined,
+      height_cm: formData.height_cm ? parseFloat(formData.height_cm) : undefined,
+      depth_cm: formData.depth_cm ? parseFloat(formData.depth_cm) : undefined
     };
     
     onSave(dataToSave);
@@ -113,15 +117,40 @@ export default function ShelfForm({ shelf, onSave, onCancel, isSaving }) {
             </div>
           </div>
 
-          <div>
-            <Label className="text-slate-300">Maximal kapacitet</Label>
-            <Input
-              type="number"
-              value={formData.max_capacity}
-              onChange={(e) => handleChange('max_capacity', e.target.value)}
-              className="bg-slate-800 border-slate-700 text-white"
-              placeholder="Antal artiklar"
-            />
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label className="text-slate-300">Bredd (cm)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={formData.width_cm}
+                onChange={(e) => handleChange('width_cm', e.target.value)}
+                className="bg-slate-800 border-slate-700 text-white"
+                placeholder="cm"
+              />
+            </div>
+            <div>
+              <Label className="text-slate-300">Höjd (cm)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={formData.height_cm}
+                onChange={(e) => handleChange('height_cm', e.target.value)}
+                className="bg-slate-800 border-slate-700 text-white"
+                placeholder="cm"
+              />
+            </div>
+            <div>
+              <Label className="text-slate-300">Djup (cm)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={formData.depth_cm}
+                onChange={(e) => handleChange('depth_cm', e.target.value)}
+                className="bg-slate-800 border-slate-700 text-white"
+                placeholder="cm"
+              />
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">
