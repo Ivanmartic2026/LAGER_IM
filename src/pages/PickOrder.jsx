@@ -159,6 +159,18 @@ export default function PickOrderPage() {
           picked_date: new Date().toISOString()
         }
       });
+      
+      // Send email notification
+      try {
+        await base44.integrations.Core.SendEmail({
+          to: 'service@imvision.se',
+          subject: `Order ${order.order_number || order.id.slice(0, 8)} färdigplockad`,
+          body: `Order ${order.order_number || order.id.slice(0, 8)} för ${order.customer_name} har plockats och är klar för leverans.\n\nPlockad av: ${user.email}\nPlockad: ${new Date().toLocaleString('sv-SE')}\nAntal artiklar: ${allItems.length}`
+        });
+      } catch (emailError) {
+        console.error('Failed to send email:', emailError);
+      }
+      
       toast.success("Alla artiklar plockade! Order komplett.");
     }
   };
