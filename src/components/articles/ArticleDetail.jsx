@@ -223,17 +223,18 @@ export default function ArticleDetail({
             onClick={async () => {
               try {
                 const response = await base44.functions.invoke('generateA4Label', { articleId: article.id });
-                const blob = new Blob([response.data], { type: 'application/pdf' });
+                const blob = new Blob([response.data], { type: 'image/png' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `artikel_${article.batch_number}_${Date.now()}.pdf`;
+                a.download = `artikel_${article.batch_number}_${Date.now()}.png`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
                 a.remove();
                 toast.success('A4-etikett nedladdad');
               } catch (error) {
+                console.error('A4 error:', error);
                 toast.error('Kunde inte generera etikett');
               }
             }}
