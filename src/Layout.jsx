@@ -8,17 +8,12 @@ import { useState } from "react";
 
 const NAV_ITEMS = [
   { name: "Home", label: "Hem", icon: Home },
-  { name: "Find", label: "Hitta", icon: MapPin },
-  { name: "Scan", label: "Skanna", icon: Camera },
   { name: "Inventory", label: "Lager", icon: Package },
   { name: "Orders", label: "Ordrar", icon: ShoppingCart },
   { name: "PurchaseOrders", label: "Inköp", icon: ShoppingCart },
   { name: "Warehouses", label: "Lagerställen", icon: Activity },
   { name: "Repairs", label: "Reparation", icon: Activity },
-  { name: "Suppliers", label: "Leverantörer", icon: Activity },
-  { name: "Movements", label: "Rörelser", icon: Activity },
-  { name: "Analytics", label: "Analys", icon: FileText },
-  { name: "Reports", label: "Schemalagda", icon: FileText }
+  { name: "Admin", label: "Admin", icon: FileText }
 ];
 
 export default function Layout({ children, currentPageName }) {
