@@ -17,14 +17,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get order details
-    const orders = await base44.asServiceRole.entities.Order.filter({ id: orderId });
-    
-    if (!orders || orders.length === 0) {
-      return Response.json({ error: 'Order not found' }, { status: 404 });
+    // Get order details using direct ID lookup
+    let order;
+    try {
+      const orders = await base44.asServiceRole.entities.Order.filter({ id: orderId });
+      if (!orders || orders.length === 0) {
+        return Response.json({ error: 'Order not found' }, { status: 404 });
+      }
+      order = orders[0];
+    } catch (error) {
+      console.error('Error fetching order:', error);
+      return Response.json({ error: `Order fetch failed: ${error.message}` }, { status: 500 });
     }
-
-    const order = orders[0];
 
     // Get order items
     const orderItems = await base44.asServiceRole.entities.OrderItem.filter({ order_id: orderId });
