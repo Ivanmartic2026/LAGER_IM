@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Article ID required' }, { status: 400 });
     }
 
-    // Get article details using service role
+    // Get article details
     const articles = await base44.asServiceRole.entities.Article.filter({ id: articleId });
     
     if (!articles || articles.length === 0) {
@@ -24,41 +24,14 @@ Deno.serve(async (req) => {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a4',
-      compress: true
+      format: 'a4'
     });
 
     const pageWidth = 210;
-    const pageHeight = 297;
-    const margin = 20;
+    const margin = 15;
     const contentWidth = pageWidth - (margin * 2);
 
-    // Header with gradient effect (simulated with rectangles)
-    doc.setFillColor(30, 41, 59); // slate-800
-    doc.rect(0, 0, pageWidth, 50, 'F');
-    
-    // Title
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(28);
-    doc.setFont('helvetica', 'bold');
-    // Handle Swedish characters
-    const safeName = (article.name || 'Artikel').replace(/[^\x00-\x7F]/g, (char) => {
-      const map = {'å':'a','ä':'a','ö':'o','Å':'A','Ä':'A','Ö':'O'};
-      return map[char] || char;
-    });
-    doc.text(safeName, margin, 25);
-
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'normal');
-    const safeBatch = `Batch: ${article.batch_number || 'N/A'}`;
-    doc.text(safeBatch, margin, 35);
-
-    // Reset text color
-    doc.setTextColor(0, 0, 0);
-
-    let y = 65;
-
-    // Helper function for safe text
+    // Helper for safe text
     const safeText = (text) => {
       return String(text || '').replace(/[^\x00-\x7F]/g, (char) => {
         const map = {'å':'a','ä':'a','ö':'o','Å':'A','Ä':'A','Ö':'O'};
@@ -66,182 +39,170 @@ Deno.serve(async (req) => {
       });
     };
 
-    const addField = (label, value) => {
-      if (value !== null && value !== undefined && value !== '') {
-        doc.setFont('helvetica', 'bold');
-        doc.text(safeText(`${label}:`), margin + 5, y);
-        doc.setFont('helvetica', 'normal');
-        doc.text(safeText(String(value)), margin + 60, y);
-        y += 8;
-      }
-    };
-
-    // Section: Artikelinformation
-    doc.setFillColor(241, 245, 249); // slate-100
-    doc.rect(margin, y, contentWidth, 10, 'F');
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(51, 65, 85); // slate-700
-    doc.text('Artikelinformation', margin + 3, y + 7);
+    // Header
+    doc.setFillColor(30, 41, 59);
+    doc.rect(0, 0, pageWidth, 40, 'F');
     
-    y += 15;
-    doc.setFontSize(11);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text(safeText(article.name || 'Artikel'), margin, 20);
+
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
+    doc.text(`Batch: ${article.batch_number || 'N/A'}`, margin, 30);
+
     doc.setTextColor(0, 0, 0);
 
-    addField('Tillverkare', article.manufacturer);
-    addField('Tillverkningsdatum', article.manufacturing_date);
-    addField('Kategori', article.category);
-    addField('Pixel Pitch', article.pixel_pitch_mm ? `${article.pixel_pitch_mm} mm` : null);
+    let y = 50;
 
-    y += 5;
-
-    // Section: Lagerplats & Mått
-    doc.setFillColor(241, 245, 249);
-    doc.rect(margin, y, contentWidth, 10, 'F');
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(51, 65, 85);
-    doc.text('Lagerplats & Matt', margin + 3, y + 7);
-    
-    y += 15;
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-
-    addField('Hyllplats', article.shelf_address);
-    addField('Lager', article.warehouse);
-    
-    if (article.dimensions_width_mm || article.dimensions_height_mm || article.dimensions_depth_mm) {
-      const dims = `${article.dimensions_width_mm || '-'} x ${article.dimensions_height_mm || '-'} x ${article.dimensions_depth_mm || '-'} mm`;
-      addField('Dimensioner (BxHxD)', dims);
-    }
-    
-    addField('Vikt', article.weight_g ? `${article.weight_g} g` : null);
-
-    y += 5;
-
-    // Section: Lagerstatus
-    doc.setFillColor(241, 245, 249);
-    doc.rect(margin, y, contentWidth, 10, 'F');
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(51, 65, 85);
-    doc.text('Lagerstatus', margin + 3, y + 7);
-    
-    y += 15;
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-
-    addField('Lagersaldo', article.stock_qty || 0);
-    addField('Min. lagernivå', article.min_stock_level);
-    addField('Status', article.status);
-
-    // Notes section if exists
-    if (article.notes) {
-      y += 5;
+    // Info sections
+    const addSection = (title, fields) => {
       doc.setFillColor(241, 245, 249);
-      doc.rect(margin, y, contentWidth, 10, 'F');
-      doc.setFontSize(14);
+      doc.rect(margin, y, contentWidth, 8, 'F');
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(51, 65, 85);
-      doc.text('Anteckningar', margin + 3, y + 7);
-
-      y += 15;
-      doc.setFontSize(10);
+      doc.text(title, margin + 2, y + 5.5);
+      
+      y += 10;
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
 
-      const notesLines = doc.splitTextToSize(safeText(article.notes), contentWidth - 10);
-      doc.text(notesLines, margin + 5, y);
-      y += notesLines.length * 5;
-    }
+      for (const [label, value] of fields) {
+        if (value !== null && value !== undefined && value !== '') {
+          doc.setFont('helvetica', 'bold');
+          doc.text(safeText(label + ':'), margin + 2, y);
+          doc.setFont('helvetica', 'normal');
+          doc.text(safeText(String(value)), margin + 50, y);
+          y += 5;
+        }
+      }
+      y += 2;
+    };
 
-    // Repair info if on repair
-    if (article.status === 'on_repair' && article.repair_notes) {
-      y += 5;
-      doc.setFillColor(254, 243, 199); // amber-100
-      doc.rect(margin, y, contentWidth, 10, 'F');
-      doc.setFontSize(14);
+    // Article info
+    addSection('Artikelinformation', [
+      ['Tillverkare', article.manufacturer],
+      ['Tillverkningsdatum', article.manufacturing_date],
+      ['Kategori', article.category],
+      ['Pixel Pitch', article.pixel_pitch_mm ? `${article.pixel_pitch_mm} mm` : null]
+    ]);
+
+    // Location & dimensions
+    const dims = (article.dimensions_width_mm || article.dimensions_height_mm || article.dimensions_depth_mm)
+      ? `${article.dimensions_width_mm || '-'} x ${article.dimensions_height_mm || '-'} x ${article.dimensions_depth_mm || '-'} mm`
+      : null;
+    
+    addSection('Lagerplats & Matt', [
+      ['Hyllplats', article.shelf_address],
+      ['Lager', article.warehouse],
+      ['Dimensioner (BxHxD)', dims],
+      ['Vikt', article.weight_g ? `${article.weight_g} g` : null]
+    ]);
+
+    // Stock status
+    addSection('Lagerstatus', [
+      ['Lagersaldo', article.stock_qty || 0],
+      ['Min. lagerniva', article.min_stock_level],
+      ['Status', article.status]
+    ]);
+
+    // Notes if exists
+    if (article.notes) {
+      doc.setFillColor(241, 245, 249);
+      doc.rect(margin, y, contentWidth, 8, 'F');
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(180, 83, 9); // amber-700
-      doc.text('! PA REPARATION', margin + 3, y + 7);
+      doc.setTextColor(51, 65, 85);
+      doc.text('Anteckningar', margin + 2, y + 5.5);
 
-      y += 15;
-      doc.setFontSize(10);
+      y += 10;
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
 
-      const repairLines = doc.splitTextToSize(safeText(article.repair_notes), contentWidth - 10);
-      doc.text(repairLines, margin + 5, y);
-
-      if (article.repair_date) {
-        y += repairLines.length * 5 + 5;
-        doc.text(safeText(`Skickad: ${article.repair_date}`), margin + 5, y);
+      const notesLines = doc.splitTextToSize(safeText(article.notes), contentWidth - 4);
+      const maxLines = Math.min(notesLines.length, 6); // Limit to 6 lines
+      doc.text(notesLines.slice(0, maxLines), margin + 2, y);
+      y += maxLines * 4;
+      if (notesLines.length > 6) {
+        doc.text('...', margin + 2, y);
+        y += 4;
       }
     }
 
-    y += 20; // Add spacing before QR code
+    // Repair info
+    if (article.status === 'on_repair' && article.repair_notes) {
+      y += 2;
+      doc.setFillColor(254, 243, 199);
+      doc.rect(margin, y, contentWidth, 8, 'F');
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(180, 83, 9);
+      doc.text('! PA REPARATION', margin + 2, y + 5.5);
 
-    // Generate and add QR code if batch number exists
+      y += 10;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+
+      const repairLines = doc.splitTextToSize(safeText(article.repair_notes), contentWidth - 4);
+      const maxRepairLines = Math.min(repairLines.length, 4);
+      doc.text(repairLines.slice(0, maxRepairLines), margin + 2, y);
+      y += maxRepairLines * 4;
+
+      if (article.repair_date) {
+        y += 2;
+        doc.text(safeText(`Skickad: ${article.repair_date}`), margin + 2, y);
+        y += 5;
+      }
+    }
+
+    // QR Code
     if (article.batch_number) {
       try {
-        // Generate QR code with simple settings
         const qrDataUrl = await QRCode.toDataURL(article.batch_number, {
           errorCorrectionLevel: 'M',
-          type: 'image/png',
-          width: 200,
-          margin: 2
+          width: 300,
+          margin: 1
         });
 
-        // Add centered QR code
-        const qrSize = 70;
+        y += 5;
+        const qrSize = 60;
         const qrX = (pageWidth - qrSize) / 2;
-        let qrY = y;
 
-        // Check if QR fits on current page
-        if (qrY + qrSize + 20 > pageHeight - margin) {
-          doc.addPage();
-          qrY = margin + 10;
-        }
-
-        doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+        doc.addImage(qrDataUrl, 'PNG', qrX, y, qrSize, qrSize);
         
-        // Add batch number text below QR code
-        doc.setFontSize(12);
+        doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
-        doc.text(article.batch_number, qrX + (qrSize / 2), qrY + qrSize + 10, { align: 'center' });
+        doc.text(article.batch_number, pageWidth / 2, y + qrSize + 7, { align: 'center' });
         
       } catch (qrError) {
-        console.error('QR code generation error:', qrError);
-        // If QR fails, just add text
-        doc.setFontSize(10);
-        doc.setTextColor(200, 0, 0);
-        doc.text('QR kod kunde inte genereras', pageWidth / 2, y, { align: 'center' });
+        console.error('QR error:', qrError);
       }
     }
 
     // Footer
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    const footerText = `Genererad: ${new Date().toLocaleString('sv-SE')}`;
-    doc.text(footerText, margin, pageHeight - 10);
+    doc.setFontSize(7);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`Genererad: ${new Date().toLocaleString('sv-SE')}`, margin, 290);
 
-    // Generate PDF
+    // Output PDF
     const pdfBytes = doc.output('arraybuffer');
 
     return new Response(pdfBytes, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=artikel_${article.batch_number || 'unknown'}_${Date.now()}.pdf`
+        'Content-Disposition': `attachment; filename=artikel_${article.batch_number || 'label'}_${Date.now()}.pdf`
       }
     });
 
   } catch (error) {
-    console.error('Error generating A4 label:', error);
+    console.error('Error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
