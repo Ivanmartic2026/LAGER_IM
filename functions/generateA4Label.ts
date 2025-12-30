@@ -24,15 +24,12 @@ Deno.serve(async (req) => {
     let qrImageData = null;
     if (article.batch_number) {
       try {
-        // Generate QR code as PNG buffer with very high quality
+        // Generate QR code with optimized size for smaller PDF
         qrImageData = await QRCode.toDataURL(article.batch_number, {
-          width: 2048,
-          margin: 4,
-          errorCorrectionLevel: 'H',
+          width: 256,
+          margin: 1,
+          errorCorrectionLevel: 'M',
           type: 'image/png',
-          rendererOpts: {
-            quality: 1
-          },
           color: {
             dark: '#000000',
             light: '#FFFFFF'
@@ -74,6 +71,18 @@ Deno.serve(async (req) => {
     doc.setFont('helvetica', 'normal');
     const safeBatch = `Batch: ${article.batch_number || ''}`;
     doc.text(safeBatch, margin, 35);
+
+    // Add QR code to header if available
+    if (qrImageData) {
+      const qrSize = 40;
+      const qrX = pageWidth - margin - qrSize;
+      const qrY = 5;
+      try {
+        doc.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
+      } catch (imgError) {
+        console.error('Error adding header QR:', imgError);
+      }
+    }
 
     // Reset text color
     doc.setTextColor(0, 0, 0);
@@ -203,27 +212,36 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Footer with QR code
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    const footerLeft = `Genererad: ${new Date().toLocaleString('sv-SE')}`;
-    doc.text(footerLeft, margin, 280);
+    y += 15; // Add spacing
 
-    // Add QR code at the bottom if it was generated
+    // Add large centered QR code at the bottom
     if (qrImageData) {
-      const qrSize = 50;
-      const qrX = pageWidth - margin - qrSize;
-      const qrY = 240;
+      const qrSize = 60;
+      const qrX = (pageWidth - qrSize) / 2; // Center horizontally
+      let qrY = y;
+
+      // Check if QR fits on current page
+      if (qrY + qrSize + 15 > 280) {
+        doc.addPage();
+        qrY = margin;
+      }
+
       try {
         doc.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
         // Add batch number under QR code
-        doc.setFontSize(8);
+        doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-        doc.text(article.batch_number || '', qrX + qrSize/2, qrY + qrSize + 5, { align: 'center' });
+        doc.text(article.batch_number || '', qrX + qrSize / 2, qrY + qrSize + 8, { align: 'center' });
       } catch (imgError) {
-        console.error('Error adding QR image:', imgError);
+        console.error('Error adding main QR:', imgError);
       }
     }
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    const footerLeft = `Genererad: ${new Date().toLocaleString('sv-SE')}`;
+    doc.text(footerLeft, margin, 285);
 
     // Generate PDF
     const pdfBytes = doc.output('arraybuffer');
