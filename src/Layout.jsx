@@ -36,19 +36,24 @@ export default function Layout({ children, currentPageName }) {
           <Link 
             key={item.name}
             to={createPageUrl(item.name)}
-            className="group relative"
+            className="flex flex-col items-center gap-1"
           >
             <div className={cn(
-              "w-12 h-12 rounded-xl flex items-center justify-center transition-all",
+              "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
               currentPageName === item.name
                 ? "bg-blue-600 text-white"
                 : "text-slate-400 hover:text-white hover:bg-slate-800"
             )}>
-              <item.icon className="w-5 h-5" />
+              <item.icon className="w-4 h-4" />
             </div>
-            <div className="absolute bottom-full mb-3 px-2 py-1 rounded bg-slate-800 text-white text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+            <span className={cn(
+              "text-xs font-medium transition-colors",
+              currentPageName === item.name
+                ? "text-blue-400"
+                : "text-slate-400"
+            )}>
               {item.label}
-            </div>
+            </span>
           </Link>
         ))}
       </nav>
