@@ -55,9 +55,21 @@ Deno.serve(async (req) => {
     const margin = 20;
     const contentWidth = pageWidth - (margin * 2);
 
+    // Add QR code FIRST if it was generated (before header)
+    if (qrImageData) {
+      const qrSize = 80;
+      const qrX = pageWidth - margin - qrSize;
+      const qrY = 5;
+      try {
+        doc.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
+      } catch (imgError) {
+        console.error('Error adding QR image:', imgError);
+      }
+    }
+
     // Header with gradient effect (simulated with rectangles)
     doc.setFillColor(30, 41, 59); // slate-800
-    doc.rect(0, 0, pageWidth, 50, 'F');
+    doc.rect(0, 0, pageWidth - 90, 50, 'F');
     
     // Title
     doc.setTextColor(255, 255, 255);
@@ -74,18 +86,6 @@ Deno.serve(async (req) => {
     doc.setFont('helvetica', 'normal');
     const safeBatch = `Batch: ${article.batch_number || ''}`;
     doc.text(safeBatch, margin, 35);
-
-    // Add QR code if it was generated
-    if (qrImageData) {
-      const qrSize = 70;
-      const qrX = pageWidth - margin - qrSize - 5;
-      const qrY = 10;
-      try {
-        doc.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
-      } catch (imgError) {
-        console.error('Error adding QR image:', imgError);
-      }
-    }
 
     // Reset text color
     doc.setTextColor(0, 0, 0);
