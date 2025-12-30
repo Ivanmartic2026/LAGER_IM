@@ -22,6 +22,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 function RackEditModal({ aisle, rack, currentLevels, warehouseId, onClose }) {
   const [newLevel, setNewLevel] = useState("");
+  const [editingShelf, setEditingShelf] = useState(null);
+  const [editLevel, setEditLevel] = useState("");
   const queryClient = useQueryClient();
 
   const { data: warehouse } = useQuery({
@@ -41,10 +43,20 @@ function RackEditModal({ aisle, rack, currentLevels, warehouseId, onClose }) {
     }
   });
 
+  const updateShelfMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Shelf.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shelves', warehouseId] });
+      toast.success("Plan uppdaterat");
+      setEditingShelf(null);
+      setEditLevel("");
+    }
+  });
+
   const handleAddLevel = () => {
     if (!newLevel || !warehouse) return;
     
-    const shelfCode = `${aisle}${rack}-${String(newLevel).padStart(2, '0')}`;
+    const shelfCode = `${aisle}${rack}-${newLevel}`;
     
     createShelfMutation.mutate({
       warehouse_id: warehouseId,
@@ -54,6 +66,25 @@ function RackEditModal({ aisle, rack, currentLevels, warehouseId, onClose }) {
       level: newLevel,
       is_active: true
     });
+  };
+
+  const handleUpdateLevel = () => {
+    if (!editLevel || !editingShelf) return;
+    
+    const newShelfCode = `${aisle}${rack}-${editLevel}`;
+    
+    updateShelfMutation.mutate({
+      id: editingShelf.id,
+      data: {
+        shelf_code: newShelfCode,
+        level: editLevel
+      }
+    });
+  };
+
+  const startEdit = (shelf) => {
+    setEditingShelf(shelf);
+    setEditLevel(shelf.level || "");
   };
 
   return (
@@ -95,15 +126,62 @@ function RackEditModal({ aisle, rack, currentLevels, warehouseId, onClose }) {
                   key={shelf.id}
                   className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50"
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-white">{shelf.shelf_code}</p>
-                      <p className="text-xs text-slate-400">Plan {shelf.level}</p>
+                  {editingShelf?.id === shelf.id ? (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          value={editLevel}
+                          onChange={(e) => setEditLevel(e.target.value)}
+                          placeholder="Plan (t.ex. 5, G)"
+                          className="bg-slate-900 border-slate-600 text-white"
+                          autoFocus
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleUpdateLevel}
+                          disabled={!editLevel || updateShelfMutation.isPending}
+                          className="bg-blue-600 hover:bg-blue-500"
+                        >
+                          Spara
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingShelf(null);
+                            setEditLevel("");
+                          }}
+                          className="bg-slate-700 border-slate-600"
+                        >
+                          Avbryt
+                        </Button>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        Ny hyllkod: {aisle}{rack}-{editLevel || '00'}
+                      </p>
                     </div>
-                    <Badge variant="outline" className="bg-slate-700/50">
-                      {shelf.articleCount || 0} art.
-                    </Badge>
-                  </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-white">{shelf.shelf_code}</p>
+                        <p className="text-xs text-slate-400">Plan {shelf.level}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-slate-700/50">
+                          {shelf.articleCount || 0} art.
+                        </Badge>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => startEdit(shelf)}
+                          className="h-7 w-7 hover:bg-slate-700"
+                        >
+                          <Edit className="w-3 h-3 text-slate-400" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
