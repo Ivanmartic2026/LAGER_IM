@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { jsPDF } from 'npm:jspdf@2.5.1';
-import QRCode from 'npm:qrcode';
+import QRCode from 'npm:qrcode@1.5.3';
 
 Deno.serve(async (req) => {
   try {
@@ -20,35 +20,16 @@ Deno.serve(async (req) => {
 
     const article = articles[0];
 
-    // Generate QR code as base64 buffer if we have batch number
-    let qrImageData = null;
-    if (article.batch_number) {
-      try {
-        // Generate QR code with optimized size for smaller PDF
-        qrImageData = await QRCode.toDataURL(article.batch_number, {
-          width: 256,
-          margin: 1,
-          errorCorrectionLevel: 'M',
-          type: 'image/png',
-          color: {
-            dark: '#000000',
-            light: '#FFFFFF'
-          }
-        });
-      } catch (qrError) {
-        console.error('Error generating QR code:', qrError);
-      }
-    }
-
     // Create PDF
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
-      putOnlyUsedFonts: true
+      compress: true
     });
 
     const pageWidth = 210;
+    const pageHeight = 297;
     const margin = 20;
     const contentWidth = pageWidth - (margin * 2);
 
@@ -69,41 +50,17 @@ Deno.serve(async (req) => {
 
     doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
-    const safeBatch = `Batch: ${article.batch_number || ''}`;
+    const safeBatch = `Batch: ${article.batch_number || 'N/A'}`;
     doc.text(safeBatch, margin, 35);
-
-    // Add QR code to header if available
-    if (qrImageData) {
-      const qrSize = 40;
-      const qrX = pageWidth - margin - qrSize;
-      const qrY = 5;
-      try {
-        doc.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
-      } catch (imgError) {
-        console.error('Error adding header QR:', imgError);
-      }
-    }
 
     // Reset text color
     doc.setTextColor(0, 0, 0);
 
     let y = 65;
 
-    // Section: Artikelinformation
-    doc.setFillColor(241, 245, 249); // slate-100
-    doc.rect(margin, y, contentWidth, 10, 'F');
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(51, 65, 85); // slate-700
-    doc.text('Artikelinformation', margin + 3, y + 7);
-    
-    y += 15;
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-
+    // Helper function for safe text
     const safeText = (text) => {
-      return String(text).replace(/[^\x00-\x7F]/g, (char) => {
+      return String(text || '').replace(/[^\x00-\x7F]/g, (char) => {
         const map = {'å':'a','ä':'a','ö':'o','Å':'A','Ä':'A','Ö':'O'};
         return map[char] || char;
       });
@@ -118,6 +75,19 @@ Deno.serve(async (req) => {
         y += 8;
       }
     };
+
+    // Section: Artikelinformation
+    doc.setFillColor(241, 245, 249); // slate-100
+    doc.rect(margin, y, contentWidth, 10, 'F');
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(51, 65, 85); // slate-700
+    doc.text('Artikelinformation', margin + 3, y + 7);
+    
+    y += 15;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
 
     addField('Tillverkare', article.manufacturer);
     addField('Tillverkningsdatum', article.manufacturing_date);
@@ -212,36 +182,52 @@ Deno.serve(async (req) => {
       }
     }
 
-    y += 15; // Add spacing
+    y += 20; // Add spacing before QR code
 
-    // Add large centered QR code at the bottom
-    if (qrImageData) {
-      const qrSize = 60;
-      const qrX = (pageWidth - qrSize) / 2; // Center horizontally
-      let qrY = y;
-
-      // Check if QR fits on current page
-      if (qrY + qrSize + 15 > 280) {
-        doc.addPage();
-        qrY = margin;
-      }
-
+    // Generate and add QR code if batch number exists
+    if (article.batch_number) {
       try {
-        doc.addImage(qrImageData, 'PNG', qrX, qrY, qrSize, qrSize);
-        // Add batch number under QR code
-        doc.setFontSize(10);
+        // Generate QR code with simple settings
+        const qrDataUrl = await QRCode.toDataURL(article.batch_number, {
+          errorCorrectionLevel: 'M',
+          type: 'image/png',
+          width: 200,
+          margin: 2
+        });
+
+        // Add centered QR code
+        const qrSize = 70;
+        const qrX = (pageWidth - qrSize) / 2;
+        let qrY = y;
+
+        // Check if QR fits on current page
+        if (qrY + qrSize + 20 > pageHeight - margin) {
+          doc.addPage();
+          qrY = margin + 10;
+        }
+
+        doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+        
+        // Add batch number text below QR code
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
-        doc.text(article.batch_number || '', qrX + qrSize / 2, qrY + qrSize + 8, { align: 'center' });
-      } catch (imgError) {
-        console.error('Error adding main QR:', imgError);
+        doc.text(article.batch_number, qrX + (qrSize / 2), qrY + qrSize + 10, { align: 'center' });
+        
+      } catch (qrError) {
+        console.error('QR code generation error:', qrError);
+        // If QR fails, just add text
+        doc.setFontSize(10);
+        doc.setTextColor(200, 0, 0);
+        doc.text('QR kod kunde inte genereras', pageWidth / 2, y, { align: 'center' });
       }
     }
 
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    const footerLeft = `Genererad: ${new Date().toLocaleString('sv-SE')}`;
-    doc.text(footerLeft, margin, 285);
+    const footerText = `Genererad: ${new Date().toLocaleString('sv-SE')}`;
+    doc.text(footerText, margin, pageHeight - 10);
 
     // Generate PDF
     const pdfBytes = doc.output('arraybuffer');
@@ -250,7 +236,7 @@ Deno.serve(async (req) => {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=artikel_${article.batch_number}_${Date.now()}.pdf`
+        'Content-Disposition': `attachment; filename=artikel_${article.batch_number || 'unknown'}_${Date.now()}.pdf`
       }
     });
 
