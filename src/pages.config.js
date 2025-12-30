@@ -1,3 +1,4 @@
+import Admin from './pages/Admin';
 import Analytics from './pages/Analytics';
 import Find from './pages/Find';
 import Home from './pages/Home';
@@ -12,11 +13,11 @@ import Reports from './pages/Reports';
 import Scan from './pages/Scan';
 import Suppliers from './pages/Suppliers';
 import Warehouses from './pages/Warehouses';
-import Admin from './pages/Admin';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Admin": Admin,
     "Analytics": Analytics,
     "Find": Find,
     "Home": Home,
@@ -31,7 +32,6 @@ export const PAGES = {
     "Scan": Scan,
     "Suppliers": Suppliers,
     "Warehouses": Warehouses,
-    "Admin": Admin,
 }
 
 export const pagesConfig = {

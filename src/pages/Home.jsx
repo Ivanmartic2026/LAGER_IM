@@ -16,16 +16,12 @@ import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { toast } from "sonner";
-import CameraCapture from "@/components/scanner/CameraCapture";
-import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import LabelDownloader from "@/components/labels/LabelDownloader";
 
 export default function HomePage() {
-  const [mode, setMode] = useState("dashboard"); // "dashboard", "search", "scan", "barcode"
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
   const searchInputRef = useRef(null);
 
@@ -83,60 +79,7 @@ export default function HomePage() {
     setSearchResults([]);
   };
 
-  const handleBarcodeDetected = async (code) => {
-    try {
-      const articles = await base44.entities.Article.filter({ batch_number: code });
-      if (articles.length === 0) {
-        const articlesBySku = await base44.entities.Article.filter({ sku: code });
-        if (articlesBySku.length > 0) {
-          setSelectedArticle(articlesBySku[0]);
-          toast.success(`Artikel hittad: ${articlesBySku[0].name}`);
-        } else {
-          toast.info("Artikel ej funnen");
-        }
-      } else {
-        setSelectedArticle(articles[0]);
-        toast.success(`Artikel hittad: ${articles[0].name}`);
-      }
-    } catch (error) {
-      toast.error("Kunde inte söka efter artikel");
-    }
-  };
-
-  const handleImageCaptured = async (file) => {
-    setIsProcessing(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analysera denna bild av en artikel/etikett och extrahera batchnummer och artikelnamn.`,
-        file_urls: [file_url],
-        response_json_schema: {
-          type: "object",
-          properties: {
-            batch_number: { type: "string" },
-            name: { type: "string" }
-          }
-        }
-      });
-
-      if (result.batch_number) {
-        const found = await base44.entities.Article.filter({ batch_number: result.batch_number });
-        if (found.length > 0) {
-          setSelectedArticle(found[0]);
-          toast.success("Artikel hittad!");
-        } else {
-          toast.info("Artikeln finns inte i lagret");
-        }
-      }
-    } catch (error) {
-      toast.error("Kunde inte analysera bilden");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const handleReset = () => {
-    setMode("dashboard");
     setSelectedArticle(null);
     setSearchQuery("");
     setSearchResults([]);
@@ -609,7 +552,7 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Search & Scan Section */}
+        {/* Search Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -619,160 +562,54 @@ export default function HomePage() {
           <div className="p-4 md:p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
             <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
               <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                <MapPin className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
+                <Search className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-base md:text-lg font-semibold text-white">Hitta & Skanna</h2>
-                <p className="text-xs md:text-sm text-slate-400 hidden md:block">Sök eller skanna för att hitta artiklar</p>
+                <h2 className="text-base md:text-lg font-semibold text-white">Sök Artiklar</h2>
+                <p className="text-xs md:text-sm text-slate-400 hidden md:block">Snabbsökning efter namn, batch eller hyllplats</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              <button
-                onClick={() => setMode("search")}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-3 rounded-xl transition-all",
-                  mode === "search" 
-                    ? "bg-emerald-600 text-white shadow-lg" 
-                    : "bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
-                )}
-              >
-                <Search className="w-6 h-6" />
-                <span className="text-xs font-medium">Sök</span>
-              </button>
-              
-              <button
-                onClick={() => setMode("barcode")}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-3 rounded-xl transition-all",
-                  mode === "barcode" 
-                    ? "bg-emerald-600 text-white shadow-lg" 
-                    : "bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
-                )}
-              >
-                <Package className="w-6 h-6" />
-                <span className="text-xs font-medium">Streckkod</span>
-              </button>
-              
-              <button
-                onClick={() => setMode("scan")}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-3 rounded-xl transition-all",
-                  mode === "scan" 
-                    ? "bg-emerald-600 text-white shadow-lg" 
-                    : "bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
-                )}
-              >
-                <Camera className="w-6 h-6" />
-                <span className="text-xs font-medium">Skanna</span>
-              </button>
-            </div>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Input
+                ref={searchInputRef}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Sök artikel, batch eller hyllplats..."
+                className="pl-12 pr-12 h-12 bg-slate-900/50 border-slate-700 text-white"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              )}
 
-            <AnimatePresence mode="wait">
-              {mode === "search" && (
-                <motion.div
-                  key="search"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="relative"
-                >
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <Input
-                    ref={searchInputRef}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Sök artikel, batch eller hyllplats..."
-                    className="pl-12 pr-12 h-12 bg-slate-900/50 border-slate-700 text-white"
-                    autoFocus
-                  />
-                  {searchQuery && (
-                    <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
-                      <X className="w-5 h-5" />
-                    </button>
-                  )}
-
-                  {searchResults.length > 0 && (
-                    <div className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl max-h-[300px] overflow-y-auto">
-                      {searchResults.map((article) => (
-                        <button
-                          key={article.id}
-                          onClick={() => handleSelectArticle(article)}
-                          className="w-full p-4 text-left hover:bg-slate-700/50 transition-colors border-b border-slate-700/50 last:border-0"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <p className="font-medium text-white">{article.name}</p>
-                              <p className="text-sm text-slate-400">#{article.batch_number}</p>
-                            </div>
-                            {article.shelf_address && (
-                              <div className="flex items-center gap-2 text-emerald-400">
-                                <MapPin className="w-4 h-4" />
-                                <span className="font-bold">{article.shelf_address}</span>
-                              </div>
-                            )}
+              {searchResults.length > 0 && (
+                <div className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl max-h-[300px] overflow-y-auto">
+                  {searchResults.map((article) => (
+                    <button
+                      key={article.id}
+                      onClick={() => handleSelectArticle(article)}
+                      className="w-full p-4 text-left hover:bg-slate-700/50 transition-colors border-b border-slate-700/50 last:border-0"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-white">{article.name}</p>
+                          <p className="text-sm text-slate-400">#{article.batch_number}</p>
+                        </div>
+                        {article.shelf_address && (
+                          <div className="flex items-center gap-2 text-emerald-400">
+                            <MapPin className="w-4 h-4" />
+                            <span className="font-bold">{article.shelf_address}</span>
                           </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               )}
-
-              {mode === "barcode" && (
-                <motion.div
-                  key="barcode"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                >
-                  <BarcodeScanner 
-                    onBarcodeDetected={handleBarcodeDetected}
-                    onClose={() => setMode("dashboard")}
-                  />
-                </motion.div>
-              )}
-
-              {mode === "scan" && (
-                <motion.div
-                  key="scan"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                >
-                  <CameraCapture
-                    onImageCaptured={handleImageCaptured}
-                    isProcessing={isProcessing}
-                  />
-                </motion.div>
-              )}
-
-              {mode === "dashboard" && (
-                <motion.div
-                  key="dashboard"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="text-center py-8"
-                >
-                  <p className="text-slate-400 mb-4">Välj ett alternativ ovan för att hitta artiklar</p>
-                  <div className="grid grid-cols-3 gap-3 text-sm">
-                    <div className="p-3 rounded-lg bg-slate-900/50">
-                      <Search className="w-5 h-5 text-slate-500 mx-auto mb-2" />
-                      <p className="text-slate-400">Snabbsök</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-slate-900/50">
-                      <Package className="w-5 h-5 text-slate-500 mx-auto mb-2" />
-                      <p className="text-slate-400">Streckkod</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-slate-900/50">
-                      <Camera className="w-5 h-5 text-slate-500 mx-auto mb-2" />
-                      <p className="text-slate-400">AI Skanning</p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            </div>
           </div>
         </motion.div>
 
@@ -793,7 +630,7 @@ export default function HomePage() {
           
           <Link to={createPageUrl("Scan") + "?mode=inventory"}>
             <div className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 hover:border-blue-500/50 transition-colors cursor-pointer">
-              <Camera className="w-5 h-5 md:w-6 md:h-6 text-blue-400 mb-2 md:mb-3" />
+              <ClipboardList className="w-5 h-5 md:w-6 md:h-6 text-blue-400 mb-2 md:mb-3" />
               <h3 className="font-semibold text-white text-sm md:text-base mb-1">Inventering</h3>
               <p className="text-xs md:text-sm text-slate-400">Justera lagersaldo</p>
             </div>
