@@ -618,43 +618,54 @@ export default function HomePage() {
         >
           <div className="p-4 md:p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
             <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-              <MapPin className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-base md:text-lg font-semibold text-white">Hitta & Skanna</h2>
-              <p className="text-xs md:text-sm text-slate-400 hidden md:block">Sök eller skanna för att hitta artiklar</p>
-            </div>
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                <MapPin className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-base md:text-lg font-semibold text-white">Hitta & Skanna</h2>
+                <p className="text-xs md:text-sm text-slate-400 hidden md:block">Sök eller skanna för att hitta artiklar</p>
+              </div>
             </div>
 
-            <div className="flex gap-2 mb-4">
-              <Button
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <button
                 onClick={() => setMode("search")}
-                variant={mode === "search" ? "default" : "outline"}
-                size="sm"
-                className={cn("flex-1", mode === "search" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-800 border-slate-600 hover:bg-slate-700")}
+                className={cn(
+                  "flex flex-col items-center gap-2 p-3 rounded-xl transition-all",
+                  mode === "search" 
+                    ? "bg-emerald-600 text-white shadow-lg" 
+                    : "bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
+                )}
               >
-                <Search className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">Sök</span>
-              </Button>
-              <Button
+                <Search className="w-6 h-6" />
+                <span className="text-xs font-medium">Sök</span>
+              </button>
+              
+              <button
                 onClick={() => setMode("barcode")}
-                variant={mode === "barcode" ? "default" : "outline"}
-                size="sm"
-                className={cn("flex-1", mode === "barcode" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-800 border-slate-600 hover:bg-slate-700")}
+                className={cn(
+                  "flex flex-col items-center gap-2 p-3 rounded-xl transition-all",
+                  mode === "barcode" 
+                    ? "bg-emerald-600 text-white shadow-lg" 
+                    : "bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
+                )}
               >
-                <Package className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">Streckkod</span>
-              </Button>
-              <Button
+                <Package className="w-6 h-6" />
+                <span className="text-xs font-medium">Streckkod</span>
+              </button>
+              
+              <button
                 onClick={() => setMode("scan")}
-                variant={mode === "scan" ? "default" : "outline"}
-                size="sm"
-                className={cn("flex-1", mode === "scan" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-800 border-slate-600 hover:bg-slate-700")}
+                className={cn(
+                  "flex flex-col items-center gap-2 p-3 rounded-xl transition-all",
+                  mode === "scan" 
+                    ? "bg-emerald-600 text-white shadow-lg" 
+                    : "bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
+                )}
               >
-                <Camera className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">Skanna</span>
-              </Button>
+                <Camera className="w-6 h-6" />
+                <span className="text-xs font-medium">Skanna</span>
+              </button>
             </div>
 
             <AnimatePresence mode="wait">
