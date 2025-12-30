@@ -24,10 +24,10 @@ Deno.serve(async (req) => {
     let qrImageData = null;
     if (article.batch_number) {
       try {
-        // Generate QR code as PNG buffer
+        // Generate QR code as PNG buffer with high quality
         qrImageData = await QRCode.toDataURL(article.batch_number, {
-          width: 512,
-          margin: 1,
+          width: 1024,
+          margin: 2,
           errorCorrectionLevel: 'H',
           color: {
             dark: '#000000',
@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
 
     // Add QR code if it was generated
     if (qrImageData) {
-      const qrSize = 45;
+      const qrSize = 60;
       try {
         doc.addImage(qrImageData, 'PNG', pageWidth - margin - qrSize, 5, qrSize, qrSize);
       } catch (imgError) {
