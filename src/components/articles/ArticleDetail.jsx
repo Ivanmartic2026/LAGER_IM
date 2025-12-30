@@ -227,22 +227,51 @@ export default function ArticleDetail({
             variant="outline"
             size="sm"
             onClick={async () => {
+              const loadingToast = toast.loading('Genererar etikett...');
               try {
-                toast.loading('Genererar etikett...');
                 const response = await base44.functions.invoke('generateA4Label', { articleId: article.id });
-                const blob = new Blob([response.data], { type: 'application/pdf' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `artikel_${article.batch_number}_${Date.now()}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                a.remove();
-                toast.success('A4-etikett nedladdad');
+                
+                // Create iframe to render HTML
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'absolute';
+                iframe.style.width = '1240px';
+                iframe.style.height = '1754px';
+                iframe.style.left = '-9999px';
+                document.body.appendChild(iframe);
+                
+                // Write HTML content
+                iframe.contentDocument.write(response.data);
+                iframe.contentDocument.close();
+                
+                // Wait for content to load
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Use html2canvas to convert to image
+                const html2canvas = (await import('html2canvas')).default;
+                const canvas = await html2canvas(iframe.contentDocument.body, {
+                  width: 1240,
+                  height: 1754,
+                  scale: 2,
+                  backgroundColor: '#ffffff'
+                });
+                
+                // Convert to blob and download
+                canvas.toBlob((blob) => {
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `artikel_${article.batch_number}_${Date.now()}.png`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  a.remove();
+                  document.body.removeChild(iframe);
+                  toast.success('A4-etikett nedladdad som PNG', { id: loadingToast });
+                }, 'image/png');
+                
               } catch (error) {
                 console.error('A4 error:', error);
-                toast.error('Kunde inte generera etikett');
+                toast.error('Kunde inte generera etikett: ' + error.message, { id: loadingToast });
               }
             }}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"

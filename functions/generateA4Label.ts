@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { jsPDF } from 'npm:jspdf@2.5.1';
+import QRCode from 'npm:qrcode@1.5.3';
 
 Deno.serve(async (req) => {
   try {
@@ -18,188 +18,171 @@ Deno.serve(async (req) => {
 
     const article = articles[0];
 
-    // Create PDF
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
+    // A4 dimensions at 150 DPI
+    const width = 1240;
+    const height = 1754;
+    const margin = 80;
 
-    const pageWidth = 210;
-    const margin = 15;
-    const contentWidth = pageWidth - (margin * 2);
-
-    // Helper for safe text
-    const safeText = (text) => {
-      if (!text) return '';
-      return String(text).replace(/[åäö]/gi, (c) => {
-        const map = {'å':'a','ä':'a','ö':'o','Å':'A','Ä':'A','Ö':'O'};
-        return map[c] || c;
-      });
-    };
-
-    // Header background
-    doc.setFillColor(30, 41, 59);
-    doc.rect(0, 0, pageWidth, 40, 'F');
-    
-    // Title
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.text(safeText(article.name || 'Artikel'), margin, 20);
-
-    // Batch
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Batch: ${safeText(article.batch_number || 'N/A')}`, margin, 30);
-
-    doc.setTextColor(0, 0, 0);
-    let y = 50;
-
-    // Section helper
-    const addSection = (title, fields) => {
-      doc.setFillColor(241, 245, 249);
-      doc.rect(margin, y, contentWidth, 8, 'F');
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(51, 65, 85);
-      doc.text(safeText(title), margin + 2, y + 5.5);
-      
-      y += 10;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-
-      for (const [label, value] of fields) {
-        if (value !== null && value !== undefined && value !== '') {
-          doc.setFont('helvetica', 'bold');
-          doc.text(safeText(label + ':'), margin + 2, y);
-          doc.setFont('helvetica', 'normal');
-          doc.text(safeText(String(value)), margin + 50, y);
-          y += 5;
-        }
-      }
-      y += 2;
-    };
-
-    // Article info
-    addSection('Artikelinformation', [
-      ['Tillverkare', article.manufacturer],
-      ['Tillverkningsdatum', article.manufacturing_date],
-      ['Kategori', article.category],
-      ['Pixel Pitch', article.pixel_pitch_mm ? `${article.pixel_pitch_mm} mm` : null]
-    ]);
-
-    // Location & dimensions
-    const dims = (article.dimensions_width_mm || article.dimensions_height_mm || article.dimensions_depth_mm)
-      ? `${article.dimensions_width_mm || '-'} x ${article.dimensions_height_mm || '-'} x ${article.dimensions_depth_mm || '-'} mm`
+    // Create HTML for canvas rendering
+    const qrCodeDataUrl = article.batch_number 
+      ? await QRCode.toDataURL(article.batch_number, { 
+          width: 400,
+          margin: 2,
+          errorCorrectionLevel: 'H'
+        })
       : null;
+
+    // Build HTML
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: Arial, sans-serif; 
+      width: ${width}px; 
+      height: ${height}px; 
+      padding: ${margin}px;
+      background: white;
+    }
+    .header {
+      background: #1e293b;
+      color: white;
+      padding: 40px;
+      margin: -${margin}px -${margin}px ${margin}px -${margin}px;
+    }
+    .header h1 { font-size: 48px; margin-bottom: 10px; }
+    .header .batch { font-size: 24px; opacity: 0.9; }
+    .section {
+      background: #f1f5f9;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+    .section h2 { 
+      font-size: 24px; 
+      color: #334155; 
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+    .field { 
+      display: flex;
+      padding: 12px 0;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 18px;
+    }
+    .field:last-child { border-bottom: none; }
+    .field-label { 
+      font-weight: bold; 
+      width: 250px;
+      color: #475569;
+    }
+    .field-value { 
+      color: #0f172a;
+      flex: 1;
+    }
+    .qr-section {
+      text-align: center;
+      margin: 40px 0;
+    }
+    .qr-section img {
+      width: 400px;
+      height: 400px;
+    }
+    .qr-section .label {
+      font-size: 28px;
+      font-weight: bold;
+      margin-top: 20px;
+      color: #0f172a;
+    }
+    .footer {
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+      margin-top: 40px;
+    }
+    .repair-warning {
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    .repair-warning h2 {
+      color: #b45309;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>${article.customer_name || article.name || 'Artikel'}</h1>
+    <div class="batch">Batch: ${article.batch_number || 'N/A'}</div>
+  </div>
+
+  <div class="section">
+    <h2>Artikelinformation</h2>
+    ${article.manufacturer ? `<div class="field"><div class="field-label">Tillverkare:</div><div class="field-value">${article.manufacturer}</div></div>` : ''}
+    ${article.manufacturing_date ? `<div class="field"><div class="field-label">Tillverkningsdatum:</div><div class="field-value">${article.manufacturing_date}</div></div>` : ''}
+    ${article.category ? `<div class="field"><div class="field-label">Kategori:</div><div class="field-value">${article.category}</div></div>` : ''}
+    ${article.pixel_pitch_mm ? `<div class="field"><div class="field-label">Pixel Pitch:</div><div class="field-value">${article.pixel_pitch_mm} mm</div></div>` : ''}
+  </div>
+
+  <div class="section">
+    <h2>Lagerplats & Mått</h2>
+    ${article.shelf_address ? `<div class="field"><div class="field-label">Hyllplats:</div><div class="field-value">${article.shelf_address}</div></div>` : ''}
+    ${article.warehouse ? `<div class="field"><div class="field-label">Lager:</div><div class="field-value">${article.warehouse}</div></div>` : ''}
+    ${(article.dimensions_width_mm || article.dimensions_height_mm || article.dimensions_depth_mm) ? `<div class="field"><div class="field-label">Dimensioner (BxHxD):</div><div class="field-value">${article.dimensions_width_mm || '-'} x ${article.dimensions_height_mm || '-'} x ${article.dimensions_depth_mm || '-'} mm</div></div>` : ''}
+    ${article.weight_g ? `<div class="field"><div class="field-label">Vikt:</div><div class="field-value">${article.weight_g} g</div></div>` : ''}
+  </div>
+
+  <div class="section">
+    <h2>Lagerstatus</h2>
+    <div class="field"><div class="field-label">Lagersaldo:</div><div class="field-value">${article.stock_qty || 0} st</div></div>
+    ${article.min_stock_level ? `<div class="field"><div class="field-label">Min. lagernivå:</div><div class="field-value">${article.min_stock_level} st</div></div>` : ''}
+    ${article.status ? `<div class="field"><div class="field-label">Status:</div><div class="field-value">${article.status}</div></div>` : ''}
+  </div>
+
+  ${article.notes ? `
+  <div class="section">
+    <h2>Anteckningar</h2>
+    <div style="padding: 10px 0; font-size: 16px; color: #0f172a;">${article.notes}</div>
+  </div>
+  ` : ''}
+
+  ${article.status === 'on_repair' && article.repair_notes ? `
+  <div class="repair-warning">
+    <h2>⚠️ PÅ REPARATION</h2>
+    <div style="font-size: 16px; color: #0f172a; margin-top: 10px;">${article.repair_notes}</div>
+    ${article.repair_date ? `<div style="font-size: 14px; color: #78716c; margin-top: 10px;">Skickad: ${article.repair_date}</div>` : ''}
+  </div>
+  ` : ''}
+
+  ${qrCodeDataUrl ? `
+  <div class="qr-section">
+    <img src="${qrCodeDataUrl}" alt="QR Code" />
+    <div class="label">${article.batch_number}</div>
+  </div>
+  ` : ''}
+
+  <div class="footer">
+    Genererad: ${new Date().toLocaleString('sv-SE')}
+  </div>
+</body>
+</html>
+    `;
+
+    // Use Deno's built-in API to convert HTML to image
+    // For now, return HTML that can be screenshot on client side
+    // Or we can use a headless browser service
     
-    addSection('Lagerplats & Matt', [
-      ['Hyllplats', article.shelf_address],
-      ['Lager', article.warehouse],
-      ['Dimensioner (BxHxD)', dims],
-      ['Vikt', article.weight_g ? `${article.weight_g} g` : null]
-    ]);
-
-    // Stock status
-    addSection('Lagerstatus', [
-      ['Lagersaldo', article.stock_qty || 0],
-      ['Min. lagerniva', article.min_stock_level],
-      ['Status', article.status]
-    ]);
-
-    // Notes
-    if (article.notes) {
-      doc.setFillColor(241, 245, 249);
-      doc.rect(margin, y, contentWidth, 8, 'F');
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(51, 65, 85);
-      doc.text('Anteckningar', margin + 2, y + 5.5);
-
-      y += 10;
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-
-      const notesLines = doc.splitTextToSize(safeText(article.notes), contentWidth - 4);
-      const maxLines = Math.min(notesLines.length, 6);
-      doc.text(notesLines.slice(0, maxLines), margin + 2, y);
-      y += maxLines * 4;
-      if (notesLines.length > 6) {
-        doc.text('...', margin + 2, y);
-        y += 4;
-      }
-    }
-
-    // Repair info
-    if (article.status === 'on_repair' && article.repair_notes) {
-      y += 2;
-      doc.setFillColor(254, 243, 199);
-      doc.rect(margin, y, contentWidth, 8, 'F');
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(180, 83, 9);
-      doc.text('! PA REPARATION', margin + 2, y + 5.5);
-
-      y += 10;
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-
-      const repairLines = doc.splitTextToSize(safeText(article.repair_notes), contentWidth - 4);
-      const maxRepairLines = Math.min(repairLines.length, 4);
-      doc.text(repairLines.slice(0, maxRepairLines), margin + 2, y);
-      y += maxRepairLines * 4;
-
-      if (article.repair_date) {
-        y += 2;
-        doc.text(safeText(`Skickad: ${article.repair_date}`), margin + 2, y);
-        y += 5;
-      }
-    }
-
-    // QR Code using simple box drawing
-    if (article.batch_number) {
-      y += 5;
-      const qrSize = 60;
-      const qrX = (pageWidth - qrSize) / 2;
-
-      // Simple QR placeholder box
-      doc.setDrawColor(0);
-      doc.setLineWidth(0.5);
-      doc.rect(qrX, y, qrSize, qrSize);
-      
-      // Add batch text inside
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      
-      // Center text in box
-      const textWidth = doc.getTextWidth(article.batch_number);
-      const textX = qrX + (qrSize - textWidth) / 2;
-      const textY = y + qrSize / 2;
-      
-      doc.text(article.batch_number, textX, textY);
-      
-      // Label below
-      doc.text(article.batch_number, pageWidth / 2, y + qrSize + 7, { align: 'center' });
-    }
-
-    // Footer
-    doc.setFontSize(7);
-    doc.setTextColor(120, 120, 120);
-    doc.text(`Genererad: ${new Date().toLocaleString('sv-SE')}`, margin, 290);
-
-    // Output
-    const pdfBytes = doc.output('arraybuffer');
-
-    return new Response(pdfBytes, {
+    // Simple approach: Return HTML and let client convert to PNG
+    return new Response(html, {
       status: 200,
       headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=artikel_${article.batch_number || 'label'}.pdf`
+        'Content-Type': 'text/html; charset=utf-8',
       }
     });
 
