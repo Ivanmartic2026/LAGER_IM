@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Article ID required' }, { status: 400 });
     }
 
-    // Get article details - use service role to fetch data
+    // Get article details using service role
     const articles = await base44.asServiceRole.entities.Article.filter({ id: articleId });
     
     if (!articles || articles.length === 0) {
@@ -59,14 +59,17 @@ Deno.serve(async (req) => {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(28);
     doc.setFont('helvetica', 'bold');
-    // Properly encode Swedish characters
-    const encodedName = decodeURIComponent(escape(article.name || 'Artikel'));
-    doc.text(encodedName, margin, 25);
-    
+    // Handle Swedish characters
+    const safeName = (article.name || 'Artikel').replace(/[^\x00-\x7F]/g, (char) => {
+      const map = {'å':'a','ä':'a','ö':'o','Å':'A','Ä':'A','Ö':'O'};
+      return map[char] || char;
+    });
+    doc.text(safeName, margin, 25);
+
     doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
-    const encodedBatch = decodeURIComponent(escape(`Batch: ${article.batch_number || ''}`));
-    doc.text(encodedBatch, margin, 35);
+    const safeBatch = `Batch: ${article.batch_number || ''}`;
+    doc.text(safeBatch, margin, 35);
 
     // Add QR code if it was generated
     if (qrImageData) {
@@ -89,21 +92,26 @@ Deno.serve(async (req) => {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(51, 65, 85); // slate-700
-    doc.text(decodeURIComponent(escape('Artikelinformation')), margin + 3, y + 7);
+    doc.text('Artikelinformation', margin + 3, y + 7);
     
     y += 15;
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
 
+    const safeText = (text) => {
+      return String(text).replace(/[^\x00-\x7F]/g, (char) => {
+        const map = {'å':'a','ä':'a','ö':'o','Å':'A','Ä':'A','Ö':'O'};
+        return map[char] || char;
+      });
+    };
+
     const addField = (label, value) => {
       if (value !== null && value !== undefined && value !== '') {
         doc.setFont('helvetica', 'bold');
-        const encodedLabel = decodeURIComponent(escape(`${label}:`));
-        doc.text(encodedLabel, margin + 5, y);
+        doc.text(safeText(`${label}:`), margin + 5, y);
         doc.setFont('helvetica', 'normal');
-        const encodedValue = decodeURIComponent(escape(String(value)));
-        doc.text(encodedValue, margin + 60, y);
+        doc.text(safeText(String(value)), margin + 60, y);
         y += 8;
       }
     };
@@ -121,7 +129,7 @@ Deno.serve(async (req) => {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(51, 65, 85);
-    doc.text(decodeURIComponent(escape('Lagerplats & Mått')), margin + 3, y + 7);
+    doc.text('Lagerplats & Matt', margin + 3, y + 7);
     
     y += 15;
     doc.setFontSize(11);
@@ -146,7 +154,7 @@ Deno.serve(async (req) => {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(51, 65, 85);
-    doc.text(decodeURIComponent(escape('Lagerstatus')), margin + 3, y + 7);
+    doc.text('Lagerstatus', margin + 3, y + 7);
     
     y += 15;
     doc.setFontSize(11);
@@ -165,15 +173,14 @@ Deno.serve(async (req) => {
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(51, 65, 85);
-      doc.text(decodeURIComponent(escape('Anteckningar')), margin + 3, y + 7);
-      
+      doc.text('Anteckningar', margin + 3, y + 7);
+
       y += 15;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
-      
-      const encodedNotes = decodeURIComponent(escape(article.notes));
-      const notesLines = doc.splitTextToSize(encodedNotes, contentWidth - 10);
+
+      const notesLines = doc.splitTextToSize(safeText(article.notes), contentWidth - 10);
       doc.text(notesLines, margin + 5, y);
       y += notesLines.length * 5;
     }
@@ -186,28 +193,26 @@ Deno.serve(async (req) => {
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(180, 83, 9); // amber-700
-      doc.text(decodeURIComponent(escape('⚠ PÅ REPARATION')), margin + 3, y + 7);
-      
+      doc.text('! PA REPARATION', margin + 3, y + 7);
+
       y += 15;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
-      
-      const encodedRepair = decodeURIComponent(escape(article.repair_notes));
-      const repairLines = doc.splitTextToSize(encodedRepair, contentWidth - 10);
+
+      const repairLines = doc.splitTextToSize(safeText(article.repair_notes), contentWidth - 10);
       doc.text(repairLines, margin + 5, y);
-      
+
       if (article.repair_date) {
         y += repairLines.length * 5 + 5;
-        const encodedDate = decodeURIComponent(escape(`Skickad: ${article.repair_date}`));
-        doc.text(encodedDate, margin + 5, y);
+        doc.text(safeText(`Skickad: ${article.repair_date}`), margin + 5, y);
       }
     }
 
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    const footerLeft = decodeURIComponent(escape(`Genererad: ${new Date().toLocaleString('sv-SE')}`));
+    const footerLeft = `Genererad: ${new Date().toLocaleString('sv-SE')}`;
     doc.text(footerLeft, margin, 285);
 
     // Generate PDF
