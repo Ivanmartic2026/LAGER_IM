@@ -26,6 +26,7 @@ export default function PlacementAssistant({ warehouseId, onClose }) {
   const [desiredShelves, setDesiredShelves] = useState('');
   const [suggestions, setSuggestions] = useState(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isPlacing, setIsPlacing] = useState(false);
 
   const { data: articles = [] } = useQuery({
     queryKey: ['articles'],
@@ -107,6 +108,36 @@ export default function PlacementAssistant({ warehouseId, onClose }) {
     setSuggestions(null);
     setItems([]);
     setDesiredShelves('');
+  };
+
+  const handleApplyPlacements = async () => {
+    if (!suggestions || suggestions.suggestions.length === 0) return;
+
+    setIsPlacing(true);
+    try {
+      // Update each article with its new shelf address
+      const updates = [];
+      for (const suggestion of suggestions.suggestions) {
+        const article = articles.find(a => a.id === suggestion.article_id);
+        if (article) {
+          updates.push(
+            base44.entities.Article.update(suggestion.article_id, {
+              shelf_address: suggestion.shelf_code
+            })
+          );
+        }
+      }
+
+      await Promise.all(updates);
+      
+      toast.success(`${suggestions.suggestions.length} artiklar placerade!`);
+      onClose();
+    } catch (error) {
+      console.error('Error applying placements:', error);
+      toast.error("Kunde inte placera artiklar");
+    } finally {
+      setIsPlacing(false);
+    }
   };
 
   const availableArticles = articles.filter(a => 
@@ -286,6 +317,36 @@ export default function PlacementAssistant({ warehouseId, onClose }) {
                     <CheckCircle2 className="w-4 h-4 text-green-400" />
                     Rekommenderade placeringar
                   </h3>
+                  
+                  {/* Group by shelf to show articles per shelf */}
+                  {(() => {
+                    const grouped = {};
+                    suggestions.suggestions.forEach(s => {
+                      if (!grouped[s.shelf_code]) {
+                        grouped[s.shelf_code] = [];
+                      }
+                      grouped[s.shelf_code].push(s);
+                    });
+                    
+                    return (
+                      <div className="space-y-3 mb-4">
+                        {Object.entries(grouped).map(([shelfCode, shelfSuggestions]) => (
+                          <div key={shelfCode} className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-purple-400" />
+                                <span className="font-semibold text-white">{shelfCode}</span>
+                              </div>
+                              <Badge variant="outline" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                                {shelfSuggestions.length} artikel{shelfSuggestions.length !== 1 ? 'ar' : ''}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+
                   <div className="space-y-2">
                     {suggestions.suggestions.map((suggestion, index) => (
                       <motion.div
@@ -390,12 +451,34 @@ export default function PlacementAssistant({ warehouseId, onClose }) {
               >
                 Ny beräkning
               </Button>
-              <Button
-                onClick={onClose}
-                className="bg-blue-600 hover:bg-blue-500"
-              >
-                Stäng
-              </Button>
+              <div className="flex gap-2">
+                {suggestions.suggestions.length > 0 && (
+                  <Button
+                    onClick={handleApplyPlacements}
+                    disabled={isPlacing}
+                    className="bg-green-600 hover:bg-green-500"
+                  >
+                    {isPlacing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Placerar...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        Placera artiklar
+                      </>
+                    )}
+                  </Button>
+                )}
+                <Button
+                  onClick={onClose}
+                  variant="outline"
+                  className="bg-slate-800 border-slate-700 hover:bg-slate-700"
+                >
+                  Stäng
+                </Button>
+              </div>
             </>
           )}
         </div>
