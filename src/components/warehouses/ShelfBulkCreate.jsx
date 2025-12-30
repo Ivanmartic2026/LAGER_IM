@@ -12,6 +12,9 @@ export default function ShelfBulkCreate({ warehouseId, onClose }) {
   const [aisles, setAisles] = useState('A,B,C');
   const [racks, setRacks] = useState('1,2,3,4');
   const [levels, setLevels] = useState('1,2,3');
+  const [width, setWidth] = useState('');
+  const [height, setHeight] = useState('');
+  const [depth, setDepth] = useState('');
   const queryClient = useQueryClient();
 
   const createShelvesMutation = useMutation({
@@ -41,14 +44,21 @@ export default function ShelfBulkCreate({ warehouseId, onClose }) {
     aisleList.forEach(aisle => {
       rackList.forEach(rack => {
         levelList.forEach(level => {
-          shelves.push({
+          const shelfData = {
             warehouse_id: warehouseId,
             shelf_code: `${aisle}${rack}-${level}`,
             aisle,
             rack,
             level,
             is_active: true
-          });
+          };
+          
+          // Add dimensions if provided
+          if (width) shelfData.width_cm = parseFloat(width);
+          if (height) shelfData.height_cm = parseFloat(height);
+          if (depth) shelfData.depth_cm = parseFloat(depth);
+          
+          shelves.push(shelfData);
         });
       });
     });
@@ -129,6 +139,45 @@ export default function ShelfBulkCreate({ warehouseId, onClose }) {
             <p className="text-xs text-slate-500 mt-1">
               {levelList.length} nivåer: {levelList.join(', ') || '—'}
             </p>
+          </div>
+
+          <div className="border-t border-slate-700 pt-4">
+            <Label className="text-slate-300 mb-3 block">Storlek (valfritt)</Label>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label className="text-slate-400 text-xs">Bredd (cm)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={width}
+                  onChange={(e) => setWidth(e.target.value)}
+                  className="bg-slate-800 border-slate-700 text-white"
+                  placeholder="cm"
+                />
+              </div>
+              <div>
+                <Label className="text-slate-400 text-xs">Höjd (cm)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  className="bg-slate-800 border-slate-700 text-white"
+                  placeholder="cm"
+                />
+              </div>
+              <div>
+                <Label className="text-slate-400 text-xs">Djup (cm)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={depth}
+                  onChange={(e) => setDepth(e.target.value)}
+                  className="bg-slate-800 border-slate-700 text-white"
+                  placeholder="cm"
+                />
+              </div>
+            </div>
           </div>
 
           {totalShelves > 0 && (
