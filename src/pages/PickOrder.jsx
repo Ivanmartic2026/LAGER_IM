@@ -520,6 +520,18 @@ export default function PickOrderPage() {
             </Button>
           </motion.div>
         )}
+
+        {/* Edit Order Form */}
+        {showEditForm && (
+          <OrderForm
+            order={order}
+            onClose={() => {
+              setShowEditForm(false);
+              queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+              queryClient.invalidateQueries({ queryKey: ['orderItems', orderId] });
+            }}
+          />
+        )}
       </div>
     </div>
   );
