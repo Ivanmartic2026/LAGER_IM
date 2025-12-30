@@ -7,16 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ArrowLeft, Plus, Search, Edit, Trash2, MapPin, Package
+  ArrowLeft, Plus, Search, Edit, Trash2, MapPin, Package, Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ShelfForm from "./ShelfForm";
 import ShelfBulkCreate from "./ShelfBulkCreate";
+import PlacementAssistant from "./PlacementAssistant";
 
 export default function ShelfManager({ warehouse, onBack }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showBulkCreate, setShowBulkCreate] = useState(false);
+  const [showPlacementAssistant, setShowPlacementAssistant] = useState(false);
   const [editingShelf, setEditingShelf] = useState(null);
   
   const queryClient = useQueryClient();
@@ -116,6 +118,14 @@ export default function ShelfManager({ warehouse, onBack }) {
             </div>
             
             <div className="flex gap-2">
+              <Button
+                onClick={() => setShowPlacementAssistant(true)}
+                variant="outline"
+                className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-purple-500/30 hover:from-purple-600/30 hover:to-blue-600/30 text-purple-300"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Placeringsassistent
+              </Button>
               <Button
                 onClick={() => setShowBulkCreate(true)}
                 variant="outline"
@@ -291,7 +301,15 @@ export default function ShelfManager({ warehouse, onBack }) {
             onClose={() => setShowBulkCreate(false)}
           />
         )}
-      </div>
-    </div>
-  );
-}
+
+        {/* Placement Assistant Modal */}
+        {showPlacementAssistant && (
+          <PlacementAssistant
+            warehouseId={warehouse.id}
+            onClose={() => setShowPlacementAssistant(false)}
+          />
+        )}
+        </div>
+        </div>
+        );
+        }
