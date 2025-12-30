@@ -47,9 +47,14 @@ function RackEditModal({ aisle, rack, currentLevels, warehouseId, onClose }) {
     mutationFn: ({ id, data }) => base44.entities.Shelf.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shelves', warehouseId] });
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
       toast.success("Plan uppdaterat");
       setEditingShelf(null);
       setEditLevel("");
+    },
+    onError: (error) => {
+      console.error('Update error:', error);
+      toast.error("Kunde inte uppdatera plan");
     }
   });
 
