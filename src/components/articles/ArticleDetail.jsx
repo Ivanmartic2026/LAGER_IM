@@ -30,6 +30,7 @@ export default function ArticleDetail({
   const [repairModalOpen, setRepairModalOpen] = useState(false);
   const [returnFromRepairModalOpen, setReturnFromRepairModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
+  const [uploadingFiles, setUploadingFiles] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch stock movements for this article
@@ -58,6 +59,34 @@ export default function ArticleDetail({
   const createMovementMutation = useMutation({
     mutationFn: (data) => base44.entities.StockMovement.create(data),
   });
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setUploadingFiles(true);
+    try {
+      const uploadPromises = files.map(file => 
+        base44.integrations.Core.UploadFile({ file })
+      );
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.map(r => r.file_url);
+      
+      const updatedUrls = [...(article.image_urls || []), ...newUrls];
+      
+      await updateArticleMutation.mutateAsync({
+        id: article.id,
+        data: { image_urls: updatedUrls }
+      });
+      
+      toast.success(`${files.length} fil${files.length > 1 ? 'er' : ''} uppladdad${files.length > 1 ? 'e' : ''}`);
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Kunde inte ladda upp filer');
+    } finally {
+      setUploadingFiles(false);
+    }
+  };
   
   const getStatusConfig = (status) => {
     switch (status) {
@@ -493,13 +522,8 @@ export default function ArticleDetail({
               Uppladdade filer
             </h3>
 
-            {(!article.image_urls || article.image_urls.length === 0) ? (
-              <div className="text-center py-8">
-                <DollarSign className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-400">Inga filer uppladdade</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {article.image_urls && article.image_urls.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
                 {article.image_urls.map((url, index) => {
                   const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url);
                   const fileName = url.split('/').pop().split('?')[0];
@@ -539,6 +563,33 @@ export default function ArticleDetail({
                 })}
               </div>
             )}
+
+            <div>
+              <input
+                type="file"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+                disabled={uploadingFiles}
+              />
+              <label
+                htmlFor="file-upload"
+                className="flex items-center justify-center gap-2 p-6 rounded-xl border-2 border-dashed border-slate-700 hover:border-slate-600 bg-slate-900/30 cursor-pointer transition-colors"
+              >
+                {uploadingFiles ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-slate-400 border-t-blue-400 rounded-full animate-spin" />
+                    <span className="text-slate-400">Laddar upp...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-5 h-5 text-slate-400" />
+                    <span className="text-slate-400">Lägg till filer</span>
+                  </>
+                )}
+              </label>
+            </div>
           </div>
         </TabsContent>
 
