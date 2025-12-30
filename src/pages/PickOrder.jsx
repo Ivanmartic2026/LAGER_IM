@@ -98,21 +98,33 @@ export default function PickOrderPage() {
   };
 
   const handlePickQuantity = async (item, pickedQty) => {
-    const article = articles.find(a => a.id === item.article_id);
-    if (!article) return;
+    // Fetch fresh article data to ensure we have the latest stock quantity
+    const freshArticles = await base44.entities.Article.filter({ id: item.article_id });
+    const article = freshArticles[0];
+    
+    if (!article) {
+      toast.error("Artikel ej funnen");
+      return;
+    }
 
     const newQty = pickedQty;
     const previousQty = item.quantity_picked || 0;
     const totalPicked = previousQty + newQty;
 
-    // Check stock
+    // Check stock with fresh data
     if (newQty > article.stock_qty) {
       toast.error(`Inte tillräckligt i lager. Tillgängligt: ${article.stock_qty} st`);
       return;
     }
 
-    // Update article stock
+    // Prevent negative stock
     const newStockQty = article.stock_qty - newQty;
+    if (newStockQty < 0) {
+      toast.error(`Kan inte plocka mer än vad som finns i lager (${article.stock_qty} st)`);
+      return;
+    }
+
+    // Update article stock
     await updateArticleMutation.mutateAsync({
       id: article.id,
       data: { 
