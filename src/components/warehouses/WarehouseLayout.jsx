@@ -113,10 +113,10 @@ function RackEditModal({ aisle, rack, currentLevels, warehouseId, onClose }) {
             <p className="text-sm font-medium text-slate-300 mb-2">Lägg till nytt plan:</p>
             <div className="flex gap-2">
               <Input
-                type="number"
+                type="text"
                 value={newLevel}
                 onChange={(e) => setNewLevel(e.target.value)}
-                placeholder="Plannummer (t.ex. 5)"
+                placeholder="Plan (t.ex. 5, G, eller Golv)"
                 className="bg-slate-800 border-slate-700 text-white"
               />
               <Button
@@ -129,7 +129,7 @@ function RackEditModal({ aisle, rack, currentLevels, warehouseId, onClose }) {
               </Button>
             </div>
             <p className="text-xs text-slate-500 mt-2">
-              Hyllkod kommer bli: {aisle}{rack}-{String(newLevel || '00').padStart(2, '0')}
+              Hyllkod kommer bli: {aisle}{rack}-{newLevel || '00'}
             </p>
           </div>
         </div>
