@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Search, Package, MapPin, Grid3X3, ArrowLeft,
-  Maximize2, ZoomIn, ZoomOut
+  Maximize2, ZoomIn, ZoomOut, Plus, Edit, X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -17,12 +17,133 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+function RackEditModal({ aisle, rack, currentLevels, warehouseId, onClose }) {
+  const [newLevel, setNewLevel] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: warehouse } = useQuery({
+    queryKey: ['warehouse', warehouseId],
+    queryFn: async () => {
+      const warehouses = await base44.entities.Warehouse.list();
+      return warehouses.find(w => w.id === warehouseId);
+    },
+  });
+
+  const createShelfMutation = useMutation({
+    mutationFn: (data) => base44.entities.Shelf.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shelves', warehouseId] });
+      toast.success("Nytt plan tillagt");
+      setNewLevel("");
+    }
+  });
+
+  const handleAddLevel = () => {
+    if (!newLevel || !warehouse) return;
+    
+    const shelfCode = `${aisle}${rack}-${String(newLevel).padStart(2, '0')}`;
+    
+    createShelfMutation.mutate({
+      warehouse_id: warehouseId,
+      shelf_code: shelfCode,
+      aisle,
+      rack,
+      level: newLevel,
+      is_active: true
+    });
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95 }}
+        animate={{ scale: 1 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md"
+      >
+        <div className="p-6 border-b border-slate-700 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white">
+              Redigera Ställning
+            </h2>
+            <p className="text-sm text-slate-400">Gång {aisle} - Ställning {rack}</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="text-slate-400 hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div>
+            <p className="text-sm font-medium text-slate-300 mb-3">Nuvarande plan:</p>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {currentLevels.sort((a, b) => (parseInt(b.level) || 0) - (parseInt(a.level) || 0)).map((shelf) => (
+                <div
+                  key={shelf.id}
+                  className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{shelf.shelf_code}</p>
+                      <p className="text-xs text-slate-400">Plan {shelf.level}</p>
+                    </div>
+                    <Badge variant="outline" className="bg-slate-700/50">
+                      {shelf.articleCount || 0} art.
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-700">
+            <p className="text-sm font-medium text-slate-300 mb-2">Lägg till nytt plan:</p>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                value={newLevel}
+                onChange={(e) => setNewLevel(e.target.value)}
+                placeholder="Plannummer (t.ex. 5)"
+                className="bg-slate-800 border-slate-700 text-white"
+              />
+              <Button
+                onClick={handleAddLevel}
+                disabled={!newLevel || createShelfMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-500"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Lägg till
+              </Button>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">
+              Hyllkod kommer bli: {aisle}{rack}-{String(newLevel || '00').padStart(2, '0')}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 export default function WarehouseLayout({ warehouseId, onBack }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAisle, setSelectedAisle] = useState("all");
   const [zoom, setZoom] = useState(1);
   const [hoveredShelf, setHoveredShelf] = useState(null);
+  const [editingRack, setEditingRack] = useState(null);
 
   const { data: warehouse } = useQuery({
     queryKey: ['warehouse', warehouseId],
@@ -240,6 +361,17 @@ export default function WarehouseLayout({ warehouseId, onBack }) {
           </div>
         </div>
 
+        {/* Edit Rack Modal */}
+        {editingRack && (
+          <RackEditModal
+            aisle={editingRack.aisle}
+            rack={editingRack.rack}
+            currentLevels={editingRack.levels}
+            warehouseId={warehouseId}
+            onClose={() => setEditingRack(null)}
+          />
+        )}
+
         {/* Warehouse Grid */}
         <div className="overflow-auto pb-4">
           <div 
@@ -269,10 +401,18 @@ export default function WarehouseLayout({ warehouseId, onBack }) {
                       {Object.entries(racks).map(([rack, levels]) => (
                         <div key={rack} className="space-y-2">
                           {/* Rack Label */}
-                          <div className="text-center">
-                            <p className="text-xs font-medium text-slate-400 mb-2">
+                          <div className="flex items-center justify-center gap-2">
+                            <p className="text-xs font-medium text-slate-400">
                               Ställning {rack}
                             </p>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => setEditingRack({ aisle, rack, levels })}
+                              className="h-6 w-6 hover:bg-slate-700"
+                            >
+                              <Edit className="w-3 h-3 text-slate-400" />
+                            </Button>
                           </div>
 
                           {/* Levels (shelves) */}
@@ -320,12 +460,12 @@ export default function WarehouseLayout({ warehouseId, onBack }) {
                                 </div>
 
                                 {/* Hover Tooltip */}
-                                {hoveredShelf?.id === shelf.id && (
-                                  <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="absolute z-10 left-0 top-full mt-2 p-3 rounded-lg bg-slate-900 border border-slate-700 shadow-xl min-w-[200px]"
-                                  >
+                                {hoveredShelf?.id === shelf.id && !editingRack && (
+                                 <motion.div
+                                   initial={{ opacity: 0, y: 10 }}
+                                   animate={{ opacity: 1, y: 0 }}
+                                   className="absolute z-10 left-0 top-full mt-2 p-3 rounded-lg bg-slate-900 border border-slate-700 shadow-xl min-w-[200px] pointer-events-none"
+                                 >
                                     <div className="space-y-2">
                                       <div>
                                         <p className="text-xs text-slate-400">Hyllkod</p>
