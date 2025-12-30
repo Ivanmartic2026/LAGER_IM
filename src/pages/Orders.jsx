@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { 
   Search, Plus, Package, ClipboardList, Download,
-  Calendar, User, MapPin, FileText, Truck
+  Calendar, User, MapPin, FileText, Truck, Eye, ArrowUpDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -17,12 +17,15 @@ import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import OrderForm from "@/components/orders/OrderForm";
+import OrderDetailModal from "@/components/orders/OrderDetailModal";
 
 export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("date_desc"); // date_desc, date_asc, customer_asc
   const [showForm, setShowForm] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -70,15 +73,32 @@ export default function OrdersPage() {
     }
   });
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = !searchQuery || 
-      order.order_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customer_name?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  const filteredAndSortedOrders = orders
+    .filter(order => {
+      const matchesSearch = !searchQuery || 
+        order.order_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.customer_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'date_desc':
+          return new Date(b.created_date) - new Date(a.created_date);
+        case 'date_asc':
+          return new Date(a.created_date) - new Date(b.created_date);
+        case 'customer_asc':
+          return (a.customer_name || '').localeCompare(b.customer_name || '');
+        case 'delivery_date':
+          if (!a.delivery_date) return 1;
+          if (!b.delivery_date) return -1;
+          return new Date(a.delivery_date) - new Date(b.delivery_date);
+        default:
+          return 0;
+      }
+    });
 
   const getOrderItemsCount = (orderId) => {
     return orderItems.filter(item => item.order_id === orderId).length;
@@ -111,7 +131,7 @@ export default function OrdersPage() {
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-white">Ordrar</h1>
             <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
-              {filteredOrders.length} ordrar
+              {filteredAndSortedOrders.length} ordrar
             </Badge>
           </div>
 
@@ -128,25 +148,40 @@ export default function OrdersPage() {
         </div>
 
         {/* Search & Filters */}
-        <div className="flex gap-3 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Sök ordernummer eller kund..."
-              className="pl-10 h-9 bg-slate-800/50 border-slate-700 text-white"
-            />
+        <div className="space-y-3 mb-6">
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Sök ordernummer eller kund..."
+                className="pl-10 h-9 bg-slate-800/50 border-slate-700 text-white"
+              />
+            </div>
+            
+            <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+              <TabsList className="h-9 bg-slate-800/50 border border-slate-700">
+                <TabsTrigger value="all" className="text-xs h-7">Alla</TabsTrigger>
+                <TabsTrigger value="ready_to_pick" className="text-xs h-7">Redo</TabsTrigger>
+                <TabsTrigger value="picking" className="text-xs h-7">Plockar</TabsTrigger>
+                <TabsTrigger value="picked" className="text-xs h-7">Plockad</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
-          
-          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList className="h-9 bg-slate-800/50 border border-slate-700">
-              <TabsTrigger value="all" className="text-xs h-7">Alla</TabsTrigger>
-              <TabsTrigger value="ready_to_pick" className="text-xs h-7">Redo</TabsTrigger>
-              <TabsTrigger value="picking" className="text-xs h-7">Plockar</TabsTrigger>
-              <TabsTrigger value="picked" className="text-xs h-7">Plockad</TabsTrigger>
-            </TabsList>
-          </Tabs>
+
+          <div className="flex items-center gap-2 text-sm">
+            <ArrowUpDown className="w-4 h-4 text-slate-400" />
+            <span className="text-slate-400">Sortera:</span>
+            <Tabs value={sortBy} onValueChange={setSortBy}>
+              <TabsList className="h-8 bg-slate-800/50 border border-slate-700">
+                <TabsTrigger value="date_desc" className="text-xs h-6">Senaste</TabsTrigger>
+                <TabsTrigger value="date_asc" className="text-xs h-6">Äldsta</TabsTrigger>
+                <TabsTrigger value="customer_asc" className="text-xs h-6">Kund A-Ö</TabsTrigger>
+                <TabsTrigger value="delivery_date" className="text-xs h-6">Leveransdatum</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
 
         {/* Orders List */}
@@ -156,7 +191,7 @@ export default function OrdersPage() {
               <div key={i} className="h-32 rounded-xl bg-slate-800/50 animate-pulse" />
             ))}
           </div>
-        ) : filteredOrders.length === 0 ? (
+        ) : filteredAndSortedOrders.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
               <ClipboardList className="w-8 h-8 text-slate-600" />
@@ -178,7 +213,7 @@ export default function OrdersPage() {
         ) : (
           <div className="space-y-3">
             <AnimatePresence>
-              {filteredOrders.map((order) => {
+              {filteredAndSortedOrders.map((order) => {
                 const itemsCount = getOrderItemsCount(order.id);
                 
                 return (
@@ -232,6 +267,16 @@ export default function OrdersPage() {
                       </div>
 
                       <div className="flex gap-2 ml-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-slate-700 border-slate-600 hover:bg-slate-600"
+                          onClick={() => setSelectedOrder(order)}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Detaljer
+                        </Button>
+
                         {(order.status === 'ready_to_pick' || order.status === 'picking') && (
                           <Link to={`${createPageUrl("PickOrder")}?orderId=${order.id}`}>
                             <Button
@@ -248,7 +293,7 @@ export default function OrdersPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="bg-slate-700 border-slate-600 hover:bg-slate-600"
+                            className="bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30"
                             onClick={() => exportOrderMutation.mutate(order.id)}
                             disabled={exportOrderMutation.isPending}
                           >
@@ -298,6 +343,14 @@ export default function OrdersPage() {
               setShowForm(false);
               setEditingOrder(null);
             }}
+          />
+        )}
+
+        {/* Order Detail Modal */}
+        {selectedOrder && (
+          <OrderDetailModal
+            order={selectedOrder}
+            onClose={() => setSelectedOrder(null)}
           />
         )}
       </div>

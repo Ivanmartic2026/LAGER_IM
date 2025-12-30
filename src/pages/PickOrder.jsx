@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { 
   ArrowLeft, Package, CheckCircle2, Camera, MapPin,
-  AlertCircle, Loader2, Download
+  AlertCircle, Loader2, Download, Edit2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -97,7 +97,7 @@ export default function PickOrderPage() {
     setScanMode(false);
   };
 
-  const handlePickQuantity = async (item, pickedQty) => {
+  const handlePickQuantity = async (item, pickedQty, isEdit = false) => {
     // Fetch fresh article data to ensure we have the latest stock quantity
     const freshArticles = await base44.entities.Article.filter({ id: item.article_id });
     const article = freshArticles[0];
@@ -108,17 +108,19 @@ export default function PickOrderPage() {
     }
 
     const newQty = pickedQty;
-    const previousQty = item.quantity_picked || 0;
-    const totalPicked = previousQty + newQty;
+    const previousQty = isEdit ? 0 : (item.quantity_picked || 0);
+    const totalPicked = isEdit ? newQty : (previousQty + newQty);
 
     // Check stock with fresh data
-    if (newQty > article.stock_qty) {
+    const stockNeeded = isEdit ? newQty - (item.quantity_picked || 0) : newQty;
+    
+    if (stockNeeded > article.stock_qty) {
       toast.error(`Inte tillräckligt i lager. Tillgängligt: ${article.stock_qty} st`);
       return;
     }
 
     // Prevent negative stock
-    const newStockQty = article.stock_qty - newQty;
+    const newStockQty = article.stock_qty - stockNeeded;
     if (newStockQty < 0) {
       toast.error(`Kan inte plocka mer än vad som finns i lager (${article.stock_qty} st)`);
       return;
@@ -138,10 +140,10 @@ export default function PickOrderPage() {
     await createMovementMutation.mutateAsync({
       article_id: article.id,
       movement_type: 'outbound',
-      quantity: -newQty,
+      quantity: -stockNeeded,
       previous_qty: article.stock_qty,
       new_qty: newStockQty,
-      reason: `Plockad för order ${order.order_number || order.id.slice(0, 8)}`,
+      reason: `${isEdit ? 'Justerad' : 'Plockad'} för order ${order.order_number || order.id.slice(0, 8)}`,
       reference: order.id
     });
 
@@ -203,6 +205,24 @@ export default function PickOrderPage() {
     }
 
     await handlePickQuantity(item, qty);
+  };
+
+  const handleEditPicked = async (item) => {
+    const input = prompt(`Redigera plockad mängd (nuvarande: ${item.quantity_picked}, max: ${item.quantity_ordered}):`);
+    if (!input) return;
+
+    const qty = parseInt(input);
+    if (isNaN(qty) || qty < 0) {
+      toast.error("Ogiltigt antal");
+      return;
+    }
+
+    if (qty > item.quantity_ordered) {
+      toast.error("Kan inte plocka mer än beställt");
+      return;
+    }
+
+    await handlePickQuantity(item, qty, true);
   };
 
   const exportOrderMutation = useMutation({
@@ -400,7 +420,7 @@ export default function PickOrderPage() {
                   key={item.id}
                   className="bg-green-500/10 border border-green-500/30 rounded-xl p-4"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h3 className="font-semibold text-white mb-1">
                         {item.article_name}
@@ -414,7 +434,19 @@ export default function PickOrderPage() {
                         </span>
                       </div>
                     </div>
-                    <CheckCircle2 className="w-6 h-6 text-green-400" />
+                    <div className="flex items-center gap-2">
+                      {order.status !== 'picked' && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleEditPicked(item)}
+                          className="text-slate-400 hover:text-white hover:bg-slate-700 h-8 w-8"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                      <CheckCircle2 className="w-6 h-6 text-green-400" />
+                    </div>
                   </div>
                 </div>
               ))}
