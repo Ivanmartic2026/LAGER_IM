@@ -1,24 +1,17 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 import QRCode from 'npm:qrcode';
 
 Deno.serve(async (req) => {
-  const base44 = createClientFromRequest(req);
-  
   try {
+    const base44 = createClientFromRequest(req);
     const { articleId } = await req.json();
 
     if (!articleId) {
       return Response.json({ error: 'Article ID required' }, { status: 400 });
     }
 
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get article details
+    // Get article details - use service role to fetch data
     const articles = await base44.asServiceRole.entities.Article.filter({ id: articleId });
     
     if (!articles || articles.length === 0) {
@@ -215,9 +208,7 @@ Deno.serve(async (req) => {
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
     const footerLeft = decodeURIComponent(escape(`Genererad: ${new Date().toLocaleString('sv-SE')}`));
-    const footerRight = decodeURIComponent(escape(`Användare: ${user.email}`));
     doc.text(footerLeft, margin, 285);
-    doc.text(footerRight, pageWidth - margin, 285, { align: 'right' });
 
     // Generate PDF
     const pdfBytes = doc.output('arraybuffer');
