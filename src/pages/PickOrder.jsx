@@ -298,16 +298,19 @@ export default function PickOrderPage() {
           </Link>
 
           <div className="flex gap-2">
-            {order.status === 'picked' && (
-              <Button
-                onClick={() => exportOrderMutation.mutate()}
-                disabled={exportOrderMutation.isPending}
-                className="bg-green-600 hover:bg-green-500"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Ladda ner PDF
-              </Button>
-            )}
+            <Button
+              onClick={() => exportOrderMutation.mutate()}
+              disabled={exportOrderMutation.isPending}
+              variant="outline"
+              className={cn(
+                order.status === 'picked' 
+                  ? "bg-green-600 hover:bg-green-500 text-white border-green-500" 
+                  : "bg-slate-700 border-slate-600 hover:bg-slate-600"
+              )}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {order.status === 'picked' ? 'Plockkvitto' : 'Skriv ut'}
+            </Button>
 
             <Button
               variant="outline"
