@@ -3,14 +3,15 @@ import Find from './pages/Find';
 import Home from './pages/Home';
 import Inventory from './pages/Inventory';
 import Movements from './pages/Movements';
+import Orders from './pages/Orders';
+import PickOrder from './pages/PickOrder';
 import PurchaseOrders from './pages/PurchaseOrders';
 import Repairs from './pages/Repairs';
 import Reports from './pages/Reports';
 import Scan from './pages/Scan';
 import Suppliers from './pages/Suppliers';
 import Warehouses from './pages/Warehouses';
-import Orders from './pages/Orders';
-import PickOrder from './pages/PickOrder';
+import ReceivePurchaseOrder from './pages/ReceivePurchaseOrder';
 import __Layout from './Layout.jsx';
 
 
@@ -20,14 +21,15 @@ export const PAGES = {
     "Home": Home,
     "Inventory": Inventory,
     "Movements": Movements,
+    "Orders": Orders,
+    "PickOrder": PickOrder,
     "PurchaseOrders": PurchaseOrders,
     "Repairs": Repairs,
     "Reports": Reports,
     "Scan": Scan,
     "Suppliers": Suppliers,
     "Warehouses": Warehouses,
-    "Orders": Orders,
-    "PickOrder": PickOrder,
+    "ReceivePurchaseOrder": ReceivePurchaseOrder,
 }
 
 export const pagesConfig = {

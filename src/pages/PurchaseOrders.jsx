@@ -3,320 +3,298 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 import { 
-  ShoppingCart, Sparkles, Package, TrendingUp, 
-  CheckCircle2, XCircle, Clock, Loader2, AlertTriangle
+  Search, Plus, ShoppingCart, Download, Calendar,
+  Truck, Package, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { toast } from "sonner";
-import PurchaseOrderCard from "@/components/orders/PurchaseOrderCard";
+import PurchaseOrderForm from "@/components/orders/PurchaseOrderForm";
 
 export default function PurchaseOrdersPage() {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [showForm, setShowForm] = useState(false);
+  const [editingPO, setEditingPO] = useState(null);
+  
   const queryClient = useQueryClient();
 
-  const { data: orders = [], isLoading } = useQuery({
-    queryKey: ['purchase-orders'],
+  const { data: purchaseOrders = [], isLoading } = useQuery({
+    queryKey: ['purchaseOrders'],
     queryFn: () => base44.entities.PurchaseOrder.list('-created_date'),
   });
 
-  const { data: articles = [] } = useQuery({
-    queryKey: ['articles'],
-    queryFn: () => base44.entities.Article.list(),
+  const { data: poItems = [] } = useQuery({
+    queryKey: ['purchaseOrderItems'],
+    queryFn: () => base44.entities.PurchaseOrderItem.list(),
   });
 
-  const updateOrderMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.PurchaseOrder.update(id, data),
+  const deletePOMutation = useMutation({
+    mutationFn: async (poId) => {
+      const items = poItems.filter(item => item.purchase_order_id === poId);
+      await Promise.all(items.map(item => base44.entities.PurchaseOrderItem.delete(item.id)));
+      await base44.entities.PurchaseOrder.delete(poId);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
-      toast.success('Inköpsorder uppdaterad');
+      queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['purchaseOrderItems'] });
+      toast.success("Inköpsorder borttagen");
     }
   });
 
-  const deleteOrderMutation = useMutation({
-    mutationFn: (id) => base44.entities.PurchaseOrder.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
-      toast.success('Inköpsorder raderad');
+  const exportPOMutation = useMutation({
+    mutationFn: async (poId) => {
+      const response = await base44.functions.invoke('exportPurchaseOrderReceipt', { purchaseOrderId: poId });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `inköpsorder_${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.success('PDF nedladdad!');
     }
   });
 
-  const handleGenerateOrders = async () => {
-    setIsGenerating(true);
-    try {
-      const response = await base44.functions.invoke('generatePurchaseOrders');
-      const data = response.data;
-      
-      if (data.orders && data.orders.length > 0) {
-        toast.success(`${data.orders.length} nya inköpsorder skapade`);
-      } else {
-        toast.info('Inga artiklar behöver påfyllning just nu');
-      }
-      
-      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
-    } catch (error) {
-      console.error('Failed to generate orders:', error);
-      toast.error('Kunde inte generera inköpsorder');
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleApprove = async (order) => {
-    await updateOrderMutation.mutateAsync({
-      id: order.id,
-      data: { 
-        status: 'approved',
-        order_date: new Date().toISOString().split('T')[0]
-      }
-    });
-  };
-
-  const handleMarkOrdered = async (order) => {
-    await updateOrderMutation.mutateAsync({
-      id: order.id,
-      data: { status: 'ordered' }
-    });
-  };
-
-  const handleReceive = async (order) => {
-    // Update article stock
-    const article = articles.find(a => a.id === order.article_id);
-    if (article) {
-      const newQty = (article.stock_qty || 0) + order.suggested_quantity;
-      await base44.entities.Article.update(article.id, {
-        stock_qty: newQty,
-        status: newQty > (article.min_stock_level || 5) ? 'active' : 'low_stock'
-      });
-
-      // Create stock movement
-      await base44.entities.StockMovement.create({
-        article_id: article.id,
-        movement_type: 'inbound',
-        quantity: order.suggested_quantity,
-        previous_qty: article.stock_qty || 0,
-        new_qty: newQty,
-        reason: `Inköpsorder mottagen (Order #${order.id.slice(0, 8)})`
-      });
-    }
-
-    // Update order status
-    await updateOrderMutation.mutateAsync({
-      id: order.id,
-      data: { status: 'received' }
-    });
-  };
-
-  const handleCancel = async (order) => {
-    await updateOrderMutation.mutateAsync({
-      id: order.id,
-      data: { status: 'cancelled' }
-    });
-  };
-
-  const filteredOrders = orders.filter(order => {
-    if (selectedStatus === 'all') return true;
-    return order.status === selectedStatus;
+  const filteredPOs = purchaseOrders.filter(po => {
+    const matchesSearch = !searchQuery || 
+      po.po_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      po.supplier_name?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || po.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
   });
 
-  const stats = {
-    pending: orders.filter(o => o.status === 'pending').length,
-    approved: orders.filter(o => o.status === 'approved').length,
-    ordered: orders.filter(o => o.status === 'ordered').length,
-    urgent: orders.filter(o => o.priority === 'urgent').length
+  const getPOItemsCount = (poId) => {
+    return poItems.filter(item => item.purchase_order_id === poId).length;
   };
 
-  // Check how many articles need orders
-  const lowStockArticles = articles.filter(a => {
-    const stock = a.stock_qty || 0;
-    const minLevel = a.min_stock_level || 5;
-    return stock < minLevel;
-  });
+  const statusColors = {
+    draft: "bg-slate-500/20 text-slate-400 border-slate-500/30",
+    ordered: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    partially_received: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+    received: "bg-green-500/20 text-green-400 border-green-500/30",
+    cancelled: "bg-red-500/20 text-red-400 border-red-500/30"
+  };
 
-  const needsOrders = lowStockArticles.length - stats.pending;
+  const statusLabels = {
+    draft: "Utkast",
+    ordered: "Beställd",
+    partially_received: "Delvis mottagen",
+    received: "Mottagen",
+    cancelled: "Avbruten"
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Inköpsorder</h1>
-            <p className="text-slate-400">AI-optimerade påfyllningsförslag</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-white">Inköpsordrar</h1>
+            <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+              {filteredPOs.length} ordrar
+            </Badge>
           </div>
 
           <Button
-            onClick={handleGenerateOrders}
-            disabled={isGenerating}
-            className="bg-blue-600 hover:bg-blue-500 relative"
+            onClick={() => {
+              setEditingPO(null);
+              setShowForm(true);
+            }}
+            className="bg-blue-600 hover:bg-blue-500"
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Genererar...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Generera nya order
-                {needsOrders > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center">
-                    {needsOrders}
-                  </span>
-                )}
-              </>
-            )}
+            <Plus className="w-4 h-4 mr-2" />
+            Ny inköpsorder
           </Button>
         </div>
 
-        {/* Alert for low stock items */}
-        {needsOrders > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30"
-          >
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-amber-200 font-medium">
-                  {needsOrders} artikel{needsOrders > 1 ? 'ar' : ''} under lagernivå
-                </p>
-                <p className="text-amber-300/70 text-sm mt-1">
-                  Klicka på "Generera nya order" för att skapa AI-optimerade inköpsförslag
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <button
-            onClick={() => setSelectedStatus('pending')}
-            className={cn(
-              "p-4 rounded-xl border transition-all text-left",
-              selectedStatus === 'pending'
-                ? "bg-amber-500/20 border-amber-500/50 ring-2 ring-amber-500/30"
-                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-amber-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{stats.pending}</p>
-                <p className="text-xs text-slate-400">Väntande</p>
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setSelectedStatus('approved')}
-            className={cn(
-              "p-4 rounded-xl border transition-all text-left",
-              selectedStatus === 'approved'
-                ? "bg-blue-500/20 border-blue-500/50 ring-2 ring-blue-500/30"
-                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{stats.approved}</p>
-                <p className="text-xs text-slate-400">Godkända</p>
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setSelectedStatus('ordered')}
-            className={cn(
-              "p-4 rounded-xl border transition-all text-left",
-              selectedStatus === 'ordered'
-                ? "bg-emerald-500/20 border-emerald-500/50 ring-2 ring-emerald-500/30"
-                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                <ShoppingCart className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{stats.ordered}</p>
-                <p className="text-xs text-slate-400">Beställda</p>
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setSelectedStatus('all')}
-            className={cn(
-              "p-4 rounded-xl border transition-all text-left",
-              selectedStatus === 'all'
-                ? "bg-red-500/20 border-red-500/50 ring-2 ring-red-500/30"
-                : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-red-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{stats.urgent}</p>
-                <p className="text-xs text-slate-400">Brådskande</p>
-              </div>
-            </div>
-          </button>
+        {/* Search & Filters */}
+        <div className="flex gap-3 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Sök ordernummer eller leverantör..."
+              className="pl-10 h-9 bg-slate-800/50 border-slate-700 text-white"
+            />
+          </div>
+          
+          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+            <TabsList className="h-9 bg-slate-800/50 border border-slate-700">
+              <TabsTrigger value="all" className="text-xs h-7">Alla</TabsTrigger>
+              <TabsTrigger value="ordered" className="text-xs h-7">Beställd</TabsTrigger>
+              <TabsTrigger value="partially_received" className="text-xs h-7">Delvis</TabsTrigger>
+              <TabsTrigger value="received" className="text-xs h-7">Mottagen</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
-        {/* Orders List */}
+        {/* Purchase Orders List */}
         {isLoading ? (
-          <div className="grid gap-4">
+          <div className="space-y-2">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-48 rounded-2xl bg-slate-800/50 animate-pulse" />
+              <div key={i} className="h-32 rounded-xl bg-slate-800/50 animate-pulse" />
             ))}
           </div>
-        ) : filteredOrders.length === 0 ? (
+        ) : filteredPOs.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
               <ShoppingCart className="w-8 h-8 text-slate-600" />
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">
-              Inga inköpsorder
+              Inga inköpsordrar ännu
             </h3>
             <p className="text-slate-400 mb-6">
-              {selectedStatus === 'all' 
-                ? 'Klicka på "Generera nya order" för att skapa förslag'
-                : `Inga order med status "${selectedStatus}"`
-              }
+              Skapa din första inköpsorder för att komma igång
             </p>
+            <Button
+              onClick={() => setShowForm(true)}
+              className="bg-blue-600 hover:bg-blue-500"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Skapa inköpsorder
+            </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <AnimatePresence>
-              {filteredOrders.map((order) => (
-                <PurchaseOrderCard
-                  key={order.id}
-                  order={order}
-                  onApprove={handleApprove}
-                  onMarkOrdered={handleMarkOrdered}
-                  onReceive={handleReceive}
-                  onCancel={handleCancel}
-                  onDelete={() => deleteOrderMutation.mutate(order.id)}
-                  isUpdating={updateOrderMutation.isPending}
-                />
-              ))}
+              {filteredPOs.map((po) => {
+                const itemsCount = getPOItemsCount(po.id);
+                
+                return (
+                  <motion.div
+                    key={po.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="group p-5 rounded-xl bg-slate-800/30 border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50 transition-all"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold text-white">
+                            {po.po_number || `PO #${po.id.slice(0, 8)}`}
+                          </h3>
+                          <Badge className={cn("text-xs", statusColors[po.status])}>
+                            {statusLabels[po.status]}
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-400">
+                          <div className="flex items-center gap-1.5">
+                            <Truck className="w-4 h-4" />
+                            <span>{po.supplier_name}</span>
+                          </div>
+                          {po.expected_delivery_date && (
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-4 h-4" />
+                              <span>{format(new Date(po.expected_delivery_date), "d MMM yyyy", { locale: sv })}</span>
+                            </div>
+                          )}
+                          {itemsCount > 0 && (
+                            <div className="flex items-center gap-1.5">
+                              <Package className="w-4 h-4" />
+                              <span>{itemsCount} artiklar</span>
+                            </div>
+                          )}
+                          {po.total_cost && (
+                            <span className="font-semibold text-white">
+                              {po.total_cost.toLocaleString('sv-SE')} kr
+                            </span>
+                          )}
+                        </div>
+
+                        {po.notes && (
+                          <p className="text-sm text-slate-500 mt-2 line-clamp-1">
+                            {po.notes}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2 ml-4">
+                        {(po.status === 'ordered' || po.status === 'partially_received') && (
+                          <Link to={`${createPageUrl("ReceivePurchaseOrder")}?poId=${po.id}`}>
+                            <Button
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-500"
+                            >
+                              <Package className="w-4 h-4 mr-2" />
+                              Ta emot
+                            </Button>
+                          </Link>
+                        )}
+                        
+                        {po.status === 'received' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-slate-700 border-slate-600 hover:bg-slate-600"
+                            onClick={() => exportPOMutation.mutate(po.id)}
+                            disabled={exportPOMutation.isPending}
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            PDF
+                          </Button>
+                        )}
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-slate-700 border-slate-600 hover:bg-slate-600"
+                          onClick={() => {
+                            setEditingPO(po);
+                            setShowForm(true);
+                          }}
+                        >
+                          Redigera
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20"
+                          onClick={() => {
+                            if (confirm('Är du säker på att du vill ta bort denna inköpsorder?')) {
+                              deletePOMutation.mutate(po.id);
+                            }
+                          }}
+                        >
+                          Ta bort
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
+        )}
+
+        {/* Purchase Order Form Modal */}
+        {showForm && (
+          <PurchaseOrderForm
+            purchaseOrder={editingPO}
+            onClose={() => {
+              setShowForm(false);
+              setEditingPO(null);
+            }}
+          />
         )}
       </div>
     </div>
