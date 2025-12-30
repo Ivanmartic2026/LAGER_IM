@@ -28,6 +28,7 @@ export default function HomePage() {
   const { data: articles = [] } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list('-updated_date', 50),
+    staleTime: 30000,
   });
 
   const { data: movements = [] } = useQuery({

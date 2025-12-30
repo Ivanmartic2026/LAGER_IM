@@ -53,7 +53,8 @@ export default function InventoryPage() {
 
   const { data: articles = [], isLoading } = useQuery({
     queryKey: ['articles'],
-    queryFn: () => base44.entities.Article.list('-updated_date'),
+    queryFn: () => base44.entities.Article.list('-updated_date', 100),
+    staleTime: 30000, // Cache for 30 seconds
   });
 
   const { data: suppliers = [] } = useQuery({
@@ -418,62 +419,18 @@ export default function InventoryPage() {
           </div>
 
           {/* Compact Search & Filters */}
-          <div className="flex flex-col md:flex-row gap-2 md:gap-3">
+          <div className="flex gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sök artikel, batch, tillverkare..."
+                placeholder="Sök artikel, batch, tillverkare eller hyllplats..."
                 className="pl-10 h-9 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
               />
             </div>
             
-            {/* Mobile: Compact Filters */}
-            <div className="flex gap-2 md:hidden overflow-x-auto">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-24 h-9 bg-slate-800/50 border-slate-700 text-white text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">Namn</SelectItem>
-                  <SelectItem value="batch">Batch</SelectItem>
-                  <SelectItem value="shelf">Hylla</SelectItem>
-                  <SelectItem value="supplier">Leverantör</SelectItem>
-                  <SelectItem value="stock">Saldo</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-24 h-9 bg-slate-800/50 border-slate-700 text-white text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alla</SelectItem>
-                  <SelectItem value="active">I lager</SelectItem>
-                  <SelectItem value="low_stock">Lågt</SelectItem>
-                  <SelectItem value="out_of_stock">Slut</SelectItem>
-                  <SelectItem value="on_repair">Reparation</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
-                <SelectTrigger className="w-24 h-9 bg-slate-800/50 border-slate-700 text-white text-xs">
-                  <SelectValue placeholder="Lager" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alla</SelectItem>
-                  {warehouses.map(warehouse => (
-                    <SelectItem key={warehouse.id} value={warehouse.name}>
-                      {warehouse.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Desktop: Full Filters */}
-            <Tabs value={sortBy} onValueChange={setSortBy} className="hidden md:block">
+            <Tabs value={sortBy} onValueChange={setSortBy}>
               <TabsList className="h-9 bg-slate-800/50 border border-slate-700">
                 <TabsTrigger value="name" className="text-xs h-7">
                   <ArrowUpDown className="w-3 h-3 mr-1" />
@@ -486,7 +443,7 @@ export default function InventoryPage() {
               </TabsList>
             </Tabs>
 
-            <Tabs value={statusFilter} onValueChange={setStatusFilter} className="hidden md:block">
+            <Tabs value={statusFilter} onValueChange={setStatusFilter}>
               <TabsList className="h-9 bg-slate-800/50 border border-slate-700">
                 <TabsTrigger value="all" className="text-xs h-7">Alla</TabsTrigger>
                 <TabsTrigger value="active" className="text-xs h-7">I lager</TabsTrigger>
@@ -496,7 +453,7 @@ export default function InventoryPage() {
               </TabsList>
             </Tabs>
 
-            <Select value={warehouseFilter} onValueChange={setWarehouseFilter} className="hidden md:block">
+            <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
               <SelectTrigger className="w-48 h-9 bg-slate-800/50 border-slate-700 text-white">
                 <SelectValue placeholder="Lager" />
               </SelectTrigger>
@@ -516,7 +473,7 @@ export default function InventoryPage() {
         {isLoading ? (
           <div className="space-y-2">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-20 rounded-xl bg-slate-800/50 animate-pulse" />
+              <div key={i} className="h-20 md:h-24 rounded-xl bg-slate-800/50 animate-pulse" />
             ))}
           </div>
         ) : filteredArticles.length === 0 ? (
@@ -544,8 +501,8 @@ export default function InventoryPage() {
         ) : (
           <div className="space-y-2">
             {/* Header Row - Desktop Only */}
-            <div className="hidden md:block px-4 py-2 grid grid-cols-[80px_80px_minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_120px] gap-4 text-xs font-medium text-slate-500 uppercase tracking-wider border-b border-slate-700/50">
-              <div></div> {/* Image */}
+            <div className="hidden md:grid px-4 py-2 grid-cols-[80px_80px_minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_120px] gap-4 text-xs font-medium text-slate-500 uppercase tracking-wider border-b border-slate-700/50">
+              <div></div>
               <div>Saldo</div>
               <div>Artikelnummer</div>
               <div>Benämning</div>
@@ -566,97 +523,87 @@ export default function InventoryPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     onClick={() => setSelectedArticle(article)}
-                    className="group p-3 md:p-4 rounded-xl cursor-pointer transition-all bg-slate-800/30 border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50 active:bg-slate-800/60"
+                    className="group p-3 md:p-4 rounded-xl cursor-pointer transition-all bg-slate-800/30 border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50 active:scale-[0.98]"
                   >
                     {/* Mobile Layout */}
                     <div className="md:hidden">
                       <div className="flex items-start gap-3 mb-2">
-                        {/* Image */}
                         {imageUrl ? (
-                          <div className="flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-slate-900/50">
+                          <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-slate-900/50">
                             <img 
                               src={imageUrl} 
                               alt={article.name}
                               className="w-full h-full object-cover"
+                              loading="lazy"
                             />
                           </div>
                         ) : (
-                          <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-slate-900/50 flex items-center justify-center">
+                          <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-slate-900/50 flex items-center justify-center">
                             <Package className="w-5 h-5 text-slate-600" />
                           </div>
                         )}
 
-                        {/* Main Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-white text-sm mb-1 truncate">
-                            {article.customer_name || article.name}
-                          </div>
-                          {article.batch_number && (
-                            <div className="text-xs font-mono text-slate-500 mb-1">
-                              #{article.batch_number}
-                            </div>
-                          )}
-                          {article.shelf_address && (
-                            <div className="flex items-center gap-1 text-xs text-emerald-400">
-                              <MapPin className="w-3 h-3" />
-                              <span className="font-medium">{article.shelf_address}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Stock Badge */}
-                        <div className="flex-shrink-0">
-                          <div className={cn(
-                            "px-3 py-1.5 rounded-lg text-center",
-                            article.stock_qty <= 0 ? "bg-red-500/20 border border-red-500/30" : 
-                            hasLowStock ? "bg-amber-500/20 border border-amber-500/30" : "bg-emerald-500/20 border border-emerald-500/30"
-                          )}>
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2">
+                              {article.customer_name || article.name}
+                            </h3>
                             <div className={cn(
-                              "text-lg font-bold leading-none",
+                              "text-lg font-bold leading-none flex-shrink-0",
                               article.stock_qty <= 0 ? "text-red-400" : 
-                              hasLowStock ? "text-amber-400" : "text-emerald-400"
+                              hasLowStock ? "text-amber-400" : "text-white"
                             )}>
                               {article.stock_qty || 0}
                             </div>
-                            <div className="text-[10px] text-slate-500 mt-0.5">st</div>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                            {article.batch_number && (
+                              <span className="font-mono">#{article.batch_number}</span>
+                            )}
+                            {article.manufacturer && (
+                              <>
+                                <span>•</span>
+                                <span className="truncate">{article.manufacturer}</span>
+                              </>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {article.shelf_address && (
+                              <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30 text-xs">
+                                <MapPin className="w-3 h-3 mr-1" />
+                                {article.shelf_address}
+                              </Badge>
+                            )}
+                            {article.status !== 'active' && (
+                              <Badge className={cn(
+                                "text-xs border",
+                                article.status === 'low_stock' ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
+                                article.status === 'out_of_stock' ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                                article.status === 'on_repair' ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
+                                "bg-slate-500/20 text-slate-400 border-slate-500/30"
+                              )}>
+                                {article.status === 'low_stock' ? 'Lågt' :
+                                 article.status === 'out_of_stock' ? 'Slut' :
+                                 article.status === 'on_repair' ? 'Rep.' : 
+                                 article.status === 'discontinued' ? 'Utgått' : article.status}
+                              </Badge>
+                            )}
                           </div>
                         </div>
-                      </div>
-
-                      {/* Secondary Info */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {article.status !== 'active' && (
-                          <Badge className={cn(
-                            "text-[10px] border px-1.5 py-0.5",
-                            article.status === 'low_stock' ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
-                            article.status === 'out_of_stock' ? "bg-red-500/20 text-red-400 border-red-500/30" :
-                            article.status === 'on_repair' ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
-                            "bg-slate-500/20 text-slate-400 border-slate-500/30"
-                          )}>
-                            {article.status === 'low_stock' ? 'Lågt' :
-                             article.status === 'out_of_stock' ? 'Slut' :
-                             article.status === 'on_repair' ? 'Reparation' : 
-                             article.status === 'discontinued' ? 'Utgått' : article.status}
-                          </Badge>
-                        )}
-                        {article.manufacturer && (
-                          <span className="text-[10px] text-slate-500">{article.manufacturer}</span>
-                        )}
-                        {article.warehouse && (
-                          <span className="text-[10px] text-slate-500">• {article.warehouse}</span>
-                        )}
                       </div>
                     </div>
 
                     {/* Desktop Layout */}
                     <div className="hidden md:flex items-center gap-4">
-                      {/* Image */}
                       {imageUrl ? (
                         <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-slate-900/50">
                           <img 
                             src={imageUrl} 
                             alt={article.name}
                             className="w-full h-full object-cover"
+                            loading="lazy"
                           />
                         </div>
                       ) : (
@@ -665,7 +612,6 @@ export default function InventoryPage() {
                         </div>
                       )}
 
-                      {/* Stock Quantity */}
                       <div className="w-20 text-center flex-shrink-0">
                         <div className={cn(
                           "text-2xl font-bold leading-none mb-1",
@@ -677,9 +623,7 @@ export default function InventoryPage() {
                         <div className="text-xs text-slate-500">st</div>
                       </div>
 
-                      {/* Article Info */}
                       <div className="flex-1 min-w-0 grid grid-cols-[minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_120px] gap-4">
-                        {/* SKU / Artikelnummer */}
                         <div className="min-w-0">
                           {article.sku ? (
                             <div className="text-sm font-mono text-blue-400 truncate">
@@ -694,7 +638,6 @@ export default function InventoryPage() {
                           )}
                         </div>
 
-                        {/* Benämning / Name */}
                         <div className="min-w-0">
                           <div className="font-semibold text-white text-sm mb-1 truncate">
                             {article.customer_name || article.name}
@@ -708,7 +651,6 @@ export default function InventoryPage() {
                           )}
                         </div>
 
-                        {/* Shelf Address */}
                         <div className="min-w-0 flex items-center">
                           {article.shelf_address ? (
                             <div className="flex items-center gap-1.5">
@@ -722,7 +664,6 @@ export default function InventoryPage() {
                           )}
                         </div>
 
-                        {/* Warehouse */}
                         <div className="min-w-0 flex items-center">
                           {article.warehouse ? (
                             <div className="flex items-center gap-1.5">
@@ -736,7 +677,6 @@ export default function InventoryPage() {
                           )}
                         </div>
 
-                        {/* Status & Date */}
                         <div className="flex items-center justify-end gap-2 min-w-0">
                           {article.status !== 'active' && (
                             <Badge className={cn(
@@ -766,6 +706,18 @@ export default function InventoryPage() {
             </AnimatePresence>
           </div>
         )}
+
+        {/* Mobile Floating Action Button */}
+        <Link to={createPageUrl("Scan")} className="md:hidden">
+          <motion.button
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            whileTap={{ scale: 0.9 }}
+            className="fixed bottom-24 right-4 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-500/50 flex items-center justify-center z-40 active:shadow-blue-500/80"
+          >
+            <Camera className="w-6 h-6 text-white" />
+          </motion.button>
+        </Link>
 
             {/* Modals */}
             <Dialog open={quickInventoryOpen} onOpenChange={setQuickInventoryOpen}>

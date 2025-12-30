@@ -198,31 +198,37 @@ export default function ArticleDetail({
       animate={{ opacity: 1 }}
       className="space-y-6"
     >
-      <div className="flex items-center justify-between">
+      {/* Header - Mobile Optimized */}
+      <div className="flex items-center justify-between mb-4">
         <Button
           variant="ghost"
           onClick={onBack}
-          className="text-slate-400 hover:text-white hover:bg-slate-800"
-          size="sm"
+          className="text-slate-400 hover:text-white hover:bg-slate-800 -ml-2"
         >
           <ArrowLeft className="w-4 h-4 md:mr-2" />
           <span className="hidden md:inline">Tillbaka</span>
         </Button>
-        <div className="flex flex-wrap gap-1.5 md:gap-2">
+        
+        {/* Mobile: Compact action menu */}
+        <div className="flex gap-2">
           {article.status === "on_repair" && (
             <Button
               onClick={() => setReturnFromRepairModalOpen(true)}
               disabled={updateArticleMutation.isPending}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6"
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white"
             >
-              <CheckCircle2 className="w-5 h-5 mr-2" />
-              Återför från reparation
+              <CheckCircle2 className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">Återför</span>
             </Button>
           )}
+          
           <Button
             variant="outline"
+            size="sm"
             onClick={async () => {
               try {
+                toast.loading('Genererar etikett...');
                 const response = await base44.functions.invoke('generateA4Label', { articleId: article.id });
                 const blob = new Blob([response.data], { type: 'application/pdf' });
                 const url = window.URL.createObjectURL(blob);
@@ -240,31 +246,33 @@ export default function ArticleDetail({
               }
             }}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-            size="sm"
           >
             <Printer className="w-4 h-4 md:mr-2" />
-            <span className="hidden md:inline">A4</span>
+            <span className="hidden sm:inline">A4</span>
           </Button>
+          
           <Button
             variant="outline"
-            onClick={() => setShowPrintModal(true)}
-            className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
             size="sm"
+            onClick={() => setShowPrintModal(true)}
+            className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white hidden sm:flex"
           >
             <Printer className="w-4 h-4 md:mr-2" />
             <span className="hidden md:inline">Liten</span>
           </Button>
+          
           <Button
             variant="outline"
-            size="icon"
+            size="sm"
             onClick={onEdit}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
           >
             <Edit className="w-4 h-4" />
           </Button>
+          
           <Button
             variant="outline"
-            size="icon"
+            size="sm"
             onClick={onDelete}
             className="bg-slate-800 border-slate-600 hover:bg-red-900/50 hover:border-red-500/50 text-white"
           >
@@ -273,115 +281,120 @@ export default function ArticleDetail({
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
+      {/* Article Header - Mobile Optimized */}
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-6">
+        {/* Image Gallery */}
         <div className="w-full md:w-64 flex-shrink-0">
           <ImageGallery 
             images={article.image_urls || (article.image_url ? [article.image_url] : [])} 
             editable={false}
           />
           {(!article.image_urls || article.image_urls.length === 0) && !article.image_url && (
-            <div className="w-full h-48 rounded-2xl bg-slate-800/50 flex items-center justify-center">
-              <Package className="w-16 h-16 text-slate-600" />
+            <div className="w-full h-48 md:h-64 rounded-2xl bg-slate-800/50 flex items-center justify-center">
+              <Package className="w-12 h-12 md:w-16 md:h-16 text-slate-600" />
             </div>
           )}
         </div>
 
-        <div className="flex-1">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white mb-1">
+        {/* Article Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-2xl font-bold text-white mb-1 break-words">
                 {article.customer_name || article.name}
               </h1>
               {article.customer_name && article.name !== article.customer_name && (
-                <p className="text-sm text-slate-500 mb-1">({article.name})</p>
+                <p className="text-xs md:text-sm text-slate-500 mb-1">({article.name})</p>
               )}
-              <div className="flex flex-col gap-1 text-sm">
+              <div className="flex flex-col gap-1 text-xs md:text-sm">
                 {article.sku && (
                   <p className="text-blue-400 flex items-center gap-2 font-mono">
-                    <Hash className="w-4 h-4" />
+                    <Hash className="w-3 h-3 md:w-4 md:h-4" />
                     SKU: {article.sku}
                   </p>
                 )}
                 {article.batch_number && (
                   <p className="text-slate-400 flex items-center gap-2">
-                    <Hash className="w-4 h-4" />
+                    <Hash className="w-3 h-3 md:w-4 md:h-4" />
                     <span className="text-slate-500">Batch:</span> {article.batch_number}
                   </p>
                 )}
               </div>
             </div>
-            <Badge className={cn("border text-sm", statusConfig.color)}>
+            <Badge className={cn("border text-xs md:text-sm flex-shrink-0", statusConfig.color)}>
               {statusConfig.label}
             </Badge>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-3 gap-2 md:gap-4">
             <div className="p-3 md:p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
               <p className="text-xs md:text-sm text-blue-300 mb-1">I lager</p>
               <p className="text-2xl md:text-3xl font-bold text-white">{article.stock_qty || 0}</p>
             </div>
             <div className="p-3 md:p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
-              <p className="text-xs md:text-sm text-slate-400 mb-1">Min. lagernivå</p>
+              <p className="text-xs md:text-sm text-slate-400 mb-1">Min. nivå</p>
               <p className="text-2xl md:text-3xl font-bold text-white">{article.min_stock_level || "—"}</p>
             </div>
             {article.status === 'on_repair' && article.repair_notes && (
-              <div className="p-3 md:p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 col-span-2 md:col-span-1">
-                <p className="text-xs md:text-sm text-orange-300 mb-1">På reparation</p>
+              <div className="p-3 md:p-4 rounded-xl bg-orange-500/10 border border-orange-500/30">
+                <p className="text-xs md:text-sm text-orange-300 mb-1">Reparation</p>
                 <p className="text-2xl md:text-3xl font-bold text-white">
                   {article.repair_notes.match(/^(\d+)\s*st/) ? article.repair_notes.match(/^(\d+)\s*st/)[1] : "—"}
                 </p>
               </div>
             )}
           </div>
-          </div>
-          </div>
+        </div>
+      </div>
 
-          <div className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Button
-                onClick={() => onAdjustStock("add")}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-14 text-base"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Lägg till lager
-              </Button>
-              <Button
-                onClick={() => onAdjustStock("remove")}
-                className="bg-red-600 hover:bg-red-500 text-white font-semibold h-14 text-base"
-              >
-                <Minus className="w-5 h-5 mr-2" />
-                Ta ut från lager
-              </Button>
-            </div>
+      {/* Quick Actions - Mobile Optimized */}
+      <div className="space-y-2 md:space-y-3 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+          <Button
+            onClick={() => onAdjustStock("add")}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-12 md:h-14 text-sm md:text-base active:scale-95 transition-transform"
+          >
+            <Plus className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+            Lägg till lager
+          </Button>
+          <Button
+            onClick={() => onAdjustStock("remove")}
+            className="bg-red-600 hover:bg-red-500 text-white font-semibold h-12 md:h-14 text-sm md:text-base active:scale-95 transition-transform"
+          >
+            <Minus className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+            Ta ut från lager
+          </Button>
+        </div>
 
-            {article.status !== "on_repair" && (
-              <Button
-                onClick={() => setRepairModalOpen(true)}
-                className="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium h-10"
-              >
-                <Wrench className="w-4 h-4 mr-2" />
-                Rapportera till Reparation
-              </Button>
-            )}
-          </div>
+        {article.status !== "on_repair" && (
+          <Button
+            onClick={() => setRepairModalOpen(true)}
+            className="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium h-10 md:h-11 text-sm md:text-base active:scale-95 transition-transform"
+          >
+            <Wrench className="w-3 h-3 md:w-4 md:h-4 mr-2" />
+            Rapportera till Reparation
+          </Button>
+        )}
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-slate-800/50 border border-slate-700 w-full md:w-auto">
-          <TabsTrigger value="details" className="flex items-center gap-2">
-            <Package className="w-4 h-4" />
-            Detaljer
+        <TabsList className="bg-slate-800/50 border border-slate-700 w-full grid grid-cols-4 md:w-auto md:inline-flex">
+          <TabsTrigger value="details" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+            <Package className="w-3 h-3 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">Detaljer</span>
           </TabsTrigger>
-          <TabsTrigger value="files" className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4" />
-            Filer
+          <TabsTrigger value="files" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+            <DollarSign className="w-3 h-3 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">Filer</span>
           </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
-            <History className="w-4 h-4" />
-            Historik
+          <TabsTrigger value="history" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+            <History className="w-3 h-3 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">Historik</span>
           </TabsTrigger>
-          <TabsTrigger value="repairs" className="flex items-center gap-2">
-            <Wrench className="w-4 h-4" />
-            På reparation
+          <TabsTrigger value="repairs" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+            <Wrench className="w-3 h-3 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">Reparation</span>
           </TabsTrigger>
         </TabsList>
 
