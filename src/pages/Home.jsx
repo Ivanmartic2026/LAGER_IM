@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Camera, Package, TrendingUp, TrendingDown, 
   AlertTriangle, Clock, ArrowRight, Zap, MapPin,
-  Search, X, Hash, Factory, Printer
+  Search, X, Hash, Factory, Printer, ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -38,6 +38,13 @@ export default function HomePage() {
     queryKey: ['movements'],
     queryFn: () => base44.entities.StockMovement.list('-created_date', 10),
   });
+
+  const { data: orders = [] } = useQuery({
+    queryKey: ['orders'],
+    queryFn: () => base44.entities.Order.list('-created_date', 10),
+  });
+
+  const pendingOrders = orders.filter(o => o.status === 'ready_to_pick' || o.status === 'picking');
 
   const stats = {
     total: articles.length,
@@ -246,8 +253,54 @@ export default function HomePage() {
           </div>
         </motion.div>
 
+        {/* Orders to Pick */}
+        {pendingOrders.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="p-5 md:p-6 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 mb-6"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/30 flex items-center justify-center">
+                    <ClipboardList className="w-5 h-5 text-blue-300" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-white">Ordrar att plocka</h2>
+                </div>
+                <p className="text-sm text-blue-200">{pendingOrders.length} order{pendingOrders.length !== 1 ? 'ar' : ''} väntar på plockning</p>
+              </div>
+              <Link to={createPageUrl("Orders")}>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-500">
+                  Visa alla
+                </Button>
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {pendingOrders.slice(0, 3).map(order => (
+                <Link 
+                  key={order.id}
+                  to={`${createPageUrl("PickOrder")}?orderId=${order.id}`}
+                  className="block p-3 md:p-4 rounded-xl bg-slate-900/40 hover:bg-slate-900/60 border border-slate-700/50 hover:border-slate-600 transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-white text-sm md:text-base truncate">
+                        {order.order_number || `Order #${order.id.slice(0, 8)}`}
+                      </p>
+                      <p className="text-xs md:text-sm text-slate-400 truncate">{order.customer_name}</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-blue-400 flex-shrink-0 ml-2" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
           <Link to={createPageUrl("Inventory") + "?status=all"}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -335,7 +388,7 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           
           {/* Alerts */}
           {hasAlerts && (
@@ -343,7 +396,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
+              className="p-4 md:p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-white flex items-center gap-2">
@@ -392,7 +445,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
+            className="p-4 md:p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-white flex items-center gap-2">
@@ -461,7 +514,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
+              className="p-4 md:p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-white">Senaste artiklar</h2>
@@ -503,9 +556,9 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-8"
+          className="mt-6 md:mt-8"
         >
-          <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+          <div className="p-4 md:p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                 <MapPin className="w-5 h-5 text-emerald-400" />
@@ -520,26 +573,29 @@ export default function HomePage() {
               <Button
                 onClick={() => setMode("search")}
                 variant={mode === "search" ? "default" : "outline"}
+                size="sm"
                 className={cn("flex-1", mode === "search" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-800 border-slate-600 hover:bg-slate-700")}
               >
-                <Search className="w-4 h-4 mr-2" />
-                Sök
+                <Search className="w-4 h-4 md:mr-2" />
+                <span className="hidden md:inline">Sök</span>
               </Button>
               <Button
                 onClick={() => setMode("barcode")}
                 variant={mode === "barcode" ? "default" : "outline"}
+                size="sm"
                 className={cn("flex-1", mode === "barcode" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-800 border-slate-600 hover:bg-slate-700")}
               >
-                <Package className="w-4 h-4 mr-2" />
-                Streckkod
+                <Package className="w-4 h-4 md:mr-2" />
+                <span className="hidden md:inline">Streckkod</span>
               </Button>
               <Button
                 onClick={() => setMode("scan")}
                 variant={mode === "scan" ? "default" : "outline"}
+                size="sm"
                 className={cn("flex-1", mode === "scan" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-800 border-slate-600 hover:bg-slate-700")}
               >
-                <Camera className="w-4 h-4 mr-2" />
-                Skanna
+                <Camera className="w-4 h-4 md:mr-2" />
+                <span className="hidden md:inline">Skanna</span>
               </Button>
             </div>
 
@@ -656,21 +712,21 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
-          className="mt-6 grid grid-cols-2 gap-4"
+          className="mt-4 md:mt-6 grid grid-cols-2 gap-3 md:gap-4"
         >
           <Link to={createPageUrl("Scan") + "?mode=inbound"}>
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 border border-emerald-500/30 hover:border-emerald-500/50 transition-colors cursor-pointer">
-              <Package className="w-6 h-6 text-emerald-400 mb-3" />
-              <h3 className="font-semibold text-white mb-1">Inleverans</h3>
-              <p className="text-sm text-slate-400">Registrera nya varor</p>
+            <div className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 border border-emerald-500/30 hover:border-emerald-500/50 transition-colors cursor-pointer">
+              <Package className="w-5 h-5 md:w-6 md:h-6 text-emerald-400 mb-2 md:mb-3" />
+              <h3 className="font-semibold text-white text-sm md:text-base mb-1">Inleverans</h3>
+              <p className="text-xs md:text-sm text-slate-400">Registrera nya varor</p>
             </div>
           </Link>
           
           <Link to={createPageUrl("Scan") + "?mode=inventory"}>
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 hover:border-blue-500/50 transition-colors cursor-pointer">
-              <Camera className="w-6 h-6 text-blue-400 mb-3" />
-              <h3 className="font-semibold text-white mb-1">Inventering</h3>
-              <p className="text-sm text-slate-400">Justera lagersaldo</p>
+            <div className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 hover:border-blue-500/50 transition-colors cursor-pointer">
+              <Camera className="w-5 h-5 md:w-6 md:h-6 text-blue-400 mb-2 md:mb-3" />
+              <h3 className="font-semibold text-white text-sm md:text-base mb-1">Inventering</h3>
+              <p className="text-xs md:text-sm text-slate-400">Justera lagersaldo</p>
             </div>
           </Link>
         </motion.div>
