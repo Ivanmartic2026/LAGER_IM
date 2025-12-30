@@ -23,7 +23,7 @@ export default function PlacementAssistant({ warehouseId, onClose }) {
   const [items, setItems] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState('');
   const [quantity, setQuantity] = useState('');
-  const [desiredShelves, setDesiredShelves] = useState('');
+  const [itemsPerShelf, setItemsPerShelf] = useState('');
   const [suggestions, setSuggestions] = useState(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isPlacing, setIsPlacing] = useState(false);
@@ -86,7 +86,7 @@ export default function PlacementAssistant({ warehouseId, onClose }) {
       const response = await base44.functions.invoke('suggestPlacements', {
         items,
         warehouseId: warehouseId || null,
-        desiredShelves: desiredShelves ? parseInt(desiredShelves) : null
+        itemsPerShelf: itemsPerShelf ? parseInt(itemsPerShelf) : null
       });
 
       setSuggestions(response.data);
@@ -107,7 +107,7 @@ export default function PlacementAssistant({ warehouseId, onClose }) {
   const handleReset = () => {
     setSuggestions(null);
     setItems([]);
-    setDesiredShelves('');
+    setItemsPerShelf('');
   };
 
   const handleApplyPlacements = async () => {
@@ -184,26 +184,26 @@ export default function PlacementAssistant({ warehouseId, onClose }) {
           {!suggestions ? (
             /* Input Mode */
             <div className="space-y-6">
-              {/* Desired Shelves */}
+              {/* Items Per Shelf */}
               <div className="mb-4">
                 <h3 className="text-sm font-semibold text-white mb-3">Optimeringsalternativ</h3>
                 <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
                   <div className="flex items-center gap-3">
                     <div className="flex-1">
                       <label className="text-xs text-slate-400 mb-1 block">
-                        Önskat antal hyllor (valfritt)
+                        Önskat antal artiklar per hylla (valfritt)
                       </label>
                       <Input
                         type="number"
                         min="1"
-                        value={desiredShelves}
-                        onChange={(e) => setDesiredShelves(e.target.value)}
+                        value={itemsPerShelf}
+                        onChange={(e) => setItemsPerShelf(e.target.value)}
                         placeholder="Lämna tomt för optimal packning"
                         className="bg-slate-900 border-slate-600 text-white"
                       />
                     </div>
                     <div className="text-xs text-slate-500 max-w-xs">
-                      Ange antal hyllor för att fördela artiklar jämnt istället för att packa tätt
+                      Ange antal artiklar per hylla för att fördela jämnt istället för att packa tätt
                     </div>
                   </div>
                 </div>

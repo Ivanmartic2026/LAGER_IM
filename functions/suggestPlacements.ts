@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { items, warehouseId, desiredShelves } = await req.json();
+    const { items, warehouseId, itemsPerShelf } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return Response.json({ error: 'Items array required' }, { status: 400 });
@@ -50,12 +50,18 @@ Deno.serve(async (req) => {
       };
     });
 
+    // Calculate total items to determine how many shelves needed
+    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+    const desiredShelves = itemsPerShelf && itemsPerShelf > 0 
+      ? Math.ceil(totalItems / itemsPerShelf) 
+      : null;
+
     // Sort shelves by available volume
-    // If desiredShelves specified, sort by largest space (distribute evenly)
+    // If itemsPerShelf specified, sort by largest space (distribute evenly)
     // Otherwise use best-fit strategy (pack tightly)
     const sortedShelves = shelvesWithCapacity
       .filter(s => s.shelfVolume > 0 && s.availableVolume > 0)
-      .sort((a, b) => desiredShelves 
+      .sort((a, b) => itemsPerShelf 
         ? b.availableVolume - a.availableVolume  // Largest first for even distribution
         : a.availableVolume - b.availableVolume   // Smallest first for tight packing
       );
@@ -100,11 +106,8 @@ Deno.serve(async (req) => {
         shelvesToUse = sortedShelves.slice(0, desiredShelves);
       }
 
-      // If using distribution strategy, calculate target quantity per shelf
-      let targetPerShelf = null;
-      if (desiredShelves && desiredShelves > 0 && shelvesToUse.length > 0) {
-        targetPerShelf = Math.ceil(item.quantity / Math.min(desiredShelves, shelvesToUse.length));
-      }
+      // If using distribution strategy, use itemsPerShelf as target
+      let targetPerShelf = itemsPerShelf && itemsPerShelf > 0 ? itemsPerShelf : null;
 
       // Try to place items
       for (const shelf of shelvesToUse) {
