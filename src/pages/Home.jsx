@@ -229,25 +229,24 @@ export default function HomePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 md:p-10 mb-8"
+          className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 md:p-10 mb-6 md:mb-8"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl transform translate-x-20 -translate-y-20" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl transform -translate-x-10 translate-y-10" />
           
           <div className="relative z-10">
-            <h1 className="text-2xl md:text-4xl font-bold text-white mb-3">
+            <h1 className="text-xl md:text-4xl font-bold text-white mb-2 md:mb-3">
               Smart Lagerhantering
             </h1>
-            <p className="text-blue-100 mb-6 max-w-lg">
-              Fotografera en etikett och fyll i alla artikeluppgifter automatiskt. 
-              Snabb inleverans och inventering.
+            <p className="text-sm md:text-base text-blue-100 mb-4 md:mb-6 max-w-lg">
+              Fotografera en etikett och fyll i alla artikeluppgifter automatiskt.
             </p>
             
             <Link to={createPageUrl("Scan")}>
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
-                <Camera className="w-5 h-5 mr-2" />
+              <Button size="sm" className="bg-white text-blue-600 hover:bg-blue-50 md:h-11 md:px-6">
+                <Camera className="w-4 h-4 mr-2" />
                 Starta skanning
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-3 h-3 md:w-4 md:h-4 ml-2" />
               </Button>
             </Link>
           </div>
@@ -262,18 +261,18 @@ export default function HomePage() {
             className="p-5 md:p-6 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 mb-6"
           >
             <div className="flex items-start justify-between mb-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/30 flex items-center justify-center">
-                    <ClipboardList className="w-5 h-5 text-blue-300" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 md:mb-2">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-blue-500/30 flex items-center justify-center flex-shrink-0">
+                    <ClipboardList className="w-4 h-4 md:w-5 md:h-5 text-blue-300" />
                   </div>
-                  <h2 className="text-lg font-semibold text-white">Ordrar att plocka</h2>
+                  <h2 className="text-base md:text-lg font-semibold text-white truncate">Ordrar att plocka</h2>
                 </div>
-                <p className="text-sm text-blue-200">{pendingOrders.length} order{pendingOrders.length !== 1 ? 'ar' : ''} väntar på plockning</p>
+                <p className="text-xs md:text-sm text-blue-200">{pendingOrders.length} order{pendingOrders.length !== 1 ? 'ar' : ''} väntar</p>
               </div>
-              <Link to={createPageUrl("Orders")}>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-500">
-                  Visa alla
+              <Link to={createPageUrl("Orders")} className="flex-shrink-0">
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-xs md:text-sm h-8 md:h-9 px-3 md:px-4">
+                  Alla
                 </Button>
               </Link>
             </div>
@@ -299,8 +298,8 @@ export default function HomePage() {
           </motion.div>
         )}
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
+        {/* Stats Grid - Desktop Only */}
+        <div className="hidden md:grid grid-cols-5 gap-4 mb-8">
           <Link to={createPageUrl("Inventory") + "?status=all"}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -388,6 +387,63 @@ export default function HomePage() {
           </Link>
         </div>
 
+        {/* Mobile Stats - Simplified */}
+        <div className="md:hidden grid grid-cols-2 gap-3 mb-6">
+          <Link to={createPageUrl("Inventory") + "?status=all"}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 active:bg-slate-800"
+            >
+              <Package className="w-5 h-5 text-blue-400 mb-2" />
+              <p className="text-2xl font-bold text-white mb-0.5">{stats.total}</p>
+              <p className="text-xs text-slate-400">Artiklar</p>
+            </motion.div>
+          </Link>
+
+          {stats.lowStock > 0 && (
+            <Link to={createPageUrl("Inventory") + "?status=low_stock"}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-xl bg-slate-800/50 border border-amber-500/30 active:bg-slate-800"
+              >
+                <AlertTriangle className="w-5 h-5 text-amber-400 mb-2" />
+                <p className="text-2xl font-bold text-white mb-0.5">{stats.lowStock}</p>
+                <p className="text-xs text-slate-400">Lågt lager</p>
+              </motion.div>
+            </Link>
+          )}
+
+          {stats.outOfStock > 0 && (
+            <Link to={createPageUrl("Inventory") + "?status=out_of_stock"}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-xl bg-slate-800/50 border border-red-500/30 active:bg-slate-800"
+              >
+                <Package className="w-5 h-5 text-red-400 mb-2" />
+                <p className="text-2xl font-bold text-white mb-0.5">{stats.outOfStock}</p>
+                <p className="text-xs text-slate-400">Slut</p>
+              </motion.div>
+            </Link>
+          )}
+
+          {stats.totalValue > 0 && (
+            <Link to={createPageUrl("Inventory") + "?status=active"}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 active:bg-slate-800"
+              >
+                <Package className="w-5 h-5 text-emerald-400 mb-2" />
+                <p className="text-2xl font-bold text-white mb-0.5">{stats.totalValue}</p>
+                <p className="text-xs text-slate-400">I lager</p>
+              </motion.div>
+            </Link>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           
           {/* Alerts */}
@@ -398,10 +454,11 @@ export default function HomePage() {
               transition={{ delay: 0.3 }}
               className="p-4 md:p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-white flex items-center gap-2">
+              <div className="flex items-center justify-between mb-3 md:mb-4">
+                <h2 className="text-sm md:text-base font-semibold text-white flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  Kräver uppmärksamhet
+                  <span className="hidden md:inline">Kräver uppmärksamhet</span>
+                  <span className="md:hidden">Varningar</span>
                 </h2>
               </div>
               <div className="space-y-3">
@@ -447,12 +504,13 @@ export default function HomePage() {
             transition={{ delay: 0.35 }}
             className="p-4 md:p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-white flex items-center gap-2">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <h2 className="text-sm md:text-base font-semibold text-white flex items-center gap-2">
                 <Clock className="w-4 h-4 text-slate-400" />
-                Senaste aktivitet
+                <span className="hidden md:inline">Senaste aktivitet</span>
+                <span className="md:hidden">Aktivitet</span>
               </h2>
-              <Link to={createPageUrl("Inventory")}>
+              <Link to={createPageUrl("Inventory")} className="hidden md:block">
                 <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
                   Visa alla
                   <ArrowRight className="w-4 h-4 ml-1" />
@@ -559,14 +617,14 @@ export default function HomePage() {
           className="mt-6 md:mt-8"
         >
           <div className="p-4 md:p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                <MapPin className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-white">Hitta & Skanna</h2>
-                <p className="text-sm text-slate-400">Sök eller skanna för att hitta artiklar i lagret</p>
-              </div>
+            <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+              <MapPin className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base md:text-lg font-semibold text-white">Hitta & Skanna</h2>
+              <p className="text-xs md:text-sm text-slate-400 hidden md:block">Sök eller skanna för att hitta artiklar</p>
+            </div>
             </div>
 
             <div className="flex gap-2 mb-4">
