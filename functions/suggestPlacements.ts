@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { items, warehouseId } = await req.json();
+    const { items, warehouseId, desiredShelves } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return Response.json({ error: 'Items array required' }, { status: 400 });
@@ -50,10 +50,15 @@ Deno.serve(async (req) => {
       };
     });
 
-    // Sort shelves by available volume (best-fit strategy)
+    // Sort shelves by available volume
+    // If desiredShelves specified, sort by largest space (distribute evenly)
+    // Otherwise use best-fit strategy (pack tightly)
     const sortedShelves = shelvesWithCapacity
       .filter(s => s.shelfVolume > 0 && s.availableVolume > 0)
-      .sort((a, b) => a.availableVolume - b.availableVolume);
+      .sort((a, b) => desiredShelves 
+        ? b.availableVolume - a.availableVolume  // Largest first for even distribution
+        : a.availableVolume - b.availableVolume   // Smallest first for tight packing
+      );
 
     // Process each item and suggest placements
     const suggestions = [];
@@ -88,8 +93,21 @@ Deno.serve(async (req) => {
       let remainingQuantity = item.quantity;
       let remainingVolume = totalVolumeNeeded;
 
-      // Try to place items using best-fit algorithm
-      for (const shelf of sortedShelves) {
+      // Determine which shelves to use based on strategy
+      let shelvesToUse = sortedShelves;
+      if (desiredShelves && desiredShelves > 0) {
+        // Limit to desired number of shelves for this article
+        shelvesToUse = sortedShelves.slice(0, desiredShelves);
+      }
+
+      // If using distribution strategy, calculate target quantity per shelf
+      let targetPerShelf = null;
+      if (desiredShelves && desiredShelves > 0 && shelvesToUse.length > 0) {
+        targetPerShelf = Math.ceil(item.quantity / Math.min(desiredShelves, shelvesToUse.length));
+      }
+
+      // Try to place items
+      for (const shelf of shelvesToUse) {
         if (remainingQuantity === 0) break;
 
         // Check if article fits in shelf dimensions
@@ -104,7 +122,14 @@ Deno.serve(async (req) => {
 
         // Calculate how many can fit
         const canFitVolume = Math.floor(shelf.availableVolume / articleVolume);
-        const quantityToPlace = Math.min(canFitVolume, remainingQuantity);
+        
+        // If distributing, try to place target amount per shelf
+        let quantityToPlace;
+        if (targetPerShelf !== null) {
+          quantityToPlace = Math.min(canFitVolume, remainingQuantity, targetPerShelf);
+        } else {
+          quantityToPlace = Math.min(canFitVolume, remainingQuantity);
+        }
 
         if (quantityToPlace > 0) {
           const volumeUsed = quantityToPlace * articleVolume;
