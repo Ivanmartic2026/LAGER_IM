@@ -31,11 +31,13 @@ export default function WarehouseForm({ warehouse, onSave, onCancel, isSaving })
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onCancel}
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-6 border-b border-slate-700 flex items-center justify-between">
