@@ -7,19 +7,22 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { 
   ArrowLeft, Package, CheckCircle2, Camera, MapPin,
-  AlertCircle, Loader2, Download, Edit2
+  AlertCircle, Loader2, Download, Edit2, Trash2, Pencil
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
+import OrderForm from "@/components/orders/OrderForm";
 
 export default function PickOrderPage() {
   const urlParams = new URLSearchParams(window.location.search);
   const orderId = urlParams.get('orderId');
+  const navigate = useNavigate();
 
   const [scanMode, setScanMode] = useState(false);
   const [currentItemId, setCurrentItemId] = useState(null);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -65,6 +68,20 @@ export default function PickOrderPage() {
     mutationFn: ({ id, data }) => base44.entities.Article.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
+    }
+  });
+
+  const deleteOrderMutation = useMutation({
+    mutationFn: async (orderId) => {
+      // Delete order items first
+      const items = await base44.entities.OrderItem.filter({ order_id: orderId });
+      await Promise.all(items.map(item => base44.entities.OrderItem.delete(item.id)));
+      // Then delete order
+      await base44.entities.Order.delete(orderId);
+    },
+    onSuccess: () => {
+      toast.success("Order borttagen");
+      navigate(createPageUrl("Orders"));
     }
   });
 
@@ -280,16 +297,41 @@ export default function PickOrderPage() {
             </Button>
           </Link>
 
-          {order.status === 'picked' && (
+          <div className="flex gap-2">
+            {order.status === 'picked' && (
+              <Button
+                onClick={() => exportOrderMutation.mutate()}
+                disabled={exportOrderMutation.isPending}
+                className="bg-green-600 hover:bg-green-500"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Ladda ner PDF
+              </Button>
+            )}
+
             <Button
-              onClick={() => exportOrderMutation.mutate()}
-              disabled={exportOrderMutation.isPending}
-              className="bg-green-600 hover:bg-green-500"
+              variant="outline"
+              onClick={() => setShowEditForm(true)}
+              className="bg-slate-700 border-slate-600 hover:bg-slate-600"
             >
-              <Download className="w-4 h-4 mr-2" />
-              Ladda ner PDF
+              <Pencil className="w-4 h-4 mr-2" />
+              Redigera
             </Button>
-          )}
+
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (confirm('Är du säker på att du vill ta bort denna order? Alla orderrader kommer också tas bort.')) {
+                  deleteOrderMutation.mutate(order.id);
+                }
+              }}
+              disabled={deleteOrderMutation.isPending}
+              className="bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Ta bort
+            </Button>
+          </div>
         </div>
 
         {/* Order Info */}
