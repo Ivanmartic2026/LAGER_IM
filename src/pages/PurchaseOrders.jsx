@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { 
   Search, Plus, ShoppingCart, Download, Calendar,
-  Truck, Package, User
+  Truck, Package, User, Printer
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -65,6 +65,25 @@ export default function PurchaseOrdersPage() {
       window.URL.revokeObjectURL(url);
       a.remove();
       toast.success('PDF nedladdad!');
+    }
+  });
+
+  const printPOMutation = useMutation({
+    mutationFn: async (poId) => {
+      const response = await base44.functions.invoke('printPurchaseOrder', { purchaseOrderId: poId });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bestallning_${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.success('Beställning nedladdad!');
     }
   });
 
@@ -228,6 +247,17 @@ export default function PurchaseOrdersPage() {
                       </div>
 
                       <div className="flex gap-2 ml-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-slate-700 border-slate-600 hover:bg-slate-600"
+                          onClick={() => printPOMutation.mutate(po.id)}
+                          disabled={printPOMutation.isPending}
+                        >
+                          <Printer className="w-4 h-4 mr-2" />
+                          Skriv ut
+                        </Button>
+
                         {(po.status === 'ordered' || po.status === 'partially_received') && (
                           <Link to={`${createPageUrl("ReceivePurchaseOrder")}?poId=${po.id}`}>
                             <Button
@@ -249,7 +279,7 @@ export default function PurchaseOrdersPage() {
                             disabled={exportPOMutation.isPending}
                           >
                             <Download className="w-4 h-4 mr-2" />
-                            PDF
+                            Kvitto
                           </Button>
                         )}
 

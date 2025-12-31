@@ -24,6 +24,9 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [selectedArticle, setSelectedArticle] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [unitPrice, setUnitPrice] = useState(0);
+  const [customArticleMode, setCustomArticleMode] = useState(false);
+  const [customArticleName, setCustomArticleName] = useState('');
+  const [customBatchNumber, setCustomBatchNumber] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -114,6 +117,31 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   };
 
   const handleAddArticle = () => {
+    if (customArticleMode) {
+      if (!customArticleName.trim()) {
+        toast.error("Ange artikelnamn");
+        return;
+      }
+
+      setPOItems([...poItems, {
+        article_id: null,
+        article_name: customArticleName,
+        article_batch_number: customBatchNumber || null,
+        quantity_ordered: quantity,
+        quantity_received: 0,
+        unit_price: unitPrice || 0,
+        status: 'pending',
+        is_custom: true
+      }]);
+
+      setCustomArticleName('');
+      setCustomBatchNumber('');
+      setQuantity(1);
+      setUnitPrice(0);
+      setCustomArticleMode(false);
+      return;
+    }
+
     if (!selectedArticle) {
       toast.error("Välj en artikel");
       return;
@@ -295,52 +323,105 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
           {/* PO Items */}
           <div>
-            <label className="text-sm font-medium text-slate-300 mb-3 block">
-              Artiklar
-            </label>
-
-            <div className="flex gap-2 mb-3">
-              <Select value={selectedArticle} onValueChange={setSelectedArticle}>
-                <SelectTrigger className="flex-1 bg-slate-800 border-slate-700 text-white">
-                  <SelectValue placeholder="Välj artikel..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {articles.map((article) => (
-                    <SelectItem key={article.id} value={article.id}>
-                      {article.name} ({article.batch_number || 'N/A'})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Input
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                placeholder="Antal"
-                className="w-24 bg-slate-800 border-slate-700 text-white"
-              />
-
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={unitPrice}
-                onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
-                placeholder="Pris"
-                className="w-32 bg-slate-800 border-slate-700 text-white"
-              />
-
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-medium text-slate-300">
+                Artiklar
+              </label>
               <Button
                 type="button"
-                onClick={handleAddArticle}
-                className="bg-blue-600 hover:bg-blue-500"
+                size="sm"
+                variant="outline"
+                onClick={() => setCustomArticleMode(!customArticleMode)}
+                className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Lägg till
+                {customArticleMode ? 'Välj från lager' : 'Egen artikel'}
               </Button>
             </div>
+
+            {customArticleMode ? (
+              <div className="flex gap-2 mb-3">
+                <Input
+                  value={customArticleName}
+                  onChange={(e) => setCustomArticleName(e.target.value)}
+                  placeholder="Artikelnamn..."
+                  className="flex-1 bg-slate-800 border-slate-700 text-white"
+                />
+                <Input
+                  value={customBatchNumber}
+                  onChange={(e) => setCustomBatchNumber(e.target.value)}
+                  placeholder="Batch (valfritt)"
+                  className="w-32 bg-slate-800 border-slate-700 text-white"
+                />
+                <Input
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                  placeholder="Antal"
+                  className="w-24 bg-slate-800 border-slate-700 text-white"
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={unitPrice}
+                  onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
+                  placeholder="Pris"
+                  className="w-32 bg-slate-800 border-slate-700 text-white"
+                />
+                <Button
+                  type="button"
+                  onClick={handleAddArticle}
+                  className="bg-blue-600 hover:bg-blue-500"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Lägg till
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2 mb-3">
+                <Select value={selectedArticle} onValueChange={setSelectedArticle}>
+                  <SelectTrigger className="flex-1 bg-slate-800 border-slate-700 text-white">
+                    <SelectValue placeholder="Välj artikel..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {articles.map((article) => (
+                      <SelectItem key={article.id} value={article.id}>
+                        {article.name} ({article.batch_number || 'N/A'})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Input
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                  placeholder="Antal"
+                  className="w-24 bg-slate-800 border-slate-700 text-white"
+                />
+
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={unitPrice}
+                  onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
+                  placeholder="Pris"
+                  className="w-32 bg-slate-800 border-slate-700 text-white"
+                />
+
+                <Button
+                  type="button"
+                  onClick={handleAddArticle}
+                  className="bg-blue-600 hover:bg-blue-500"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Lägg till
+                </Button>
+              </div>
+            )}
 
             {poItems.length > 0 ? (
               <div className="space-y-2">
@@ -354,8 +435,13 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                       <div className="flex items-center gap-3 flex-1">
                         <Package className="w-4 h-4 text-slate-400" />
                         <div className="flex-1">
-                          <div className="font-medium text-white text-sm">
+                          <div className="font-medium text-white text-sm flex items-center gap-2">
                             {item.article_name}
+                            {item.is_custom && (
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                Egen
+                              </span>
+                            )}
                           </div>
                           <div className="text-xs text-slate-500">
                             {item.article_batch_number && `Batch: ${item.article_batch_number}`}
