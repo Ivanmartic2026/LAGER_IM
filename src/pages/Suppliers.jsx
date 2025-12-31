@@ -97,19 +97,43 @@ export default function SuppliersPage() {
       
       toast.loading('Analyserar leverantörsdata...', { id: loadingToast });
       
-      const supplierSchema = await base44.entities.Supplier.schema();
-      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url: file_url,
-        json_schema: supplierSchema
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Analysera detta dokument (PDF eller bild) och extrahera all information om en leverantör.
+
+Leta efter följande information:
+- Företagsnamn
+- Kontaktperson
+- E-postadress
+- Telefonnummer
+- Adress
+- Webbsida
+- Standard leveranstid (i dagar)
+- Övriga anteckningar
+
+Returnera all information du hittar.`,
+        file_urls: [file_url],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            contact_person: { type: "string" },
+            email: { type: "string" },
+            phone: { type: "string" },
+            address: { type: "string" },
+            website: { type: "string" },
+            standard_delivery_days: { type: "number" },
+            notes: { type: "string" }
+          }
+        }
       });
 
-      if (result.status === "success" && result.output) {
+      if (result && result.name) {
         toast.success('Leverantörsdata extraherad!', { id: loadingToast });
-        setImportingSupplierData(result.output);
+        setImportingSupplierData(result);
         setEditingSupplier(null);
         setShowForm(true);
       } else {
-        toast.error(result.details || 'Kunde inte extrahera data från filen', { id: loadingToast });
+        toast.error('Kunde inte hitta leverantörsdata i filen', { id: loadingToast });
       }
     } catch (error) {
       console.error('Import error:', error);
