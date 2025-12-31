@@ -14,6 +14,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
   const [formData, setFormData] = useState({
     sku: article.sku || '',
     name: article.name || '',
+    supplier_id: article.supplier_id || '',
     supplier_name: article.supplier_name || '',
     supplier_price: article.supplier_price || '',
     category: article.category || '',
@@ -44,7 +45,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
   const [placementSuggestions, setPlacementSuggestions] = useState(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-  // Fetch warehouses and shelves
+  // Fetch warehouses, shelves, and suppliers
   const { data: warehouses = [] } = useQuery({
     queryKey: ['warehouses'],
     queryFn: () => base44.entities.Warehouse.list(),
@@ -53,6 +54,11 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
   const { data: shelves = [] } = useQuery({
     queryKey: ['shelves'],
     queryFn: () => base44.entities.Shelf.list(),
+  });
+
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: () => base44.entities.Supplier.list(),
   });
 
   // Filter shelves based on selected warehouse
@@ -193,12 +199,25 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                 </div>
                 <div>
                   <Label className="text-slate-300">Leverantör</Label>
-                  <Input
-                    value={formData.supplier_name}
-                    onChange={(e) => handleChange('supplier_name', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                    placeholder="Leverantörens namn"
-                  />
+                  <Select 
+                    value={formData.supplier_id} 
+                    onValueChange={(value) => {
+                      const supplier = suppliers.find(s => s.id === value);
+                      handleChange('supplier_id', value);
+                      handleChange('supplier_name', supplier?.name || '');
+                    }}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                      <SelectValue placeholder="Välj leverantör" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {suppliers.filter(s => s.is_active !== false).map((supplier) => (
+                        <SelectItem key={supplier.id} value={supplier.id}>
+                          {supplier.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label className="text-slate-300">Leverantörspris</Label>
