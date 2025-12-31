@@ -235,8 +235,7 @@ export default function ScanPage() {
                 dimensions_depth_mm: { type: "number" },
                 weight_kg: { type: "number" },
                 category: { type: "string" },
-                product_url: { type: "string" },
-                notes: { type: "string" }
+                product_url: { type: "string" }
               }
             }
           });
