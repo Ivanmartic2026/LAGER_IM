@@ -124,10 +124,21 @@ Deno.serve(async (req) => {
 
   <div class="section">
     <h2>Artikelinformation</h2>
-    ${article.manufacturer ? `<div class="field"><div class="field-label">Tillverkare:</div><div class="field-value">${article.manufacturer}</div></div>` : ''}
-    ${article.manufacturing_date ? `<div class="field"><div class="field-label">Tillverkningsdatum:</div><div class="field-value">${article.manufacturing_date}</div></div>` : ''}
+    ${article.sku ? `<div class="field"><div class="field-label">Artikelnummer (SKU):</div><div class="field-value">${article.sku}</div></div>` : ''}
+    ${article.name ? `<div class="field"><div class="field-label">Benämning:</div><div class="field-value">${article.name}</div></div>` : ''}
+    ${article.supplier_name ? `<div class="field"><div class="field-label">Leverantör:</div><div class="field-value">${article.supplier_name}</div></div>` : ''}
+    ${article.supplier_price ? `<div class="field"><div class="field-label">Leverantörspris:</div><div class="field-value">${article.supplier_price} kr</div></div>` : ''}
     ${article.category ? `<div class="field"><div class="field-label">Kategori:</div><div class="field-value">${article.category}</div></div>` : ''}
+    ${article.is_stock_item !== false ? `<div class="field"><div class="field-label">Lagervara:</div><div class="field-value">Ja</div></div>` : `<div class="field"><div class="field-label">Lagervara:</div><div class="field-value">Nej</div></div>`}
+  </div>
+  
+  <div class="section">
+    <h2>Teknisk Information</h2>
     ${article.pixel_pitch_mm ? `<div class="field"><div class="field-label">Pixel Pitch:</div><div class="field-value">${article.pixel_pitch_mm} mm</div></div>` : ''}
+    ${article.series ? `<div class="field"><div class="field-label">Serie:</div><div class="field-value">${article.series}</div></div>` : ''}
+    ${article.product_version ? `<div class="field"><div class="field-label">Version:</div><div class="field-value">${article.product_version}</div></div>` : ''}
+    ${article.brightness_nits ? `<div class="field"><div class="field-label">Ljusstyrka:</div><div class="field-value">${article.brightness_nits} nits</div></div>` : ''}
+    ${article.manufacturing_date ? `<div class="field"><div class="field-label">Tillverkningsdatum:</div><div class="field-value">${article.manufacturing_date}</div></div>` : ''}
   </div>
 
   <div class="section">
