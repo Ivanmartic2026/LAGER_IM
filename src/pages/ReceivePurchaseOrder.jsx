@@ -6,18 +6,20 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { 
   ArrowLeft, Package, CheckCircle2, Camera,
-  AlertCircle, Download, Truck
+  AlertCircle, Download, Truck, FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
+import ReceivingItemCard from "@/components/receiving/ReceivingItemCard";
 
 export default function ReceivePurchaseOrderPage() {
   const urlParams = new URLSearchParams(window.location.search);
   const poId = urlParams.get('poId');
 
   const [scanMode, setScanMode] = useState(false);
+  const [receivingItemId, setReceivingItemId] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -89,87 +91,113 @@ export default function ReceivePurchaseOrderPage() {
       return;
     }
 
-    await handleReceiveQuantity(item, item.quantity_ordered);
+    const remaining = item.quantity_ordered - (item.quantity_received || 0);
+    await handleReceiveQuantity(item, {
+      quantity: remaining,
+      shelfAddress: article.shelf_address || '',
+      notes: 'Skannad',
+      qualityCheck: false,
+      hasDiscrepancy: false,
+      discrepancyReason: null,
+      images: []
+    });
     setScanMode(false);
   };
 
-  const handleReceiveQuantity = async (item, receivedQty) => {
-    const article = articles.find(a => a.id === item.article_id);
-    if (!article) return;
-
-    const newQty = receivedQty;
-    const previousQty = item.quantity_received || 0;
-    const totalReceived = previousQty + newQty;
-
-    // Update article stock
-    const newStockQty = article.stock_qty + newQty;
-    await updateArticleMutation.mutateAsync({
-      id: article.id,
-      data: { 
-        stock_qty: newStockQty,
-        status: newStockQty <= 0 ? "out_of_stock" : 
-                newStockQty <= (article.min_stock_level || 5) ? "low_stock" : "active"
-      }
-    });
-
-    // Create stock movement
-    await createMovementMutation.mutateAsync({
-      article_id: article.id,
-      movement_type: 'inbound',
-      quantity: newQty,
-      previous_qty: article.stock_qty,
-      new_qty: newStockQty,
-      reason: `Mottagen från inköpsorder ${purchaseOrder.po_number || purchaseOrder.id.slice(0, 8)}`,
-      reference: purchaseOrder.id
-    });
-
-    // Update PO item
-    const itemStatus = totalReceived >= item.quantity_ordered ? 'received' : 'partial';
-    await updateItemMutation.mutateAsync({
-      id: item.id,
-      data: {
-        quantity_received: totalReceived,
-        status: itemStatus
-      }
-    });
-
-    toast.success(`${newQty} st mottagen`);
-
-    // Check if all items are received
-    const allItems = await base44.entities.PurchaseOrderItem.filter({ purchase_order_id: poId });
-    const allReceived = allItems.every(i => i.status === 'received');
+  const handleReceiveQuantity = async (item, receivingData) => {
+    setReceivingItemId(item.id);
     
-    if (allReceived) {
+    try {
       const user = await base44.auth.me();
-      await updatePOMutation.mutateAsync({
-        id: purchaseOrder.id,
-        data: { 
-          status: 'received',
-          received_by: user.email,
-          received_date: new Date().toISOString()
+      const { quantity, shelfAddress, notes, qualityCheck, hasDiscrepancy, discrepancyReason, images } = receivingData;
+
+      // Find or skip article for custom items
+      const article = item.article_id ? articles.find(a => a.id === item.article_id) : null;
+      
+      const previousQty = item.quantity_received || 0;
+      const totalReceived = previousQty + quantity;
+
+      // Update article stock (only for non-custom items)
+      if (article) {
+        const newStockQty = article.stock_qty + quantity;
+        const updateData = { 
+          stock_qty: newStockQty,
+          status: newStockQty <= 0 ? "out_of_stock" : 
+                  newStockQty <= (article.min_stock_level || 5) ? "low_stock" : "active"
+        };
+
+        if (shelfAddress && shelfAddress !== article.shelf_address) {
+          updateData.shelf_address = shelfAddress;
+        }
+
+        await updateArticleMutation.mutateAsync({
+          id: article.id,
+          data: updateData
+        });
+
+        // Create stock movement
+        await createMovementMutation.mutateAsync({
+          article_id: article.id,
+          movement_type: 'inbound',
+          quantity: quantity,
+          previous_qty: article.stock_qty,
+          new_qty: newStockQty,
+          reason: `Mottagen från inköpsorder ${purchaseOrder.po_number || purchaseOrder.id.slice(0, 8)}${hasDiscrepancy ? ' (avvikelse rapporterad)' : ''}`,
+          reference: purchaseOrder.id
+        });
+      }
+
+      // Create receiving record
+      await base44.entities.ReceivingRecord.create({
+        purchase_order_id: purchaseOrder.id,
+        purchase_order_item_id: item.id,
+        article_id: item.article_id,
+        article_name: item.article_name,
+        quantity_received: quantity,
+        shelf_address: shelfAddress || null,
+        quality_check_passed: qualityCheck,
+        has_discrepancy: hasDiscrepancy,
+        discrepancy_reason: discrepancyReason || null,
+        image_urls: images || [],
+        notes: notes || null,
+        received_by: user.email
+      });
+
+      // Update PO item
+      const itemStatus = totalReceived >= item.quantity_ordered ? 'received' : 'partial';
+      await updateItemMutation.mutateAsync({
+        id: item.id,
+        data: {
+          quantity_received: totalReceived,
+          status: itemStatus
         }
       });
-      toast.success("Alla artiklar mottagna! Inköpsorder komplett.");
+
+      toast.success(`${quantity} st mottagen${hasDiscrepancy ? ' (avvikelse registrerad)' : ''}`);
+
+      // Check if all items are received
+      const allItems = await base44.entities.PurchaseOrderItem.filter({ purchase_order_id: poId });
+      const allReceived = allItems.every(i => i.status === 'received');
+      
+      if (allReceived) {
+        await updatePOMutation.mutateAsync({
+          id: purchaseOrder.id,
+          data: { 
+            status: 'received',
+            received_by: user.email,
+            received_date: new Date().toISOString()
+          }
+        });
+        toast.success("Alla artiklar mottagna! Inköpsorder komplett.");
+      }
+    } catch (error) {
+      toast.error('Kunde inte ta emot: ' + error.message);
+    } finally {
+      setReceivingItemId(null);
     }
   };
 
-  const handleManualReceive = async (item) => {
-    const input = prompt(`Ange antal att ta emot (max ${item.quantity_ordered - (item.quantity_received || 0)}):`);
-    if (!input) return;
 
-    const qty = parseInt(input);
-    if (isNaN(qty) || qty <= 0) {
-      toast.error("Ogiltigt antal");
-      return;
-    }
-
-    if (qty > (item.quantity_ordered - (item.quantity_received || 0))) {
-      toast.error("Kan inte ta emot mer än beställt");
-      return;
-    }
-
-    await handleReceiveQuantity(item, qty);
-  };
 
   const exportPOMutation = useMutation({
     mutationFn: async () => {
@@ -300,45 +328,18 @@ export default function ReceivePurchaseOrderPage() {
               <Truck className="w-5 h-5" />
               Att ta emot
             </h2>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {pendingItems.map((item) => {
-                const remaining = item.quantity_ordered - (item.quantity_received || 0);
-
+                const article = item.article_id ? articles.find(a => a.id === item.article_id) : null;
+                
                 return (
-                  <motion.div
+                  <ReceivingItemCard
                     key={item.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-slate-800/50 border border-slate-700 rounded-xl p-4"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-white mb-1">
-                          {item.article_name}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
-                          {item.article_batch_number && (
-                            <span className="font-mono">{item.article_batch_number}</span>
-                          )}
-                          <span className="font-semibold text-white">
-                            {remaining} st
-                          </span>
-                          {item.unit_price && (
-                            <span className="text-slate-500">
-                              {item.unit_price} kr/st
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => handleManualReceive(item)}
-                        className="bg-blue-600 hover:bg-blue-500"
-                      >
-                        Ta emot
-                      </Button>
-                    </div>
-                  </motion.div>
+                    item={item}
+                    article={article}
+                    onReceive={(data) => handleReceiveQuantity(item, data)}
+                    isReceiving={receivingItemId === item.id}
+                  />
                 );
               })}
             </div>
