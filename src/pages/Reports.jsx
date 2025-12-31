@@ -4,11 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   FileText, Plus, Send, Trash2, Calendar, Mail,
-  Clock, Play, CheckCircle2, TrendingUp, DollarSign, BarChart3
+  Clock, Play, CheckCircle2, TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -19,8 +18,6 @@ import {
 } from "@/components/ui/dialog";
 import ReportConfiguration from "@/components/reports/ReportConfiguration";
 import ReportPreview from "@/components/reports/ReportPreview";
-import InventoryValuation from "@/components/reports/InventoryValuation";
-import ArticleTurnover from "@/components/reports/ArticleTurnover";
 
 const REPORT_TYPE_LABELS = {
   stock_summary: "Lagersaldo - Sammanfattning",
@@ -36,7 +33,6 @@ const FREQUENCY_LABELS = {
 };
 
 export default function ReportsPage() {
-  const [activeTab, setActiveTab] = useState("scheduled");
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [previewReport, setPreviewReport] = useState(null);
   const [generatingReport, setGeneratingReport] = useState(null);
@@ -107,43 +103,22 @@ export default function ReportsPage() {
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Rapporter</h1>
-          <p className="text-slate-400">Lagervärdering, omsättning och schemalagda rapporter</p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Rapporter</h1>
+            <p className="text-slate-400">Automatisera och schemalägg rapporter</p>
+          </div>
+          <Button
+            onClick={() => setConfigModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-500"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nytt schema
+          </Button>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="bg-slate-800/50 border border-slate-700">
-            <TabsTrigger value="scheduled" className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Schemalagda
-            </TabsTrigger>
-            <TabsTrigger value="valuation" className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              Lagervärdering
-            </TabsTrigger>
-            <TabsTrigger value="turnover" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Artikelomsättning
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* Scheduled Reports Tab */}
-        <TabsContent value="scheduled" className="mt-0">
-          <div className="flex justify-end mb-4">
-            <Button
-              onClick={() => setConfigModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-500"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Nytt schema
-            </Button>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
@@ -319,17 +294,6 @@ export default function ReportsPage() {
             </AnimatePresence>
           </div>
         )}
-        </TabsContent>
-
-        {/* Inventory Valuation Tab */}
-        <TabsContent value="valuation" className="mt-0">
-          <InventoryValuation />
-        </TabsContent>
-
-        {/* Article Turnover Tab */}
-        <TabsContent value="turnover" className="mt-0">
-          <ArticleTurnover />
-        </TabsContent>
 
         {/* Configuration Modal */}
         <Dialog open={configModalOpen} onOpenChange={setConfigModalOpen}>
