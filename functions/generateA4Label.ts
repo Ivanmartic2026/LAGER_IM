@@ -149,12 +149,7 @@ Deno.serve(async (req) => {
     ${article.weight_g ? `<div class="field"><div class="field-label">Vikt:</div><div class="field-value">${article.weight_g} g</div></div>` : ''}
   </div>
 
-  <div class="section">
-    <h2>Lagerstatus</h2>
-    <div class="field"><div class="field-label">Lagersaldo:</div><div class="field-value">${article.stock_qty || 0} st</div></div>
-    ${article.min_stock_level ? `<div class="field"><div class="field-label">Min. lagernivå:</div><div class="field-value">${article.min_stock_level} st</div></div>` : ''}
-    ${article.status ? `<div class="field"><div class="field-label">Status:</div><div class="field-value">${article.status}</div></div>` : ''}
-  </div>
+
 
   ${article.notes ? `
   <div class="section">
