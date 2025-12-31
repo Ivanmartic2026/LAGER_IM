@@ -59,7 +59,7 @@ export default function PurchaseOrdersPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `inköpsorder_${Date.now()}.pdf`;
+      a.download = `inkopsorder_${Date.now()}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -122,44 +122,69 @@ export default function PurchaseOrdersPage() {
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-white">Inköpsordrar</h1>
-            <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
-              {filteredPOs.length} ordrar
-            </Badge>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Inköpsordrar</h1>
+              <p className="text-slate-400">Hantera och spåra dina inköpsordrar</p>
+            </div>
+            <Button
+              onClick={() => {
+                setEditingPO(null);
+                setShowForm(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-500"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ny order
+            </Button>
           </div>
 
-          <Button
-            onClick={() => {
-              setEditingPO(null);
-              setShowForm(true);
-            }}
-            className="bg-blue-600 hover:bg-blue-500"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Ny inköpsorder
-          </Button>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
+              <div className="text-2xl font-bold text-white mb-1">{filteredPOs.length}</div>
+              <div className="text-xs text-slate-400">Totalt ordrar</div>
+            </div>
+            <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
+              <div className="text-2xl font-bold text-blue-400 mb-1">
+                {purchaseOrders.filter(po => po.status === 'ordered').length}
+              </div>
+              <div className="text-xs text-blue-300">Beställda</div>
+            </div>
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <div className="text-2xl font-bold text-amber-400 mb-1">
+                {purchaseOrders.filter(po => po.status === 'partially_received').length}
+              </div>
+              <div className="text-xs text-amber-300">Delvis mottagna</div>
+            </div>
+            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+              <div className="text-2xl font-bold text-emerald-400 mb-1">
+                {purchaseOrders.filter(po => po.status === 'received').length}
+              </div>
+              <div className="text-xs text-emerald-300">Mottagna</div>
+            </div>
+          </div>
         </div>
 
         {/* Search & Filters */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex flex-col md:flex-row gap-3 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Sök ordernummer eller leverantör..."
-              className="pl-10 h-9 bg-slate-800/50 border-slate-700 text-white"
+              className="pl-10 bg-slate-800/50 border-slate-700 text-white"
             />
           </div>
           
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList className="h-9 bg-slate-800/50 border border-slate-700">
-              <TabsTrigger value="all" className="text-xs h-7">Alla</TabsTrigger>
-              <TabsTrigger value="ordered" className="text-xs h-7">Beställd</TabsTrigger>
-              <TabsTrigger value="partially_received" className="text-xs h-7">Delvis</TabsTrigger>
-              <TabsTrigger value="received" className="text-xs h-7">Mottagen</TabsTrigger>
+            <TabsList className="bg-slate-800/50 border border-slate-700 w-full md:w-auto">
+              <TabsTrigger value="all" className="text-xs flex-1 md:flex-none">Alla</TabsTrigger>
+              <TabsTrigger value="ordered" className="text-xs flex-1 md:flex-none">Beställd</TabsTrigger>
+              <TabsTrigger value="partially_received" className="text-xs flex-1 md:flex-none">Delvis</TabsTrigger>
+              <TabsTrigger value="received" className="text-xs flex-1 md:flex-none">Mottagen</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -202,67 +227,92 @@ export default function PurchaseOrdersPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="group p-5 rounded-xl bg-slate-800/30 border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50 transition-all"
+                    className="group rounded-2xl bg-slate-800/30 border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50 transition-all overflow-hidden"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-white">
-                            {po.po_number || `PO #${po.id.slice(0, 8)}`}
-                          </h3>
-                          <Badge className={cn("text-xs", statusColors[po.status])}>
-                            {statusLabels[po.status]}
-                          </Badge>
-                        </div>
-                        
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-400">
-                          <div className="flex items-center gap-1.5">
-                            <Truck className="w-4 h-4" />
-                            <span>{po.supplier_name}</span>
+                    {/* Header */}
+                    <div className="p-5 border-b border-slate-700/50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-bold text-white">
+                              {po.po_number || `PO #${po.id.slice(0, 8)}`}
+                            </h3>
+                            <Badge className={cn("text-xs border", statusColors[po.status])}>
+                              {statusLabels[po.status]}
+                            </Badge>
                           </div>
-                          {po.expected_delivery_date && (
-                            <div className="flex items-center gap-1.5">
-                              <Calendar className="w-4 h-4" />
-                              <span>{format(new Date(po.expected_delivery_date), "d MMM yyyy", { locale: sv })}</span>
-                            </div>
-                          )}
-                          {itemsCount > 0 && (
-                            <div className="flex items-center gap-1.5">
-                              <Package className="w-4 h-4" />
-                              <span>{itemsCount} artiklar</span>
-                            </div>
-                          )}
-                          {po.total_cost && (
-                            <span className="font-semibold text-white">
-                              {po.total_cost.toLocaleString('sv-SE')} kr
-                            </span>
-                          )}
+                          
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <Truck className="w-4 h-4" />
+                            <span className="font-medium">{po.supplier_name}</span>
+                          </div>
                         </div>
 
-                        {po.notes && (
-                          <p className="text-sm text-slate-500 mt-2 line-clamp-1">
-                            {po.notes}
-                          </p>
+                        {po.total_cost && (
+                          <div className="text-right">
+                            <div className="text-sm text-slate-400 mb-1">Totalt belopp</div>
+                            <div className="text-2xl font-bold text-white">
+                              {po.total_cost.toLocaleString('sv-SE')} kr
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Details */}
+                    <div className="p-5">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        {po.expected_delivery_date && (
+                          <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-900/50">
+                            <Calendar className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                            <div>
+                              <div className="text-xs text-slate-500 mb-0.5">Förväntad leverans</div>
+                              <div className="text-sm font-medium text-white">
+                                {format(new Date(po.expected_delivery_date), "d MMM yyyy", { locale: sv })}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {itemsCount > 0 && (
+                          <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-900/50">
+                            <Package className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                            <div>
+                              <div className="text-xs text-slate-500 mb-0.5">Artiklar</div>
+                              <div className="text-sm font-medium text-white">
+                                {itemsCount} st
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {po.order_date && (
+                          <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-900/50">
+                            <Calendar className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                            <div>
+                              <div className="text-xs text-slate-500 mb-0.5">Orderdatum</div>
+                              <div className="text-sm font-medium text-white">
+                                {format(new Date(po.order_date), "d MMM yyyy", { locale: sv })}
+                              </div>
+                            </div>
+                          </div>
                         )}
                       </div>
 
-                      <div className="flex gap-2 ml-4">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-slate-700 border-slate-600 hover:bg-slate-600"
-                          onClick={() => printPOMutation.mutate(po.id)}
-                          disabled={printPOMutation.isPending}
-                        >
-                          <Printer className="w-4 h-4 mr-2" />
-                          Skriv ut
-                        </Button>
+                      {po.notes && (
+                        <div className="p-3 rounded-lg bg-slate-900/50 border border-slate-700/30 mb-4">
+                          <div className="text-xs text-slate-500 mb-1">Anteckningar</div>
+                          <p className="text-sm text-slate-300">{po.notes}</p>
+                        </div>
+                      )}
 
+                      {/* Actions */}
+                      <div className="flex flex-wrap gap-2">
                         {(po.status === 'ordered' || po.status === 'partially_received') && (
-                          <Link to={`${createPageUrl("ReceivePurchaseOrder")}?poId=${po.id}`}>
+                          <Link to={`${createPageUrl("ReceivePurchaseOrder")}?poId=${po.id}`} className="flex-1 md:flex-none">
                             <Button
                               size="sm"
-                              className="bg-blue-600 hover:bg-blue-500"
+                              className="bg-blue-600 hover:bg-blue-500 w-full"
                             >
                               <Package className="w-4 h-4 mr-2" />
                               Ta emot
@@ -270,6 +320,17 @@ export default function PurchaseOrdersPage() {
                           </Link>
                         )}
                         
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-slate-700 border-slate-600 hover:bg-slate-600"
+                          onClick={() => printPOMutation.mutate(po.id)}
+                          disabled={printPOMutation.isPending}
+                        >
+                          <Printer className="w-4 h-4 md:mr-2" />
+                          <span className="hidden md:inline">Skriv ut</span>
+                        </Button>
+
                         {po.status === 'received' && (
                           <Button
                             size="sm"
@@ -278,8 +339,8 @@ export default function PurchaseOrdersPage() {
                             onClick={() => exportPOMutation.mutate(po.id)}
                             disabled={exportPOMutation.isPending}
                           >
-                            <Download className="w-4 h-4 mr-2" />
-                            Kvitto
+                            <Download className="w-4 h-4 md:mr-2" />
+                            <span className="hidden md:inline">Kvitto</span>
                           </Button>
                         )}
 
