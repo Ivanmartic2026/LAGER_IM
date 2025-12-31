@@ -4,10 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   FileText, Plus, Send, Trash2, Calendar, Mail,
-  Clock, Play, CheckCircle2, TrendingUp
+  Clock, Play, CheckCircle2, TrendingUp, DollarSign, Activity
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -18,6 +19,8 @@ import {
 } from "@/components/ui/dialog";
 import ReportConfiguration from "@/components/reports/ReportConfiguration";
 import ReportPreview from "@/components/reports/ReportPreview";
+import InventoryValuation from "@/components/reports/InventoryValuation";
+import ArticleTurnover from "@/components/reports/ArticleTurnover";
 
 const REPORT_TYPE_LABELS = {
   stock_summary: "Lagersaldo - Sammanfattning",
@@ -33,6 +36,7 @@ const FREQUENCY_LABELS = {
 };
 
 export default function ReportsPage() {
+  const [activeTab, setActiveTab] = useState("live");
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [previewReport, setPreviewReport] = useState(null);
   const [generatingReport, setGeneratingReport] = useState(null);
@@ -100,92 +104,136 @@ export default function ReportsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Rapporter</h1>
-            <p className="text-slate-400">Automatisera och schemalägg rapporter</p>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Rapporter</h1>
+              <p className="text-slate-400">Analys och schemalagda rapporter</p>
+            </div>
+            {activeTab === "scheduled" && (
+              <Button
+                onClick={() => setConfigModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-500"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nytt schema
+              </Button>
+            )}
           </div>
-          <Button
-            onClick={() => setConfigModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-500"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nytt schema
-          </Button>
+
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="bg-slate-800/50 border border-slate-700">
+              <TabsTrigger value="live" className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Live-rapporter
+              </TabsTrigger>
+              <TabsTrigger value="scheduled" className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Schemalagda
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                <FileText className="w-6 h-6 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{schedules.length}</p>
-                <p className="text-sm text-slate-400">Scheman</p>
-              </div>
-            </div>
-          </div>
+        {/* Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsContent value="live" className="mt-6">
+            <Tabs defaultValue="valuation">
+              <TabsList className="bg-slate-800/50 border border-slate-700 mb-6">
+                <TabsTrigger value="valuation" className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
+                  Lagervärdering
+                </TabsTrigger>
+                <TabsTrigger value="turnover" className="flex items-center gap-2">
+                  <Activity className="w-4 h-4" />
+                  Artikelomsättning
+                </TabsTrigger>
+              </TabsList>
 
-          <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">
-                  {schedules.filter(s => s.is_active).length}
-                </p>
-                <p className="text-sm text-slate-400">Aktiva</p>
-              </div>
-            </div>
-          </div>
+              <TabsContent value="valuation">
+                <InventoryValuation />
+              </TabsContent>
 
-          <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-purple-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">
-                  {schedules.filter(s => s.last_sent).length}
-                </p>
-                <p className="text-sm text-slate-400">Skickade</p>
-              </div>
-            </div>
-          </div>
-        </div>
+              <TabsContent value="turnover">
+                <ArticleTurnover />
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
 
-        {/* Schedules List */}
-        {isLoading ? (
-          <div className="grid gap-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-32 rounded-2xl bg-slate-800/50 animate-pulse" />
-            ))}
-          </div>
-        ) : schedules.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
-              <FileText className="w-8 h-8 text-slate-600" />
+          <TabsContent value="scheduled" className="mt-6">
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-white">{schedules.length}</p>
+                    <p className="text-sm text-slate-400">Scheman</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-white">
+                      {schedules.filter(s => s.is_active).length}
+                    </p>
+                    <p className="text-sm text-slate-400">Aktiva</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-white">
+                      {schedules.filter(s => s.last_sent).length}
+                    </p>
+                    <p className="text-sm text-slate-400">Skickade</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Inga scheman ännu</h3>
-            <p className="text-slate-400 mb-6">Skapa ditt första rapportschema för att komma igång</p>
-            <Button
-              onClick={() => setConfigModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-500"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Skapa schema
-            </Button>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            <AnimatePresence>
-              {schedules.map((schedule) => (
+
+            {/* Schedules List */}
+            {isLoading ? (
+              <div className="grid gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-32 rounded-2xl bg-slate-800/50 animate-pulse" />
+                ))}
+              </div>
+            ) : schedules.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 text-slate-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Inga scheman ännu</h3>
+                <p className="text-slate-400 mb-6">Skapa ditt första rapportschema för att komma igång</p>
+                <Button
+                  onClick={() => setConfigModalOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-500"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Skapa schema
+                </Button>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                <AnimatePresence>
+                  {schedules.map((schedule) => (
                 <motion.div
                   key={schedule.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -289,11 +337,13 @@ export default function ReportsPage() {
                       </div>
                     </div>
                   )}
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Configuration Modal */}
         <Dialog open={configModalOpen} onOpenChange={setConfigModalOpen}>

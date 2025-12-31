@@ -9,11 +9,11 @@ import PickOrder from './pages/PickOrder';
 import PurchaseOrders from './pages/PurchaseOrders';
 import ReceivePurchaseOrder from './pages/ReceivePurchaseOrder';
 import Repairs from './pages/Repairs';
-import Reports from './pages/Reports';
 import Scan from './pages/Scan';
 import Suppliers from './pages/Suppliers';
 import UsersManagement from './pages/UsersManagement';
 import Warehouses from './pages/Warehouses';
+import Reports from './pages/Reports';
 import __Layout from './Layout.jsx';
 
 
@@ -29,11 +29,11 @@ export const PAGES = {
     "PurchaseOrders": PurchaseOrders,
     "ReceivePurchaseOrder": ReceivePurchaseOrder,
     "Repairs": Repairs,
-    "Reports": Reports,
     "Scan": Scan,
     "Suppliers": Suppliers,
     "UsersManagement": UsersManagement,
     "Warehouses": Warehouses,
+    "Reports": Reports,
 }
 
 export const pagesConfig = {
