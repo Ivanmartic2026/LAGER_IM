@@ -55,6 +55,11 @@ export default function ReceivingItemCard({
       return;
     }
 
+    if (images.length === 0) {
+      toast.error('Ladda upp minst en bild (leverans/följesedel)');
+      return;
+    }
+
     if (hasDiscrepancy && !discrepancyReason.trim()) {
       toast.error('Ange orsak till avvikelse');
       return;
@@ -69,6 +74,8 @@ export default function ReceivingItemCard({
       discrepancyReason: hasDiscrepancy ? discrepancyReason : null,
       images
     });
+
+    setExpanded(false);
   };
 
   return (
@@ -193,9 +200,9 @@ export default function ReceivingItemCard({
 
             {/* Images */}
             <div>
-              <label className="text-sm font-medium text-slate-300 mb-2 block flex items-center gap-2">
+              <label className="text-sm font-medium text-amber-300 mb-2 block flex items-center gap-2">
                 <Camera className="w-4 h-4" />
-                Bilder (följesedel, skador, etc.)
+                Bilder (följesedel, leverans) *
               </label>
               
               {images.length > 0 && (
@@ -230,7 +237,12 @@ export default function ReceivingItemCard({
               />
               <label
                 htmlFor={`image-upload-${item.id}`}
-                className="flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed border-slate-700 hover:border-slate-600 bg-slate-900/50 cursor-pointer transition-colors"
+                className={cn(
+                  "flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed cursor-pointer transition-colors",
+                  images.length === 0 
+                    ? "border-amber-500/50 hover:border-amber-500 bg-amber-500/5" 
+                    : "border-slate-700 hover:border-slate-600 bg-slate-900/50"
+                )}
               >
                 {uploadingImages ? (
                   <>
@@ -270,8 +282,8 @@ export default function ReceivingItemCard({
               </Button>
               <Button
                 onClick={handleReceive}
-                disabled={isReceiving || receivedQty <= 0}
-                className="flex-1 bg-blue-600 hover:bg-blue-500"
+                disabled={isReceiving || receivedQty <= 0 || images.length === 0}
+                className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50"
               >
                 {isReceiving ? (
                   <>
