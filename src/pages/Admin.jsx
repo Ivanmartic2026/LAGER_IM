@@ -11,6 +11,15 @@ import { cn } from "@/lib/utils";
 export default function AdminPage() {
   const adminSections = [
     {
+      name: "UsersManagement",
+      label: "Användare",
+      description: "Hantera användare och behörigheter",
+      icon: Users,
+      color: "from-indigo-600 to-indigo-700",
+      iconBg: "bg-indigo-500/20",
+      iconColor: "text-indigo-400"
+    },
+    {
       name: "Suppliers",
       label: "Leverantörer",
       description: "Hantera leverantörer och kontakter",
