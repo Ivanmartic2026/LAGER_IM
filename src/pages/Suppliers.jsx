@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Building2, Plus, Search, Pencil, Trash2, 
-  Mail, Phone, MapPin, Globe, Clock, UserCircle
+  Mail, Phone, MapPin, Globe, Clock, UserCircle, Upload
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -17,6 +17,9 @@ export default function SuppliersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
+  const [importingSupplierData, setImportingSupplierData] = useState(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = React.useRef(null);
   const queryClient = useQueryClient();
 
   const { data: suppliers = [], isLoading } = useQuery({
@@ -80,6 +83,45 @@ export default function SuppliersPage() {
     }
   };
 
+  const handleImportFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    const loadingToast = toast.loading(`Läser in ${file.name}...`);
+
+    try {
+      toast.loading('Laddar upp fil...', { id: loadingToast });
+      
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      toast.loading('Analyserar leverantörsdata...', { id: loadingToast });
+      
+      const supplierSchema = await base44.entities.Supplier.schema();
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url: file_url,
+        json_schema: supplierSchema
+      });
+
+      if (result.status === "success" && result.output) {
+        toast.success('Leverantörsdata extraherad!', { id: loadingToast });
+        setImportingSupplierData(result.output);
+        setEditingSupplier(null);
+        setShowForm(true);
+      } else {
+        toast.error(result.details || 'Kunde inte extrahera data från filen', { id: loadingToast });
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error('Kunde inte läsa filen: ' + error.message, { id: loadingToast });
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   const filteredSuppliers = suppliers.filter(supplier =>
     supplier.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     supplier.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -101,16 +143,44 @@ export default function SuppliersPage() {
             <p className="text-slate-400">Hantera leverantörer och kontaktinformation</p>
           </div>
 
-          <Button
-            onClick={() => {
-              setEditingSupplier(null);
-              setShowForm(true);
-            }}
-            className="bg-blue-600 hover:bg-blue-500"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Ny leverantör
-          </Button>
+          <div className="flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              onChange={handleImportFile}
+              className="hidden"
+            />
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isImporting}
+              variant="outline"
+              className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+            >
+              {isImporting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-slate-400 border-t-blue-400 rounded-full animate-spin mr-2" />
+                  Läser in...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Importera
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={() => {
+                setEditingSupplier(null);
+                setImportingSupplierData(null);
+                setShowForm(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-500"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ny leverantör
+            </Button>
+          </div>
         </div>
 
         {/* Search */}
@@ -262,11 +332,12 @@ export default function SuppliersPage() {
         {/* Form Modal */}
         {showForm && (
           <SupplierForm
-            supplier={editingSupplier}
+            supplier={editingSupplier || importingSupplierData}
             onSave={handleSave}
             onCancel={() => {
               setShowForm(false);
               setEditingSupplier(null);
+              setImportingSupplierData(null);
             }}
             isSaving={createSupplierMutation.isPending || updateSupplierMutation.isPending}
           />
