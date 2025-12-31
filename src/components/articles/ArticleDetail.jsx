@@ -491,16 +491,19 @@ export default function ArticleDetail({
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <h3 className="font-semibold text-white mb-4">Kostnader & Teknisk info</h3>
+              <h3 className="font-semibold text-white mb-4">Teknisk Information</h3>
               <div className="space-y-0">
-                {article.calculated_cost && (
-                  <InfoRow icon={DollarSign} label="Kalkylkostnad" value={`${article.calculated_cost} kr`} />
-                )}
                 {article.pixel_pitch_mm && (
                   <InfoRow icon={Grid3X3} label="Pixel Pitch" value={`${article.pixel_pitch_mm} mm`} />
                 )}
-                {article.supplier_product_code && (
-                  <InfoRow icon={Hash} label="Produktkod" value={article.supplier_product_code} />
+                {article.series && (
+                  <InfoRow icon={Package} label="Serie" value={article.series} />
+                )}
+                {article.product_version && (
+                  <InfoRow icon={Hash} label="Version" value={article.product_version} />
+                )}
+                {article.brightness_nits && (
+                  <InfoRow icon={Grid3X3} label="Ljusstyrka" value={`${article.brightness_nits} nits`} />
                 )}
               </div>
             </div>
