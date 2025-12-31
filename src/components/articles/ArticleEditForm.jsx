@@ -484,23 +484,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
             <div>
               <h3 className="text-lg font-semibold text-white mb-4">Tilläggsinfo</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-slate-300">Kundnamn</Label>
-                  <Input
-                    value={formData.customer_name}
-                    onChange={(e) => handleChange('customer_name', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-                <div>
-                  <Label className="text-slate-300">Pitch värde</Label>
-                  <Input
-                    value={formData.pitch_value}
-                    onChange={(e) => handleChange('pitch_value', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                    placeholder="t.ex. P2.5"
-                  />
-                </div>
+
                 <div>
                   <Label className="text-slate-300">Serie</Label>
                   <Select value={formData.series} onValueChange={(value) => handleChange('series', value)}>
@@ -530,14 +514,6 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     type="number"
                     value={formData.brightness_nits}
                     onChange={(e) => handleChange('brightness_nits', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-                <div>
-                  <Label className="text-slate-300">Tillverkare</Label>
-                  <Input
-                    value={formData.manufacturer}
-                    onChange={(e) => handleChange('manufacturer', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-white"
                   />
                 </div>
