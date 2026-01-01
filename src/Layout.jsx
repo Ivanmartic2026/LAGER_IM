@@ -21,16 +21,18 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Desktop Navigation - Bottom */}
-      <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4">
-        <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
+      {/* Logo - Top Left */}
+      <div className="hidden md:block fixed top-6 left-6 z-50">
         <img 
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
           alt="IMvision"
           className="h-8 object-contain"
         />
+      </div>
 
-        <div className="flex items-center gap-2">
+      {/* Desktop Navigation - Bottom */}
+      <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4">
+        <div className="flex items-center gap-2 min-w-max mx-auto">
 
           {NAV_ITEMS.map(item => (
             <Link 

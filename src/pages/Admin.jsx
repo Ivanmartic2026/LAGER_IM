@@ -58,7 +58,7 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6">
+    <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
@@ -72,8 +72,8 @@ export default function AdminPage() {
               <Settings className="w-6 h-6 text-slate-300" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white">Administration</h1>
-              <p className="text-sm text-slate-400">Hantera system och rapporter</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Administration</h1>
+              <p className="text-sm text-white/50">Hantera system och rapporter</p>
             </div>
           </div>
         </motion.div>
@@ -89,7 +89,7 @@ export default function AdminPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="group relative overflow-hidden rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:border-slate-600 transition-all p-6 cursor-pointer"
+                className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300 p-6 cursor-pointer"
               >
                 {/* Gradient Background Effect */}
                 <div className={cn(
@@ -102,13 +102,13 @@ export default function AdminPage() {
                     <div className={cn("w-14 h-14 rounded-xl flex items-center justify-center", section.iconBg)}>
                       <section.icon className={cn("w-7 h-7", section.iconColor)} />
                     </div>
-                    <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-slate-300 group-hover:translate-x-1 transition-all" />
+                    <ArrowRight className="w-5 h-5 text-white/30 group-hover:text-white group-hover:translate-x-1 transition-all" />
                   </div>
                   
-                  <h3 className="text-xl font-semibold text-white mb-2">
+                  <h3 className="text-xl font-semibold text-white mb-2 tracking-tight">
                     {section.label}
                   </h3>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-white/50">
                     {section.description}
                   </p>
                 </div>
@@ -122,15 +122,15 @@ export default function AdminPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-8 p-6 rounded-2xl bg-slate-800/30 border border-slate-700/30"
+          className="mt-8 p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10"
         >
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
               <FileText className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-white mb-2">Om Administration</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
+              <h3 className="font-semibold text-white mb-2 tracking-tight">Om Administration</h3>
+              <p className="text-sm text-white/50 leading-relaxed">
                 Här hittar du alla administrativa funktioner för systemet. Hantera leverantörer, 
                 se lagerrörelser, analysera data och konfigurera automatiska rapporter.
               </p>

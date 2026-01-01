@@ -118,20 +118,20 @@ export default function RepairsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6">
+    <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-white flex items-center gap-3 tracking-tight">
                 <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
                   <Wrench className="w-5 h-5 text-orange-400" />
                 </div>
                 Reparation & Service
               </h1>
-              <p className="text-slate-400 text-sm mt-1">
+              <p className="text-white/50 text-sm mt-1">
                 {repairArticles.length} artikel{repairArticles.length !== 1 ? 'ar' : ''} på reparation
               </p>
             </div>
@@ -139,12 +139,12 @@ export default function RepairsPage() {
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Sök artikel, batch eller tillverkare..."
-              className="pl-10 h-10 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+              className="pl-10 h-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300"
             />
           </div>
         </div>
@@ -153,7 +153,7 @@ export default function RepairsPage() {
         {isLoading ? (
           <div className="grid gap-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-40 rounded-2xl bg-slate-800/50 animate-pulse" />
+              <div key={i} className="h-40 rounded-2xl bg-white/5 animate-pulse" />
             ))}
           </div>
         ) : filteredRepairs.length === 0 ? (
@@ -161,10 +161,10 @@ export default function RepairsPage() {
             <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center mx-auto mb-4">
               <Wrench className="w-8 h-8 text-orange-400" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">
+            <h3 className="text-lg font-semibold text-white mb-2 tracking-tight">
               {searchQuery ? "Inga artiklar hittades" : "Inga artiklar på reparation"}
             </h3>
-            <p className="text-slate-400">
+            <p className="text-white/50">
               {searchQuery 
                 ? "Prova ett annat sökord" 
                 : "Alla artiklar är i gott skick!"}
@@ -177,7 +177,7 @@ export default function RepairsPage() {
                 key={article.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-5 rounded-2xl bg-slate-800/50 border border-orange-500/30 hover:border-orange-500/50 transition-colors"
+                className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-orange-500/30 hover:border-orange-500/50 hover:bg-white/10 hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-300"
               >
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex-1">
@@ -223,7 +223,7 @@ export default function RepairsPage() {
                       setSelectedRepair(article);
                       setReturnModalOpen(true);
                     }}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 transition-all duration-300"
                   >
                     <CheckCircle2 className="w-4 h-4 mr-2" />
                     Återför
@@ -248,7 +248,7 @@ export default function RepairsPage() {
 
         {/* Return Modal */}
         <Dialog open={returnModalOpen} onOpenChange={setReturnModalOpen}>
-          <DialogContent className="bg-slate-900 border-slate-700 text-white">
+          <DialogContent className="bg-zinc-950 border-white/10 text-white backdrop-blur-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
