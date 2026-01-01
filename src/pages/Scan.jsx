@@ -380,7 +380,7 @@ export default function ScanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#2B2E33] via-[#3a3d42] to-[#2B2E33] p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F6F7] via-[#ECEFF1] to-[#F5F6F7] p-4 md:p-6">
       <div className="max-w-2xl mx-auto">
         
         {/* Header */}

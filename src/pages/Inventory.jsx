@@ -299,14 +299,14 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#2B2E33] via-[#3a3d42] to-[#2B2E33] p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F6F7] via-[#ECEFF1] to-[#F5F6F7] p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
         {/* Compact Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-white">Lager</h1>
+              <h1 className="text-2xl font-bold text-[#2B2E33]">Lager</h1>
               <div className="flex items-center gap-3 text-sm">
                 <Badge 
                   variant="outline" 
@@ -523,7 +523,7 @@ export default function InventoryPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     onClick={() => setSelectedArticle(article)}
-                    className="group p-3 md:p-4 rounded-xl cursor-pointer transition-all bg-[#3a3d42]/40 backdrop-blur-sm border border-[#5a5d62]/50 hover:border-[#7B7F85] hover:bg-[#3a3d42]/70 hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.98]"
+                    className="group p-3 md:p-4 rounded-xl cursor-pointer transition-all bg-white/80 backdrop-blur-sm border border-[#E1E4E8] hover:border-[#C1C4C8] hover:bg-white hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.98]"
                   >
                     {/* Mobile Layout */}
                     <div className="md:hidden">

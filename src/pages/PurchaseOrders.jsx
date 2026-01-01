@@ -118,7 +118,7 @@ export default function PurchaseOrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#2B2E33] via-[#3a3d42] to-[#2B2E33] p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F6F7] via-[#ECEFF1] to-[#F5F6F7] p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
@@ -227,7 +227,7 @@ export default function PurchaseOrdersPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="group rounded-2xl bg-[#3a3d42]/40 backdrop-blur-sm border border-[#5a5d62]/50 hover:border-[#7B7F85] hover:bg-[#3a3d42]/70 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 overflow-hidden"
+                    className="group rounded-2xl bg-white/80 backdrop-blur-sm border border-[#E1E4E8] hover:border-[#C1C4C8] hover:bg-white hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 overflow-hidden"
                     >
                     {/* Header */}
                     <div className="p-5 border-b border-slate-700/50">
