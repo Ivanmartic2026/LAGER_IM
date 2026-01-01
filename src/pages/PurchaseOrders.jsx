@@ -227,8 +227,8 @@ export default function PurchaseOrdersPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="group rounded-2xl bg-slate-800/30 border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50 transition-all overflow-hidden"
-                  >
+                    className="group rounded-2xl bg-[#3a3d42]/40 backdrop-blur-sm border border-[#5a5d62]/50 hover:border-[#7B7F85] hover:bg-[#3a3d42]/70 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 overflow-hidden"
+                    >
                     {/* Header */}
                     <div className="p-5 border-b border-slate-700/50">
                       <div className="flex items-start justify-between">

@@ -523,7 +523,7 @@ export default function InventoryPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     onClick={() => setSelectedArticle(article)}
-                    className="group p-3 md:p-4 rounded-xl cursor-pointer transition-all bg-slate-800/30 border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800/50 active:scale-[0.98]"
+                    className="group p-3 md:p-4 rounded-xl cursor-pointer transition-all bg-[#3a3d42]/40 backdrop-blur-sm border border-[#5a5d62]/50 hover:border-[#7B7F85] hover:bg-[#3a3d42]/70 hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.98]"
                   >
                     {/* Mobile Layout */}
                     <div className="md:hidden">
@@ -713,7 +713,8 @@ export default function InventoryPage() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             whileTap={{ scale: 0.9 }}
-            className="fixed bottom-24 right-4 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-500/50 flex items-center justify-center z-40 active:shadow-blue-500/80"
+            whileHover={{ scale: 1.05 }}
+            className="fixed bottom-24 right-4 w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 shadow-2xl shadow-blue-500/50 flex items-center justify-center z-40 hover:shadow-blue-500/80 transition-all duration-300"
           >
             <Camera className="w-6 h-6 text-white" />
           </motion.button>

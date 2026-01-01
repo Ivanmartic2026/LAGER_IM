@@ -173,10 +173,12 @@ export default function HomePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 md:p-10 mb-6 md:mb-8"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="relative overflow-hidden rounded-3xl md:rounded-[2rem] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-6 md:p-12 mb-6 md:mb-8 shadow-2xl shadow-blue-500/20"
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl transform translate-x-20 -translate-y-20" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl transform -translate-x-10 translate-y-10" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl transform translate-x-32 -translate-y-32" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl transform -translate-x-16 translate-y-16" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
           
           <div className="relative z-10">
             <h1 className="text-xl md:text-4xl font-bold text-white mb-2 md:mb-3">
@@ -187,7 +189,7 @@ export default function HomePage() {
             </p>
             
             <Link to={createPageUrl("Scan")}>
-              <Button size="sm" className="bg-white text-blue-600 hover:bg-blue-50 md:h-11 md:px-6">
+              <Button size="sm" className="bg-white text-blue-600 hover:bg-white hover:shadow-lg hover:shadow-white/20 transition-all duration-300 hover:scale-105 md:h-11 md:px-6 font-semibold">
                 <Camera className="w-4 h-4 mr-2" />
                 Starta skanning
                 <ArrowRight className="w-3 h-3 md:w-4 md:h-4 ml-2" />
@@ -201,8 +203,8 @@ export default function HomePage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="p-5 md:p-6 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 mb-6"
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="p-5 md:p-6 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 mb-6 backdrop-blur-sm shadow-lg shadow-blue-500/10 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1 min-w-0">
@@ -248,14 +250,15 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer"
+              transition={{ delay: 0.1, duration: 0.4 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="p-5 rounded-2xl bg-[#3a3d42]/60 backdrop-blur-sm border border-[#5a5d62]/50 hover:bg-[#3a3d42]/80 hover:border-[#7B7F85] hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-blue-400" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300">
+                  <Package className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <TrendingUp className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform duration-300" />
               </div>
               <p className="text-3xl font-bold text-white mb-1">{stats.total}</p>
               <p className="text-sm text-slate-400">Artiklar</p>
@@ -266,12 +269,13 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer"
+              transition={{ delay: 0.15, duration: 0.4 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="p-5 rounded-2xl bg-[#3a3d42]/60 backdrop-blur-sm border border-[#5a5d62]/50 hover:bg-[#3a3d42]/80 hover:border-[#7B7F85] hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-emerald-400" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/30 to-emerald-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-emerald-500/30 transition-all duration-300">
+                  <Package className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </div>
               <p className="text-3xl font-bold text-white mb-1">{stats.totalValue}</p>
@@ -283,12 +287,13 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer"
+              transition={{ delay: 0.2, duration: 0.4 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="p-5 rounded-2xl bg-[#3a3d42]/60 backdrop-blur-sm border border-[#5a5d62]/50 hover:bg-[#3a3d42]/80 hover:border-[#7B7F85] hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                  <AlertTriangle className="w-5 h-5 text-amber-400" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-amber-500/30 transition-all duration-300">
+                  <AlertTriangle className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </div>
               <p className="text-3xl font-bold text-white mb-1">{stats.lowStock}</p>
@@ -300,12 +305,13 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer"
+              transition={{ delay: 0.25, duration: 0.4 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="p-5 rounded-2xl bg-[#3a3d42]/60 backdrop-blur-sm border border-[#5a5d62]/50 hover:bg-[#3a3d42]/80 hover:border-[#7B7F85] hover:shadow-xl hover:shadow-red-500/10 transition-all duration-300 cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-red-400" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500/30 to-red-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-red-500/30 transition-all duration-300">
+                  <Package className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </div>
               <p className="text-3xl font-bold text-white mb-1">{stats.outOfStock}</p>
@@ -317,12 +323,13 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer"
+              transition={{ delay: 0.3, duration: 0.4 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="p-5 rounded-2xl bg-[#3a3d42]/60 backdrop-blur-sm border border-[#5a5d62]/50 hover:bg-[#3a3d42]/80 hover:border-[#7B7F85] hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300 cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-orange-400" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/30 to-orange-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all duration-300">
+                  <Package className="w-5 h-5 text-orange-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </div>
               <p className="text-3xl font-bold text-white mb-1">{stats.onRepair}</p>
@@ -337,7 +344,8 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 active:bg-slate-800"
+              whileTap={{ scale: 0.97 }}
+              className="p-4 rounded-xl bg-[#3a3d42]/60 backdrop-blur-sm border border-[#5a5d62]/50 active:bg-[#3a3d42]/80 hover:shadow-lg transition-all duration-200"
             >
               <Package className="w-5 h-5 text-blue-400 mb-2" />
               <p className="text-2xl font-bold text-white mb-0.5">{stats.total}</p>
@@ -445,9 +453,9 @@ export default function HomePage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="p-4 md:p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50"
-          >
+            transition={{ delay: 0.35, duration: 0.5 }}
+            className="p-4 md:p-5 rounded-2xl bg-[#3a3d42]/60 backdrop-blur-sm border border-[#5a5d62]/50 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
             <div className="flex items-center justify-between mb-3 md:mb-4">
               <h2 className="text-sm md:text-base font-semibold text-white flex items-center gap-2">
                 <Clock className="w-4 h-4 text-slate-400" />
@@ -557,10 +565,10 @@ export default function HomePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
           className="mt-6 md:mt-8"
         >
-          <div className="p-4 md:p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+          <div className="p-4 md:p-6 rounded-2xl bg-[#3a3d42]/60 backdrop-blur-sm border border-[#5a5d62]/50 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
               <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                 <Search className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
@@ -618,23 +626,29 @@ export default function HomePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45 }}
+          transition={{ delay: 0.45, duration: 0.5 }}
           className="mt-4 md:mt-6 grid grid-cols-2 gap-3 md:gap-4"
         >
           <Link to={createPageUrl("Scan") + "?mode=inbound"}>
-            <div className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 border border-emerald-500/30 hover:border-emerald-500/50 transition-colors cursor-pointer">
-              <Package className="w-5 h-5 md:w-6 md:h-6 text-emerald-400 mb-2 md:mb-3" />
+            <motion.div 
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 backdrop-blur-sm border border-emerald-500/30 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 cursor-pointer group"
+            >
+              <Package className="w-5 h-5 md:w-6 md:h-6 text-emerald-400 mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300" />
               <h3 className="font-semibold text-white text-sm md:text-base mb-1">Inleverans</h3>
               <p className="text-xs md:text-sm text-slate-400">Registrera nya varor</p>
-            </div>
+            </motion.div>
           </Link>
           
           <Link to={createPageUrl("Scan") + "?mode=inventory"}>
-            <div className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 hover:border-blue-500/50 transition-colors cursor-pointer">
-              <ClipboardList className="w-5 h-5 md:w-6 md:h-6 text-blue-400 mb-2 md:mb-3" />
+            <motion.div 
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 backdrop-blur-sm border border-blue-500/30 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 cursor-pointer group"
+            >
+              <ClipboardList className="w-5 h-5 md:w-6 md:h-6 text-blue-400 mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300" />
               <h3 className="font-semibold text-white text-sm md:text-base mb-1">Inventering</h3>
               <p className="text-xs md:text-sm text-slate-400">Justera lagersaldo</p>
-            </div>
+            </motion.div>
           </Link>
         </motion.div>
       </div>
