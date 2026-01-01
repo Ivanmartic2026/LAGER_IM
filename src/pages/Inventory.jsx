@@ -263,7 +263,7 @@ export default function InventoryPage() {
 
   if (selectedArticle) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#2B2E33] via-[#3a3d42] to-[#2B2E33] p-4 md:p-6">
+      <div className="min-h-screen bg-black p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
           <ArticleDetail
             article={selectedArticle}
@@ -299,14 +299,14 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F6F7] via-[#ECEFF1] to-[#F5F6F7] p-4 md:p-6">
+    <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
         {/* Compact Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-[#2B2E33]">Lager</h1>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Lager</h1>
               <div className="flex items-center gap-3 text-sm">
                 <Badge 
                   variant="outline" 
@@ -358,11 +358,11 @@ export default function InventoryPage() {
                 disabled={isExporting}
                 variant="outline"
                 size="sm"
-                className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
               >
                 {isExporting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-slate-400 border-t-blue-400 rounded-full animate-spin mr-2" />
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                     Exporterar...
                   </>
                 ) : (
@@ -377,11 +377,11 @@ export default function InventoryPage() {
                 disabled={isImporting}
                 variant="outline"
                 size="sm"
-                className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
               >
                 {isImporting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-slate-400 border-t-blue-400 rounded-full animate-spin mr-2" />
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                     Importerar...
                   </>
                 ) : (
@@ -395,7 +395,7 @@ export default function InventoryPage() {
                 onClick={() => setQuickInventoryOpen(true)}
                 variant="outline"
                 size="sm"
-                className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
               >
                 <ClipboardList className="w-4 h-4 mr-2" />
                 Inventering
@@ -404,13 +404,13 @@ export default function InventoryPage() {
                 onClick={() => setPickListOpen(true)}
                 variant="outline"
                 size="sm"
-                className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI Plocklista
               </Button>
               <Link to={createPageUrl("Scan")}>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-500">
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300">
                   <Camera className="w-4 h-4 mr-2" />
                   Skanna
                 </Button>
@@ -421,43 +421,43 @@ export default function InventoryPage() {
           {/* Compact Search & Filters */}
           <div className="flex gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Sök artikel, batch, tillverkare eller hyllplats..."
-                className="pl-10 h-9 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                className="pl-10 h-9 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300"
               />
             </div>
             
             <Tabs value={sortBy} onValueChange={setSortBy}>
-              <TabsList className="h-9 bg-slate-800/50 border border-slate-700">
-                <TabsTrigger value="name" className="text-xs h-7">
+              <TabsList className="h-9 bg-white/5 border border-white/10 backdrop-blur-xl">
+                <TabsTrigger value="name" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
                   <ArrowUpDown className="w-3 h-3 mr-1" />
                   Namn
                 </TabsTrigger>
-                <TabsTrigger value="batch" className="text-xs h-7">Batch</TabsTrigger>
-                <TabsTrigger value="shelf" className="text-xs h-7">Hylla</TabsTrigger>
-                <TabsTrigger value="supplier" className="text-xs h-7">Leverantör</TabsTrigger>
-                <TabsTrigger value="stock" className="text-xs h-7">Saldo</TabsTrigger>
+                <TabsTrigger value="batch" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Batch</TabsTrigger>
+                <TabsTrigger value="shelf" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Hylla</TabsTrigger>
+                <TabsTrigger value="supplier" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leverantör</TabsTrigger>
+                <TabsTrigger value="stock" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Saldo</TabsTrigger>
               </TabsList>
             </Tabs>
 
             <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-              <TabsList className="h-9 bg-slate-800/50 border border-slate-700">
-                <TabsTrigger value="all" className="text-xs h-7">Alla</TabsTrigger>
-                <TabsTrigger value="active" className="text-xs h-7">I lager</TabsTrigger>
-                <TabsTrigger value="low_stock" className="text-xs h-7">Lågt</TabsTrigger>
-                <TabsTrigger value="out_of_stock" className="text-xs h-7">Slut</TabsTrigger>
-                <TabsTrigger value="on_repair" className="text-xs h-7">Reparation</TabsTrigger>
+              <TabsList className="h-9 bg-white/5 border border-white/10 backdrop-blur-xl">
+                <TabsTrigger value="all" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
+                <TabsTrigger value="active" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">I lager</TabsTrigger>
+                <TabsTrigger value="low_stock" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Lågt</TabsTrigger>
+                <TabsTrigger value="out_of_stock" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Slut</TabsTrigger>
+                <TabsTrigger value="on_repair" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Reparation</TabsTrigger>
               </TabsList>
             </Tabs>
 
             <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
-              <SelectTrigger className="w-48 h-9 bg-slate-800/50 border-slate-700 text-white">
+              <SelectTrigger className="w-48 h-9 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300">
                 <SelectValue placeholder="Lager" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-white/10 text-white">
                 <SelectItem value="all">Alla lager</SelectItem>
                 {warehouses.map(warehouse => (
                   <SelectItem key={warehouse.id} value={warehouse.name}>
@@ -473,25 +473,25 @@ export default function InventoryPage() {
         {isLoading ? (
           <div className="space-y-2">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-20 md:h-24 rounded-xl bg-slate-800/50 animate-pulse" />
+              <div key={i} className="h-20 md:h-24 rounded-2xl bg-white/5 animate-pulse" />
             ))}
           </div>
         ) : filteredArticles.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
-              <Package className="w-8 h-8 text-slate-600" />
+            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
+              <Package className="w-8 h-8 text-white/30" />
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">
               {searchQuery ? "Inga artiklar hittades" : "Inga artiklar ännu"}
             </h3>
-            <p className="text-slate-400 mb-6">
+            <p className="text-white/50 mb-6">
               {searchQuery 
                 ? "Prova ett annat sökord" 
                 : "Börja med att skanna din första artikel"}
             </p>
             {!searchQuery && (
               <Link to={createPageUrl("Scan")}>
-                <Button className="bg-blue-600 hover:bg-blue-500">
+                <Button className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300">
                   <Camera className="w-4 h-4 mr-2" />
                   Skanna artikel
                 </Button>
@@ -501,7 +501,7 @@ export default function InventoryPage() {
         ) : (
           <div className="space-y-2">
             {/* Header Row - Desktop Only */}
-            <div className="hidden md:grid px-4 py-2 grid-cols-[80px_80px_minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_120px] gap-4 text-xs font-medium text-slate-500 uppercase tracking-wider border-b border-slate-700/50">
+            <div className="hidden md:grid px-4 py-2 grid-cols-[80px_80px_minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_120px] gap-4 text-xs font-medium text-white/40 uppercase tracking-wider border-b border-white/10">
               <div></div>
               <div>Saldo</div>
               <div>Artikelnummer</div>
@@ -523,7 +523,7 @@ export default function InventoryPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     onClick={() => setSelectedArticle(article)}
-                    className="group p-3 md:p-4 rounded-xl cursor-pointer transition-all bg-white/80 backdrop-blur-sm border border-[#E1E4E8] hover:border-[#C1C4C8] hover:bg-white hover:shadow-lg hover:shadow-blue-500/5 active:scale-[0.98]"
+                    className="group p-3 md:p-4 rounded-2xl cursor-pointer transition-all bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5 active:scale-[0.98] duration-300"
                   >
                     {/* Mobile Layout */}
                     <div className="md:hidden">
@@ -538,14 +538,14 @@ export default function InventoryPage() {
                             />
                           </div>
                         ) : (
-                          <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-slate-900/50 flex items-center justify-center">
-                            <Package className="w-5 h-5 text-slate-600" />
+                          <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
+                            <Package className="w-5 h-5 text-white/30" />
                           </div>
                         )}
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
-                            <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2">
+                            <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2 tracking-tight">
                               {article.customer_name || article.name}
                             </h3>
                             <div className={cn(
@@ -557,7 +557,7 @@ export default function InventoryPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                          <div className="flex items-center gap-2 text-xs text-white/50 mb-1">
                             {article.batch_number && (
                               <span className="font-mono">#{article.batch_number}</span>
                             )}
@@ -607,20 +607,20 @@ export default function InventoryPage() {
                           />
                         </div>
                       ) : (
-                        <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-slate-900/50 flex items-center justify-center">
-                          <Package className="w-6 h-6 text-slate-600" />
+                        <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-white/5 flex items-center justify-center">
+                          <Package className="w-6 h-6 text-white/30" />
                         </div>
                       )}
 
                       <div className="w-20 text-center flex-shrink-0">
                         <div className={cn(
-                          "text-2xl font-bold leading-none mb-1",
+                          "text-2xl font-bold leading-none mb-1 tracking-tight",
                           article.stock_qty <= 0 ? "text-red-400" : 
                           hasLowStock ? "text-amber-400" : "text-white"
                         )}>
                           {article.stock_qty || 0}
                         </div>
-                        <div className="text-xs text-slate-500">st</div>
+                        <div className="text-xs text-white/40">st</div>
                       </div>
 
                       <div className="flex-1 min-w-0 grid grid-cols-[minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_120px] gap-4">
@@ -630,20 +630,20 @@ export default function InventoryPage() {
                               {article.sku}
                             </div>
                           ) : article.batch_number ? (
-                            <div className="text-sm font-mono text-slate-500 truncate">
+                            <div className="text-sm font-mono text-white/50 truncate">
                               #{article.batch_number}
                             </div>
                           ) : (
-                            <span className="text-xs text-slate-600">—</span>
+                            <span className="text-xs text-white/20">—</span>
                           )}
                         </div>
 
                         <div className="min-w-0">
-                          <div className="font-semibold text-white text-sm mb-1 truncate">
+                          <div className="font-semibold text-white text-sm mb-1 truncate tracking-tight">
                             {article.customer_name || article.name}
                           </div>
                           {article.manufacturer && (
-                            <div className="text-xs text-slate-500 truncate">
+                            <div className="text-xs text-white/50 truncate">
                               {article.manufacturer}
                               {article.series && ` • ${article.series}`}
                               {article.pitch_value && ` • ${article.pitch_value}`}
@@ -654,26 +654,26 @@ export default function InventoryPage() {
                         <div className="min-w-0 flex items-center">
                           {article.shelf_address ? (
                             <div className="flex items-center gap-1.5">
-                              <MapPin className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                              <MapPin className="w-4 h-4 text-white/40 flex-shrink-0" />
                               <span className="text-sm font-medium text-white truncate">
                                 {article.shelf_address}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-xs text-slate-600">—</span>
+                            <span className="text-xs text-white/20">—</span>
                           )}
                         </div>
 
                         <div className="min-w-0 flex items-center">
                           {article.warehouse ? (
                             <div className="flex items-center gap-1.5">
-                              <Package className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                              <Package className="w-4 h-4 text-white/40 flex-shrink-0" />
                               <span className="text-sm font-medium text-white truncate">
                                 {article.warehouse}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-xs text-slate-600">—</span>
+                            <span className="text-xs text-white/20">—</span>
                           )}
                         </div>
 
@@ -684,7 +684,7 @@ export default function InventoryPage() {
                               article.status === 'low_stock' ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
                               article.status === 'out_of_stock' ? "bg-red-500/20 text-red-400 border-red-500/30" :
                               article.status === 'on_repair' ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
-                              "bg-slate-500/20 text-slate-400 border-slate-500/30"
+                              "bg-white/10 text-white/60 border-white/20"
                             )}>
                               {article.status === 'low_stock' ? 'Lågt' :
                                article.status === 'out_of_stock' ? 'Slut' :
@@ -693,7 +693,7 @@ export default function InventoryPage() {
                             </Badge>
                           )}
                           {article.updated_date && (
-                            <div className="text-xs text-slate-500 whitespace-nowrap">
+                            <div className="text-xs text-white/40 whitespace-nowrap">
                               {format(new Date(article.updated_date), "d MMM", { locale: sv })}
                             </div>
                           )}
@@ -722,9 +722,9 @@ export default function InventoryPage() {
 
             {/* Modals */}
             <Dialog open={quickInventoryOpen} onOpenChange={setQuickInventoryOpen}>
-            <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-2xl">
+            <DialogContent className="bg-zinc-950 border-white/10 text-white max-w-2xl backdrop-blur-2xl">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 text-white tracking-tight">
                 <ClipboardList className="w-5 h-5" />
                 Snabbinventering
               </DialogTitle>
@@ -734,9 +734,9 @@ export default function InventoryPage() {
             </Dialog>
 
             <Dialog open={pickListOpen} onOpenChange={setPickListOpen}>
-            <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-2xl max-h-[90vh] overflow-auto">
+            <DialogContent className="bg-zinc-950 border-white/10 text-white max-w-2xl max-h-[90vh] overflow-auto backdrop-blur-2xl">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 text-white tracking-tight">
                 <Sparkles className="w-5 h-5 text-blue-400" />
                 AI Plocklistegenerator
               </DialogTitle>
@@ -746,7 +746,7 @@ export default function InventoryPage() {
             </Dialog>
 
             <Dialog open={!!importPreview} onOpenChange={(open) => !open && setImportPreview(null)}>
-            <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-4xl p-0">
+            <DialogContent className="bg-zinc-950 border-white/10 text-white max-w-4xl p-0 backdrop-blur-2xl">
               <ImportPreview
                 articles={importPreview || []}
                 onConfirm={handleConfirmImport}
