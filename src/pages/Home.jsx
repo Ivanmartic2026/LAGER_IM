@@ -89,7 +89,7 @@ export default function HomePage() {
   // Show selected article details
   if (selectedArticle) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#2B2E33] via-[#3a3d42] to-[#2B2E33] p-4 md:p-6">
+      <div className="min-h-screen bg-black p-4 md:p-6">
         <div className="max-w-2xl mx-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -166,7 +166,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F6F7] via-[#ECEFF1] to-[#F5F6F7] p-4 md:p-6">
+    <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
         {/* Hero Section */}
@@ -252,7 +252,7 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.4 }}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="p-5 rounded-2xl bg-white/80 backdrop-blur-sm border border-[#E1E4E8] hover:bg-white hover:border-[#C1C4C8] hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer group"
+              className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300 cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300">
@@ -260,8 +260,8 @@ export default function HomePage() {
                 </div>
                 <TrendingUp className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform duration-300" />
               </div>
-              <p className="text-3xl font-bold text-[#2B2E33] mb-1">{stats.total}</p>
-              <p className="text-sm text-[#7B7F85]">Artiklar</p>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.total}</p>
+              <p className="text-sm text-white/50">Artiklar</p>
             </motion.div>
           </Link>
 
@@ -271,15 +271,15 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.4 }}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="p-5 rounded-2xl bg-[#3a3d42]/60 backdrop-blur-sm border border-[#5a5d62]/50 hover:bg-[#3a3d42]/80 hover:border-[#7B7F85] hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 cursor-pointer group"
+              className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300 cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/30 to-emerald-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-emerald-500/30 transition-all duration-300">
                   <Package className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </div>
-              <p className="text-3xl font-bold text-[#2B2E33] mb-1">{stats.totalValue}</p>
-              <p className="text-sm text-[#7B7F85]">Totalt i lager</p>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.totalValue}</p>
+              <p className="text-sm text-white/50">Totalt i lager</p>
             </motion.div>
           </Link>
 
@@ -296,8 +296,8 @@ export default function HomePage() {
                   <AlertTriangle className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </div>
-              <p className="text-3xl font-bold text-[#2B2E33] mb-1">{stats.lowStock}</p>
-              <p className="text-sm text-[#7B7F85]">Lågt lager</p>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.lowStock}</p>
+              <p className="text-sm text-white/50">Lågt lager</p>
             </motion.div>
           </Link>
 
@@ -314,8 +314,8 @@ export default function HomePage() {
                   <Package className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </div>
-              <p className="text-3xl font-bold text-[#2B2E33] mb-1">{stats.outOfStock}</p>
-              <p className="text-sm text-[#7B7F85]">Slut i lager</p>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.outOfStock}</p>
+              <p className="text-sm text-white/50">Slut i lager</p>
             </motion.div>
           </Link>
 
@@ -332,8 +332,8 @@ export default function HomePage() {
                   <Package className="w-5 h-5 text-orange-400 group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </div>
-              <p className="text-3xl font-bold text-[#2B2E33] mb-1">{stats.onRepair}</p>
-              <p className="text-sm text-[#7B7F85]">På reparation</p>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.onRepair}</p>
+              <p className="text-sm text-white/50">På reparation</p>
             </motion.div>
           </Link>
         </div>
@@ -454,11 +454,11 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.5 }}
-            className="p-4 md:p-5 rounded-2xl bg-white/80 backdrop-blur-sm border border-[#E1E4E8] shadow-lg hover:shadow-xl transition-all duration-300"
+            className="p-4 md:p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300"
             >
             <div className="flex items-center justify-between mb-3 md:mb-4">
-              <h2 className="text-sm md:text-base font-semibold text-white flex items-center gap-2">
-                <Clock className="w-4 h-4 text-slate-400" />
+              <h2 className="text-sm md:text-base font-semibold text-white flex items-center gap-2 tracking-tight">
+                <Clock className="w-4 h-4 text-white/40" />
                 <span className="hidden md:inline">Senaste aktivitet</span>
                 <span className="md:hidden">Aktivitet</span>
               </h2>
@@ -567,15 +567,15 @@ export default function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
           className="mt-6 md:mt-8"
-        >
-          <div className="p-4 md:p-6 rounded-2xl bg-white/80 backdrop-blur-sm border border-[#E1E4E8] shadow-lg hover:shadow-xl transition-all duration-300">
+          >
+          <div className="p-4 md:p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300">
             <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
               <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                 <Search className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-base md:text-lg font-semibold text-[#2B2E33]">Sök Artiklar</h2>
-                <p className="text-xs md:text-sm text-[#7B7F85] hidden md:block">Snabbsökning efter namn, batch eller hyllplats</p>
+                <h2 className="text-base md:text-lg font-semibold text-white tracking-tight">Sök Artiklar</h2>
+                <p className="text-xs md:text-sm text-white/50 hidden md:block">Snabbsökning efter namn, batch eller hyllplats</p>
               </div>
             </div>
 

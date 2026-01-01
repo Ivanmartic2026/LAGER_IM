@@ -118,7 +118,7 @@ export default function WarehousesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6">
+    <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
@@ -129,8 +129,8 @@ export default function WarehousesPage() {
                 <Warehouse className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">Lagerställen</h1>
-                <p className="text-sm text-slate-400">{warehouses.length} lager</p>
+                <h1 className="text-2xl font-bold text-white tracking-tight">Lagerställen</h1>
+                <p className="text-sm text-white/50">{warehouses.length} lager</p>
               </div>
             </div>
             
@@ -139,7 +139,7 @@ export default function WarehousesPage() {
                 setEditingWarehouse(null);
                 setShowForm(true);
               }}
-              className="bg-blue-600 hover:bg-blue-500"
+              className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
             >
               <Plus className="w-4 h-4 mr-2" />
               Nytt lagerställe
@@ -148,12 +148,12 @@ export default function WarehousesPage() {
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Sök lagerställe..."
-              className="pl-10 bg-slate-800/50 border-slate-700 text-white"
+              className="pl-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300"
             />
           </div>
         </div>
@@ -162,18 +162,18 @@ export default function WarehousesPage() {
         {isLoading ? (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-24 rounded-xl bg-slate-800/50 animate-pulse" />
+              <div key={i} className="h-24 rounded-2xl bg-white/5 animate-pulse" />
             ))}
           </div>
         ) : filteredWarehouses.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
-              <Warehouse className="w-8 h-8 text-slate-600" />
+            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
+              <Warehouse className="w-8 h-8 text-white/30" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">
+            <h3 className="text-lg font-semibold text-white mb-2 tracking-tight">
               {searchQuery ? "Inga lagerställen hittades" : "Inga lagerställen ännu"}
             </h3>
-            <p className="text-slate-400 mb-6">
+            <p className="text-white/50 mb-6">
               {searchQuery 
                 ? "Prova ett annat sökord" 
                 : "Börja med att skapa ditt första lagerställe"}
@@ -181,7 +181,7 @@ export default function WarehousesPage() {
             {!searchQuery && (
               <Button
                 onClick={() => setShowForm(true)}
-                className="bg-blue-600 hover:bg-blue-500"
+                className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Skapa lagerställe
@@ -201,7 +201,7 @@ export default function WarehousesPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="p-5 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-slate-600 transition-all"
+                    className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 flex-1">

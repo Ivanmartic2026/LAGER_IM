@@ -6,8 +6,17 @@ import { sv } from 'date-fns/locale';
 export default function RepairLabel({ article, repairNotes, repairDate, quantity }) {
   return (
     <div className="w-[100mm] min-h-[70mm] bg-white border-4 border-red-600 p-4 text-black">
+      {/* Logo */}
+      <div className="flex justify-center mb-2">
+        <img 
+          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
+          alt="IMvision"
+          className="h-[20px] object-contain"
+        />
+      </div>
+
       {/* Header - REPAIR */}
-      <div className="bg-red-600 text-white text-center py-2 mb-3 -mx-4 -mt-4">
+      <div className="bg-red-600 text-white text-center py-2 mb-3 -mx-4">
         <div className="text-[24px] font-bold">PÅ REPARATION</div>
         <div className="text-[14px]">
           {format(new Date(repairDate), "d MMMM yyyy", { locale: sv })}

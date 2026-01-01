@@ -24,9 +24,11 @@ export default function Layout({ children, currentPageName }) {
       {/* Desktop Navigation - Bottom */}
       <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4">
         <div className="flex items-center gap-2 min-w-max mx-auto">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mr-4 shadow-lg shadow-blue-500/50">
-            <Package className="w-5 h-5 text-white" />
-          </div>
+          <img 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
+            alt="IMvision"
+            className="h-8 mr-4 object-contain"
+          />
 
           {NAV_ITEMS.map(item => (
             <Link 
@@ -58,10 +60,11 @@ export default function Layout({ children, currentPageName }) {
       {/* Mobile Header */}
       <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/5 backdrop-blur-2xl border-b border-white/10 shadow-sm z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/50">
-            <Package className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-semibold text-white tracking-tight">Lagerapp</span>
+          <img 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
+            alt="IMvision"
+            className="h-7 object-contain"
+          />
         </div>
         
         <Button

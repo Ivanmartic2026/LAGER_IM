@@ -20,7 +20,18 @@ export default function ShelfLabel({ article }) {
   }, [article.batch_number]);
 
   return (
-    <div className="w-[40mm] h-[30mm] bg-white border-2 border-black p-1.5 flex text-black">
+    <div className="w-[40mm] h-[30mm] bg-white border-2 border-black p-1.5 flex flex-col text-black">
+      {/* Logo at top */}
+      <div className="flex justify-center mb-1">
+        <img 
+          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
+          alt="IMvision"
+          className="h-[10px] object-contain"
+        />
+      </div>
+
+      {/* Content area */}
+      <div className="flex flex-1">
       {/* Left side - Text info */}
       <div className="flex-1 flex flex-col justify-between pr-1.5">
         {/* Shelf Location - Most prominent */}
@@ -53,6 +64,7 @@ export default function ShelfLabel({ article }) {
           <canvas ref={qrRef} className="w-[90px] h-[90px]" />
         </div>
       )}
+      </div>
     </div>
   );
 }
