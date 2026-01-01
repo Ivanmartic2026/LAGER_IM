@@ -123,8 +123,8 @@ export default function HomePage() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-                <h3 className="font-semibold text-white mb-3">Artikel</h3>
+              <div className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+                <h3 className="font-semibold text-white mb-3 tracking-tight">Artikel</h3>
                 <div className="space-y-2 text-sm">
                   <div><span className="text-slate-400">Namn:</span> <span className="text-white font-medium">{selectedArticle.name}</span></div>
                   <div><span className="text-slate-400">Batch:</span> <span className="text-white font-medium">{selectedArticle.batch_number}</span></div>
@@ -133,8 +133,8 @@ export default function HomePage() {
                   )}
                 </div>
               </div>
-              <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-                <h3 className="font-semibold text-white mb-3">Lagerstatus</h3>
+              <div className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+                <h3 className="font-semibold text-white mb-3 tracking-tight">Lagerstatus</h3>
                 <div className="text-3xl font-bold text-white mb-2">{selectedArticle.stock_qty || 0} <span className="text-sm text-slate-400">st</span></div>
                 <Badge className={cn(
                   selectedArticle.status === "active" && "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
