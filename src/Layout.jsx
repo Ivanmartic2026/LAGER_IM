@@ -33,7 +33,6 @@ export default function Layout({ children, currentPageName }) {
       {/* Desktop Navigation - Bottom */}
       <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4">
         <div className="flex items-center gap-2 min-w-max mx-auto">
-
           {NAV_ITEMS.map(item => (
             <Link 
               key={item.name}
