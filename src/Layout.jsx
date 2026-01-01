@@ -20,22 +20,11 @@ export default function Layout({ children, currentPageName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F6F7] via-[#ECEFF1] to-[#F5F6F7]">
-      <style>{`
-        :root {
-          --color-bg-primary: #F5F6F7;
-          --color-bg-secondary: #ECEFF1;
-          --color-bg-tertiary: #E1E4E8;
-          --color-border: #C1C4C8;
-          --color-text-primary: #2B2E33;
-          --color-text-secondary: #5a5d62;
-          --color-text-muted: #7B7F85;
-        }
-      `}</style>
+    <div className="min-h-screen bg-black">
       {/* Desktop Navigation - Bottom */}
-      <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-xl border-t border-[#E1E4E8] shadow-lg z-50 overflow-x-auto px-4">
+      <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4">
         <div className="flex items-center gap-2 min-w-max mx-auto">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mr-4 shadow-lg shadow-blue-500/30">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mr-4 shadow-lg shadow-blue-500/50">
             <Package className="w-5 h-5 text-white" />
           </div>
 
@@ -46,18 +35,18 @@ export default function Layout({ children, currentPageName }) {
               className="flex flex-col items-center gap-1"
             >
               <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
                 currentPageName === item.name
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-                  : "text-[#7B7F85] hover:text-[#2B2E33] hover:bg-[#E1E4E8]"
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/50"
+                  : "text-white/50 hover:text-white hover:bg-white/10"
               )}>
                 <item.icon className="w-4 h-4" />
               </div>
               <span className={cn(
-                "text-xs font-medium transition-colors whitespace-nowrap",
+                "text-xs font-medium transition-colors whitespace-nowrap tracking-tight",
                 currentPageName === item.name
-                  ? "text-blue-600"
-                  : "text-[#7B7F85]"
+                  ? "text-blue-400"
+                  : "text-white/50"
               )}>
                 {item.label}
               </span>
@@ -67,19 +56,19 @@ export default function Layout({ children, currentPageName }) {
       </nav>
 
       {/* Mobile Header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-xl border-b border-[#E1E4E8] shadow-sm z-50 flex items-center justify-between px-4">
+      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/5 backdrop-blur-2xl border-b border-white/10 shadow-sm z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/50">
             <Package className="w-4 h-4 text-white" />
           </div>
-          <span className="font-semibold text-[#2B2E33]">Lagerapp</span>
+          <span className="font-semibold text-white tracking-tight">Lagerapp</span>
         </div>
         
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="text-[#7B7F85]"
+          className="text-white/70 hover:text-white"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
@@ -87,7 +76,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-white/98 backdrop-blur-xl pt-16">
+        <div className="md:hidden fixed inset-0 z-40 bg-black/98 backdrop-blur-2xl pt-16">
           <nav className="p-4 space-y-2">
             {NAV_ITEMS.map(item => (
               <Link 
@@ -95,14 +84,14 @@ export default function Layout({ children, currentPageName }) {
                 to={createPageUrl(item.name)}
                 onClick={() => setMobileMenuOpen(false)}
                 className={cn(
-                  "flex items-center gap-4 p-4 rounded-xl transition-all",
+                  "flex items-center gap-4 p-4 rounded-xl transition-all duration-300",
                   currentPageName === item.name
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-                    : "text-[#5a5d62] hover:text-[#2B2E33] hover:bg-[#E1E4E8]"
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/50"
+                    : "text-white/70 hover:text-white hover:bg-white/10"
                 )}
               >
                 <item.icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                <span className="font-medium tracking-tight">{item.label}</span>
               </Link>
             ))}
           </nav>
@@ -110,21 +99,21 @@ export default function Layout({ children, currentPageName }) {
       )}
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-xl border-t border-[#E1E4E8] shadow-lg z-50 overflow-x-auto px-4 pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4 pb-safe">
         <div className="flex items-center gap-1 min-w-max h-full">
           {NAV_ITEMS.map(item => (
             <Link 
               key={item.name}
               to={createPageUrl(item.name)}
               className={cn(
-                "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all",
+                "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300",
                 currentPageName === item.name
-                  ? "text-blue-600"
-                  : "text-[#7B7F85]"
+                  ? "text-blue-400"
+                  : "text-white/50"
               )}
             >
               <item.icon className="w-5 h-5" />
-              <span className="text-xs font-medium whitespace-nowrap">{item.label}</span>
+              <span className="text-xs font-medium whitespace-nowrap tracking-tight">{item.label}</span>
             </Link>
           ))}
         </div>

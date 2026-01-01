@@ -103,20 +103,20 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F6F7] via-[#ECEFF1] to-[#F5F6F7] p-4 md:p-6">
+    <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Rapporter</h1>
-              <p className="text-slate-400">Analys och schemalagda rapporter</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 tracking-tight">Rapporter</h1>
+              <p className="text-white/50">Analys och schemalagda rapporter</p>
             </div>
             {activeTab === "scheduled" && (
               <Button
                 onClick={() => setConfigModalOpen(true)}
-                className="bg-blue-600 hover:bg-blue-500"
+                className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Nytt schema
@@ -126,12 +126,12 @@ export default function ReportsPage() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-slate-800/50 border border-slate-700">
-              <TabsTrigger value="live" className="flex items-center gap-2">
+            <TabsList className="bg-white/5 backdrop-blur-xl border border-white/10">
+              <TabsTrigger value="live" className="flex items-center gap-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
                 <TrendingUp className="w-4 h-4" />
                 Live-rapporter
               </TabsTrigger>
-              <TabsTrigger value="scheduled" className="flex items-center gap-2">
+              <TabsTrigger value="scheduled" className="flex items-center gap-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
                 <Clock className="w-4 h-4" />
                 Schemalagda
               </TabsTrigger>

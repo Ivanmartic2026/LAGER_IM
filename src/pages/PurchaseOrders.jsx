@@ -118,48 +118,48 @@ export default function PurchaseOrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F6F7] via-[#ECEFF1] to-[#F5F6F7] p-4 md:p-6">
+    <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Inköpsordrar</h1>
-              <p className="text-slate-400">Hantera och spåra dina inköpsordrar</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 tracking-tight">Inköpsordrar</h1>
+              <p className="text-white/50">Hantera och spåra dina inköpsordrar</p>
             </div>
             <Button
               onClick={() => {
                 setEditingPO(null);
                 setShowForm(true);
               }}
-              className="bg-blue-600 hover:bg-blue-500"
-            >
+              className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
+              >
               <Plus className="w-4 h-4 mr-2" />
               Ny order
-            </Button>
+              </Button>
           </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
-              <div className="text-2xl font-bold text-white mb-1">{filteredPOs.length}</div>
-              <div className="text-xs text-slate-400">Totalt ordrar</div>
+            <div className="p-4 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
+              <div className="text-2xl font-bold text-white mb-1 tracking-tight">{filteredPOs.length}</div>
+              <div className="text-xs text-white/50">Totalt ordrar</div>
             </div>
-            <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
-              <div className="text-2xl font-bold text-blue-400 mb-1">
+            <div className="p-4 rounded-xl bg-blue-500/10 backdrop-blur-xl border border-blue-500/30 hover:bg-blue-500/20 transition-all duration-300">
+              <div className="text-2xl font-bold text-blue-400 mb-1 tracking-tight">
                 {purchaseOrders.filter(po => po.status === 'ordered').length}
               </div>
               <div className="text-xs text-blue-300">Beställda</div>
             </div>
-            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
-              <div className="text-2xl font-bold text-amber-400 mb-1">
+            <div className="p-4 rounded-xl bg-amber-500/10 backdrop-blur-xl border border-amber-500/30 hover:bg-amber-500/20 transition-all duration-300">
+              <div className="text-2xl font-bold text-amber-400 mb-1 tracking-tight">
                 {purchaseOrders.filter(po => po.status === 'partially_received').length}
               </div>
               <div className="text-xs text-amber-300">Delvis mottagna</div>
             </div>
-            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
-              <div className="text-2xl font-bold text-emerald-400 mb-1">
+            <div className="p-4 rounded-xl bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/30 hover:bg-emerald-500/20 transition-all duration-300">
+              <div className="text-2xl font-bold text-emerald-400 mb-1 tracking-tight">
                 {purchaseOrders.filter(po => po.status === 'received').length}
               </div>
               <div className="text-xs text-emerald-300">Mottagna</div>
@@ -170,21 +170,21 @@ export default function PurchaseOrdersPage() {
         {/* Search & Filters */}
         <div className="flex flex-col md:flex-row gap-3 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Sök ordernummer eller leverantör..."
-              className="pl-10 bg-slate-800/50 border-slate-700 text-white"
+              className="pl-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300"
             />
           </div>
           
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList className="bg-slate-800/50 border border-slate-700 w-full md:w-auto">
-              <TabsTrigger value="all" className="text-xs flex-1 md:flex-none">Alla</TabsTrigger>
-              <TabsTrigger value="ordered" className="text-xs flex-1 md:flex-none">Beställd</TabsTrigger>
-              <TabsTrigger value="partially_received" className="text-xs flex-1 md:flex-none">Delvis</TabsTrigger>
-              <TabsTrigger value="received" className="text-xs flex-1 md:flex-none">Mottagen</TabsTrigger>
+            <TabsList className="bg-white/5 border border-white/10 backdrop-blur-xl w-full md:w-auto">
+              <TabsTrigger value="all" className="text-xs flex-1 md:flex-none text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
+              <TabsTrigger value="ordered" className="text-xs flex-1 md:flex-none text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Beställd</TabsTrigger>
+              <TabsTrigger value="partially_received" className="text-xs flex-1 md:flex-none text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Delvis</TabsTrigger>
+              <TabsTrigger value="received" className="text-xs flex-1 md:flex-none text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Mottagen</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -193,23 +193,23 @@ export default function PurchaseOrdersPage() {
         {isLoading ? (
           <div className="space-y-2">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-32 rounded-xl bg-slate-800/50 animate-pulse" />
+              <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse" />
             ))}
           </div>
         ) : filteredPOs.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
-              <ShoppingCart className="w-8 h-8 text-slate-600" />
+            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
+              <ShoppingCart className="w-8 h-8 text-white/30" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">
+            <h3 className="text-lg font-semibold text-white mb-2 tracking-tight">
               Inga inköpsordrar ännu
             </h3>
-            <p className="text-slate-400 mb-6">
+            <p className="text-white/50 mb-6">
               Skapa din första inköpsorder för att komma igång
             </p>
             <Button
               onClick={() => setShowForm(true)}
-              className="bg-blue-600 hover:bg-blue-500"
+              className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
             >
               <Plus className="w-4 h-4 mr-2" />
               Skapa inköpsorder
@@ -227,7 +227,7 @@ export default function PurchaseOrdersPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="group rounded-2xl bg-white/80 backdrop-blur-sm border border-[#E1E4E8] hover:border-[#C1C4C8] hover:bg-white hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 overflow-hidden"
+                    className="group rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300 overflow-hidden"
                     >
                     {/* Header */}
                     <div className="p-5 border-b border-slate-700/50">
