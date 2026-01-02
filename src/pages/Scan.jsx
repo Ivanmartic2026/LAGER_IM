@@ -331,80 +331,102 @@ export default function ScanPage() {
         
         setProgress(90);
         
-        // Visual image comparison with existing articles
-        if (uniqueMatches.length === 0) {
-          console.log("No text matches found, trying visual comparison...");
+        // Visual image comparison with existing articles (always run, not just when no text matches)
+        console.log("Starting visual comparison with existing articles...");
+        
+        // Get all articles with images
+        const allArticles = await base44.entities.Article.list();
+        const articlesWithImages = allArticles.filter(a => 
+          a.image_urls && a.image_urls.length > 0
+        );
+        
+        if (articlesWithImages.length > 0) {
+          // Take up to 50 most recent articles with images for comparison
+          const recentArticlesWithImages = articlesWithImages.slice(0, 50);
           
-          // Get all articles with images
-          const allArticles = await base44.entities.Article.list();
-          const articlesWithImages = allArticles.filter(a => 
-            a.image_urls && a.image_urls.length > 0
-          );
-          
-          if (articlesWithImages.length > 0) {
-            // Compare visually - batch process to avoid too many API calls
-            // Take up to 20 most recent articles with images for comparison
-            const recentArticlesWithImages = articlesWithImages.slice(0, 20);
+          try {
+            // Build article reference map for AI
+            const articleReferences = recentArticlesWithImages.map((a, idx) => ({
+              index: idx + 1, // Image index in the array (after the scanned image at index 0)
+              article_id: a.id,
+              name: a.name,
+              batch_number: a.batch_number,
+              manufacturer: a.manufacturer
+            }));
             
-            try {
-              const visualComparison = await base44.integrations.Core.InvokeLLM({
-                prompt: `Jämför den första bilden (den skannade bilden) med följande produktbilder från vårt lager.
+            const visualComparison = await base44.integrations.Core.InvokeLLM({
+              prompt: `Du ska jämföra den FÖRSTA bilden (den nyligen skannade bilden) med alla andra produktbilder i listan.
 
-Analysera om den skannade bilden visar SAMMA produkt som någon av de andra bilderna.
-En matchning innebär att det är exakt samma produktmodell, inte bara liknande produkter.
+VIKTIGT: Den skannade bilden är bild nummer 0. Resten av bilderna (1-${recentArticlesWithImages.length}) är från vårt lager.
 
-För varje produktbild, returnera:
-- article_id: ID för artikeln
-- is_match: true om det är samma produkt, false annars
-- confidence: 0-1 hur säker du är på matchningen
-- reason: kort förklaring
+Artikelreferenser:
+${articleReferences.map(ref => `Bild ${ref.index}: ${ref.name || 'Okänd'} (ID: ${ref.article_id}, Batch: ${ref.batch_number || 'N/A'}, Tillverkare: ${ref.manufacturer || 'N/A'})`).join('\n')}
 
-Returnera bara artiklar där is_match är true och confidence är över 0.7.`,
-                file_urls: [
-                  urls[0], // The scanned image
-                  ...recentArticlesWithImages.flatMap(a => a.image_urls.slice(0, 1))
-                ],
-                response_json_schema: {
-                  type: "object",
-                  properties: {
-                    matches: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          article_id: { type: "string" },
-                          is_match: { type: "boolean" },
-                          confidence: { type: "number" },
-                          reason: { type: "string" }
-                        }
+Analysera om den skannade bilden (bild 0) visar SAMMA produkt/produktmodell som någon av de andra bilderna.
+En matchning betyder att det är exakt samma produktmodell - samma utseende, design, kabinett, LED-panel typ etc.
+Det spelar ingen roll om vinkeln är annorlunda eller om färgen på bakgrunden skiljer sig.
+
+För VARJE lagerbild som matchar, returnera:
+- article_id: ID för den matchande artikeln
+- is_match: true om det är samma produkt
+- confidence: 0-1 (hur säker du är)
+- reason: Förklaring av varför det är en matchning
+
+Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
+              file_urls: [
+                urls[0], // The scanned image at index 0
+                ...recentArticlesWithImages.flatMap(a => a.image_urls.slice(0, 1))
+              ],
+              response_json_schema: {
+                type: "object",
+                properties: {
+                  matches: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        article_id: { type: "string" },
+                        is_match: { type: "boolean" },
+                        confidence: { type: "number" },
+                        reason: { type: "string" }
                       }
                     }
                   }
                 }
-              });
+              }
+            });
+            
+            if (visualComparison.matches && visualComparison.matches.length > 0) {
+              console.log(`Found ${visualComparison.matches.length} visual match(es):`, visualComparison.matches);
               
-              if (visualComparison.matches && visualComparison.matches.length > 0) {
-                console.log(`Found ${visualComparison.matches.length} visual match(es)`);
-                
-                visualComparison.matches.forEach(match => {
-                  const article = recentArticlesWithImages.find(a => a.id === match.article_id);
-                  if (article && match.is_match && match.confidence > 0.7) {
+              visualComparison.matches.forEach(match => {
+                const article = recentArticlesWithImages.find(a => a.id === match.article_id);
+                if (article && match.is_match && match.confidence >= 0.5) {
+                  // Check if this article is already in uniqueMatches
+                  const existingMatch = uniqueMatches.find(m => m.article.id === article.id);
+                  if (existingMatch) {
+                    // Boost score if we have both text and visual match
+                    existingMatch.matchScore += Math.round(match.confidence * 3);
+                    existingMatch.visualConfidence = match.confidence;
+                    existingMatch.visualReason = match.reason;
+                  } else {
+                    // Add as new visual match
                     uniqueMatches.push({
                       article: article,
-                      matchScore: Math.round(match.confidence * 8), // 0.7-1.0 -> 5.6-8.0 score
+                      matchScore: Math.round(match.confidence * 8), // 0.5-1.0 -> 4.0-8.0 score
                       matchField: 'visual',
                       visualConfidence: match.confidence,
                       visualReason: match.reason
                     });
                   }
-                });
-                
-                // Re-sort after adding visual matches
-                uniqueMatches.sort((a, b) => b.matchScore - a.matchScore);
-              }
-            } catch (visualError) {
-              console.log("Visual comparison failed:", visualError);
+                }
+              });
+              
+              // Re-sort after adding/updating visual matches
+              uniqueMatches.sort((a, b) => b.matchScore - a.matchScore);
             }
+          } catch (visualError) {
+            console.log("Visual comparison failed:", visualError);
           }
         }
         
