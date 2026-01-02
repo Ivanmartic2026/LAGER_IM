@@ -93,24 +93,42 @@ export default function InventoryPage() {
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async (ids) => {
-      await Promise.all(ids.map(id => base44.entities.Article.delete(id)));
+      const results = await Promise.allSettled(
+        ids.map(id => base44.entities.Article.delete(id))
+      );
+      const failed = results.filter(r => r.status === 'rejected');
+      if (failed.length > 0) {
+        throw new Error(`${failed.length} artikel(ar) kunde inte tas bort`);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
       setSelectedArticleIds([]);
       toast.success("Artiklar borttagna");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Kunde inte ta bort artiklar");
     }
   });
 
   const bulkUpdateMutation = useMutation({
     mutationFn: async ({ ids, data }) => {
-      await Promise.all(ids.map(id => base44.entities.Article.update(id, data)));
+      const results = await Promise.allSettled(
+        ids.map(id => base44.entities.Article.update(id, data))
+      );
+      const failed = results.filter(r => r.status === 'rejected');
+      if (failed.length > 0) {
+        throw new Error(`${failed.length} artikel(ar) kunde inte uppdateras`);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
       setSelectedArticleIds([]);
       setBulkEditOpen(false);
       toast.success("Artiklar uppdaterade");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Kunde inte uppdatera artiklar");
     }
   });
 
