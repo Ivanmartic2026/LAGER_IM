@@ -309,12 +309,22 @@ export default function ScanPage() {
       let article;
       let previousQty = 0;
 
+      // Prepare data - ensure shelf_address is an array
+      const preparedData = {
+        ...extractedData,
+        shelf_address: extractedData.shelf_address 
+          ? (Array.isArray(extractedData.shelf_address) 
+            ? extractedData.shelf_address 
+            : [extractedData.shelf_address])
+          : []
+      };
+
       if (existing.length > 0) {
         // Update existing article
         article = existing[0];
         previousQty = article.stock_qty || 0;
         
-        const updateData = { ...extractedData };
+        const updateData = { ...preparedData };
         if (mode === "inbound") {
           updateData.stock_qty = previousQty + (parseInt(extractedData.stock_qty) || 0);
         }
@@ -325,7 +335,7 @@ export default function ScanPage() {
       } else {
         // Create new article
         article = await base44.entities.Article.create({
-          ...extractedData,
+          ...preparedData,
           stock_qty: parseInt(extractedData.stock_qty) || 0,
           status: "active"
         });
