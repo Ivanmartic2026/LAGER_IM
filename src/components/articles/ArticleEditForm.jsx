@@ -383,12 +383,12 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     </div>
                   ) : (
                     <Select 
-                      value={formData.warehouse} 
-                      onValueChange={(value) => {
-                        handleChange('warehouse', value);
-                        // Reset shelf when warehouse changes
-                        handleChange('shelf_address', '');
-                      }}
+                     value={formData.warehouse} 
+                     onValueChange={(value) => {
+                       handleChange('warehouse', value);
+                       // Reset shelf when warehouse changes
+                       handleChange('shelf_address', []);
+                     }}
                     >
                       <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                         <SelectValue placeholder="Välj lagerställe" />
