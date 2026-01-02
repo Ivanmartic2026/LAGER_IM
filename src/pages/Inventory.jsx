@@ -115,28 +115,7 @@ export default function InventoryPage() {
     }
   });
 
-  const bulkDeleteMutation = useMutation({
-    mutationFn: async (ids) => {
-      console.log('Deleting articles:', ids);
-      for (const id of ids) {
-        try {
-          await base44.entities.Article.delete(id);
-        } catch (error) {
-          console.error('Failed to delete article:', id, error);
-          throw error;
-        }
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['articles'] });
-      setSelectedArticleIds([]);
-      toast.success("Artiklar borttagna");
-    },
-    onError: (error) => {
-      console.error('Bulk delete error:', error);
-      toast.error(error.message || "Kunde inte ta bort artiklar");
-    }
-  });
+
 
   const bulkUpdateMutation = useMutation({
     mutationFn: async ({ ids, data }) => {
