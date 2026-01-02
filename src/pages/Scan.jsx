@@ -54,6 +54,8 @@ export default function ScanPage() {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [existingArticle, setExistingArticle] = useState(null);
   const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
+  const [showMatchConfirm, setShowMatchConfirm] = useState(false);
+  const [potentialMatches, setPotentialMatches] = useState([]);
 
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
@@ -327,12 +329,16 @@ export default function ScanPage() {
             }
           });
         
-        // If we found a strong match, set it as existing
+        // If we found a strong match, show confirmation dialog
         if (uniqueMatches.length > 0) {
-          const bestMatch = uniqueMatches[0];
-          console.log(`Found potential match: ${bestMatch.article.name} (score: ${bestMatch.matchScore}, field: ${bestMatch.matchField})`);
-          setExistingArticle(bestMatch.article);
-          toast.info(`Liknande artikel hittad: ${bestMatch.article.name}`);
+          console.log(`Found ${uniqueMatches.length} potential match(es)`);
+          setPotentialMatches(uniqueMatches);
+          setExistingArticle(uniqueMatches[0].article);
+          setExtractedData({ ...data, image_urls: urls });
+          setConfidences(confs);
+          setProgress(100);
+          setShowMatchConfirm(true);
+          return; // Don't proceed to review yet
         }
       } catch (searchError) {
         console.log("Could not search for existing articles:", searchError);
@@ -481,6 +487,20 @@ export default function ScanPage() {
     setIsSaving(false);
   };
 
+  const handleConfirmMatch = () => {
+    // User confirmed this is the same article
+    setSelectedArticle(existingArticle);
+    setShowMatchConfirm(false);
+    setStep("success");
+  };
+
+  const handleRejectMatch = () => {
+    // User wants to create a new article
+    setShowMatchConfirm(false);
+    setPotentialMatches([]);
+    setStep("review");
+  };
+
   const handleReset = () => {
     setMode(null);
     setStep("mode");
@@ -492,6 +512,8 @@ export default function ScanPage() {
     setSelectedArticle(null);
     setExistingArticle(null);
     setShowDuplicateConfirm(false);
+    setShowMatchConfirm(false);
+    setPotentialMatches([]);
     setProgress(0);
     setBarcodeResult(null);
     setSearchingArticle(false);
