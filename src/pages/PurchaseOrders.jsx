@@ -73,17 +73,41 @@ export default function PurchaseOrdersPage() {
       const response = await base44.functions.invoke('printPurchaseOrder', { purchaseOrderId: poId });
       return response.data;
     },
-    onSuccess: (data) => {
-      const blob = new Blob([data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `bestallning_${Date.now()}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-      toast.success('Beställning nedladdad!');
+    onSuccess: async (htmlContent) => {
+      // Create temporary element
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = htmlContent;
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.width = '800px';
+      document.body.appendChild(tempDiv);
+
+      try {
+        // Import html2canvas dynamically
+        const html2canvas = (await import('html2canvas')).default;
+        
+        // Capture as image
+        const canvas = await html2canvas(tempDiv, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+          logging: false
+        });
+
+        // Convert to PNG and download
+        canvas.toBlob((blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `inkopsorder_${Date.now()}.png`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          a.remove();
+          toast.success('Beställning nedladdad som bild!');
+        });
+      } finally {
+        document.body.removeChild(tempDiv);
+      }
     }
   });
 
