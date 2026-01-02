@@ -3,6 +3,7 @@ import Analytics from './pages/Analytics';
 import Find from './pages/Find';
 import Home from './pages/Home';
 import Inventory from './pages/Inventory';
+import InventoryValue from './pages/InventoryValue';
 import Movements from './pages/Movements';
 import Orders from './pages/Orders';
 import PickOrder from './pages/PickOrder';
@@ -17,7 +18,6 @@ import SupplierPortalAdmin from './pages/SupplierPortalAdmin';
 import Suppliers from './pages/Suppliers';
 import UsersManagement from './pages/UsersManagement';
 import Warehouses from './pages/Warehouses';
-import InventoryValue from './pages/InventoryValue';
 import __Layout from './Layout.jsx';
 
 
@@ -27,6 +27,7 @@ export const PAGES = {
     "Find": Find,
     "Home": Home,
     "Inventory": Inventory,
+    "InventoryValue": InventoryValue,
     "Movements": Movements,
     "Orders": Orders,
     "PickOrder": PickOrder,
@@ -41,7 +42,6 @@ export const PAGES = {
     "Suppliers": Suppliers,
     "UsersManagement": UsersManagement,
     "Warehouses": Warehouses,
-    "InventoryValue": InventoryValue,
 }
 
 export const pagesConfig = {

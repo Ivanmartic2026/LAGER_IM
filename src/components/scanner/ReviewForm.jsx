@@ -46,10 +46,12 @@ export default function ReviewForm({
       className="space-y-6"
     >
       {lowConfidenceCount > 0 && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
-          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
-          <p className="text-sm text-amber-200">
-            <strong>{lowConfidenceCount} fält</strong> behöver verifieras. Kontrollera markerade fält.
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 border-2 border-amber-500/40 backdrop-blur-xl shadow-lg shadow-amber-500/10">
+          <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="w-5 h-5 text-amber-400" />
+          </div>
+          <p className="text-sm text-amber-300">
+            <strong className="font-semibold">{lowConfidenceCount} fält</strong> behöver verifieras. Kontrollera markerade fält.
           </p>
         </div>
       )}
@@ -195,22 +197,22 @@ export default function ReviewForm({
         />
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-sm font-medium text-slate-300">Anteckningar</Label>
+      <div className="space-y-3">
+        <Label className="text-sm font-semibold text-white">Anteckningar</Label>
         <Textarea
           value={extractedData.notes || ""}
           onChange={(e) => onFieldChange("notes", e.target.value)}
           placeholder="Valfria anteckningar..."
-          className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 min-h-[80px]"
+          className="bg-white/5 border-white/10 text-white placeholder:text-white/40 hover:bg-white/10 hover:border-white/20 transition-all min-h-[80px]"
         />
       </div>
 
-      <div className="flex gap-3 pt-4">
+      <div className="flex gap-3 pt-6">
         <Button
           variant="outline"
           onClick={onCancel}
           disabled={isSaving}
-          className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+          className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white transition-all h-12"
         >
           <X className="w-4 h-4 mr-2" />
           Avbryt
@@ -218,7 +220,7 @@ export default function ReviewForm({
         <Button
           onClick={onSave}
           disabled={isSaving || !extractedData.batch_number || !extractedData.name}
-          className="flex-1 bg-blue-600 hover:bg-blue-500 text-white"
+          className="flex-1 bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all h-12"
         >
           {isSaving ? (
             <>

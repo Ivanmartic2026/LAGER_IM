@@ -20,13 +20,13 @@ export default function ExtractedFieldCard({
 
   return (
     <div className={cn(
-      "p-4 rounded-xl border transition-all duration-200",
+      "relative p-4 rounded-xl border-2 transition-all duration-200 backdrop-blur-xl",
       needsReview 
-        ? "bg-amber-500/5 border-amber-500/30" 
-        : "bg-slate-800/50 border-slate-700/50"
+        ? "bg-amber-500/10 border-amber-500/40 shadow-lg shadow-amber-500/10" 
+        : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
     )}>
-      <div className="flex items-center justify-between mb-2">
-        <Label className="text-sm font-medium text-slate-300">
+      <div className="flex items-center justify-between mb-3">
+        <Label className="text-sm font-semibold text-white">
           {label}
           {required && <span className="text-red-400 ml-1">*</span>}
         </Label>
@@ -37,12 +37,12 @@ export default function ExtractedFieldCard({
 
       {type === "select" ? (
         <Select value={value || ""} onValueChange={(val) => onChange(field, val)}>
-          <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white">
+          <SelectTrigger className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 transition-all">
             <SelectValue placeholder={placeholder || "Välj..."} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-zinc-900 border-white/10">
             {options.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
+              <SelectItem key={opt.value} value={opt.value} className="text-white">
                 {opt.label}
               </SelectItem>
             ))}
@@ -55,8 +55,8 @@ export default function ExtractedFieldCard({
           onChange={(e) => onChange(field, e.target.value)}
           placeholder={placeholder}
           className={cn(
-            "bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500",
-            needsReview && "border-amber-500/50 focus:border-amber-400"
+            "bg-white/5 border-white/10 text-white placeholder:text-white/40 hover:bg-white/10 hover:border-white/20 transition-all",
+            needsReview && "border-amber-500/50 focus:border-amber-400 bg-amber-500/5"
           )}
         />
       )}
