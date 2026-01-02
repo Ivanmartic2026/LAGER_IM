@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart } from "lucide-react";
+import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { name: "Inventory", label: "Lager", icon: Package },
   { name: "Orders", label: "Ordrar", icon: ShoppingCart },
   { name: "PurchaseOrders", label: "Inköp", icon: ShoppingCart },
+  { name: "UnknownDeliveries", label: "Okända", icon: PackageSearch },
   { name: "Warehouses", label: "Lagerställen", icon: Activity },
   { name: "Repairs", label: "Reparation", icon: Activity },
   { name: "Admin", label: "Admin", icon: FileText }

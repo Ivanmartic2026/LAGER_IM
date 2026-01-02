@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { 
   Package, ClipboardList, ArrowLeft, Sparkles, 
-  CheckCircle2, Camera, Download, AlertTriangle, Scan as ScanIcon
+  CheckCircle2, Camera, Download, AlertTriangle, Scan as ScanIcon, PackageSearch
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CameraCapture from "@/components/scanner/CameraCapture";
 import ReviewForm from "@/components/scanner/ReviewForm";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
+import UnknownDeliveryForm from "@/components/scanner/UnknownDeliveryForm";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 
@@ -35,6 +36,13 @@ const MODE_OPTIONS = [
     description: "Justera lagersaldo för befintlig artikel",
     icon: ClipboardList,
     color: "from-emerald-500 to-emerald-600"
+  },
+  {
+    id: "unknown",
+    title: "Okänd Leverans",
+    description: "Registrera vara som kommit utan order",
+    icon: PackageSearch,
+    color: "from-amber-500 to-amber-600"
   }
 ];
 
@@ -61,6 +69,8 @@ export default function ScanPage() {
     setMode(selectedMode);
     if (selectedMode === "barcode") {
       setStep("barcode");
+    } else if (selectedMode === "unknown") {
+      setStep("capture"); // Use same capture for unknown delivery
     } else {
       setStep("capture");
     }
@@ -450,7 +460,13 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
       setExtractedData({ ...data, image_urls: urls });
       setConfidences(confs);
       setProgress(100);
-      setStep("review");
+      
+      // For unknown delivery mode, skip review and go to unknown form
+      if (mode === "unknown") {
+        setStep("unknown_review");
+      } else {
+        setStep("review");
+      }
 
       } catch (error) {
       console.error("Error processing image:", error);
@@ -465,6 +481,37 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
     setExtractedData(prev => ({ ...prev, [field]: value }));
     // Boost confidence when user manually edits
     setConfidences(prev => ({ ...prev, [field]: 1.0 }));
+  };
+
+  const handleSaveUnknown = async (formData) => {
+    setIsSaving(true);
+
+    try {
+      // Create article with unknown_delivery status
+      const article = await base44.entities.Article.create({
+        ...formData,
+        stock_qty: parseInt(formData.stock_qty) || 0
+      });
+
+      // Create stock movement record
+      await base44.entities.StockMovement.create({
+        article_id: article.id,
+        movement_type: "inbound",
+        quantity: parseInt(formData.stock_qty) || 0,
+        previous_qty: 0,
+        new_qty: article.stock_qty,
+        reason: "Okänd inleverans registrerad"
+      });
+
+      setSavedArticle(article);
+      setStep("success");
+      toast.success("Okänd leverans registrerad!");
+    } catch (error) {
+      console.error("Error saving unknown delivery:", error);
+      toast.error("Kunde inte registrera leveransen");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSave = async () => {
@@ -913,6 +960,49 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
                   </motion.div>
                 </motion.div>
               )}
+            </motion.div>
+          )}
+
+          {/* Step: Unknown Delivery Review */}
+          {step === "unknown_review" && (
+            <motion.div
+              key="unknown_review"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-white mb-2">
+                  Registrera okänd leverans
+                </h2>
+                <p className="text-slate-400">
+                  Fyll i vad du vet om leveransen
+                </p>
+              </div>
+
+              {imageUrls.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm text-slate-400 mb-2">{imageUrls.length} bild{imageUrls.length > 1 ? 'er' : ''} uppladdad{imageUrls.length > 1 ? 'e' : ''}</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {imageUrls.map((url, index) => (
+                      <img 
+                        key={index}
+                        src={url} 
+                        alt={`Bild ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg bg-slate-900"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <UnknownDeliveryForm
+                imageUrls={imageUrls}
+                onSave={handleSaveUnknown}
+                onCancel={handleReset}
+                isSaving={isSaving}
+              />
             </motion.div>
           )}
 
