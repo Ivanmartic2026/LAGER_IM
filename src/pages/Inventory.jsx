@@ -93,6 +93,30 @@ export default function InventoryPage() {
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async (ids) => {
+      console.log('Bulk delete starting for IDs:', ids);
+      const results = await Promise.allSettled(
+        ids.map(id => base44.entities.Article.delete(id))
+      );
+      const failed = results.filter(r => r.status === 'rejected');
+      if (failed.length > 0) {
+        console.error('Failed deletes:', failed);
+        throw new Error(`${failed.length} av ${ids.length} artiklar kunde inte tas bort`);
+      }
+      console.log('Bulk delete completed successfully');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      setSelectedArticleIds([]);
+      toast.success("Artiklar borttagna");
+    },
+    onError: (error) => {
+      console.error('Bulk delete error:', error);
+      toast.error(error.message || "Kunde inte ta bort artiklar");
+    }
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids) => {
       console.log('Deleting articles:', ids);
       for (const id of ids) {
         try {
