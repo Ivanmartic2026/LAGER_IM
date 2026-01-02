@@ -18,6 +18,7 @@ import SupplierPortalAdmin from './pages/SupplierPortalAdmin';
 import Suppliers from './pages/Suppliers';
 import UsersManagement from './pages/UsersManagement';
 import Warehouses from './pages/Warehouses';
+import UnknownDeliveries from './pages/UnknownDeliveries';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +43,7 @@ export const PAGES = {
     "Suppliers": Suppliers,
     "UsersManagement": UsersManagement,
     "Warehouses": Warehouses,
+    "UnknownDeliveries": UnknownDeliveries,
 }
 
 export const pagesConfig = {
