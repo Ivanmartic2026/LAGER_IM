@@ -968,6 +968,7 @@ export default function InventoryPage() {
             <DialogContent className="bg-zinc-950 border-white/10 text-white backdrop-blur-2xl">
               <DialogHeader>
                 <DialogTitle>Redigera {selectedArticleIds.length} artikel{selectedArticleIds.length !== 1 ? 'ar' : ''}</DialogTitle>
+                <p className="text-sm text-white/50">Uppdatera flera artiklar samtidigt</p>
               </DialogHeader>
               <BulkEditForm
                 articleCount={selectedArticleIds.length}
