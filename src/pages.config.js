@@ -16,6 +16,7 @@ import UsersManagement from './pages/UsersManagement';
 import Warehouses from './pages/Warehouses';
 import SupplierLogin from './pages/SupplierLogin';
 import SupplierPortal from './pages/SupplierPortal';
+import SupplierPortalAdmin from './pages/SupplierPortalAdmin';
 import __Layout from './Layout.jsx';
 
 
@@ -38,6 +39,7 @@ export const PAGES = {
     "Warehouses": Warehouses,
     "SupplierLogin": SupplierLogin,
     "SupplierPortal": SupplierPortal,
+    "SupplierPortalAdmin": SupplierPortalAdmin,
 }
 
 export const pagesConfig = {

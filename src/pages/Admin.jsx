@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Settings, Users, TrendingUp, FileText, Calendar,
-  ArrowRight, Activity
+  ArrowRight, Activity, Package
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,15 @@ export default function AdminPage() {
       color: "from-blue-600 to-blue-700",
       iconBg: "bg-blue-500/20",
       iconColor: "text-blue-400"
+    },
+    {
+      name: "SupplierPortalAdmin",
+      label: "Leverantörsportal",
+      description: "Hantera leverantörsinloggningar och åtkomst",
+      icon: Package,
+      color: "from-teal-600 to-teal-700",
+      iconBg: "bg-teal-500/20",
+      iconColor: "text-teal-400"
     },
     {
       name: "Movements",
