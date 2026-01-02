@@ -41,6 +41,7 @@ export default function InventoryPage() {
   const [viewMode, setViewMode] = useState("grid");
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [warehouseFilter, setWarehouseFilter] = useState("all");
+  const [storageTypeFilter, setStorageTypeFilter] = useState("all");
   const [adjustmentModal, setAdjustmentModal] = useState({ open: false, type: null });
   const [editingArticle, setEditingArticle] = useState(null);
   const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
@@ -269,8 +270,9 @@ export default function InventoryPage() {
       
       const matchesStatus = statusFilter === "all" || article.status === statusFilter;
       const matchesWarehouse = warehouseFilter === "all" || article.warehouse === warehouseFilter;
+      const matchesStorageType = storageTypeFilter === "all" || article.storage_type === storageTypeFilter;
       
-      return matchesSearch && matchesStatus && matchesWarehouse;
+      return matchesSearch && matchesStatus && matchesWarehouse && matchesStorageType;
     })
     .sort((a, b) => {
       switch(sortBy) {
@@ -503,7 +505,18 @@ export default function InventoryPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+
+            <Select value={storageTypeFilter} onValueChange={setStorageTypeFilter}>
+              <SelectTrigger className="w-48 h-9 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300">
+                <SelectValue placeholder="Lagertyp" />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                <SelectItem value="all">Alla typer</SelectItem>
+                <SelectItem value="company_owned">Företagsägt</SelectItem>
+                <SelectItem value="customer_owned">Kundägt</SelectItem>
+              </SelectContent>
+            </Select>
+            </div>
         </div>
 
         {/* Articles List */}
