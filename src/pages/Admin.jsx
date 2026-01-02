@@ -4,12 +4,21 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Settings, Users, TrendingUp, FileText, Calendar,
-  ArrowRight, Activity, Package
+  ArrowRight, Activity, Package, Monitor
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AdminPage() {
   const adminSections = [
+    {
+      name: "WarehouseDashboard",
+      label: "TV Dashboard",
+      description: "Realtidsöversikt för lagerskärm",
+      icon: Monitor,
+      color: "from-blue-600 to-blue-700",
+      iconBg: "bg-blue-500/20",
+      iconColor: "text-blue-400"
+    },
     {
       name: "UsersManagement",
       label: "Användare",
