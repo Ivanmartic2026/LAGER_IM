@@ -42,9 +42,9 @@ Deno.serve(async (req) => {
         <meta charset="UTF-8">
         <style>
           body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             padding: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #ffffff;
             margin: 0;
             min-height: 100vh;
           }
@@ -52,24 +52,24 @@ Deno.serve(async (req) => {
             max-width: 900px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: 1px solid #000000;
             overflow: hidden;
           }
           .header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background: #000000;
             padding: 40px;
             color: white;
             position: relative;
           }
           .logo {
-            height: 50px;
+            height: 45px;
             margin-bottom: 20px;
+            filter: brightness(0) invert(1);
           }
           h1 {
-            font-size: 36px;
+            font-size: 32px;
             margin: 0;
-            font-weight: 700;
+            font-weight: 600;
             letter-spacing: -0.5px;
           }
           .content {
@@ -80,112 +80,109 @@ Deno.serve(async (req) => {
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-bottom: 30px;
-            background: #f8fafc;
+            background: #fafafa;
             padding: 25px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #e0e0e0;
           }
           .info-item {
             display: flex;
             flex-direction: column;
           }
           .info-label {
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
-            color: #64748b;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            color: #666666;
+            font-weight: 500;
+            letter-spacing: 0.8px;
             margin-bottom: 6px;
           }
           .info-value {
             font-size: 15px;
-            color: #0f172a;
-            font-weight: 600;
+            color: #000000;
+            font-weight: 500;
           }
           .supplier-box {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            background: #f5f5f5;
             padding: 25px;
-            border-radius: 12px;
             margin-bottom: 30px;
-            border: 2px solid #3b82f6;
+            border-left: 3px solid #000000;
           }
           .supplier-label {
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
-            color: #1e40af;
-            font-weight: 700;
-            letter-spacing: 0.5px;
+            color: #666666;
+            font-weight: 500;
+            letter-spacing: 0.8px;
             margin-bottom: 10px;
           }
           .supplier-name {
-            font-size: 18px;
-            color: #1e3a8a;
-            font-weight: 700;
+            font-size: 17px;
+            color: #000000;
+            font-weight: 500;
           }
           table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+            border-collapse: collapse;
             margin: 30px 0;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e0e0e0;
           }
           th {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            padding: 16px 12px;
+            background: #000000;
+            padding: 14px 12px;
             text-align: left;
-            font-weight: 700;
+            font-weight: 500;
             color: white;
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
           }
           td {
-            padding: 16px 12px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 14px 12px;
+            border-bottom: 1px solid #e0e0e0;
             background: white;
+            color: #000000;
+            font-size: 14px;
           }
-          tbody tr:hover {
-            background: #f8fafc;
+          tbody tr:last-child td {
+            border-bottom: none;
           }
           .total-row {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%) !important;
-            font-weight: 700;
-            font-size: 20px;
+            background: #000000 !important;
+            font-weight: 600;
+            font-size: 18px;
           }
           .total-row td {
             color: white !important;
             border-bottom: none;
-            padding: 20px 12px;
+            padding: 18px 12px;
           }
           .notes {
             margin-top: 30px;
             padding: 25px;
-            background: #fefce8;
-            border-left: 4px solid #eab308;
-            border-radius: 8px;
+            background: #fafafa;
+            border-left: 3px solid #000000;
           }
           .notes-label {
-            font-weight: 700;
+            font-weight: 500;
             margin-bottom: 10px;
-            color: #713f12;
-            font-size: 14px;
+            color: #000000;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
           }
           .notes-text {
-            color: #854d0e;
+            color: #333333;
             line-height: 1.6;
+            font-size: 14px;
           }
           .footer {
             margin-top: 40px;
             padding: 25px 40px;
-            background: #f8fafc;
+            background: #fafafa;
             text-align: center;
-            color: #64748b;
-            font-size: 12px;
-            border-top: 2px solid #e2e8f0;
+            color: #666666;
+            font-size: 11px;
+            border-top: 1px solid #e0e0e0;
           }
         </style>
       </head>
