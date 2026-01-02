@@ -47,6 +47,15 @@ export default function AdminPage() {
       iconColor: "text-emerald-400"
     },
     {
+      name: "InventoryValue",
+      label: "Lagervärde",
+      description: "Se totalt värde av lager",
+      icon: TrendingUp,
+      color: "from-emerald-600 to-emerald-700",
+      iconBg: "bg-emerald-500/20",
+      iconColor: "text-emerald-400"
+    },
+    {
       name: "Analytics",
       label: "Analys",
       description: "Statistik och rapporter",

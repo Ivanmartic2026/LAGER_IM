@@ -17,6 +17,7 @@ import SupplierPortalAdmin from './pages/SupplierPortalAdmin';
 import Suppliers from './pages/Suppliers';
 import UsersManagement from './pages/UsersManagement';
 import Warehouses from './pages/Warehouses';
+import InventoryValue from './pages/InventoryValue';
 import __Layout from './Layout.jsx';
 
 
@@ -40,6 +41,7 @@ export const PAGES = {
     "Suppliers": Suppliers,
     "UsersManagement": UsersManagement,
     "Warehouses": Warehouses,
+    "InventoryValue": InventoryValue,
 }
 
 export const pagesConfig = {
