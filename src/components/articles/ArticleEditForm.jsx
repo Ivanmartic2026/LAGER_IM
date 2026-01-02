@@ -24,7 +24,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
     dimensions_depth_mm: article.dimensions_depth_mm || '',
     weight_g: article.weight_g || (article.weight_kg ? article.weight_kg * 1000 : ''),
     warehouse: article.warehouse || '',
-    shelf_address: article.shelf_address || '',
+    shelf_address: Array.isArray(article.shelf_address) ? article.shelf_address : (article.shelf_address ? [article.shelf_address] : []),
     calculated_cost: article.calculated_cost || '',
     batch_number: article.batch_number || '',
     pixel_pitch_mm: article.pixel_pitch_mm || '',
@@ -403,8 +403,8 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     </Select>
                   )}
                 </div>
-                <div>
-                  <Label className="text-slate-300">Lagerplats</Label>
+                <div className="md:col-span-2">
+                  <Label className="text-slate-300">Lagerplatser</Label>
                   {!formData.warehouse ? (
                     <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 text-sm text-slate-500">
                       Välj lagerställe först
@@ -414,21 +414,55 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                       Inga hyllor i detta lagerställe. Lägg till hyllor på Lagerställen-sidan.
                     </div>
                   ) : (
-                    <Select 
-                      value={formData.shelf_address} 
-                      onValueChange={(value) => handleChange('shelf_address', value)}
-                    >
-                      <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                        <SelectValue placeholder="Välj lagerplats" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableShelves.map((shelf) => (
-                          <SelectItem key={shelf.id} value={shelf.shelf_code}>
-                            {shelf.shelf_code}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      {formData.shelf_address.map((shelf, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Select 
+                            value={shelf} 
+                            onValueChange={(value) => {
+                              const newShelves = [...formData.shelf_address];
+                              newShelves[index] = value;
+                              handleChange('shelf_address', newShelves);
+                            }}
+                          >
+                            <SelectTrigger className="bg-slate-800 border-slate-700 text-white flex-1">
+                              <SelectValue placeholder="Välj lagerplats" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableShelves.map((s) => (
+                                <SelectItem key={s.id} value={s.shelf_code}>
+                                  {s.shelf_code}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              const newShelves = formData.shelf_address.filter((_, i) => i !== index);
+                              handleChange('shelf_address', newShelves);
+                            }}
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          handleChange('shelf_address', [...formData.shelf_address, '']);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white w-full"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Lägg till lagerplats
+                      </Button>
+                    </div>
                   )}
                 </div>
                 <div>
