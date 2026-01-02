@@ -115,8 +115,6 @@ export default function InventoryPage() {
     }
   });
 
-
-
   const bulkUpdateMutation = useMutation({
     mutationFn: async ({ ids, data }) => {
       const results = await Promise.allSettled(
