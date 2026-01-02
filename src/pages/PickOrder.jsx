@@ -14,6 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import OrderForm from "@/components/orders/OrderForm";
+import PickingItemCard from "@/components/orders/PickingItemCard";
 
 export default function PickOrderPage() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -23,6 +24,8 @@ export default function PickOrderPage() {
   const [scanMode, setScanMode] = useState(false);
   const [currentItemId, setCurrentItemId] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [expandedItemId, setExpandedItemId] = useState(null);
+  const [pickingItemId, setPickingItemId] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -115,6 +118,7 @@ export default function PickOrderPage() {
   };
 
   const handlePickQuantity = async (item, pickedQty, isEdit = false) => {
+    setPickingItemId(item.id);
     // Fetch fresh article data to ensure we have the latest stock quantity
     const freshArticles = await base44.entities.Article.filter({ id: item.article_id });
     const article = freshArticles[0];
@@ -204,6 +208,9 @@ export default function PickOrderPage() {
       
       toast.success("Alla artiklar plockade! Order komplett.");
     }
+
+    setPickingItemId(null);
+    setExpandedItemId(null);
   };
 
   const handleManualPick = async (item) => {
@@ -371,81 +378,82 @@ export default function PickOrderPage() {
           </div>
         </div>
 
-        {/* Scan Button */}
-        {pendingItems.length > 0 && (
-          <Button
-            onClick={() => setScanMode(!scanMode)}
-            className="w-full mb-6 bg-blue-600 hover:bg-blue-500 h-14 text-lg"
-          >
-            <Camera className="w-5 h-5 mr-2" />
-            {scanMode ? 'Stäng skanner' : 'Skanna streckkod'}
-          </Button>
-        )}
-
         {/* Scanner */}
-        {scanMode && (
-          <div className="mb-6">
-            <BarcodeScanner
-              onBarcodeDetected={handleBarcodeDetected}
-              onClose={() => setScanMode(false)}
-            />
+        <AnimatePresence>
+          {scanMode && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6 overflow-hidden"
+            >
+              <BarcodeScanner
+                onBarcodeDetected={handleBarcodeDetected}
+                onClose={() => setScanMode(false)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Quick Actions */}
+        {pendingItems.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <Button
+              onClick={() => setScanMode(!scanMode)}
+              variant="outline"
+              className="h-12 bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20"
+            >
+              <Camera className="w-5 h-5 mr-2" />
+              {scanMode ? 'Stäng skanner' : 'Skanna artikel'}
+            </Button>
+            
+            <Button
+              onClick={() => {
+                if (expandedItemId) {
+                  setExpandedItemId(null);
+                } else if (pendingItems.length > 0) {
+                  setExpandedItemId(pendingItems[0].id);
+                }
+              }}
+              variant="outline"
+              className="h-12 bg-slate-700 border-slate-600 hover:bg-slate-600"
+            >
+              <Package className="w-5 h-5 mr-2" />
+              {expandedItemId ? 'Minimera alla' : 'Visa detaljer'}
+            </Button>
           </div>
         )}
 
         {/* Items to Pick */}
         {pendingItems.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Att plocka
-            </h2>
-            <div className="space-y-2">
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                <Package className="w-6 h-6 text-blue-400" />
+                Att plocka ({pendingItems.length})
+              </h2>
+              <span className="text-sm text-slate-400">
+                Klicka på artikel för mer alternativ
+              </span>
+            </div>
+            <div className="space-y-3">
               {pendingItems.map((item) => {
                 const article = articles.find(a => a.id === item.article_id);
-                const remaining = item.quantity_ordered - (item.quantity_picked || 0);
 
                 return (
-                  <motion.div
+                  <PickingItemCard
                     key={item.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-slate-800/50 border border-slate-700 rounded-xl p-4"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-white mb-1">
-                          {item.article_name}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
-                          {item.article_batch_number && (
-                            <span className="font-mono">{item.article_batch_number}</span>
-                          )}
-                          {item.shelf_address && (
-                            <div className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {item.shelf_address}
-                            </div>
-                          )}
-                          <span className="font-semibold text-white">
-                            {remaining} st
-                          </span>
-                        </div>
-                        {article && article.stock_qty < remaining && (
-                          <div className="flex items-center gap-1 text-amber-400 text-xs mt-2">
-                            <AlertCircle className="w-3 h-3" />
-                            Endast {article.stock_qty} st i lager
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => handleManualPick(item)}
-                        className="bg-blue-600 hover:bg-blue-500"
-                      >
-                        Plocka
-                      </Button>
-                    </div>
-                  </motion.div>
+                    item={item}
+                    article={article}
+                    onPick={(qty) => handlePickQuantity(item, qty)}
+                    onScan={() => {
+                      setCurrentItemId(item.id);
+                      setScanMode(true);
+                    }}
+                    isPicking={pickingItemId === item.id}
+                    isExpanded={expandedItemId === item.id}
+                    onToggleExpand={() => setExpandedItemId(expandedItemId === item.id ? null : item.id)}
+                  />
                 );
               })}
             </div>
@@ -455,11 +463,11 @@ export default function PickOrderPage() {
         {/* Picked Items */}
         {pickedItems.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-400" />
-              Plockade
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
+              <CheckCircle2 className="w-6 h-6 text-green-400" />
+              Plockade ({pickedItems.length})
             </h2>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {pickedItems.map((item) => (
                 <div
                   key={item.id}
@@ -467,15 +475,15 @@ export default function PickOrderPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-white mb-1">
+                      <h3 className="font-semibold text-white text-base mb-1">
                         {item.article_name}
                       </h3>
-                      <div className="flex items-center gap-3 text-sm text-slate-400">
+                      <div className="flex items-center gap-4 text-sm text-slate-300">
                         {item.article_batch_number && (
-                          <span className="font-mono">{item.article_batch_number}</span>
+                          <span className="font-mono text-white/70">{item.article_batch_number}</span>
                         )}
-                        <span className="font-semibold text-green-400">
-                          {item.quantity_picked} st
+                        <span className="font-semibold text-green-400 text-base">
+                          {item.quantity_ordered} st beställt, {item.quantity_picked} st plockat
                         </span>
                       </div>
                     </div>
@@ -490,7 +498,7 @@ export default function PickOrderPage() {
                           <Edit2 className="w-4 h-4" />
                         </Button>
                       )}
-                      <CheckCircle2 className="w-6 h-6 text-green-400" />
+                      <CheckCircle2 className="w-7 h-7 text-green-400" />
                     </div>
                   </div>
                 </div>
