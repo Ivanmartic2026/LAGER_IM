@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { jsPDF } from 'npm:jspdf@2.5.2';
+import { PDFDocument, rgb, StandardFonts } from 'npm:pdf-lib@1.17.1';
 
 Deno.serve(async (req) => {
   try {
@@ -20,105 +20,158 @@ Deno.serve(async (req) => {
       purchase_order_id: purchaseOrderId 
     });
 
-    const doc = new jsPDF();
+    const pdfDoc = await PDFDocument.create();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
+    let page = pdfDoc.addPage([595, 842]); // A4
+    const { width, height } = page.getSize();
+    let y = height - 40;
     
     // Header
-    doc.setFontSize(24);
-    doc.setFont(undefined, 'bold');
-    doc.text('INKÖPSORDER', 20, 20);
+    page.drawText('INKÖPSORDER', {
+      x: 40,
+      y: y,
+      size: 24,
+      font: boldFont,
+      color: rgb(0, 0, 0)
+    });
+    y -= 30;
     
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    doc.text(`Ordernummer: ${po.po_number || po.id.slice(0, 8)}`, 20, 30);
-    doc.text(`Datum: ${new Date(po.order_date || po.created_date).toLocaleDateString('sv-SE')}`, 20, 36);
+    page.drawText(`Ordernummer: ${po.po_number || po.id.slice(0, 8)}`, {
+      x: 40,
+      y: y,
+      size: 10,
+      font: font
+    });
+    y -= 15;
+    
+    page.drawText(`Datum: ${new Date(po.order_date || po.created_date).toLocaleDateString('sv-SE')}`, {
+      x: 40,
+      y: y,
+      size: 10,
+      font: font
+    });
+    y -= 30;
     
     // Supplier info
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    doc.text('Leverantör:', 20, 50);
-    doc.setFont(undefined, 'normal');
-    doc.setFontSize(10);
-    doc.text(po.supplier_name, 20, 56);
+    page.drawText('Leverantör:', {
+      x: 40,
+      y: y,
+      size: 12,
+      font: boldFont
+    });
+    y -= 15;
+    
+    page.drawText(po.supplier_name, {
+      x: 40,
+      y: y,
+      size: 10,
+      font: font
+    });
+    y -= 15;
     
     if (po.expected_delivery_date) {
-      doc.text(`Önskat leveransdatum: ${new Date(po.expected_delivery_date).toLocaleDateString('sv-SE')}`, 20, 62);
+      page.drawText(`Önskat leveransdatum: ${new Date(po.expected_delivery_date).toLocaleDateString('sv-SE')}`, {
+        x: 40,
+        y: y,
+        size: 10,
+        font: font
+      });
+      y -= 30;
+    } else {
+      y -= 15;
     }
 
     // Items table header
-    let y = 80;
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'bold');
-    doc.text('Artikel', 20, y);
-    doc.text('Batch', 90, y);
-    doc.text('Antal', 130, y);
-    doc.text('Pris', 155, y);
-    doc.text('Summa', 180, y);
+    page.drawText('Artikel', { x: 40, y: y, size: 10, font: boldFont });
+    page.drawText('Batch', { x: 220, y: y, size: 10, font: boldFont });
+    page.drawText('Antal', { x: 340, y: y, size: 10, font: boldFont });
+    page.drawText('Pris', { x: 400, y: y, size: 10, font: boldFont });
+    page.drawText('Summa', { x: 480, y: y, size: 10, font: boldFont });
     
-    doc.line(20, y + 2, 200, y + 2);
-    y += 8;
+    y -= 5;
+    page.drawLine({
+      start: { x: 40, y: y },
+      end: { x: 555, y: y },
+      thickness: 1,
+      color: rgb(0, 0, 0)
+    });
+    y -= 15;
 
     // Items
-    doc.setFont(undefined, 'normal');
     let totalCost = 0;
 
     for (const item of items) {
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
+      if (y < 80) {
+        page = pdfDoc.addPage([595, 842]);
+        y = height - 40;
       }
 
       const itemTotal = item.quantity_ordered * (item.unit_price || 0);
       totalCost += itemTotal;
 
-      doc.text(item.article_name || 'N/A', 20, y, { maxWidth: 65 });
-      doc.text(item.article_batch_number || '-', 90, y);
-      doc.text(String(item.quantity_ordered), 130, y);
-      doc.text(`${(item.unit_price || 0).toLocaleString('sv-SE')} kr`, 155, y);
-      doc.text(`${itemTotal.toLocaleString('sv-SE')} kr`, 180, y);
+      const articleName = item.article_name || 'N/A';
+      const maxWidth = 170;
+      const wrappedText = articleName.length > 30 ? articleName.substring(0, 27) + '...' : articleName;
+
+      page.drawText(wrappedText, { x: 40, y: y, size: 10, font: font });
+      page.drawText(item.article_batch_number || '-', { x: 220, y: y, size: 10, font: font });
+      page.drawText(String(item.quantity_ordered), { x: 340, y: y, size: 10, font: font });
+      page.drawText(`${(item.unit_price || 0).toLocaleString('sv-SE')} kr`, { x: 400, y: y, size: 10, font: font });
+      page.drawText(`${itemTotal.toLocaleString('sv-SE')} kr`, { x: 480, y: y, size: 10, font: font });
       
-      y += 8;
+      y -= 18;
     }
 
     // Total
-    doc.line(20, y, 200, y);
-    y += 8;
-    doc.setFont(undefined, 'bold');
-    doc.setFontSize(12);
-    doc.text('Totalt:', 155, y);
-    doc.text(`${totalCost.toLocaleString('sv-SE')} kr`, 180, y);
+    y -= 5;
+    page.drawLine({
+      start: { x: 40, y: y },
+      end: { x: 555, y: y },
+      thickness: 1,
+      color: rgb(0, 0, 0)
+    });
+    y -= 20;
+    
+    page.drawText('Totalt:', { x: 400, y: y, size: 12, font: boldFont });
+    page.drawText(`${totalCost.toLocaleString('sv-SE')} kr`, { x: 480, y: y, size: 12, font: boldFont });
 
     // Notes
     if (po.notes) {
-      y += 15;
-      doc.setFontSize(10);
-      doc.text('Anteckningar:', 20, y);
-      doc.setFont(undefined, 'normal');
-      y += 6;
-      const splitNotes = doc.splitTextToSize(po.notes, 170);
-      doc.text(splitNotes, 20, y);
+      y -= 30;
+      if (y < 80) {
+        page = pdfDoc.addPage([595, 842]);
+        y = height - 40;
+      }
+      page.drawText('Anteckningar:', { x: 40, y: y, size: 10, font: boldFont });
+      y -= 15;
+      page.drawText(po.notes, { x: 40, y: y, size: 10, font: font, maxWidth: 515 });
     }
 
-    // Footer
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setFont(undefined, 'normal');
-      doc.text(
-        `Genererad: ${new Date().toLocaleString('sv-SE')} | Sida ${i} av ${pageCount}`,
-        doc.internal.pageSize.getWidth() / 2,
-        doc.internal.pageSize.getHeight() - 10,
-        { align: 'center' }
+    // Footer on all pages
+    const pages = pdfDoc.getPages();
+    const pageCount = pages.length;
+    pages.forEach((p, index) => {
+      p.drawText(
+        `Genererad: ${new Date().toLocaleString('sv-SE')} | Sida ${index + 1} av ${pageCount}`,
+        {
+          x: width / 2 - 100,
+          y: 20,
+          size: 8,
+          font: font,
+          color: rgb(0.5, 0.5, 0.5)
+        }
       );
-    }
+    });
 
-    const pdfBytes = doc.output('arraybuffer');
+    const pdfBytes = await pdfDoc.save();
 
     return new Response(pdfBytes, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=inkopsorder_${po.po_number || po.id.slice(0, 8)}.pdf`
+        'Content-Disposition': `attachment; filename=bestallning_${Date.now()}.pdf`
       }
     });
 
