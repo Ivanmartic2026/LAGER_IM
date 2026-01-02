@@ -89,10 +89,19 @@ Deno.serve(async (req) => {
       }
     };
 
-    // Reverse the mapping to find Excel column for each field
+    // Helper function to combine all columns mapped to 'notes'
+    const getCombinedNotes = (row, mapping) => {
+      const noteColumns = Object.keys(mapping).filter(excelCol => mapping[excelCol] === 'notes');
+      const notes = noteColumns
+        .map(col => getValueFromMapping(row, col, 'string'))
+        .filter(Boolean);
+      return notes.length > 0 ? notes.join('\n') : undefined;
+    };
+
+    // Reverse the mapping to find Excel column for each field (excluding 'notes' which is handled separately)
     const reverseMapping = {};
     Object.entries(columnMapping).forEach(([excelCol, field]) => {
-      if (field !== 'ignore') {
+      if (field !== 'ignore' && field !== 'notes') {
         reverseMapping[field] = excelCol;
       }
     });
@@ -131,7 +140,7 @@ Deno.serve(async (req) => {
         manufacturing_date: getValueFromMapping(row, reverseMapping.manufacturing_date, 'string'),
         min_stock_level: getValueFromMapping(row, reverseMapping.min_stock_level, 'integer'),
         status: getValueFromMapping(row, reverseMapping.status, 'string') || 'active',
-        notes: getValueFromMapping(row, reverseMapping.notes, 'string')
+        notes: getCombinedNotes(row, columnMapping)
       };
 
       // Handle supplier lookup
