@@ -11,7 +11,8 @@ import { toast } from "sonner";
 import { 
   Search, Camera, Package, AlertTriangle, Filter,
   Grid3X3, List, Plus, SlidersHorizontal, Sparkles,
-  ClipboardList, Download, Upload, ArrowUpDown, MapPin
+  ClipboardList, Download, Upload, ArrowUpDown, MapPin,
+  CheckSquare, Trash2, Edit2, X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -19,6 +20,7 @@ import { createPageUrl } from "@/utils";
 import ArticleDetail from "@/components/articles/ArticleDetail";
 import StockAdjustmentModal from "@/components/articles/StockAdjustmentModal";
 import ArticleEditForm from "@/components/articles/ArticleEditForm";
+import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import QuickInventory from "@/components/inventory/QuickInventory";
@@ -49,6 +51,8 @@ export default function InventoryPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [sortBy, setSortBy] = useState('name');
+  const [selectedArticleIds, setSelectedArticleIds] = useState([]);
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const fileInputRef = React.useRef(null);
   
   const queryClient = useQueryClient();
@@ -84,6 +88,29 @@ export default function InventoryPage() {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
       setSelectedArticle(null);
       toast.success("Artikel borttagen");
+    }
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids) => {
+      await Promise.all(ids.map(id => base44.entities.Article.delete(id)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      setSelectedArticleIds([]);
+      toast.success("Artiklar borttagna");
+    }
+  });
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: async ({ ids, data }) => {
+      await Promise.all(ids.map(id => base44.entities.Article.update(id, data)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      setSelectedArticleIds([]);
+      setBulkEditOpen(false);
+      toast.success("Artiklar uppdaterade");
     }
   });
 
@@ -457,6 +484,58 @@ export default function InventoryPage() {
             </div>
           </div>
 
+          {/* Bulk Actions Toolbar */}
+          <AnimatePresence>
+            {selectedArticleIds.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-4 p-4 rounded-xl bg-blue-600 border border-blue-500 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <CheckSquare className="w-5 h-5 text-white" />
+                  <span className="text-white font-medium">
+                    {selectedArticleIds.length} artikel{selectedArticleIds.length !== 1 ? 'ar' : ''} vald{selectedArticleIds.length !== 1 ? 'a' : ''}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setBulkEditOpen(true)}
+                    className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                  >
+                    <Edit2 className="w-4 h-4 mr-2" />
+                    Redigera
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm(`Är du säker på att du vill ta bort ${selectedArticleIds.length} artikel${selectedArticleIds.length !== 1 ? 'ar' : ''}?`)) {
+                        bulkDeleteMutation.mutate(selectedArticleIds);
+                      }
+                    }}
+                    disabled={bulkDeleteMutation.isPending}
+                    className="bg-red-500/20 border-red-500/30 text-white hover:bg-red-500/30"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Ta bort
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedArticleIds([])}
+                    className="text-white hover:bg-white/10"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Compact Search & Filters */}
           <div className="flex gap-3">
             <div className="relative flex-1">
@@ -551,7 +630,19 @@ export default function InventoryPage() {
         ) : (
           <div className="space-y-2">
             {/* Header Row - Desktop Only */}
-            <div className="hidden md:grid px-4 py-2 grid-cols-[80px_80px_minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_120px] gap-4 text-xs font-medium text-white/40 uppercase tracking-wider border-b border-white/10">
+            <div className="hidden md:grid px-4 py-2 grid-cols-[40px_80px_80px_minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_120px] gap-4 text-xs font-medium text-white/40 uppercase tracking-wider border-b border-white/10">
+              <div className="flex items-center">
+                <Checkbox
+                  checked={selectedArticleIds.length === filteredArticles.length && filteredArticles.length > 0}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedArticleIds(filteredArticles.map(a => a.id));
+                    } else {
+                      setSelectedArticleIds([]);
+                    }
+                  }}
+                />
+              </div>
               <div></div>
               <div>Saldo</div>
               <div>Artikelnummer</div>
@@ -578,6 +669,18 @@ export default function InventoryPage() {
                     {/* Mobile Layout */}
                     <div className="md:hidden">
                       <div className="flex items-start gap-3 mb-2">
+                        <Checkbox
+                          checked={selectedArticleIds.includes(article.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedArticleIds(prev => [...prev, article.id]);
+                            } else {
+                              setSelectedArticleIds(prev => prev.filter(id => id !== article.id));
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1"
+                        />
                         {imageUrl ? (
                           <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-slate-900/50">
                             <img 
@@ -647,6 +750,17 @@ export default function InventoryPage() {
 
                     {/* Desktop Layout */}
                     <div className="hidden md:flex items-center gap-4">
+                      <Checkbox
+                        checked={selectedArticleIds.includes(article.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedArticleIds(prev => [...prev, article.id]);
+                          } else {
+                            setSelectedArticleIds(prev => prev.filter(id => id !== article.id));
+                          }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
                       {imageUrl ? (
                         <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-slate-900/50">
                           <img 
@@ -673,7 +787,7 @@ export default function InventoryPage() {
                         <div className="text-xs text-white/40">st</div>
                       </div>
 
-                      <div className="flex-1 min-w-0 grid grid-cols-[minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_120px] gap-4">
+                      <div className="flex-1 min-w-0 grid grid-cols-[minmax(100px,130px)_minmax(180px,1fr)_minmax(100px,130px)_minmax(100px,130px)_100px] gap-4">
                         <div className="min-w-0">
                           {article.sku ? (
                             <div className="text-sm font-mono text-blue-400 truncate">
@@ -816,7 +930,124 @@ export default function InventoryPage() {
               />
             </DialogContent>
             </Dialog>
+
+            <Dialog open={bulkEditOpen} onOpenChange={setBulkEditOpen}>
+            <DialogContent className="bg-zinc-950 border-white/10 text-white backdrop-blur-2xl">
+              <DialogHeader>
+                <DialogTitle>Redigera {selectedArticleIds.length} artikel{selectedArticleIds.length !== 1 ? 'ar' : ''}</DialogTitle>
+              </DialogHeader>
+              <BulkEditForm
+                articleCount={selectedArticleIds.length}
+                warehouses={warehouses}
+                onSave={(data) => bulkUpdateMutation.mutate({ ids: selectedArticleIds, data })}
+                onCancel={() => setBulkEditOpen(false)}
+                isSaving={bulkUpdateMutation.isPending}
+              />
+            </DialogContent>
+            </Dialog>
             </div>
             </div>
+            );
+            }
+
+            function BulkEditForm({ articleCount, warehouses, onSave, onCancel, isSaving }) {
+            const [formData, setFormData] = useState({
+            warehouse: "",
+            status: "",
+            storage_type: ""
+            });
+
+            const handleSubmit = (e) => {
+            e.preventDefault();
+            const updateData = {};
+            if (formData.warehouse) updateData.warehouse = formData.warehouse;
+            if (formData.status) updateData.status = formData.status;
+            if (formData.storage_type) updateData.storage_type = formData.storage_type;
+
+            if (Object.keys(updateData).length === 0) {
+            toast.error("Välj minst ett fält att uppdatera");
+            return;
+            }
+
+            onSave(updateData);
+            };
+
+            return (
+            <form onSubmit={handleSubmit} className="space-y-4">
+            <p className="text-sm text-white/50">
+            Välj fält att uppdatera för alla {articleCount} artikel{articleCount !== 1 ? 'ar' : ''}. Tomma fält lämnas oförändrade.
+            </p>
+
+            <div>
+            <label className="text-sm font-medium mb-2 block">Lagerställe</label>
+            <Select value={formData.warehouse} onValueChange={(value) => setFormData(prev => ({ ...prev, warehouse: value }))}>
+            <SelectTrigger className="bg-zinc-900 border-white/10 text-white">
+            <SelectValue placeholder="Ingen ändring" />
+            </SelectTrigger>
+            <SelectContent className="bg-zinc-900 border-white/10 text-white">
+            <SelectItem value={null}>Ingen ändring</SelectItem>
+            {warehouses.map(w => (
+            <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>
+            ))}
+            </SelectContent>
+            </Select>
+            </div>
+
+            <div>
+            <label className="text-sm font-medium mb-2 block">Status</label>
+            <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+            <SelectTrigger className="bg-zinc-900 border-white/10 text-white">
+            <SelectValue placeholder="Ingen ändring" />
+            </SelectTrigger>
+            <SelectContent className="bg-zinc-900 border-white/10 text-white">
+            <SelectItem value={null}>Ingen ändring</SelectItem>
+            <SelectItem value="active">Aktiv</SelectItem>
+            <SelectItem value="low_stock">Lågt lager</SelectItem>
+            <SelectItem value="out_of_stock">Slut i lager</SelectItem>
+            <SelectItem value="discontinued">Utgått</SelectItem>
+            </SelectContent>
+            </Select>
+            </div>
+
+            <div>
+            <label className="text-sm font-medium mb-2 block">Lagertyp</label>
+            <Select value={formData.storage_type} onValueChange={(value) => setFormData(prev => ({ ...prev, storage_type: value }))}>
+            <SelectTrigger className="bg-zinc-900 border-white/10 text-white">
+            <SelectValue placeholder="Ingen ändring" />
+            </SelectTrigger>
+            <SelectContent className="bg-zinc-900 border-white/10 text-white">
+            <SelectItem value={null}>Ingen ändring</SelectItem>
+            <SelectItem value="company_owned">Företagsägt</SelectItem>
+            <SelectItem value="customer_owned">Kundägt</SelectItem>
+            </SelectContent>
+            </Select>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+            <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSaving}
+            className="flex-1 bg-white/5 border-white/10 text-white hover:bg-white/10"
+            >
+            Avbryt
+            </Button>
+            <Button
+            type="submit"
+            disabled={isSaving}
+            className="flex-1"
+            >
+            {isSaving ? (
+            <>
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+            Sparar...
+            </>
+            ) : (
+            'Spara ändringar'
+            )}
+            </Button>
+            </div>
+            </form>
             );
             }

@@ -11,11 +11,11 @@ import ReceivePurchaseOrder from './pages/ReceivePurchaseOrder';
 import Repairs from './pages/Repairs';
 import Reports from './pages/Reports';
 import Scan from './pages/Scan';
+import SupplierLogin from './pages/SupplierLogin';
+import SupplierPortal from './pages/SupplierPortal';
 import Suppliers from './pages/Suppliers';
 import UsersManagement from './pages/UsersManagement';
 import Warehouses from './pages/Warehouses';
-import SupplierLogin from './pages/SupplierLogin';
-import SupplierPortal from './pages/SupplierPortal';
 import SupplierPortalAdmin from './pages/SupplierPortalAdmin';
 import __Layout from './Layout.jsx';
 
@@ -34,11 +34,11 @@ export const PAGES = {
     "Repairs": Repairs,
     "Reports": Reports,
     "Scan": Scan,
+    "SupplierLogin": SupplierLogin,
+    "SupplierPortal": SupplierPortal,
     "Suppliers": Suppliers,
     "UsersManagement": UsersManagement,
     "Warehouses": Warehouses,
-    "SupplierLogin": SupplierLogin,
-    "SupplierPortal": SupplierPortal,
     "SupplierPortalAdmin": SupplierPortalAdmin,
 }
 
