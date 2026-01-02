@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Check, X, AlertTriangle, Package } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import ExtractedFieldCard from './ExtractedFieldCard';
 
 const CATEGORY_OPTIONS = [
@@ -16,6 +18,11 @@ const CATEGORY_OPTIONS = [
   { value: "Other", label: "Övrigt" }
 ];
 
+const STORAGE_TYPE_OPTIONS = [
+  { value: "company_owned", label: "Företagsägt lager" },
+  { value: "customer_owned", label: "Kundägt lager" }
+];
+
 export default function ReviewForm({ 
   extractedData, 
   confidences = {},
@@ -26,6 +33,11 @@ export default function ReviewForm({
   mode = "inbound"
 }) {
   const lowConfidenceCount = Object.values(confidences).filter(c => c < 0.85).length;
+
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: () => base44.entities.Warehouse.list(),
+  });
 
   return (
     <motion.div
@@ -162,11 +174,24 @@ export default function ReviewForm({
 
         <ExtractedFieldCard
           field="warehouse"
-          label="Lager"
+          label="Lagerställe"
           value={extractedData.warehouse}
           confidence={confidences.warehouse}
           onChange={onFieldChange}
-          placeholder="T.ex. Huvudlager"
+          type="select"
+          options={warehouses.map(w => ({ value: w.name, label: w.name }))}
+          placeholder="Välj lagerställe..."
+        />
+
+        <ExtractedFieldCard
+          field="storage_type"
+          label="Lagertyp"
+          value={extractedData.storage_type || 'company_owned'}
+          confidence={confidences.storage_type || 1.0}
+          onChange={onFieldChange}
+          type="select"
+          options={STORAGE_TYPE_OPTIONS}
+          required
         />
       </div>
 
