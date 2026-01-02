@@ -104,12 +104,9 @@ export default function ColumnMapper({ columns, previewData, onConfirm, onCancel
     onConfirm(mapping);
   };
 
-  // Check if required fields are mapped
-  const hasNameMapping = Object.values(mapping).includes('name');
-  const canProceed = hasNameMapping;
-
   // Count mapped fields
   const mappedCount = Object.values(mapping).filter(v => v !== 'ignore').length;
+  const canProceed = mappedCount > 0;
 
   return (
     <div className="flex flex-col h-full max-h-[80vh]">
@@ -129,11 +126,6 @@ export default function ColumnMapper({ columns, previewData, onConfirm, onCancel
           <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
             {mappedCount} mappade
           </Badge>
-          {!canProceed && (
-            <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
-              Benämning krävs
-            </Badge>
-          )}
         </div>
       </div>
 
@@ -222,8 +214,8 @@ export default function ColumnMapper({ columns, previewData, onConfirm, onCancel
       {/* Footer */}
       <div className="p-6 border-t border-slate-700">
         {!canProceed && (
-          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-300">
-            ⚠️ Du måste mappa minst en kolumn till "Benämning" för att fortsätta
+          <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-sm text-amber-300">
+            ⚠️ Du måste mappa minst en kolumn för att fortsätta
           </div>
         )}
         <div className="flex gap-3">
