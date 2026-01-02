@@ -24,15 +24,24 @@ Deno.serve(async (req) => {
     const workbook = XLSX.read(buffer, { type: 'array' });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
+    
+    // Get all columns from the worksheet range (including empty cells in first row)
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+    const availableColumns = [];
+    for (let col = range.s.c; col <= range.e.c; col++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: range.s.r, c: col });
+      const cell = worksheet[cellAddress];
+      if (cell && cell.v) {
+        availableColumns.push(cell.v.toString());
+      }
+    }
+    console.log('Excel columns found:', availableColumns);
+    
     const data = XLSX.utils.sheet_to_json(worksheet);
 
     if (data.length === 0) {
       return Response.json({ error: 'Excel-filen är tom' }, { status: 400 });
     }
-
-    // Get available columns
-    const availableColumns = data.length > 0 ? Object.keys(data[0]) : [];
-    console.log('Excel columns found:', availableColumns);
 
     // If no column mapping provided, return columns for mapping UI
     if (!columnMapping) {
