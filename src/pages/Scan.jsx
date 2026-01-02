@@ -270,7 +270,7 @@ export default function ScanPage() {
         }
       });
 
-      setProgress(95);
+      setProgress(85);
       
       // Search for existing articles based on extracted data
       let potentialMatches = [];
@@ -329,7 +329,88 @@ export default function ScanPage() {
             }
           });
         
-        // If we found a strong match, show confirmation dialog
+        setProgress(90);
+        
+        // Visual image comparison with existing articles
+        if (uniqueMatches.length === 0) {
+          console.log("No text matches found, trying visual comparison...");
+          
+          // Get all articles with images
+          const allArticles = await base44.entities.Article.list();
+          const articlesWithImages = allArticles.filter(a => 
+            a.image_urls && a.image_urls.length > 0
+          );
+          
+          if (articlesWithImages.length > 0) {
+            // Compare visually - batch process to avoid too many API calls
+            // Take up to 20 most recent articles with images for comparison
+            const recentArticlesWithImages = articlesWithImages.slice(0, 20);
+            
+            try {
+              const visualComparison = await base44.integrations.Core.InvokeLLM({
+                prompt: `Jämför den första bilden (den skannade bilden) med följande produktbilder från vårt lager.
+
+Analysera om den skannade bilden visar SAMMA produkt som någon av de andra bilderna.
+En matchning innebär att det är exakt samma produktmodell, inte bara liknande produkter.
+
+För varje produktbild, returnera:
+- article_id: ID för artikeln
+- is_match: true om det är samma produkt, false annars
+- confidence: 0-1 hur säker du är på matchningen
+- reason: kort förklaring
+
+Returnera bara artiklar där is_match är true och confidence är över 0.7.`,
+                file_urls: [
+                  urls[0], // The scanned image
+                  ...recentArticlesWithImages.flatMap(a => a.image_urls.slice(0, 1))
+                ],
+                response_json_schema: {
+                  type: "object",
+                  properties: {
+                    matches: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          article_id: { type: "string" },
+                          is_match: { type: "boolean" },
+                          confidence: { type: "number" },
+                          reason: { type: "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+              
+              if (visualComparison.matches && visualComparison.matches.length > 0) {
+                console.log(`Found ${visualComparison.matches.length} visual match(es)`);
+                
+                visualComparison.matches.forEach(match => {
+                  const article = recentArticlesWithImages.find(a => a.id === match.article_id);
+                  if (article && match.is_match && match.confidence > 0.7) {
+                    uniqueMatches.push({
+                      article: article,
+                      matchScore: Math.round(match.confidence * 8), // 0.7-1.0 -> 5.6-8.0 score
+                      matchField: 'visual',
+                      visualConfidence: match.confidence,
+                      visualReason: match.reason
+                    });
+                  }
+                });
+                
+                // Re-sort after adding visual matches
+                uniqueMatches.sort((a, b) => b.matchScore - a.matchScore);
+              }
+            } catch (visualError) {
+              console.log("Visual comparison failed:", visualError);
+            }
+          }
+        }
+        
+        setProgress(95);
+        
+        // If we found a match, show confirmation dialog
         if (uniqueMatches.length > 0) {
           console.log(`Found ${uniqueMatches.length} potential match(es)`);
           setPotentialMatches(uniqueMatches);
