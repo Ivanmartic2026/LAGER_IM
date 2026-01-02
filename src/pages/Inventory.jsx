@@ -533,16 +533,28 @@ export default function InventoryPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       if (confirm(`Är du säker på att du vill ta bort ${selectedArticleIds.length} artikel${selectedArticleIds.length !== 1 ? 'ar' : ''}?`)) {
+                        console.log('Starting bulk delete for:', selectedArticleIds);
                         bulkDeleteMutation.mutate(selectedArticleIds);
                       }
                     }}
                     disabled={bulkDeleteMutation.isPending}
                     className="bg-red-500/20 border-red-500/30 text-white hover:bg-red-500/30"
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Ta bort
+                    {bulkDeleteMutation.isPending ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                        Tar bort...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Ta bort
+                      </>
+                    )}
                   </Button>
                   <Button
                     variant="ghost"
