@@ -9,11 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { 
   Wrench, CheckCircle2, ArrowLeft, Calendar, 
-  Package, MapPin, User, AlertTriangle, Search
+  Package, MapPin, User, AlertTriangle, Search, Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import {
   Dialog,
   DialogContent,
@@ -54,6 +56,35 @@ export default function RepairsPage() {
     article.batch_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     article.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleQuickReturnToStock = async (article) => {
+    try {
+      const currentQty = article.stock_qty || 0;
+      
+      await updateArticleMutation.mutateAsync({
+        id: article.id,
+        data: {
+          status: currentQty <= 0 ? "out_of_stock" : 
+                 currentQty <= (article.min_stock_level || 5) ? "low_stock" : "active",
+          repair_notes: null,
+          repair_date: null
+        }
+      });
+
+      await createMovementMutation.mutateAsync({
+        article_id: article.id,
+        movement_type: "adjustment",
+        quantity: 0,
+        previous_qty: currentQty,
+        new_qty: currentQty,
+        reason: "Återställd från reparation till lager"
+      });
+
+      toast.success("Artikel återförd till lager");
+    } catch (error) {
+      toast.error("Kunde inte uppdatera artikel");
+    }
+  };
 
   const handleReturnFromRepair = async () => {
     if (!selectedRepair) return;
@@ -218,16 +249,45 @@ export default function RepairsPage() {
                     </div>
                   </div>
 
-                  <Button
-                    onClick={() => {
-                      setSelectedRepair(article);
-                      setReturnModalOpen(true);
-                    }}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 transition-all duration-300"
-                  >
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Återför
-                  </Button>
+                  <div className="flex gap-2">
+                    <Link to={`${createPageUrl("Inventory")}?articleId=${article.id}`}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Visa
+                      </Button>
+                    </Link>
+                    <Button
+                      onClick={() => handleQuickReturnToStock(article)}
+                      disabled={updateArticleMutation.isPending}
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 transition-all duration-300"
+                    >
+                      {updateArticleMutation.isPending ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          Återställ
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setSelectedRepair(article);
+                        setReturnModalOpen(true);
+                      }}
+                      disabled={updateArticleMutation.isPending}
+                      size="sm"
+                      variant="outline"
+                      className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                    >
+                      Med detaljer
+                    </Button>
+                  </div>
                 </div>
 
                 {article.repair_notes && (
