@@ -16,7 +16,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
     name: article.name || '',
     supplier_id: article.supplier_id || '',
     supplier_name: article.supplier_name || '',
-    supplier_price: article.supplier_price || '',
+    unit_cost: article.unit_cost || article.supplier_price || article.calculated_cost || '',
     category: article.category || '',
     storage_type: article.storage_type || '',
     dimensions_width_mm: article.dimensions_width_mm || '',
@@ -25,7 +25,6 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
     weight_g: article.weight_g || (article.weight_kg ? article.weight_kg * 1000 : ''),
     warehouse: article.warehouse || '',
     shelf_address: Array.isArray(article.shelf_address) ? article.shelf_address : (article.shelf_address ? [article.shelf_address] : []),
-    calculated_cost: article.calculated_cost || '',
     batch_number: article.batch_number || '',
     pixel_pitch_mm: article.pixel_pitch_mm || '',
     customer_name: article.customer_name || '',
@@ -109,12 +108,11 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
     // Convert numeric fields
     const dataToSave = {
       ...formData,
-      supplier_price: formData.supplier_price ? parseFloat(formData.supplier_price) : undefined,
+      unit_cost: formData.unit_cost ? parseFloat(formData.unit_cost) : undefined,
       dimensions_width_mm: formData.dimensions_width_mm ? parseFloat(formData.dimensions_width_mm) : undefined,
       dimensions_height_mm: formData.dimensions_height_mm ? parseFloat(formData.dimensions_height_mm) : undefined,
       dimensions_depth_mm: formData.dimensions_depth_mm ? parseFloat(formData.dimensions_depth_mm) : undefined,
       weight_g: formData.weight_g ? parseFloat(formData.weight_g) : undefined,
-      calculated_cost: formData.calculated_cost ? parseFloat(formData.calculated_cost) : undefined,
       pixel_pitch_mm: formData.pixel_pitch_mm ? parseFloat(formData.pixel_pitch_mm) : undefined,
       brightness_nits: formData.brightness_nits ? parseFloat(formData.brightness_nits) : undefined,
       min_stock_level: formData.min_stock_level ? parseInt(formData.min_stock_level) : undefined
@@ -220,12 +218,12 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-slate-300">Leverantörspris</Label>
+                  <Label className="text-slate-300">Enhetskostnad</Label>
                   <Input
                     type="number"
                     step="0.01"
-                    value={formData.supplier_price}
-                    onChange={(e) => handleChange('supplier_price', e.target.value)}
+                    value={formData.unit_cost}
+                    onChange={(e) => handleChange('unit_cost', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-white"
                     placeholder="0.00"
                   />
@@ -486,20 +484,10 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
               </div>
             </div>
 
-            {/* Kostnader & Teknisk */}
+            {/* Teknisk info */}
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Kostnader & Teknisk info</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Teknisk info</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-slate-300">Kalkylkostnad</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.calculated_cost}
-                    onChange={(e) => handleChange('calculated_cost', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
                 <div>
                   <Label className="text-slate-300">Pixel Pitch (mm)</Label>
                   <Input
