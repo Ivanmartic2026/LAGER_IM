@@ -323,12 +323,12 @@ export default function ReceivePurchaseOrderPage() {
 
         {/* Items to Receive */}
         {pendingItems.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-              <Truck className="w-5 h-5" />
-              Att ta emot
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
+              <Truck className="w-6 h-6 text-blue-400" />
+              Att ta emot ({pendingItems.length})
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {pendingItems.map((item) => {
                 const article = item.article_id ? articles.find(a => a.id === item.article_id) : null;
                 
@@ -349,11 +349,11 @@ export default function ReceivePurchaseOrderPage() {
         {/* Received Items */}
         {receivedItems.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-400" />
-              Mottagna
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
+              <CheckCircle2 className="w-6 h-6 text-green-400" />
+              Mottagna ({receivedItems.length})
             </h2>
-            <div className="space-y-2">
+            <div className="space-y-4">
               {receivedItems.map((item) => (
                 <div
                   key={item.id}
@@ -361,19 +361,19 @@ export default function ReceivePurchaseOrderPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-white mb-1">
+                      <h3 className="font-semibold text-white text-base mb-1">
                         {item.article_name}
                       </h3>
-                      <div className="flex items-center gap-3 text-sm text-slate-400">
+                      <div className="flex items-center gap-4 text-sm text-slate-300">
                         {item.article_batch_number && (
-                          <span className="font-mono">{item.article_batch_number}</span>
+                          <span className="font-mono text-white/70">{item.article_batch_number}</span>
                         )}
                         <span className="font-semibold text-green-400">
-                          {item.quantity_received} st
+                          Beställt: {item.quantity_ordered} st · Mottaget: {item.quantity_received} st
                         </span>
                       </div>
                     </div>
-                    <CheckCircle2 className="w-6 h-6 text-green-400" />
+                    <CheckCircle2 className="w-7 h-7 text-green-400" />
                   </div>
                 </div>
               ))}
