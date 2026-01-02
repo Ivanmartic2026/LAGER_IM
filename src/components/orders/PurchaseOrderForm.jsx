@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { X, Plus, Trash2, Package, FileText, Sparkles } from "lucide-react";
+import { X, Plus, Trash2, Package, FileText, Sparkles, Edit2 } from "lucide-react";
 
 export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [formData, setFormData] = useState({
@@ -178,6 +178,12 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
   const handleRemoveItem = (index) => {
     setPOItems(poItems.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateItem = (index, field, value) => {
+    setPOItems(poItems.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    ));
   };
 
   const handleInvoiceScan = async (e) => {
@@ -567,44 +573,70 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             {poItems.length > 0 ? (
               <div className="space-y-2">
+                <div className="grid grid-cols-[150px_1fr_100px_100px_100px_auto] gap-2 px-3 py-2 text-xs font-medium text-slate-500">
+                  <div>Artikelnr</div>
+                  <div>Benämning</div>
+                  <div>Enhetspris</div>
+                  <div>Antal</div>
+                  <div className="text-right">Summa</div>
+                  <div></div>
+                </div>
                 {poItems.map((item, index) => {
                   const itemTotal = item.quantity_ordered * (item.unit_price || 0);
                   return (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700"
+                      className="grid grid-cols-[150px_1fr_100px_100px_100px_auto] gap-2 p-3 rounded-lg bg-slate-800/50 border border-slate-700 items-center"
                     >
-                      <div className="flex items-center gap-3 flex-1">
-                        <Package className="w-4 h-4 text-slate-400" />
-                        <div className="flex-1">
-                          <div className="font-medium text-white text-sm flex items-center gap-2">
-                            {item.article_name}
-                            {item.is_custom && (
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                                Egen
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-slate-500">
-                            {item.article_batch_number && `Batch: ${item.article_batch_number}`}
-                          </div>
-                        </div>
-                        <div className="text-sm text-slate-400">
-                          {item.quantity_ordered} st × {item.unit_price || 0} kr
-                        </div>
-                        <div className="text-sm font-semibold text-white min-w-[80px] text-right">
-                          {itemTotal.toLocaleString('sv-SE')} kr
-                        </div>
+                      <div>
+                        <Input
+                          value={item.article_batch_number || ''}
+                          onChange={(e) => handleUpdateItem(index, 'article_batch_number', e.target.value)}
+                          placeholder="Batch"
+                          className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                        />
                       </div>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleRemoveItem(index)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 ml-2"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div>
+                        <Input
+                          value={item.article_name}
+                          onChange={(e) => handleUpdateItem(index, 'article_name', e.target.value)}
+                          placeholder="Benämning"
+                          className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                        />
+                      </div>
+                      <div>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.unit_price || 0}
+                          onChange={(e) => handleUpdateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                          className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                        />
+                      </div>
+                      <div>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={item.quantity_ordered}
+                          onChange={(e) => handleUpdateItem(index, 'quantity_ordered', parseInt(e.target.value) || 1)}
+                          className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                        />
+                      </div>
+                      <div className="text-sm font-semibold text-white text-right">
+                        {itemTotal.toLocaleString('sv-SE')} kr
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleRemoveItem(index)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-9 w-9"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   );
                 })}
