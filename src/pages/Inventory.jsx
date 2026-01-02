@@ -869,7 +869,7 @@ export default function InventoryPage() {
                               <span className="text-sm font-medium text-white truncate">
                                 {(() => {
                                   const wh = warehouses.find(w => w.name === article.warehouse);
-                                  return wh?.code ? `${wh.code} - ${article.warehouse}` : article.warehouse;
+                                  return wh?.code || article.warehouse;
                                 })()}
                               </span>
                             </div>
