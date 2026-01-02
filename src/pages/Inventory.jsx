@@ -314,6 +314,7 @@ export default function InventoryPage() {
     .filter(article => {
       const matchesSearch = !searchQuery || 
         article.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         article.batch_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         article.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase());
       
@@ -577,7 +578,7 @@ export default function InventoryPage() {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sök artikel, batch, tillverkare eller hyllplats..."
+                placeholder="Sök artikelnummer, batch, benämning eller tillverkare..."
                 className="pl-10 h-9 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300"
               />
             </div>
