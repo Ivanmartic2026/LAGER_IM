@@ -4,9 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import { 
   CheckCircle2, XCircle, Package, AlertTriangle, 
-  Search, CheckSquare, Square 
+  Search, CheckSquare, Square, Warehouse
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +18,12 @@ export default function ImportPreview({ articles, onConfirm, onCancel, isSubmitt
     articles.map((_, i) => i)
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedWarehouse, setSelectedWarehouse] = useState("");
+
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: () => base44.entities.Warehouse.list(),
+  });
 
   const filteredArticles = articles.filter((article, index) => {
     const matchesSearch = !searchQuery || 
@@ -42,7 +51,16 @@ export default function ImportPreview({ articles, onConfirm, onCancel, isSubmitt
   };
 
   const handleConfirm = () => {
-    const articlesToImport = selectedArticles.map(i => articles[i]);
+    const articlesToImport = selectedArticles.map(i => {
+      const article = articles[i];
+      return {
+        ...article,
+        data: {
+          ...article.data,
+          warehouse: selectedWarehouse || article.data.warehouse
+        }
+      };
+    });
     onConfirm(articlesToImport);
   };
 
@@ -76,6 +94,26 @@ export default function ImportPreview({ articles, onConfirm, onCancel, isSubmitt
               {stats.update} uppdateringar
             </Badge>
           )}
+        </div>
+
+        {/* Warehouse Selection */}
+        <div className="mb-4">
+          <label className="text-sm font-medium text-slate-300 mb-2 block">
+            Lagerställe för alla artiklar (valfritt)
+          </label>
+          <Select value={selectedWarehouse} onValueChange={setSelectedWarehouse}>
+            <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+              <SelectValue placeholder="Välj lagerställe eller lämna tomt..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={null}>Ingen ändring</SelectItem>
+              {warehouses.map((warehouse) => (
+                <SelectItem key={warehouse.id} value={warehouse.name}>
+                  {warehouse.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Search & Select All */}
