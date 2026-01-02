@@ -329,7 +329,9 @@ export default function InventoryPage() {
         case 'name':
           return (a.name || '').localeCompare(b.name || '');
         case 'shelf':
-          return (a.shelf_address || '').localeCompare(b.shelf_address || '');
+          const shelfA = Array.isArray(a.shelf_address) ? a.shelf_address[0] || '' : a.shelf_address || '';
+          const shelfB = Array.isArray(b.shelf_address) ? b.shelf_address[0] || '' : b.shelf_address || '';
+          return shelfA.localeCompare(shelfB);
         case 'supplier':
           const supplierA = supplierMap[a.supplier_id] || a.manufacturer || '';
           const supplierB = supplierMap[b.supplier_id] || b.manufacturer || '';
