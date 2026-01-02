@@ -867,7 +867,10 @@ export default function InventoryPage() {
                             <div className="flex items-center gap-1.5">
                               <Package className="w-4 h-4 text-white/40 flex-shrink-0" />
                               <span className="text-sm font-medium text-white truncate">
-                                {article.warehouse}
+                                {(() => {
+                                  const wh = warehouses.find(w => w.name === article.warehouse);
+                                  return wh?.code ? `${wh.code} - ${article.warehouse}` : article.warehouse;
+                                })()}
                               </span>
                             </div>
                           ) : (

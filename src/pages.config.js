@@ -13,10 +13,10 @@ import Reports from './pages/Reports';
 import Scan from './pages/Scan';
 import SupplierLogin from './pages/SupplierLogin';
 import SupplierPortal from './pages/SupplierPortal';
+import SupplierPortalAdmin from './pages/SupplierPortalAdmin';
 import Suppliers from './pages/Suppliers';
 import UsersManagement from './pages/UsersManagement';
 import Warehouses from './pages/Warehouses';
-import SupplierPortalAdmin from './pages/SupplierPortalAdmin';
 import __Layout from './Layout.jsx';
 
 
@@ -36,10 +36,10 @@ export const PAGES = {
     "Scan": Scan,
     "SupplierLogin": SupplierLogin,
     "SupplierPortal": SupplierPortal,
+    "SupplierPortalAdmin": SupplierPortalAdmin,
     "Suppliers": Suppliers,
     "UsersManagement": UsersManagement,
     "Warehouses": Warehouses,
-    "SupplierPortalAdmin": SupplierPortalAdmin,
 }
 
 export const pagesConfig = {
