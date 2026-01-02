@@ -100,7 +100,7 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
               transition-all duration-300 cursor-pointer
               ${dragActive 
                 ? 'border-blue-500 bg-blue-500/10' 
-                : 'border-slate-700 hover:border-slate-500 bg-slate-900/50'
+                : 'border-white/10 hover:border-white/20 bg-white/5 backdrop-blur-xl'
               }
             `}
             onClick={() => fileInputRef.current?.click()}
@@ -125,8 +125,9 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
 
               <div className="flex gap-3 mt-2">
                 <Button
+                  type="button"
                   variant="outline"
-                  className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
+                  className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
                   onClick={(e) => {
                     e.stopPropagation();
                     cameraInputRef.current?.click();
@@ -136,8 +137,9 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
                   Kamera
                 </Button>
                 <Button
+                  type="button"
                   variant="outline"
-                  className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
+                  className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
                   onClick={(e) => {
                     e.stopPropagation();
                     fileInputRef.current?.click();
