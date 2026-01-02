@@ -309,14 +309,18 @@ export default function ScanPage() {
       let article;
       let previousQty = 0;
 
-      // Prepare data - ensure shelf_address is an array
+      // Prepare data - ensure shelf_address is an array and handle invalid dates
       const preparedData = {
         ...extractedData,
         shelf_address: extractedData.shelf_address 
           ? (Array.isArray(extractedData.shelf_address) 
             ? extractedData.shelf_address 
             : [extractedData.shelf_address])
-          : []
+          : [],
+        storage_type: extractedData.storage_type || 'company_owned',
+        manufacturing_date: extractedData.manufacturing_date && extractedData.manufacturing_date !== '-' 
+          ? extractedData.manufacturing_date 
+          : undefined
       };
 
       if (existing.length > 0) {
