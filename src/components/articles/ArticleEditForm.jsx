@@ -396,7 +396,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                       <SelectContent>
                         {warehouses.map((warehouse) => (
                           <SelectItem key={warehouse.id} value={warehouse.name}>
-                            {warehouse.name}
+                            {warehouse.code ? `${warehouse.code} - ${warehouse.name}` : warehouse.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
