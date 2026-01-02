@@ -362,12 +362,45 @@ export default function ScanPage() {
     setIsSaving(true);
 
     try {
-      // Check if article with same batch number exists
-      const existing = await base44.entities.Article.filter({ 
-        batch_number: extractedData.batch_number 
-      });
+      // Check if article exists using multiple criteria
+      let existing = [];
+      
+      // If we already identified an existing article during scanning, use that
+      if (existingArticle) {
+        existing = [existingArticle];
+      } else {
+        // Search for matches by batch number, SKU, or name+manufacturer
+        const searchPromises = [];
+        
+        if (extractedData.batch_number) {
+          searchPromises.push(
+            base44.entities.Article.filter({ batch_number: extractedData.batch_number })
+          );
+        }
+        
+        if (extractedData.sku) {
+          searchPromises.push(
+            base44.entities.Article.filter({ sku: extractedData.sku })
+          );
+        }
+        
+        const results = await Promise.allSettled(searchPromises);
+        results.forEach(result => {
+          if (result.status === 'fulfilled' && result.value.length > 0) {
+            existing.push(...result.value);
+          }
+        });
+        
+        // Remove duplicates
+        const seenIds = new Set();
+        existing = existing.filter(article => {
+          if (seenIds.has(article.id)) return false;
+          seenIds.add(article.id);
+          return true;
+        });
+      }
 
-      if (existing.length > 0 && !existingArticle) {
+      if (existing.length > 0 && !showDuplicateConfirm) {
         // Found duplicate - show confirmation
         setExistingArticle(existing[0]);
         setShowDuplicateConfirm(true);
