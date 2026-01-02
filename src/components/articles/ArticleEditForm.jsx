@@ -18,7 +18,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
     supplier_name: article.supplier_name || '',
     supplier_price: article.supplier_price || '',
     category: article.category || '',
-    is_stock_item: article.is_stock_item !== false,
+    storage_type: article.storage_type || '',
     dimensions_width_mm: article.dimensions_width_mm || '',
     dimensions_height_mm: article.dimensions_height_mm || '',
     dimensions_depth_mm: article.dimensions_depth_mm || '',
@@ -247,15 +247,21 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center space-x-2 pt-6">
-                  <Checkbox
-                    id="is_stock_item"
-                    checked={formData.is_stock_item}
-                    onCheckedChange={(checked) => handleChange('is_stock_item', checked)}
-                  />
-                  <Label htmlFor="is_stock_item" className="text-slate-300 cursor-pointer">
-                    Lagervara
-                  </Label>
+                <div>
+                  <Label className="text-slate-300">Lagertyp *</Label>
+                  <Select 
+                    value={formData.storage_type} 
+                    onValueChange={(value) => handleChange('storage_type', value)}
+                    required
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                      <SelectValue placeholder="Välj lagertyp" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="company_owned">Företagsägt lager</SelectItem>
+                      <SelectItem value="customer_owned">Kundägt lager</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -623,7 +629,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isSaving || !formData.name}
+            disabled={isSaving || !formData.name || !formData.storage_type}
             className="flex-1 bg-blue-600 hover:bg-blue-500 text-white"
           >
             {isSaving ? (
