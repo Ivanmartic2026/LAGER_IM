@@ -339,87 +339,115 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
             </div>
 
             {customArticleMode ? (
-              <div className="flex gap-2 mb-3">
-                <Input
-                  value={customArticleName}
-                  onChange={(e) => setCustomArticleName(e.target.value)}
-                  placeholder="Artikelnamn..."
-                  className="flex-1 bg-slate-800 border-slate-700 text-white"
-                />
-                <Input
-                  value={customBatchNumber}
-                  onChange={(e) => setCustomBatchNumber(e.target.value)}
-                  placeholder="Batch (valfritt)"
-                  className="w-32 bg-slate-800 border-slate-700 text-white"
-                />
-                <Input
-                  type="number"
-                  min="1"
-                  value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                  placeholder="Antal"
-                  className="w-24 bg-slate-800 border-slate-700 text-white"
-                />
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={unitPrice}
-                  onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
-                  placeholder="Pris"
-                  className="w-32 bg-slate-800 border-slate-700 text-white"
-                />
-                <Button
-                  type="button"
-                  onClick={handleAddArticle}
-                  className="bg-blue-600 hover:bg-blue-500"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Lägg till
-                </Button>
+              <div className="space-y-2 mb-3">
+                <div className="text-xs font-medium text-slate-400 mb-1">Artiklar</div>
+                <div className="grid grid-cols-[150px_1fr_100px_100px_auto] gap-2">
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Artikelnr</div>
+                    <Input
+                      value={customBatchNumber}
+                      onChange={(e) => setCustomBatchNumber(e.target.value)}
+                      placeholder="Batch"
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Benämning</div>
+                    <Input
+                      value={customArticleName}
+                      onChange={(e) => setCustomArticleName(e.target.value)}
+                      placeholder="Artikelnamn..."
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Enhetspris</div>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={unitPrice}
+                      onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
+                      placeholder="Pris"
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Antal</div>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                      placeholder="Antal"
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button
+                      type="button"
+                      onClick={handleAddArticle}
+                      className="bg-blue-600 hover:bg-blue-500 w-full"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Lägg till
+                    </Button>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="flex gap-2 mb-3">
-                <Select value={selectedArticle} onValueChange={setSelectedArticle}>
-                  <SelectTrigger className="flex-1 bg-slate-800 border-slate-700 text-white">
-                    <SelectValue placeholder="Välj artikel..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {articles.map((article) => (
-                      <SelectItem key={article.id} value={article.id}>
-                        {article.name} ({article.batch_number || 'N/A'})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Input
-                  type="number"
-                  min="1"
-                  value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                  placeholder="Antal"
-                  className="w-24 bg-slate-800 border-slate-700 text-white"
-                />
-
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={unitPrice}
-                  onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
-                  placeholder="Pris"
-                  className="w-32 bg-slate-800 border-slate-700 text-white"
-                />
-
-                <Button
-                  type="button"
-                  onClick={handleAddArticle}
-                  className="bg-blue-600 hover:bg-blue-500"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Lägg till
-                </Button>
+              <div className="space-y-2 mb-3">
+                <div className="text-xs font-medium text-slate-400 mb-1">Artiklar</div>
+                <div className="grid grid-cols-[1fr_100px_100px_auto] gap-2">
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Välj artikel</div>
+                    <Select value={selectedArticle} onValueChange={setSelectedArticle}>
+                      <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                        <SelectValue placeholder="Välj artikel..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {articles.map((article) => (
+                          <SelectItem key={article.id} value={article.id}>
+                            {article.name} ({article.batch_number || 'N/A'})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Enhetspris</div>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={unitPrice}
+                      onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
+                      placeholder="Pris"
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Antal</div>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                      placeholder="Antal"
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button
+                      type="button"
+                      onClick={handleAddArticle}
+                      className="bg-blue-600 hover:bg-blue-500 w-full"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Lägg till
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
 
