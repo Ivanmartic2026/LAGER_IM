@@ -143,8 +143,8 @@ Deno.serve(async (req) => {
 
   <div class="section">
     <h2>Lagerplats & Mått</h2>
+    ${article.warehouse ? `<div class="field"><div class="field-label">Lagerställe:</div><div class="field-value">${article.warehouse}</div></div>` : ''}
     ${article.shelf_address ? `<div class="field"><div class="field-label">Hyllplats:</div><div class="field-value">${article.shelf_address}</div></div>` : ''}
-    ${article.warehouse ? `<div class="field"><div class="field-label">Lager:</div><div class="field-value">${article.warehouse}</div></div>` : ''}
     ${(article.dimensions_width_mm || article.dimensions_height_mm || article.dimensions_depth_mm) ? `<div class="field"><div class="field-label">Dimensioner (BxHxD):</div><div class="field-value">${article.dimensions_width_mm || '-'} x ${article.dimensions_height_mm || '-'} x ${article.dimensions_depth_mm || '-'} mm</div></div>` : ''}
     ${article.weight_g ? `<div class="field"><div class="field-label">Vikt:</div><div class="field-value">${article.weight_g} g</div></div>` : ''}
   </div>
