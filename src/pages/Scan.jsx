@@ -269,6 +269,75 @@ export default function ScanPage() {
       });
 
       setProgress(95);
+      
+      // Search for existing articles based on extracted data
+      let potentialMatches = [];
+      try {
+        const searchPromises = [];
+        
+        // Search by batch number
+        if (data.batch_number) {
+          searchPromises.push(
+            base44.entities.Article.filter({ batch_number: data.batch_number })
+              .then(articles => articles.map(a => ({ article: a, matchScore: 10, matchField: 'batch_number' })))
+          );
+        }
+        
+        // Search by SKU
+        if (data.sku) {
+          searchPromises.push(
+            base44.entities.Article.filter({ sku: data.sku })
+              .then(articles => articles.map(a => ({ article: a, matchScore: 9, matchField: 'sku' })))
+          );
+        }
+        
+        // Search by name + manufacturer
+        if (data.name && data.manufacturer) {
+          searchPromises.push(
+            base44.entities.Article.list()
+              .then(articles => {
+                return articles
+                  .filter(a => {
+                    const nameMatch = a.name?.toLowerCase().includes(data.name.toLowerCase()) || 
+                                     data.name.toLowerCase().includes(a.name?.toLowerCase());
+                    const mfgMatch = a.manufacturer?.toLowerCase() === data.manufacturer.toLowerCase();
+                    return nameMatch && mfgMatch;
+                  })
+                  .map(a => ({ article: a, matchScore: 7, matchField: 'name+manufacturer' }));
+              })
+          );
+        }
+        
+        const results = await Promise.allSettled(searchPromises);
+        results.forEach(result => {
+          if (result.status === 'fulfilled') {
+            potentialMatches.push(...result.value);
+          }
+        });
+        
+        // Remove duplicates and sort by match score
+        const uniqueMatches = [];
+        const seenIds = new Set();
+        potentialMatches
+          .sort((a, b) => b.matchScore - a.matchScore)
+          .forEach(match => {
+            if (!seenIds.has(match.article.id)) {
+              seenIds.add(match.article.id);
+              uniqueMatches.push(match);
+            }
+          });
+        
+        // If we found a strong match, set it as existing
+        if (uniqueMatches.length > 0) {
+          const bestMatch = uniqueMatches[0];
+          console.log(`Found potential match: ${bestMatch.article.name} (score: ${bestMatch.matchScore}, field: ${bestMatch.matchField})`);
+          setExistingArticle(bestMatch.article);
+          toast.info(`Liknande artikel hittad: ${bestMatch.article.name}`);
+        }
+      } catch (searchError) {
+        console.log("Could not search for existing articles:", searchError);
+      }
+      
       setExtractedData({ ...data, image_urls: urls });
       setConfidences(confs);
       setProgress(100);
