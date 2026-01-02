@@ -902,6 +902,92 @@ export default function ScanPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Match Confirmation Dialog */}
+        <AnimatePresence>
+          {showMatchConfirm && existingArticle && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-slate-900 border border-blue-500/30 rounded-2xl p-6 max-w-md w-full"
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white mb-2">
+                      Liknande artikel hittad
+                    </h3>
+                    <p className="text-sm text-slate-300">
+                      Systemet har hittat en artikel som verkar matcha din skannade bild.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 mb-4">
+                  <div className="flex gap-3 mb-3">
+                    {existingArticle.image_urls?.[0] && (
+                      <img 
+                        src={existingArticle.image_urls[0]} 
+                        alt={existingArticle.name}
+                        className="w-20 h-20 rounded-lg object-cover bg-slate-900"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-white mb-1 truncate">{existingArticle.name}</p>
+                      <div className="space-y-1 text-xs text-slate-400">
+                        {existingArticle.batch_number && (
+                          <div>Batch: <span className="text-white font-mono">{existingArticle.batch_number}</span></div>
+                        )}
+                        {existingArticle.manufacturer && (
+                          <div>Tillverkare: <span className="text-white">{existingArticle.manufacturer}</span></div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-sm border-t border-slate-700 pt-3">
+                    <span className="text-slate-400">Lagersaldo:</span>
+                    <span className="text-white font-semibold">{existingArticle.stock_qty || 0} st</span>
+                  </div>
+                  {existingArticle.shelf_address && (
+                    <div className="flex items-center justify-between text-sm mt-2">
+                      <span className="text-slate-400">Hyllplats:</span>
+                      <span className="text-white">{existingArticle.shelf_address}</span>
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-sm text-slate-400 mb-6">
+                  Är det denna artikel du skannade?
+                </p>
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleRejectMatch}
+                    variant="outline"
+                    className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                  >
+                    Nej, skapa ny
+                  </Button>
+                  <Button
+                    onClick={handleConfirmMatch}
+                    className="flex-1 bg-blue-600 hover:bg-blue-500 text-white"
+                  >
+                    Ja, det är den här
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
