@@ -151,6 +151,7 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
+      needsMapping: false,
       columns: availableColumns,
       articles: parsedArticles,
       total: parsedArticles.length
