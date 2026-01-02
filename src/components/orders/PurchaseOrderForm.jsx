@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { X, Plus, Trash2, Package } from "lucide-react";
+import { X, Plus, Trash2, Package, FileText, Sparkles } from "lucide-react";
 
 export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [formData, setFormData] = useState({
@@ -27,6 +27,8 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [customArticleMode, setCustomArticleMode] = useState(false);
   const [customArticleName, setCustomArticleName] = useState('');
   const [customBatchNumber, setCustomBatchNumber] = useState('');
+  const [isScanningInvoice, setIsScanningInvoice] = useState(false);
+  const invoiceInputRef = React.useRef(null);
 
   const queryClient = useQueryClient();
 
@@ -178,6 +180,89 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
     setPOItems(poItems.filter((_, i) => i !== index));
   };
 
+  const handleInvoiceScan = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsScanningInvoice(true);
+    const loadingToast = toast.loading('Skannar faktura...');
+
+    try {
+      // Upload file
+      toast.loading('Laddar upp faktura...', { id: loadingToast });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      // Extract data with AI
+      toast.loading('AI analyserar faktura...', { id: loadingToast });
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: "object",
+          properties: {
+            invoice_number: { type: "string" },
+            invoice_date: { type: "string" },
+            supplier_name: { type: "string" },
+            total_amount: { type: "number" },
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  article_number: { type: "string" },
+                  description: { type: "string" },
+                  quantity: { type: "number" },
+                  unit_price: { type: "number" },
+                  line_total: { type: "number" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (result.status === 'success' && result.output) {
+        const data = result.output;
+        
+        // Fill in PO details
+        setFormData(prev => ({
+          ...prev,
+          po_number: data.invoice_number || prev.po_number,
+          supplier_name: data.supplier_name || prev.supplier_name,
+          order_date: data.invoice_date || prev.order_date
+        }));
+
+        // Add items
+        if (data.items && data.items.length > 0) {
+          const newItems = data.items.map(item => ({
+            article_id: null,
+            article_name: item.description || '',
+            article_batch_number: item.article_number || '',
+            quantity_ordered: item.quantity || 1,
+            quantity_received: 0,
+            unit_price: item.unit_price || 0,
+            status: 'pending',
+            is_custom: true
+          }));
+          
+          setPOItems([...poItems, ...newItems]);
+          toast.success(`${data.items.length} artiklar tillagda från faktura!`, { id: loadingToast });
+        } else {
+          toast.success('Faktura skannad!', { id: loadingToast });
+        }
+      } else {
+        toast.error('Kunde inte läsa fakturan', { id: loadingToast });
+      }
+    } catch (error) {
+      console.error('Invoice scan error:', error);
+      toast.error('Fel vid skanning: ' + error.message, { id: loadingToast });
+    } finally {
+      setIsScanningInvoice(false);
+      if (invoiceInputRef.current) {
+        invoiceInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -327,15 +412,44 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
               <label className="text-sm font-medium text-slate-300">
                 Artiklar
               </label>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => setCustomArticleMode(!customArticleMode)}
-                className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
-              >
-                {customArticleMode ? 'Välj från lager' : 'Egen artikel'}
-              </Button>
+              <div className="flex gap-2">
+                <input
+                  ref={invoiceInputRef}
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  onChange={handleInvoiceScan}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => invoiceInputRef.current?.click()}
+                  disabled={isScanningInvoice}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 hover:from-purple-500 hover:to-blue-500 text-white"
+                >
+                  {isScanningInvoice ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      Skannar...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Skanna faktura
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setCustomArticleMode(!customArticleMode)}
+                  className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
+                >
+                  {customArticleMode ? 'Välj från lager' : 'Egen artikel'}
+                </Button>
+              </div>
             </div>
 
             {customArticleMode ? (
