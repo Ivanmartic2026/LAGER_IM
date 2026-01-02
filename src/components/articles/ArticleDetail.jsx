@@ -133,6 +133,35 @@ export default function ArticleDetail({
     }
   };
 
+  const handleQuickReturnToStock = async () => {
+    try {
+      const currentQty = article.stock_qty || 0;
+      
+      await updateArticleMutation.mutateAsync({
+        id: article.id,
+        data: {
+          status: currentQty <= 0 ? "out_of_stock" : 
+                 currentQty <= (article.min_stock_level || 5) ? "low_stock" : "active",
+          repair_notes: null,
+          repair_date: null
+        }
+      });
+
+      await createMovementMutation.mutateAsync({
+        article_id: article.id,
+        movement_type: "adjustment",
+        quantity: 0,
+        previous_qty: currentQty,
+        new_qty: currentQty,
+        reason: "Återställd från reparation till lager"
+      });
+
+      toast.success("Artikel återförd till lager");
+    } catch (error) {
+      toast.error("Kunde inte uppdatera artikel");
+    }
+  };
+
   const handleReturnFromRepair = async (returnedQuantity, discardedQuantity, returnNotes) => {
     try {
       const previousQty = article.stock_qty || 0;
@@ -212,15 +241,33 @@ export default function ArticleDetail({
         {/* Mobile: Compact action menu */}
         <div className="flex gap-2">
           {article.status === "on_repair" && (
-            <Button
-              onClick={() => setReturnFromRepairModalOpen(true)}
-              disabled={updateArticleMutation.isPending}
-              size="sm"
-              className="bg-emerald-600 hover:bg-emerald-500 text-white"
-            >
-              <CheckCircle2 className="w-4 h-4 md:mr-2" />
-              <span className="hidden md:inline">Återför</span>
-            </Button>
+            <>
+              <Button
+                onClick={handleQuickReturnToStock}
+                disabled={updateArticleMutation.isPending}
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white"
+              >
+                {updateArticleMutation.isPending ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 md:mr-2" />
+                    <span className="hidden md:inline">Återställ</span>
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => setReturnFromRepairModalOpen(true)}
+                disabled={updateArticleMutation.isPending}
+                size="sm"
+                variant="outline"
+                className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white hidden sm:flex"
+              >
+                <Plus className="w-4 h-4 md:mr-2" />
+                <span className="hidden md:inline">Med detaljer</span>
+              </Button>
+            </>
           )}
           
           <Button
