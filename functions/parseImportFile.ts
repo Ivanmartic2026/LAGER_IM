@@ -5,7 +5,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    const { file_url } = await req.json();
+    const { file_url, columnMapping } = await req.json();
 
     if (!file_url) {
       return Response.json({ error: 'Ingen fil-URL angiven' }, { status: 400 });
@@ -34,6 +34,16 @@ Deno.serve(async (req) => {
     const availableColumns = data.length > 0 ? Object.keys(data[0]) : [];
     console.log('Excel columns found:', availableColumns);
 
+    // If no column mapping provided, return columns for mapping UI
+    if (!columnMapping) {
+      return Response.json({
+        success: true,
+        needsMapping: true,
+        columns: availableColumns,
+        previewData: data.slice(0, 5) // Send first 5 rows for preview
+      });
+    }
+
     // Get existing articles and suppliers for context
     const existingArticles = await base44.asServiceRole.entities.Article.list('-created_date', 10000);
     const suppliers = await base44.asServiceRole.entities.Supplier.list();
@@ -47,42 +57,77 @@ Deno.serve(async (req) => {
     const supplierNameMap = {};
     suppliers.forEach(s => supplierNameMap[s.name?.toLowerCase()] = s.id);
 
+    // Helper function to get value from row based on mapping
+    const getValueFromMapping = (row, excelColumn, fieldType) => {
+      if (!excelColumn || excelColumn === 'ignore') return undefined;
+      const value = row[excelColumn];
+      if (value === undefined || value === null || value === '') return undefined;
+      
+      const stringValue = value.toString().trim();
+      
+      // Handle different field types
+      switch (fieldType) {
+        case 'number':
+          return parseFloat(stringValue) || undefined;
+        case 'integer':
+          return parseInt(stringValue) || undefined;
+        case 'boolean':
+          return stringValue.toLowerCase().includes('ja') || stringValue === '1' || value === true;
+        case 'array':
+          return stringValue ? [stringValue] : [];
+        default:
+          return stringValue || undefined;
+      }
+    };
+
+    // Reverse the mapping to find Excel column for each field
+    const reverseMapping = {};
+    Object.entries(columnMapping).forEach(([excelCol, field]) => {
+      if (field !== 'ignore') {
+        reverseMapping[field] = excelCol;
+      }
+    });
+
     // Parse and prepare articles for preview
     const parsedArticles = data.map((row, i) => {
       const articleData = {
-        sku: row['Artikelnummer']?.toString().trim() || undefined,
-        name: row['Benämning']?.toString().trim() || row['Artikelnamn']?.toString().trim() || row['Kundnamn']?.toString().trim() || `Artikel ${i + 1}`,
-        supplier_name: row['Leverantör']?.toString().trim() || undefined,
-        supplier_price: row['Leverantörspris'] ? parseFloat(row['Leverantörspris']) : undefined,
-        category: row['Typ av artikel']?.toString().trim() || row['Kategori']?.toString().trim() || undefined,
-        is_stock_item: row['Lagervara']?.toString().toLowerCase().includes('ja') || row['Lagervara']?.toString() === '1' || row['Lagervara'] === true,
-        dimensions_width_mm: row['Bredd (mm)']?.toString() ? parseFloat(row['Bredd (mm)']) : undefined,
-        dimensions_height_mm: row['Höjd (mm)']?.toString() ? parseFloat(row['Höjd (mm)']) : undefined,
-        dimensions_depth_mm: row['Djup (mm)']?.toString() ? parseFloat(row['Djup (mm)']) : undefined,
-        weight_g: row['Vikt (g)']?.toString() ? parseFloat(row['Vikt (g)']) : undefined,
-        stock_qty: row['I lager'] !== undefined ? parseInt(row['I lager']) : (row['Lagersaldo'] !== undefined ? parseInt(row['Lagersaldo']) : 0),
-        warehouse: row['Lagerställe']?.toString().trim() || row['Lager']?.toString().trim() || undefined,
-        shelf_address: row['Lagerplats']?.toString().trim() || row['Hyllplats']?.toString().trim() ? [row['Lagerplats']?.toString().trim() || row['Hyllplats']?.toString().trim()] : [],
-        storage_type: row['Lagertyp']?.toString().trim() === 'Kundägt lager' ? 'customer_owned' : 'company_owned',
-        calculated_cost: row['Kalkylkostnad']?.toString() ? parseFloat(row['Kalkylkostnad']) : undefined,
-        batch_number: row['Batch Nummer']?.toString().trim() || row['Batchnummer']?.toString().trim() || `AUTO-${Date.now()}-${i}`,
-        pixel_pitch_mm: row['Pixel Pitch']?.toString() ? parseFloat(row['Pixel Pitch']) : (row['Pixel Pitch (mm)']?.toString() ? parseFloat(row['Pixel Pitch (mm)']) : undefined),
-        customer_name: row['Kundnamn']?.toString().trim() || undefined,
-        pitch_value: row['Pitch värde']?.toString().trim() || row['Pitch']?.toString().trim() || undefined,
-        series: row['Serie']?.toString().trim() || undefined,
-        product_version: row['Version']?.toString().trim() || undefined,
-        brightness_nits: row['Ljusstyrka (nits)']?.toString() ? parseFloat(row['Ljusstyrka (nits)']) : undefined,
-        manufacturer: row['Tillverkare']?.toString().trim() || undefined,
-        manufacturing_date: row['Tillverkningsdatum'] || undefined,
-        min_stock_level: row['Min. Lagernivå']?.toString() ? parseInt(row['Min. Lagernivå']) : undefined,
-        status: row['Status']?.toString().trim() || 'active',
-        supplier_product_code: row['Produktkod']?.toString().trim() || undefined,
-        notes: row['Anteckningar']?.toString().trim() || undefined
+        sku: getValueFromMapping(row, reverseMapping.sku, 'string'),
+        name: getValueFromMapping(row, reverseMapping.name, 'string') || `Artikel ${i + 1}`,
+        supplier_name: getValueFromMapping(row, reverseMapping.supplier_name, 'string'),
+        supplier_price: getValueFromMapping(row, reverseMapping.supplier_price, 'number'),
+        supplier_product_code: getValueFromMapping(row, reverseMapping.supplier_product_code, 'string'),
+        category: getValueFromMapping(row, reverseMapping.category, 'string'),
+        storage_type: (() => {
+          const storageTypeValue = getValueFromMapping(row, reverseMapping.storage_type, 'string');
+          if (!storageTypeValue) return 'company_owned';
+          const normalized = storageTypeValue.toLowerCase();
+          return normalized.includes('kund') ? 'customer_owned' : 'company_owned';
+        })(),
+        dimensions_width_mm: getValueFromMapping(row, reverseMapping.dimensions_width_mm, 'number'),
+        dimensions_height_mm: getValueFromMapping(row, reverseMapping.dimensions_height_mm, 'number'),
+        dimensions_depth_mm: getValueFromMapping(row, reverseMapping.dimensions_depth_mm, 'number'),
+        weight_g: getValueFromMapping(row, reverseMapping.weight_g, 'number'),
+        stock_qty: getValueFromMapping(row, reverseMapping.stock_qty, 'integer') || 0,
+        warehouse: getValueFromMapping(row, reverseMapping.warehouse, 'string'),
+        shelf_address: getValueFromMapping(row, reverseMapping.shelf_address, 'array'),
+        calculated_cost: getValueFromMapping(row, reverseMapping.calculated_cost, 'number'),
+        batch_number: getValueFromMapping(row, reverseMapping.batch_number, 'string') || `AUTO-${Date.now()}-${i}`,
+        pixel_pitch_mm: getValueFromMapping(row, reverseMapping.pixel_pitch_mm, 'number'),
+        customer_name: getValueFromMapping(row, reverseMapping.customer_name, 'string'),
+        pitch_value: getValueFromMapping(row, reverseMapping.pitch_value, 'string'),
+        series: getValueFromMapping(row, reverseMapping.series, 'string'),
+        product_version: getValueFromMapping(row, reverseMapping.product_version, 'string'),
+        brightness_nits: getValueFromMapping(row, reverseMapping.brightness_nits, 'number'),
+        manufacturer: getValueFromMapping(row, reverseMapping.manufacturer, 'string'),
+        manufacturing_date: getValueFromMapping(row, reverseMapping.manufacturing_date, 'string'),
+        min_stock_level: getValueFromMapping(row, reverseMapping.min_stock_level, 'integer'),
+        status: getValueFromMapping(row, reverseMapping.status, 'string') || 'active',
+        notes: getValueFromMapping(row, reverseMapping.notes, 'string')
       };
 
       // Handle supplier lookup
-      if (row['Leverantör']) {
-        const supplierName = row['Leverantör'].toString().toLowerCase().trim();
+      if (articleData.supplier_name) {
+        const supplierName = articleData.supplier_name.toLowerCase().trim();
         articleData.supplier_id = supplierNameMap[supplierName] || undefined;
       }
 

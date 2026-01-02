@@ -24,6 +24,7 @@ import { sv } from "date-fns/locale";
 import QuickInventory from "@/components/inventory/QuickInventory";
 import PickListGenerator from "@/components/inventory/PickListGenerator";
 import ImportPreview from "@/components/inventory/ImportPreview";
+import ColumnMapper from "@/components/inventory/ColumnMapper";
 import {
   Dialog,
   DialogContent,
@@ -153,6 +154,7 @@ export default function InventoryPage() {
   };
 
   const [importPreview, setImportPreview] = useState(null);
+  const [columnMappingData, setColumnMappingData] = useState(null);
 
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
@@ -174,14 +176,24 @@ export default function InventoryPage() {
       console.log('File uploaded:', file_url);
       toast.loading('Analyserar artiklar...', { id: loadingToast });
       
-      // Parse file to get preview
+      // Parse file to get preview (without mapping first)
       const result = await base44.functions.invoke('parseImportFile', { file_url });
       
       console.log('Parse result:', result);
 
       if (result.data?.success) {
         toast.dismiss(loadingToast);
-        setImportPreview(result.data.articles);
+        
+        // Check if we need column mapping
+        if (result.data.needsMapping) {
+          setColumnMappingData({
+            file_url,
+            columns: result.data.columns,
+            previewData: result.data.previewData
+          });
+        } else {
+          setImportPreview(result.data.articles);
+        }
       } else {
         toast.error(result.data?.error || 'Kunde inte läsa filen', { id: loadingToast });
       }
@@ -193,6 +205,31 @@ export default function InventoryPage() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleColumnMapping = async (mapping) => {
+    setIsImporting(true);
+    const loadingToast = toast.loading('Analyserar med mappning...');
+
+    try {
+      const result = await base44.functions.invoke('parseImportFile', { 
+        file_url: columnMappingData.file_url,
+        columnMapping: mapping
+      });
+
+      if (result.data?.success) {
+        toast.dismiss(loadingToast);
+        setImportPreview(result.data.articles);
+        setColumnMappingData(null);
+      } else {
+        toast.error(result.data?.error || 'Kunde inte analysera filen', { id: loadingToast });
+      }
+    } catch (error) {
+      console.error('Column mapping error:', error);
+      toast.error('Kunde inte analysera: ' + error.message, { id: loadingToast });
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -742,6 +779,17 @@ export default function InventoryPage() {
               </DialogTitle>
             </DialogHeader>
             <PickListGenerator articles={articles} />
+            </DialogContent>
+            </Dialog>
+
+            <Dialog open={!!columnMappingData} onOpenChange={(open) => !open && setColumnMappingData(null)}>
+            <DialogContent className="bg-zinc-950 border-white/10 text-white max-w-4xl p-0 backdrop-blur-2xl">
+              <ColumnMapper
+                columns={columnMappingData?.columns || []}
+                previewData={columnMappingData?.previewData || []}
+                onConfirm={handleColumnMapping}
+                onCancel={() => setColumnMappingData(null)}
+              />
             </DialogContent>
             </Dialog>
 
