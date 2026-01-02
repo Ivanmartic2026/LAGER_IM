@@ -51,6 +51,7 @@ export default function ScanPage() {
   const [extractedData, setExtractedData] = useState({});
   const [confidences, setConfidences] = useState({});
   const [savedArticle, setSavedArticle] = useState(null);
+  const [selectedArticle, setSelectedArticle] = useState(null);
   const [existingArticle, setExistingArticle] = useState(null);
   const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
 
@@ -372,6 +373,7 @@ export default function ScanPage() {
     setExtractedData({});
     setConfidences({});
     setSavedArticle(null);
+    setSelectedArticle(null);
     setExistingArticle(null);
     setShowDuplicateConfirm(false);
     setProgress(0);
