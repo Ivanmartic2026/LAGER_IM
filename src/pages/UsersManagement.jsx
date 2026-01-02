@@ -327,7 +327,7 @@ export default function UsersManagementPage() {
 
         {/* Invite User Modal */}
         <Dialog open={inviteModalOpen} onOpenChange={setInviteModalOpen}>
-          <DialogContent className="bg-slate-900 border-slate-700 text-white">
+          <DialogContent className="bg-zinc-950 border-white/10 text-white backdrop-blur-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <UserPlus className="w-5 h-5" />
@@ -389,7 +389,7 @@ export default function UsersManagementPage() {
 
         {/* Edit User Modal */}
         <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-          <DialogContent className="bg-slate-900 border-slate-700 text-white">
+          <DialogContent className="bg-zinc-950 border-white/10 text-white backdrop-blur-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Edit2 className="w-5 h-5" />
