@@ -3,16 +3,20 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Package, TrendingUp, TrendingDown, AlertTriangle, 
-  ShoppingCart, Wrench, Clock, CheckCircle2, Monitor
+  ShoppingCart, Wrench, Clock, CheckCircle2, Monitor, BarChart3, Filter
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, subDays, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 export default function WarehouseDashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [movementsPeriod, setMovementsPeriod] = useState('today'); // today, week, month
+  const [orderStatus, setOrderStatus] = useState('all'); // all, ready_to_pick, picking
+  const [salesPeriod, setSalesPeriod] = useState('week'); // week, month, quarter
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -28,13 +32,19 @@ export default function WarehouseDashboard() {
 
   const { data: movements = [] } = useQuery({
     queryKey: ['movements'],
-    queryFn: () => base44.entities.StockMovement.list('-created_date', 20),
+    queryFn: () => base44.entities.StockMovement.list('-created_date', 100),
     refetchInterval: 30000,
   });
 
   const { data: orders = [] } = useQuery({
     queryKey: ['orders'],
-    queryFn: () => base44.entities.Order.list('-created_date', 10),
+    queryFn: () => base44.entities.Order.list('-created_date', 50),
+    refetchInterval: 30000,
+  });
+
+  const { data: orderItems = [] } = useQuery({
+    queryKey: ['orderItems'],
+    queryFn: () => base44.entities.OrderItem.list('-created_date', 200),
     refetchInterval: 30000,
   });
 
@@ -44,6 +54,32 @@ export default function WarehouseDashboard() {
     refetchInterval: 30000,
   });
 
+  // Filter movements by period
+  const getDateRange = (period) => {
+    const now = new Date();
+    switch(period) {
+      case 'today':
+        return { start: startOfDay(now), end: endOfDay(now) };
+      case 'week':
+        return { start: startOfDay(subDays(now, 7)), end: endOfDay(now) };
+      case 'month':
+        return { start: startOfDay(subDays(now, 30)), end: endOfDay(now) };
+      default:
+        return { start: startOfDay(now), end: endOfDay(now) };
+    }
+  };
+
+  const movementsDateRange = getDateRange(movementsPeriod);
+  const filteredMovements = movements.filter(m => {
+    const createdDate = new Date(m.created_date);
+    return isWithinInterval(createdDate, movementsDateRange);
+  });
+
+  // Filter orders by status
+  const filteredOrders = orderStatus === 'all' 
+    ? orders.filter(o => o.status === 'ready_to_pick' || o.status === 'picking')
+    : orders.filter(o => o.status === orderStatus);
+
   // Calculate stats
   const lowStockArticles = articles.filter(a => a.status === 'low_stock');
   const outOfStockArticles = articles.filter(a => a.status === 'out_of_stock');
@@ -52,6 +88,51 @@ export default function WarehouseDashboard() {
   const incomingPOs = purchaseOrders.filter(po => po.status === 'ordered' || po.status === 'partially_received');
 
   const totalStockValue = articles.reduce((sum, a) => sum + (a.stock_qty || 0), 0);
+
+  // Sales statistics
+  const salesDateRange = getDateRange(salesPeriod);
+  const salesData = orderItems
+    .filter(item => {
+      const order = orders.find(o => o.id === item.order_id);
+      if (!order || !order.picked_date) return false;
+      const pickedDate = new Date(order.picked_date);
+      return isWithinInterval(pickedDate, salesDateRange);
+    })
+    .reduce((acc, item) => {
+      const article = articles.find(a => a.id === item.article_id);
+      const category = article?.category || 'Other';
+      
+      if (!acc[category]) {
+        acc[category] = { count: 0, items: 0 };
+      }
+      acc[category].count += 1;
+      acc[category].items += item.quantity_picked || 0;
+      return acc;
+    }, {});
+
+  const topArticles = orderItems
+    .filter(item => {
+      const order = orders.find(o => o.id === item.order_id);
+      if (!order || !order.picked_date) return false;
+      const pickedDate = new Date(order.picked_date);
+      return isWithinInterval(pickedDate, salesDateRange);
+    })
+    .reduce((acc, item) => {
+      const key = item.article_id;
+      if (!acc[key]) {
+        acc[key] = {
+          article_id: item.article_id,
+          article_name: item.article_name,
+          total_picked: 0
+        };
+      }
+      acc[key].total_picked += item.quantity_picked || 0;
+      return acc;
+    }, {});
+
+  const topArticlesList = Object.values(topArticles)
+    .sort((a, b) => b.total_picked - a.total_picked)
+    .slice(0, 5);
 
   const getMovementIcon = (type) => {
     switch(type) {
@@ -171,12 +252,21 @@ export default function WarehouseDashboard() {
         <div className="grid grid-cols-2 gap-6">
           {/* Recent Movements */}
           <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
-            <div className="flex items-center gap-3 mb-6">
-              <Clock className="w-6 h-6 text-blue-400" />
-              <h2 className="text-xl font-bold text-white">Senaste lagerrörelser</h2>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Clock className="w-6 h-6 text-blue-400" />
+                <h2 className="text-xl font-bold text-white">Lagerrörelser</h2>
+              </div>
+              <Tabs value={movementsPeriod} onValueChange={setMovementsPeriod}>
+                <TabsList className="bg-white/5 border border-white/10">
+                  <TabsTrigger value="today" className="text-xs">Idag</TabsTrigger>
+                  <TabsTrigger value="week" className="text-xs">7 dagar</TabsTrigger>
+                  <TabsTrigger value="month" className="text-xs">30 dagar</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
             <div className="space-y-3 max-h-[500px] overflow-y-auto">
-              {movements.slice(0, 10).map((movement) => {
+              {filteredMovements.slice(0, 15).map((movement) => {
                 const { icon: Icon, color } = getMovementIcon(movement.movement_type);
                 return (
                   <motion.div
@@ -216,12 +306,21 @@ export default function WarehouseDashboard() {
             {/* Active Orders */}
             {activeOrders.length > 0 && (
               <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
-                <div className="flex items-center gap-3 mb-4">
-                  <ShoppingCart className="w-6 h-6 text-purple-400" />
-                  <h2 className="text-xl font-bold text-white">Aktiva plockar</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <ShoppingCart className="w-6 h-6 text-purple-400" />
+                    <h2 className="text-xl font-bold text-white">Aktiva plockar</h2>
+                  </div>
+                  <Tabs value={orderStatus} onValueChange={setOrderStatus}>
+                    <TabsList className="bg-white/5 border border-white/10">
+                      <TabsTrigger value="all" className="text-xs">Alla</TabsTrigger>
+                      <TabsTrigger value="ready_to_pick" className="text-xs">Redo</TabsTrigger>
+                      <TabsTrigger value="picking" className="text-xs">Plockar</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
                 </div>
                 <div className="space-y-3">
-                  {activeOrders.slice(0, 5).map((order) => (
+                  {filteredOrders.slice(0, 5).map((order) => (
                     <div
                       key={order.id}
                       className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/30"
@@ -326,6 +425,104 @@ export default function WarehouseDashboard() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Sales Statistics */}
+        <div className="grid grid-cols-2 gap-6 mt-6">
+          {/* Sales by Category */}
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <BarChart3 className="w-6 h-6 text-cyan-400" />
+                <h2 className="text-xl font-bold text-white">Försäljning per kategori</h2>
+              </div>
+              <Tabs value={salesPeriod} onValueChange={setSalesPeriod}>
+                <TabsList className="bg-white/5 border border-white/10">
+                  <TabsTrigger value="week" className="text-xs">7 dagar</TabsTrigger>
+                  <TabsTrigger value="month" className="text-xs">30 dagar</TabsTrigger>
+                  <TabsTrigger value="quarter" className="text-xs">90 dagar</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            <div className="space-y-3">
+              {Object.keys(salesData).length > 0 ? (
+                Object.entries(salesData)
+                  .sort(([, a], [, b]) => b.items - a.items)
+                  .map(([category, data]) => {
+                    const maxItems = Math.max(...Object.values(salesData).map(d => d.items));
+                    const percentage = (data.items / maxItems) * 100;
+                    
+                    return (
+                      <motion.div
+                        key={category}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="space-y-2"
+                      >
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-white font-medium">{category}</span>
+                          <span className="text-cyan-400 font-semibold">{data.items} st</span>
+                        </div>
+                        <div className="h-3 bg-white/5 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percentage}%` }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full"
+                          />
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          {data.count} order{data.count !== 1 ? 's' : ''}
+                        </div>
+                      </motion.div>
+                    );
+                  })
+              ) : (
+                <div className="text-center py-8 text-slate-400">
+                  Ingen försäljningsdata för vald period
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Top Articles */}
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+            <div className="flex items-center gap-3 mb-6">
+              <TrendingUp className="w-6 h-6 text-emerald-400" />
+              <h2 className="text-xl font-bold text-white">Mest sålda artiklar</h2>
+            </div>
+            <div className="space-y-3">
+              {topArticlesList.length > 0 ? (
+                topArticlesList.map((item, index) => (
+                  <motion.div
+                    key={item.article_id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="p-4 rounded-xl bg-white/5 border border-white/10"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                          <span className="text-emerald-400 font-bold text-sm">#{index + 1}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-medium truncate">{item.article_name}</p>
+                        </div>
+                      </div>
+                      <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 ml-2">
+                        {item.total_picked} st
+                      </Badge>
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-slate-400">
+                  Ingen försäljningsdata för vald period
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
