@@ -5,6 +5,7 @@ import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCar
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 const NAV_ITEMS = [
   { name: "Home", label: "Hem", icon: Home },
@@ -22,13 +23,14 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Logo - Top Left */}
-      <div className="hidden md:block fixed top-6 left-6 z-50">
+      {/* Logo and Notifications - Top */}
+      <div className="hidden md:flex fixed top-6 left-6 right-6 z-50 items-center justify-between">
         <img 
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
           alt="IMvision"
           className="h-8 object-contain"
         />
+        <NotificationBell />
       </div>
 
       {/* Desktop Navigation - Bottom */}
@@ -70,15 +72,18 @@ export default function Layout({ children, currentPageName }) {
             className="h-7 object-contain"
           />
         </div>
-        
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="text-white/70 hover:text-white"
-        >
-          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </Button>
+
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="text-white/70 hover:text-white"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
+        </div>
       </header>
 
       {/* Mobile Menu */}
