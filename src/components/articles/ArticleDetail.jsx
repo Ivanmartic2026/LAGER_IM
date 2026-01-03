@@ -6,11 +6,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Package, MapPin, Calendar, Hash, Factory, Ruler, 
   Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2, History,
-  DollarSign, Warehouse, Tag, Check, X
+  DollarSign, Warehouse, Tag, Check, X, ShoppingCart
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import LabelDownloader from "../labels/LabelDownloader";
 import RepairModal from "./RepairModal";
 import ReturnFromRepairModal from "./ReturnFromRepairModal";
@@ -48,6 +50,24 @@ export default function ArticleDetail({
   });
 
   const articlesOnRepair = allArticles.filter(a => a.status === 'on_repair');
+
+  const { data: orderItems = [] } = useQuery({
+    queryKey: ['orderItems', article.id],
+    queryFn: async () => {
+      const allItems = await base44.entities.OrderItem.list('-created_date', 100);
+      return allItems.filter(item => item.article_id === article.id);
+    },
+  });
+
+  const { data: allOrders = [] } = useQuery({
+    queryKey: ['orders'],
+    queryFn: () => base44.entities.Order.list('-created_date', 100),
+    enabled: orderItems.length > 0,
+  });
+
+  const articleOrders = allOrders
+    .filter(order => orderItems.some(item => item.order_id === order.id))
+    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
   
   const updateArticleMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Article.update(id, data),
@@ -455,7 +475,7 @@ export default function ArticleDetail({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-slate-800/50 border border-slate-700 w-full grid grid-cols-4 md:w-auto md:inline-flex">
+        <TabsList className="bg-slate-800/50 border border-slate-700 w-full grid grid-cols-5 md:w-auto md:inline-flex">
           <TabsTrigger value="details" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
             <Package className="w-3 h-3 md:w-4 md:h-4" />
             <span className="hidden sm:inline">Detaljer</span>
@@ -467,6 +487,10 @@ export default function ArticleDetail({
           <TabsTrigger value="history" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
             <History className="w-3 h-3 md:w-4 md:h-4" />
             <span className="hidden sm:inline">Historik</span>
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+            <ShoppingCart className="w-3 h-3 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">Ordrar ({articleOrders.length})</span>
           </TabsTrigger>
           <TabsTrigger value="repairs" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
             <Wrench className="w-3 h-3 md:w-4 md:h-4" />
@@ -748,6 +772,78 @@ export default function ArticleDetail({
                         </div>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="orders" className="mt-6">
+          <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+            <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-blue-400" />
+              Ordrar som innehåller denna artikel
+            </h3>
+
+            {articleOrders.length === 0 ? (
+              <div className="text-center py-8">
+                <ShoppingCart className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <p className="text-slate-400">Artikeln har inte använts i någon order ännu</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {articleOrders.map((order) => {
+                  const orderItem = orderItems.find(item => item.order_id === order.id);
+                  const statusColors = {
+                    draft: "bg-slate-500/20 text-slate-400 border-slate-500/30",
+                    ready_to_pick: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+                    picking: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+                    picked: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+                    delivered: "bg-green-500/20 text-green-400 border-green-500/30",
+                    cancelled: "bg-red-500/20 text-red-400 border-red-500/30"
+                  };
+
+                  return (
+                    <Link 
+                      key={order.id}
+                      to={`${createPageUrl("Orders")}?orderId=${order.id}`}
+                      className="block"
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/30 hover:border-slate-600 transition-all cursor-pointer"
+                      >
+                        <div className="flex items-start justify-between gap-4 mb-2">
+                          <div className="flex-1">
+                            <p className="text-white font-medium">
+                              {order.order_number || `Order #${order.id.slice(0, 8)}`}
+                            </p>
+                            <p className="text-sm text-slate-400">{order.customer_name}</p>
+                          </div>
+                          <Badge className={statusColors[order.status] || "bg-slate-500/20 text-slate-400"}>
+                            {order.status === 'ready_to_pick' ? 'Redo' :
+                             order.status === 'picking' ? 'Plockar' :
+                             order.status === 'picked' ? 'Plockad' :
+                             order.status === 'delivered' ? 'Levererad' :
+                             order.status === 'cancelled' ? 'Avbruten' : order.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-500">
+                            Antal: <span className="text-white font-medium">{orderItem?.quantity_ordered || 0} st</span>
+                            {orderItem?.quantity_picked > 0 && (
+                              <span className="text-emerald-400 ml-2">
+                                (Plockad: {orderItem.quantity_picked})
+                              </span>
+                            )}
+                          </span>
+                          <span className="text-slate-500">
+                            {format(new Date(order.created_date), "d MMM yyyy", { locale: sv })}
+                          </span>
+                        </div>
+                      </motion.div>
+                    </Link>
                   );
                 })}
               </div>
