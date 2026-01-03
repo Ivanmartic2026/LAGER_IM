@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export default function ProductAssemblyManager({ article }) {
+export default function ProductAssemblyManager({ article, assemblyParts, usedInProducts }) {
   const [addPartOpen, setAddPartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPart, setSelectedPart] = useState(null);
@@ -44,24 +44,6 @@ export default function ProductAssemblyManager({ article }) {
   const { data: allArticles = [] } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list('-updated_date'),
-  });
-
-  // Fetch assembly parts (this article's components)
-  const { data: assemblyParts = [] } = useQuery({
-    queryKey: ['assemblyParts', article.id],
-    queryFn: async () => {
-      const all = await base44.entities.ProductAssembly.list();
-      return all.filter(a => a.parent_article_id === article.id);
-    },
-  });
-
-  // Fetch where this article is used (as a part in other products)
-  const { data: usedInProducts = [] } = useQuery({
-    queryKey: ['usedInProducts', article.id],
-    queryFn: async () => {
-      const all = await base44.entities.ProductAssembly.list();
-      return all.filter(a => a.part_article_id === article.id);
-    },
   });
 
   const addPartMutation = useMutation({

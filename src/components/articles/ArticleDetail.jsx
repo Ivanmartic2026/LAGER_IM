@@ -52,6 +52,23 @@ export default function ArticleDetail({
 
   const articlesOnRepair = allArticles.filter(a => a.status === 'on_repair');
 
+  // Fetch assembly data
+  const { data: assemblyParts = [] } = useQuery({
+    queryKey: ['assemblyParts', article.id],
+    queryFn: async () => {
+      const all = await base44.entities.ProductAssembly.list();
+      return all.filter(a => a.parent_article_id === article.id);
+    },
+  });
+
+  const { data: usedInProducts = [] } = useQuery({
+    queryKey: ['usedInProducts', article.id],
+    queryFn: async () => {
+      const all = await base44.entities.ProductAssembly.list();
+      return all.filter(a => a.part_article_id === article.id);
+    },
+  });
+
   const { data: orderItems = [] } = useQuery({
     queryKey: ['orderItems', article.id],
     queryFn: async () => {
@@ -468,10 +485,24 @@ export default function ArticleDetail({
                 )}
               </div>
             </div>
-            <Badge className={cn("border text-xs md:text-sm flex-shrink-0", statusConfig.color)}>
-              {statusConfig.label}
-            </Badge>
-          </div>
+            <div className="flex flex-col gap-2 items-end">
+              <Badge className={cn("border text-xs md:text-sm flex-shrink-0", statusConfig.color)}>
+                {statusConfig.label}
+              </Badge>
+              {assemblyParts.length > 0 && (
+                <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30 text-xs flex-shrink-0">
+                  <Grid3X3 className="w-3 h-3 mr-1" />
+                  Sammansatt produkt
+                </Badge>
+              )}
+              {usedInProducts.length > 0 && (
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-xs flex-shrink-0">
+                  <Package className="w-3 h-3 mr-1" />
+                  Används i {usedInProducts.length} produkt{usedInProducts.length !== 1 ? 'er' : ''}
+                </Badge>
+              )}
+            </div>
+            </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-3 gap-2 md:gap-4">
@@ -709,7 +740,11 @@ export default function ArticleDetail({
         </TabsContent>
 
         <TabsContent value="assembly" className="mt-6">
-          <ProductAssemblyManager article={article} />
+          <ProductAssemblyManager 
+            article={article} 
+            assemblyParts={assemblyParts}
+            usedInProducts={usedInProducts}
+          />
         </TabsContent>
 
         <TabsContent value="files" className="mt-6">
