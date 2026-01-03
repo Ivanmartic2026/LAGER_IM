@@ -46,6 +46,10 @@ export default function PurchaseOrdersPage() {
       queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
       queryClient.invalidateQueries({ queryKey: ['purchaseOrderItems'] });
       toast.success("Inköpsorder borttagen");
+    },
+    onError: (error) => {
+      console.error('Delete PO error:', error);
+      toast.error('Kunde inte ta bort inköpsorder: ' + error.message);
     }
   });
 
