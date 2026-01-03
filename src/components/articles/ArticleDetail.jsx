@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Package, MapPin, Calendar, Hash, Factory, Ruler, 
   Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2, History,
-  DollarSign, Warehouse, Tag, Check, X, ShoppingCart
+  DollarSign, Warehouse, Tag, Check, X, ShoppingCart, Copy
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -78,6 +78,16 @@ export default function ArticleDetail({
 
   const createMovementMutation = useMutation({
     mutationFn: (data) => base44.entities.StockMovement.create(data),
+  });
+
+  const createArticleMutation = useMutation({
+    mutationFn: (data) => base44.entities.Article.create(data),
+    onSuccess: (newArticle) => {
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      toast.success("Artikel kopierad!");
+      // Navigate to edit form for the new article
+      window.location.href = `${createPageUrl("Inventory")}?articleId=${newArticle.id}&edit=true`;
+    }
   });
 
   const handleFileUpload = async (e) => {
@@ -179,6 +189,31 @@ export default function ArticleDetail({
       toast.success("Artikel återförd till lager");
     } catch (error) {
       toast.error("Kunde inte uppdatera artikel");
+    }
+  };
+
+  const handleCopyArticle = async () => {
+    try {
+      const copiedData = {
+        ...article,
+        name: `${article.name} (Kopia)`,
+        batch_number: null,
+        sku: null,
+        stock_qty: 0,
+        status: 'active',
+        repair_notes: null,
+        repair_date: null,
+      };
+      
+      // Remove fields that shouldn't be copied
+      delete copiedData.id;
+      delete copiedData.created_date;
+      delete copiedData.updated_date;
+      delete copiedData.created_by;
+      
+      await createArticleMutation.mutateAsync(copiedData);
+    } catch (error) {
+      toast.error("Kunde inte kopiera artikel");
     }
   };
 
@@ -355,6 +390,21 @@ export default function ArticleDetail({
           >
             <Printer className="w-4 h-4 md:mr-2" />
             <span className="hidden md:inline">Liten</span>
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopyArticle}
+            disabled={createArticleMutation.isPending}
+            className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+            title="Kopiera artikel"
+          >
+            {createArticleMutation.isPending ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
           </Button>
           
           <Button

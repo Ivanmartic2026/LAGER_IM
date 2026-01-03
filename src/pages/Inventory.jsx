@@ -352,13 +352,32 @@ export default function InventoryPage() {
     onRepair: articles.filter(a => a.status === "on_repair").length
   };
 
+  // Check URL for article selection and edit mode
+  React.useEffect(() => {
+    const articleId = urlParams.get('articleId');
+    const editMode = urlParams.get('edit');
+    
+    if (articleId && articles.length > 0) {
+      const article = articles.find(a => a.id === articleId);
+      if (article) {
+        setSelectedArticle(article);
+        if (editMode === 'true') {
+          setEditingArticle(article);
+        }
+      }
+    }
+  }, [articles]);
+
   if (selectedArticle) {
     return (
       <div className="min-h-screen bg-black p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
           <ArticleDetail
             article={selectedArticle}
-            onBack={() => setSelectedArticle(null)}
+            onBack={() => {
+              setSelectedArticle(null);
+              window.history.replaceState({}, '', createPageUrl("Inventory"));
+            }}
             onEdit={() => setEditingArticle(selectedArticle)}
             onDelete={() => deleteArticleMutation.mutate(selectedArticle.id)}
             onAdjustStock={(type) => setAdjustmentModal({ open: true, type })}
