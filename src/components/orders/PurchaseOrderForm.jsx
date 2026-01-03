@@ -71,13 +71,6 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
         await Promise.all(toDelete.map(id => base44.entities.PurchaseOrderItem.delete(id)));
       }
 
-      // Calculate total cost
-      const totalCost = poItems.reduce((sum, item) => {
-        return sum + (item.quantity_ordered * (item.unit_price || 0));
-      }, 0);
-
-      await base44.entities.PurchaseOrder.update(savedPO.id, { total_cost: totalCost });
-
       // Save PO items
       for (const item of poItems) {
         const article = articles.find(a => a.id === item.article_id);
@@ -99,6 +92,13 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
         }
       }
 
+      // Calculate total cost after all items are saved
+      const totalCost = poItems.reduce((sum, item) => {
+        return sum + (item.quantity_ordered * (item.unit_price || 0));
+      }, 0);
+
+      await base44.entities.PurchaseOrder.update(savedPO.id, { total_cost: totalCost });
+
       return savedPO;
     },
     onSuccess: () => {
@@ -106,6 +106,10 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
       queryClient.invalidateQueries({ queryKey: ['purchaseOrderItems'] });
       toast.success(purchaseOrder ? "Inköpsorder uppdaterad" : "Inköpsorder skapad");
       onClose();
+    },
+    onError: (error) => {
+      console.error('Save PO error:', error);
+      toast.error('Kunde inte spara inköpsorder: ' + error.message);
     }
   });
 
