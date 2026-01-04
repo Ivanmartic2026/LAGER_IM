@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Settings, Users, TrendingUp, FileText, Calendar,
-  ArrowRight, Activity, Package, Monitor
+  ArrowRight, Activity, Package, Monitor, Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -81,6 +81,15 @@ export default function AdminPage() {
       color: "from-amber-600 to-amber-700",
       iconBg: "bg-amber-500/20",
       iconColor: "text-amber-400"
+    },
+    {
+      name: "EmailOrderSetup",
+      label: "E-post till Order",
+      description: "Konfigurera automatisk orderhantering via e-post",
+      icon: Mail,
+      color: "from-violet-600 to-violet-700",
+      iconBg: "bg-violet-500/20",
+      iconColor: "text-violet-400"
     }
   ];
 
