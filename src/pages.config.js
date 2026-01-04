@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Inventory from './pages/Inventory';
 import InventoryValue from './pages/InventoryValue';
 import Movements from './pages/Movements';
+import NotificationSettings from './pages/NotificationSettings';
 import Orders from './pages/Orders';
 import PickOrder from './pages/PickOrder';
 import PurchaseOrders from './pages/PurchaseOrders';
@@ -20,7 +21,7 @@ import UnknownDeliveries from './pages/UnknownDeliveries';
 import UsersManagement from './pages/UsersManagement';
 import WarehouseDashboard from './pages/WarehouseDashboard';
 import Warehouses from './pages/Warehouses';
-import NotificationSettings from './pages/NotificationSettings';
+import EmailOrderSetup from './pages/EmailOrderSetup';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "Inventory": Inventory,
     "InventoryValue": InventoryValue,
     "Movements": Movements,
+    "NotificationSettings": NotificationSettings,
     "Orders": Orders,
     "PickOrder": PickOrder,
     "PurchaseOrders": PurchaseOrders,
@@ -47,7 +49,7 @@ export const PAGES = {
     "UsersManagement": UsersManagement,
     "WarehouseDashboard": WarehouseDashboard,
     "Warehouses": Warehouses,
-    "NotificationSettings": NotificationSettings,
+    "EmailOrderSetup": EmailOrderSetup,
 }
 
 export const pagesConfig = {
