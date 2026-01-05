@@ -16,6 +16,64 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
+function ExistingDocuments({ purchaseOrderId }) {
+  const { data: receivingRecords = [] } = useQuery({
+    queryKey: ['receivingRecords', purchaseOrderId],
+    queryFn: async () => {
+      const records = await base44.entities.ReceivingRecord.filter({ 
+        purchase_order_id: purchaseOrderId 
+      });
+      return records;
+    }
+  });
+
+  const allDocuments = receivingRecords
+    .flatMap(record => record.image_urls || [])
+    .filter((url, index, self) => url && self.indexOf(url) === index);
+
+  if (allDocuments.length === 0) return null;
+
+  return (
+    <div className="mt-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
+      <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+        <FileText className="w-5 h-5" />
+        Tidigare uppladdade dokument ({allDocuments.length})
+      </h3>
+      <div className="grid grid-cols-4 gap-2">
+        {allDocuments.map((url, idx) => {
+          const fileName = url.split('/').pop().split('?')[0];
+          const isPdf = fileName.toLowerCase().endsWith('.pdf');
+          
+          return (
+            <a
+              key={idx}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative aspect-square rounded-lg overflow-hidden bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+            >
+              {isPdf ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <FileText className="w-8 h-8 text-blue-400" />
+                </div>
+              ) : (
+                <img 
+                  src={url} 
+                  alt={`Dokument ${idx + 1}`} 
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute bottom-0 left-0 right-0 p-1 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                <p className="text-xs text-white truncate">{fileName}</p>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComplete }) {
   const queryClient = useQueryClient();
   const [receivingData, setReceivingData] = useState({});
@@ -271,6 +329,9 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
               <div className="text-sm font-medium text-white">{totalOrdered} st</div>
             </div>
           </div>
+
+          {/* Existing Documents */}
+          <ExistingDocuments purchaseOrderId={purchaseOrder.id} />
         </div>
 
         {/* Items List */}
