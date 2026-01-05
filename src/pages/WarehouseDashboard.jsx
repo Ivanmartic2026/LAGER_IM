@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -309,7 +310,7 @@ export default function WarehouseDashboard() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <ShoppingCart className="w-6 h-6 text-purple-400" />
-                    <h2 className="text-xl font-bold text-white">Aktiva plockar</h2>
+                    <h2 className="text-xl font-bold text-white">ORDRAR TILL ATT PLOCKA</h2>
                   </div>
                   <Tabs value={orderStatus} onValueChange={setOrderStatus}>
                     <TabsList className="bg-white/5 border border-white/10">
@@ -330,6 +331,9 @@ export default function WarehouseDashboard() {
                           <p className="font-medium text-white">{order.customer_name}</p>
                           <p className="text-xs text-purple-300">
                             {order.order_number || `#${order.id.slice(0, 8)}`}
+                          </p>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Inkom: {format(new Date(order.created_date), 'd MMM HH:mm', { locale: sv })}
                           </p>
                         </div>
                         <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
