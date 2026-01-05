@@ -308,7 +308,7 @@ export default function ArticleDetail({
       className="space-y-6"
     >
       {/* Header - Mobile Optimized */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 sticky top-0 bg-black/80 backdrop-blur-xl z-[100] -mx-4 px-4 py-3">
         <div
           onClick={onBack}
           role="button"
@@ -320,7 +320,7 @@ export default function ArticleDetail({
         </div>
         
         {/* Mobile: Compact action menu */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap relative z-[101]">
           <div
             onClick={async () => {
               const loadingToast = toast.loading('Genererar etikett...');
