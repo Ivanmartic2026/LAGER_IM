@@ -18,20 +18,20 @@ Deno.serve(async (req) => {
 
     const article = articles[0];
 
-    // 40x30mm - using mm directly for print
-    const widthMM = 40;
-    const heightMM = 30;
+    // 40x30mm at 203 DPI (standard label printer resolution)
+    const width = 320;  // 40mm at 203 DPI
+    const height = 240; // 30mm at 203 DPI
 
-    // Create QR code - compact for small label
+    // Create QR code - very compact
     const qrCodeDataUrl = article.batch_number 
       ? await QRCode.toDataURL(article.batch_number, { 
-          width: 100,
+          width: 80,
           margin: 0,
           errorCorrectionLevel: 'M'
         })
       : null;
 
-    // Build compact HTML with exact mm dimensions
+    // Build ultra-compact HTML
     const html = `
 <!DOCTYPE html>
 <html>
@@ -39,36 +39,37 @@ Deno.serve(async (req) => {
   <meta charset="UTF-8">
   <style>
     @page {
-      size: ${widthMM}mm ${heightMM}mm;
+      size: 40mm 30mm;
       margin: 0;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { 
-      width: ${widthMM}mm;
-      height: ${heightMM}mm;
-      max-width: ${widthMM}mm;
-      max-height: ${heightMM}mm;
+      width: ${width}px;
+      height: ${height}px;
+      margin: 0;
+      padding: 0;
       overflow: hidden;
     }
     body { 
       font-family: Arial, sans-serif; 
       background: white;
-      padding: 1.5mm;
+      padding: 4px;
+      display: flex;
     }
     .container {
       display: flex;
-      gap: 2mm;
+      gap: 4px;
       width: 100%;
       height: 100%;
     }
     .qr {
       flex-shrink: 0;
-      width: 10mm;
-      height: 10mm;
+      width: 75px;
+      height: 75px;
     }
     .qr img {
-      width: 10mm;
-      height: 10mm;
+      width: 75px;
+      height: 75px;
       display: block;
     }
     .content {
@@ -80,7 +81,7 @@ Deno.serve(async (req) => {
       overflow: hidden;
     }
     .name {
-      font-size: 7pt;
+      font-size: 8px;
       font-weight: bold;
       color: #000;
       line-height: 1.1;
@@ -89,38 +90,45 @@ Deno.serve(async (req) => {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
+      max-height: 18px;
     }
     .batch {
-      font-size: 9pt;
+      font-size: 11px;
       font-weight: bold;
       color: #1e40af;
       word-break: break-all;
-      margin-top: 0.5mm;
+      margin-top: 2px;
+      line-height: 1.1;
     }
     .sku {
-      font-size: 5pt;
+      font-size: 6px;
       color: #6b7280;
+      margin-top: 1px;
     }
     .location-section {
       margin-top: auto;
-      border-top: 0.3mm solid #e5e7eb;
-      padding-top: 0.5mm;
+      padding-top: 3px;
+      border-top: 1px solid #e5e7eb;
     }
     .location {
-      font-size: 7pt;
+      font-size: 8px;
       font-weight: bold;
       color: #059669;
-      display: flex;
-      align-items: center;
-      gap: 0.5mm;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .warehouse {
-      font-size: 5pt;
+      font-size: 6px;
       color: #6b7280;
+      line-height: 1.1;
+      margin-top: 1px;
     }
     .footer {
-      font-size: 4pt;
+      font-size: 5px;
       color: #9ca3af;
+      margin-top: 1px;
     }
   </style>
 </head>
