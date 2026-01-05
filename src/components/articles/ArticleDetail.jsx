@@ -34,6 +34,13 @@ export default function ArticleDetail({
   const [returnFromRepairModalOpen, setReturnFromRepairModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [editingDimensions, setEditingDimensions] = useState(false);
+  const [dimensionsData, setDimensionsData] = useState({
+    dimensions_width_mm: article.dimensions_width_mm || '',
+    dimensions_height_mm: article.dimensions_height_mm || '',
+    dimensions_depth_mm: article.dimensions_depth_mm || '',
+    weight_g: article.weight_g || ''
+  });
   const queryClient = useQueryClient();
 
   // Fetch stock movements for this article
@@ -638,21 +645,122 @@ export default function ArticleDetail({
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <h3 className="font-semibold text-white mb-4">Mått & Vikt</h3>
-              <div className="space-y-0">
-                <InfoRow icon={Ruler} label="Bredd" value={
-                  article.dimensions_width_mm ? `${article.dimensions_width_mm} mm` : null
-                } />
-                <InfoRow icon={Ruler} label="Höjd" value={
-                  article.dimensions_height_mm ? `${article.dimensions_height_mm} mm` : null
-                } />
-                <InfoRow icon={Ruler} label="Djup" value={
-                  article.dimensions_depth_mm ? `${article.dimensions_depth_mm} mm` : null
-                } />
-                <InfoRow icon={Scale} label="Vikt" value={
-                  article.weight_g ? `${article.weight_g} g` : (article.weight_kg ? `${article.weight_kg * 1000} g` : null)
-                } />
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-white">Mått & Vikt</h3>
+                {!editingDimensions ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setEditingDimensions(true);
+                      setDimensionsData({
+                        dimensions_width_mm: article.dimensions_width_mm || '',
+                        dimensions_height_mm: article.dimensions_height_mm || '',
+                        dimensions_depth_mm: article.dimensions_depth_mm || '',
+                        weight_g: article.weight_g || ''
+                      });
+                    }}
+                    className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                  >
+                    <Edit className="w-3 h-3 mr-1" />
+                    Redigera
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setEditingDimensions(false)}
+                      className="text-slate-400 hover:text-white"
+                    >
+                      Avbryt
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          await updateArticleMutation.mutateAsync({
+                            id: article.id,
+                            data: {
+                              dimensions_width_mm: dimensionsData.dimensions_width_mm ? Number(dimensionsData.dimensions_width_mm) : null,
+                              dimensions_height_mm: dimensionsData.dimensions_height_mm ? Number(dimensionsData.dimensions_height_mm) : null,
+                              dimensions_depth_mm: dimensionsData.dimensions_depth_mm ? Number(dimensionsData.dimensions_depth_mm) : null,
+                              weight_g: dimensionsData.weight_g ? Number(dimensionsData.weight_g) : null
+                            }
+                          });
+                          setEditingDimensions(false);
+                          toast.success('Mått uppdaterade');
+                        } catch (error) {
+                          toast.error('Kunde inte uppdatera mått');
+                        }
+                      }}
+                      disabled={updateArticleMutation.isPending}
+                      className="bg-blue-600 hover:bg-blue-500"
+                    >
+                      Spara
+                    </Button>
+                  </div>
+                )}
               </div>
+              {editingDimensions ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Bredd (mm)</label>
+                    <Input
+                      type="number"
+                      value={dimensionsData.dimensions_width_mm}
+                      onChange={(e) => setDimensionsData({...dimensionsData, dimensions_width_mm: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                      placeholder="t.ex. 500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Höjd (mm)</label>
+                    <Input
+                      type="number"
+                      value={dimensionsData.dimensions_height_mm}
+                      onChange={(e) => setDimensionsData({...dimensionsData, dimensions_height_mm: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                      placeholder="t.ex. 500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Djup (mm)</label>
+                    <Input
+                      type="number"
+                      value={dimensionsData.dimensions_depth_mm}
+                      onChange={(e) => setDimensionsData({...dimensionsData, dimensions_depth_mm: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                      placeholder="t.ex. 80"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Vikt (g)</label>
+                    <Input
+                      type="number"
+                      value={dimensionsData.weight_g}
+                      onChange={(e) => setDimensionsData({...dimensionsData, weight_g: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                      placeholder="t.ex. 2500"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-0">
+                  <InfoRow icon={Ruler} label="Bredd" value={
+                    article.dimensions_width_mm ? `${article.dimensions_width_mm} mm` : null
+                  } />
+                  <InfoRow icon={Ruler} label="Höjd" value={
+                    article.dimensions_height_mm ? `${article.dimensions_height_mm} mm` : null
+                  } />
+                  <InfoRow icon={Ruler} label="Djup" value={
+                    article.dimensions_depth_mm ? `${article.dimensions_depth_mm} mm` : null
+                  } />
+                  <InfoRow icon={Scale} label="Vikt" value={
+                    article.weight_g ? `${article.weight_g} g` : (article.weight_kg ? `${article.weight_kg * 1000} g` : null)
+                  } />
+                </div>
+              )}
             </div>
           </div>
 
