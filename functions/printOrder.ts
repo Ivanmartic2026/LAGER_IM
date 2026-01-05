@@ -18,6 +18,41 @@ Deno.serve(async (req) => {
     const order = await base44.entities.Order.get(orderId);
     const orderItems = await base44.entities.OrderItem.filter({ order_id: orderId });
 
+    // Fetch articles to get SKU numbers
+    const articleIds = orderItems.map(item => item.article_id).filter(Boolean);
+    const articles = await Promise.all(
+      articleIds.map(id => base44.entities.Article.get(id).catch(() => null))
+    );
+    const articleMap = Object.fromEntries(
+      articles.filter(Boolean).map(a => [a.id, a])
+    );
+
+    const itemsHtml = orderItems.map(item => {
+      const article = articleMap[item.article_id];
+      return `
+        <tr>
+          <td style="padding: 14px 12px; border-bottom: 1px solid #e0e0e0; background: white; color: #000000; font-size: 14px;">
+            <strong>${item.article_name || '-'}</strong>
+          </td>
+          <td style="padding: 14px 12px; border-bottom: 1px solid #e0e0e0; background: white; color: #000000; font-size: 14px;">
+            ${article?.sku || '-'}
+          </td>
+          <td style="padding: 14px 12px; border-bottom: 1px solid #e0e0e0; background: white; color: #000000; font-size: 14px;">
+            ${item.article_batch_number || '-'}
+          </td>
+          <td style="padding: 14px 12px; border-bottom: 1px solid #e0e0e0; background: white; color: #000000; font-size: 14px;">
+            ${item.shelf_address || '-'}
+          </td>
+          <td style="padding: 14px 12px; border-bottom: 1px solid #e0e0e0; background: white; color: #000000; font-size: 14px; text-align: center;">
+            <strong>${item.quantity_ordered}</strong>
+          </td>
+          <td style="padding: 14px 12px; border-bottom: 1px solid #e0e0e0; background: white; color: #000000; font-size: 14px; text-align: center;">
+            ${item.quantity_picked || 0}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -25,191 +60,221 @@ Deno.serve(async (req) => {
         <meta charset="UTF-8">
         <style>
           body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             padding: 40px;
-            max-width: 800px;
+            background: #ffffff;
+            margin: 0;
+            min-height: 100vh;
+          }
+          .container {
+            max-width: 900px;
             margin: 0 auto;
+            background: white;
+            border: 1px solid #000000;
+            overflow: hidden;
           }
           .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 3px solid #2563eb;
-            padding-bottom: 20px;
+            background: #000000;
+            padding: 40px;
+            color: white;
+            position: relative;
           }
-          .header h1 {
+          .logo {
+            height: 45px;
+            margin-bottom: 20px;
+            filter: brightness(0) invert(1);
+          }
+          h1 {
+            font-size: 32px;
             margin: 0;
-            color: #1e293b;
-            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
           }
-          .order-info {
+          .content {
+            padding: 40px;
+          }
+          .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-bottom: 30px;
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 8px;
+            background: #fafafa;
+            padding: 25px;
+            border: 1px solid #e0e0e0;
           }
-          .info-field {
-            margin-bottom: 10px;
+          .info-item {
+            display: flex;
+            flex-direction: column;
           }
           .info-label {
-            font-weight: bold;
-            color: #64748b;
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
+            color: #666666;
+            font-weight: 500;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
           }
           .info-value {
-            color: #1e293b;
-            font-size: 16px;
-            margin-top: 4px;
+            font-size: 15px;
+            color: #000000;
+            font-weight: 500;
           }
-          .items-table {
+          .customer-box {
+            background: #f5f5f5;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 3px solid #000000;
+          }
+          .customer-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #666666;
+            font-weight: 500;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+          }
+          .customer-name {
+            font-size: 17px;
+            color: #000000;
+            font-weight: 500;
+          }
+          table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin: 30px 0;
+            border: 1px solid #e0e0e0;
           }
-          .items-table th {
-            background: #2563eb;
-            color: white;
-            padding: 12px;
+          th {
+            background: #000000;
+            padding: 14px 12px;
             text-align: left;
+            font-weight: 500;
+            color: white;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+          }
+          td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            background: white;
+            color: #000000;
             font-size: 14px;
           }
-          .items-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e2e8f0;
+          tbody tr:last-child td {
+            border-bottom: none;
           }
-          .items-table tr:hover {
-            background: #f8fafc;
+          .notes {
+            margin-top: 30px;
+            padding: 25px;
+            background: #fafafa;
+            border-left: 3px solid #000000;
           }
-          .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
+          .notes-label {
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #000000;
             font-size: 12px;
-            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
           }
-          .status-draft { background: #f1f5f9; color: #64748b; }
-          .status-ready_to_pick { background: #dbeafe; color: #2563eb; }
-          .status-picking { background: #fef3c7; color: #d97706; }
-          .status-picked { background: #d1fae5; color: #059669; }
-          .status-delivered { background: #d1fae5; color: #059669; }
+          .notes-text {
+            color: #333333;
+            line-height: 1.6;
+            font-size: 14px;
+          }
           .footer {
             margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid #e2e8f0;
+            padding: 25px 40px;
+            background: #fafafa;
             text-align: center;
-            color: #64748b;
-            font-size: 12px;
+            color: #666666;
+            font-size: 11px;
+            border-top: 1px solid #e0e0e0;
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>ORDER</h1>
-          <p style="color: #64748b; margin-top: 10px;">
-            ${order.order_number || `#${order.id.slice(0, 8)}`}
-          </p>
-        </div>
-
-        <div class="order-info">
-          <div>
-            <div class="info-field">
-              <div class="info-label">Kund</div>
-              <div class="info-value">${order.customer_name || '-'}</div>
-            </div>
-            ${order.customer_reference ? `
-            <div class="info-field">
-              <div class="info-label">Kundreferens</div>
-              <div class="info-value">${order.customer_reference}</div>
-            </div>
-            ` : ''}
-            ${order.delivery_address ? `
-            <div class="info-field">
-              <div class="info-label">Leveransadress</div>
-              <div class="info-value">${order.delivery_address}</div>
-            </div>
-            ` : ''}
+        <div class="container">
+          <div class="header">
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" alt="IM Vision" class="logo" crossorigin="anonymous" />
+            <h1>PLOCKLISTA</h1>
           </div>
-          <div>
-            <div class="info-field">
-              <div class="info-label">Status</div>
-              <div class="info-value">
-                <span class="status-badge status-${order.status}">
-                  ${order.status === 'draft' ? 'Utkast' : 
-                    order.status === 'ready_to_pick' ? 'Redo att plocka' :
-                    order.status === 'picking' ? 'Plockar' :
-                    order.status === 'picked' ? 'Plockad' :
-                    order.status === 'delivered' ? 'Levererad' : order.status}
-                </span>
+          
+          <div class="content">
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Ordernummer</div>
+                <div class="info-value">${order.order_number || order.id.slice(0, 8)}</div>
               </div>
+              <div class="info-item">
+                <div class="info-label">Datum</div>
+                <div class="info-value">${new Date(order.created_date).toLocaleDateString('sv-SE')}</div>
+              </div>
+              ${order.delivery_date ? `
+              <div class="info-item">
+                <div class="info-label">Leveransdatum</div>
+                <div class="info-value">${new Date(order.delivery_date).toLocaleDateString('sv-SE')}</div>
+              </div>
+              ` : ''}
+              ${order.customer_reference ? `
+              <div class="info-item">
+                <div class="info-label">Kundreferens</div>
+                <div class="info-value">${order.customer_reference}</div>
+              </div>
+              ` : ''}
             </div>
-            ${order.delivery_date ? `
-            <div class="info-field">
-              <div class="info-label">Leveransdatum</div>
-              <div class="info-value">${new Date(order.delivery_date).toLocaleDateString('sv-SE')}</div>
+
+            <div class="customer-box">
+              <div class="customer-label">Kund</div>
+              <div class="customer-name">${order.customer_name}</div>
+              ${order.delivery_address ? `
+                <div style="margin-top: 10px; color: #333333; font-size: 14px; line-height: 1.5;">
+                  ${order.delivery_address.replace(/\n/g, '<br>')}
+                </div>
+              ` : ''}
             </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Artikel</th>
+                  <th>Artikelnr</th>
+                  <th>Batch</th>
+                  <th>Hyllplats</th>
+                  <th style="text-align: center;">Beställt</th>
+                  <th style="text-align: center;">Plockat</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+            </table>
+
+            ${order.notes ? `
+              <div class="notes">
+                <div class="notes-label">Anteckningar</div>
+                <div class="notes-text">${order.notes}</div>
+              </div>
             ` : ''}
-            <div class="info-field">
-              <div class="info-label">Skapad</div>
-              <div class="info-value">${new Date(order.created_date).toLocaleDateString('sv-SE')}</div>
-            </div>
           </div>
-        </div>
 
-        ${order.notes ? `
-        <div style="background: #fef9c3; padding: 15px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #eab308;">
-          <div class="info-label" style="margin-bottom: 5px;">Anteckningar</div>
-          <div style="color: #1e293b;">${order.notes}</div>
-        </div>
-        ` : ''}
-
-        <table class="items-table">
-          <thead>
-            <tr>
-              <th>Artikel</th>
-              <th>Batch</th>
-              <th>Hyllplats</th>
-              <th style="text-align: center;">Beställt</th>
-              <th style="text-align: center;">Plockat</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${orderItems.map(item => `
-              <tr>
-                <td><strong>${item.article_name || '-'}</strong></td>
-                <td>${item.article_batch_number || '-'}</td>
-                <td>${item.shelf_address || '-'}</td>
-                <td style="text-align: center;"><strong>${item.quantity_ordered}</strong></td>
-                <td style="text-align: center;">${item.quantity_picked || 0}</td>
-                <td>
-                  <span class="status-badge ${
-                    item.status === 'picked' ? 'status-picked' :
-                    item.status === 'partial' ? 'status-picking' :
-                    'status-draft'
-                  }">
-                    ${item.status === 'picked' ? 'Plockad' :
-                      item.status === 'partial' ? 'Delvis' : 'Väntar'}
-                  </span>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-
-        <div class="footer">
-          <p>Genererad ${new Date().toLocaleDateString('sv-SE')} ${new Date().toLocaleTimeString('sv-SE')}</p>
+          <div class="footer">
+            Genererad: ${new Date().toLocaleString('sv-SE')}
+          </div>
         </div>
       </body>
       </html>
     `;
 
     return new Response(html, {
-      headers: { 'Content-Type': 'text/html' }
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8'
+      }
     });
   } catch (error) {
+    console.error('Error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
