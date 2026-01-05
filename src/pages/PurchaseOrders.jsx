@@ -38,9 +38,8 @@ export default function PurchaseOrdersPage() {
 
   const deletePOMutation = useMutation({
     mutationFn: async (poId) => {
-      const items = poItems.filter(item => item.purchase_order_id === poId);
-      await Promise.all(items.map(item => base44.entities.PurchaseOrderItem.delete(item.id)));
-      await base44.entities.PurchaseOrder.delete(poId);
+      const response = await base44.functions.invoke('deletePurchaseOrder', { purchaseOrderId: poId });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
