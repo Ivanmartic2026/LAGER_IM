@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { toast } from "sonner";
 import { 
   Package, Camera, AlertTriangle, CheckCircle2, 
   MapPin, Plus, X, Upload
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 export default function ReceivingItemCard({ 
@@ -19,7 +21,11 @@ export default function ReceivingItemCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [receivedQty, setReceivedQty] = useState(item.quantity_ordered - (item.quantity_received || 0));
-  const [shelfAddress, setShelfAddress] = useState(article?.shelf_address || '');
+  const [shelfAddress, setShelfAddress] = useState(
+    Array.isArray(article?.shelf_address) && article.shelf_address.length > 0 
+      ? article.shelf_address[0] 
+      : article?.shelf_address || ''
+  );
   const [notes, setNotes] = useState('');
   const [qualityCheck, setQualityCheck] = useState(false);
   const [hasDiscrepancy, setHasDiscrepancy] = useState(false);
@@ -28,6 +34,16 @@ export default function ReceivingItemCard({
   const [images, setImages] = useState([]);
 
   const remaining = item.quantity_ordered - (item.quantity_received || 0);
+
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: () => base44.entities.Warehouse.filter({ is_active: true }),
+  });
+
+  const { data: shelves = [] } = useQuery({
+    queryKey: ['shelves'],
+    queryFn: () => base44.entities.Shelf.filter({ is_active: true }),
+  });
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -139,10 +155,35 @@ export default function ReceivingItemCard({
                   <MapPin className="w-4 h-4" />
                   Lagerplats
                 </label>
+                <Select
+                  value={shelfAddress}
+                  onValueChange={setShelfAddress}
+                >
+                  <SelectTrigger className="w-full bg-slate-900 border-slate-700 text-white mb-2">
+                    <SelectValue placeholder="Välj hyllplats från lager" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-700 text-white max-h-64 overflow-y-auto">
+                    <SelectItem value={null}>Ingen vald</SelectItem>
+                    {warehouses.map(wh => {
+                      const whShelves = shelves.filter(s => s.warehouse_id === wh.id);
+                      if (whShelves.length === 0) return null;
+                      return (
+                        <SelectGroup key={wh.id}>
+                          <SelectLabel className="text-slate-400">{wh.name}</SelectLabel>
+                          {whShelves.map(shelf => (
+                            <SelectItem key={shelf.id} value={shelf.shelf_code}>
+                              {shelf.shelf_code}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
                 <Input
                   value={shelfAddress}
                   onChange={(e) => setShelfAddress(e.target.value)}
-                  placeholder="T.ex. A1-B2"
+                  placeholder="Eller skriv in egen hyllplats (t.ex. A1-B2)"
                   className="bg-slate-900 border-slate-700 text-white"
                 />
               </div>
