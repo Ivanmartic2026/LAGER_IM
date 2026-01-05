@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { 
   Search, Plus, ShoppingCart, Download, Calendar,
-  Truck, Package, User, Printer
+  Truck, Package, User, Printer, Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -112,6 +112,19 @@ export default function PurchaseOrdersPage() {
       } finally {
         document.body.removeChild(tempDiv);
       }
+    }
+  });
+
+  const sendEmailMutation = useMutation({
+    mutationFn: async (poId) => {
+      const response = await base44.functions.invoke('sendPurchaseOrderEmail', { purchaseOrderId: poId });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || 'Email skickat till leverantör!');
+    },
+    onError: (error) => {
+      toast.error('Kunde inte skicka email: ' + error.message);
     }
   });
 
@@ -347,6 +360,21 @@ export default function PurchaseOrdersPage() {
                             </Button>
                           </Link>
                         )}
+                        
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-emerald-600/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-600/30"
+                          onClick={() => sendEmailMutation.mutate(po.id)}
+                          disabled={sendEmailMutation.isPending}
+                        >
+                          {sendEmailMutation.isPending ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin md:mr-2" />
+                          ) : (
+                            <Mail className="w-4 h-4 md:mr-2" />
+                          )}
+                          <span className="hidden md:inline">Skicka email</span>
+                        </Button>
                         
                         <Button
                           size="sm"
