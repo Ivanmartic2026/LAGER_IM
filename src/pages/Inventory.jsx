@@ -59,7 +59,7 @@ export default function InventoryPage() {
 
   const { data: articles = [], isLoading } = useQuery({
     queryKey: ['articles'],
-    queryFn: () => base44.entities.Article.list('-updated_date', 100),
+    queryFn: () => base44.entities.Article.list('-created_date'),
     staleTime: 30000, // Cache for 30 seconds
   });
 
