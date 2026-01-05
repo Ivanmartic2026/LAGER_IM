@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { purchaseOrderId } = await req.json();
+    const { purchaseOrderId, emailTo } = await req.json();
 
     if (!purchaseOrderId) {
       return Response.json({ error: 'Purchase order ID required' }, { status: 400 });
@@ -23,12 +23,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Purchase order not found' }, { status: 404 });
     }
 
-    // Fetch supplier
-    const allSuppliers = await base44.entities.Supplier.list();
-    const supplier = allSuppliers.find(s => s.id === po.supplier_id || s.name === po.supplier_name);
+    // Determine email recipient
+    let recipientEmail = emailTo;
+    
+    if (!recipientEmail) {
+      // Fetch supplier email if not provided
+      const allSuppliers = await base44.entities.Supplier.list();
+      const supplier = allSuppliers.find(s => s.id === po.supplier_id || s.name === po.supplier_name);
 
-    if (!supplier || !supplier.email) {
-      return Response.json({ error: 'Supplier email not found' }, { status: 400 });
+      if (!supplier || !supplier.email) {
+        return Response.json({ error: 'No email provided and supplier email not found' }, { status: 400 });
+      }
+      recipientEmail = supplier.email;
     }
 
     // Fetch PO items
@@ -116,14 +122,14 @@ Deno.serve(async (req) => {
 
     // Send email
     await base44.integrations.Core.SendEmail({
-      to: supplier.email,
+      to: recipientEmail,
       subject: `Inköpsorder ${po.po_number || po.id.slice(0, 8)}`,
       body: emailBody
     });
 
     return Response.json({ 
       success: true, 
-      message: `Email skickad till ${supplier.email}` 
+      message: `Email skickad till ${recipientEmail}` 
     });
 
   } catch (error) {

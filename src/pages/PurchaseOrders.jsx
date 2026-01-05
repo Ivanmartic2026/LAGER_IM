@@ -23,6 +23,9 @@ export default function PurchaseOrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [editingPO, setEditingPO] = useState(null);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [selectedPOForEmail, setSelectedPOForEmail] = useState(null);
+  const [customEmail, setCustomEmail] = useState("");
   
   const queryClient = useQueryClient();
 
@@ -115,12 +118,18 @@ export default function PurchaseOrdersPage() {
   });
 
   const sendEmailMutation = useMutation({
-    mutationFn: async (poId) => {
-      const response = await base44.functions.invoke('sendPurchaseOrderEmail', { purchaseOrderId: poId });
+    mutationFn: async ({ poId, emailTo }) => {
+      const response = await base44.functions.invoke('sendPurchaseOrderEmail', { 
+        purchaseOrderId: poId,
+        emailTo 
+      });
       return response.data;
     },
     onSuccess: (data) => {
-      toast.success(data.message || 'Email skickat till leverantör!');
+      toast.success(data.message || 'Email skickat!');
+      setEmailModalOpen(false);
+      setCustomEmail("");
+      setSelectedPOForEmail(null);
     },
     onError: (error) => {
       toast.error('Kunde inte skicka email: ' + error.message);
@@ -364,14 +373,12 @@ export default function PurchaseOrdersPage() {
                           size="sm"
                           variant="outline"
                           className="bg-emerald-600/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-600/30"
-                          onClick={() => sendEmailMutation.mutate(po.id)}
-                          disabled={sendEmailMutation.isPending}
+                          onClick={() => {
+                            setSelectedPOForEmail(po);
+                            setEmailModalOpen(true);
+                          }}
                         >
-                          {sendEmailMutation.isPending ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin md:mr-2" />
-                          ) : (
-                            <Mail className="w-4 h-4 md:mr-2" />
-                          )}
+                          <Mail className="w-4 h-4 md:mr-2" />
                           <span className="hidden md:inline">Skicka email</span>
                         </Button>
                         
@@ -441,6 +448,85 @@ export default function PurchaseOrdersPage() {
               setEditingPO(null);
             }}
           />
+        )}
+
+        {/* Email Modal */}
+        {emailModalOpen && selectedPOForEmail && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => {
+              setEmailModalOpen(false);
+              setCustomEmail("");
+              setSelectedPOForEmail(null);
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6"
+            >
+              <h3 className="text-xl font-bold text-white mb-4">Skicka inköpsorder via email</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-300 mb-2 block">
+                    Email-adress
+                  </label>
+                  <Input
+                    type="email"
+                    value={customEmail}
+                    onChange={(e) => setCustomEmail(e.target.value)}
+                    placeholder="Ange email eller lämna tomt för leverantörens email"
+                    className="bg-slate-800 border-slate-700 text-white"
+                  />
+                  <p className="text-xs text-slate-500 mt-2">
+                    Lämna tomt för att skicka till leverantörens registrerade email
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setEmailModalOpen(false);
+                      setCustomEmail("");
+                      setSelectedPOForEmail(null);
+                    }}
+                    className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
+                  >
+                    Avbryt
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      sendEmailMutation.mutate({
+                        poId: selectedPOForEmail.id,
+                        emailTo: customEmail || undefined
+                      });
+                    }}
+                    disabled={sendEmailMutation.isPending}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-500"
+                  >
+                    {sendEmailMutation.isPending ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                        Skickar...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 mr-2" />
+                        Skicka
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </div>
     </div>
