@@ -22,16 +22,16 @@ Deno.serve(async (req) => {
     const width = 320;  // 40mm at 203 DPI
     const height = 240; // 30mm at 203 DPI
 
-    // Create QR code - very compact
+    // Create QR code - compact but scannable
     const qrCodeDataUrl = article.batch_number 
       ? await QRCode.toDataURL(article.batch_number, { 
-          width: 80,
+          width: 110,
           margin: 0,
           errorCorrectionLevel: 'M'
         })
       : null;
 
-    // Build ultra-compact HTML
+    // Build compact HTML
     const html = `
 <!DOCTYPE html>
 <html>
@@ -53,23 +53,23 @@ Deno.serve(async (req) => {
     body { 
       font-family: Arial, sans-serif; 
       background: white;
-      padding: 4px;
-      display: flex;
+      padding: 6px;
     }
     .container {
       display: flex;
-      gap: 4px;
+      gap: 5px;
       width: 100%;
       height: 100%;
+      align-items: flex-start;
     }
     .qr {
       flex-shrink: 0;
-      width: 75px;
-      height: 75px;
+      width: 105px;
+      height: 105px;
     }
     .qr img {
-      width: 75px;
-      height: 75px;
+      width: 100%;
+      height: 100%;
       display: block;
     }
     .content {
@@ -77,11 +77,19 @@ Deno.serve(async (req) => {
       display: flex;
       flex-direction: column;
       min-width: 0;
+      height: 100%;
       justify-content: space-between;
-      overflow: hidden;
+    }
+    .batch {
+      font-size: 16px;
+      font-weight: bold;
+      color: #1e40af;
+      word-break: break-all;
+      line-height: 1.1;
+      margin-bottom: 3px;
     }
     .name {
-      font-size: 8px;
+      font-size: 9px;
       font-weight: bold;
       color: #000;
       line-height: 1.1;
@@ -90,44 +98,25 @@ Deno.serve(async (req) => {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
-      max-height: 18px;
-    }
-    .batch {
-      font-size: 11px;
-      font-weight: bold;
-      color: #1e40af;
-      word-break: break-all;
-      margin-top: 2px;
-      line-height: 1.1;
-    }
-    .sku {
-      font-size: 6px;
-      color: #6b7280;
-      margin-top: 1px;
+      margin-bottom: 2px;
     }
     .location-section {
       margin-top: auto;
       padding-top: 3px;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid #ddd;
     }
     .location {
-      font-size: 8px;
+      font-size: 10px;
       font-weight: bold;
       color: #059669;
-      line-height: 1.1;
-      white-space: nowrap;
+      line-height: 1.2;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .warehouse {
-      font-size: 6px;
-      color: #6b7280;
-      line-height: 1.1;
-      margin-top: 1px;
-    }
-    .footer {
-      font-size: 5px;
-      color: #9ca3af;
+      font-size: 7px;
+      color: #666;
       margin-top: 1px;
     }
   </style>
@@ -142,9 +131,8 @@ Deno.serve(async (req) => {
 
     <div class="content">
       <div>
-        <div class="name">${article.customer_name || article.name || 'Artikel'}</div>
         ${article.batch_number ? `<div class="batch">#${article.batch_number}</div>` : ''}
-        ${article.sku ? `<div class="sku">SKU: ${article.sku}</div>` : ''}
+        <div class="name">${article.customer_name || article.name || 'Artikel'}</div>
       </div>
 
       <div class="location-section">
@@ -154,7 +142,6 @@ Deno.serve(async (req) => {
         </div>
         ` : ''}
         ${article.warehouse ? `<div class="warehouse">${article.warehouse}</div>` : ''}
-        <div class="footer">${new Date().toLocaleDateString('sv-SE')}</div>
       </div>
     </div>
   </div>
