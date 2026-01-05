@@ -320,45 +320,12 @@ export default function ArticleDetail({
         
         {/* Mobile: Compact action menu */}
         <div className="flex gap-2">
-          {article.status === "on_repair" && (
-            <>
-              <Button
-                onClick={handleQuickReturnToStock}
-                disabled={updateArticleMutation.isPending}
-                size="sm"
-                className="bg-emerald-600 hover:bg-emerald-500 text-white"
-              >
-                {updateArticleMutation.isPending ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 md:mr-2" />
-                    <span className="hidden md:inline">Återställ</span>
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={() => setReturnFromRepairModalOpen(true)}
-                disabled={updateArticleMutation.isPending}
-                size="sm"
-                variant="outline"
-                className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white hidden sm:flex"
-              >
-                <Plus className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">Med detaljer</span>
-              </Button>
-            </>
-          )}
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={async (e) => {
+          <button
+            onClick={async () => {
               const loadingToast = toast.loading('Genererar etikett...');
               try {
                 const response = await base44.functions.invoke('generateA4Label', { articleId: article.id });
                 
-                // Create iframe to render HTML
                 const iframe = document.createElement('iframe');
                 iframe.style.position = 'absolute';
                 iframe.style.width = '1240px';
@@ -366,14 +333,11 @@ export default function ArticleDetail({
                 iframe.style.left = '-9999px';
                 document.body.appendChild(iframe);
                 
-                // Write HTML content
                 iframe.contentDocument.write(response.data);
                 iframe.contentDocument.close();
                 
-                // Wait for content to load
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
-                // Use html2canvas to convert to image
                 const html2canvas = (await import('html2canvas')).default;
                 const canvas = await html2canvas(iframe.contentDocument.body, {
                   width: 1240,
@@ -382,7 +346,6 @@ export default function ArticleDetail({
                   backgroundColor: '#ffffff'
                 });
                 
-                // Convert to blob and download
                 canvas.toBlob((blob) => {
                   const url = window.URL.createObjectURL(blob);
                   const a = document.createElement('a');
@@ -393,7 +356,7 @@ export default function ArticleDetail({
                   window.URL.revokeObjectURL(url);
                   a.remove();
                   document.body.removeChild(iframe);
-                  toast.success('A4-etikett nedladdad som PNG', { id: loadingToast });
+                  toast.success('A4-etikett nedladdad', { id: loadingToast });
                 }, 'image/png');
                 
               } catch (error) {
@@ -401,32 +364,24 @@ export default function ArticleDetail({
                 toast.error('Kunde inte generera etikett: ' + error.message, { id: loadingToast });
               }
             }}
-            className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+            className="h-9 px-3 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 text-white text-sm flex items-center gap-2 transition-colors"
           >
-            <Printer className="w-4 h-4 md:mr-2" />
+            <Printer className="w-4 h-4" />
             <span className="hidden sm:inline">A4</span>
-          </Button>
+          </button>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setShowPrintModal(true);
-            }}
-            className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white hidden sm:flex"
+          <button
+            onClick={() => setShowPrintModal(true)}
+            className="h-9 px-3 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 text-white text-sm flex items-center gap-2 transition-colors"
           >
-            <Printer className="w-4 h-4 md:mr-2" />
+            <Printer className="w-4 h-4" />
             <span className="hidden md:inline">Liten</span>
-          </Button>
+          </button>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              handleCopyArticle();
-            }}
+          <button
+            onClick={() => handleCopyArticle()}
             disabled={createArticleMutation.isPending}
-            className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+            className="h-9 px-3 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 text-white text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
             title="Kopiera artikel"
           >
             {createArticleMutation.isPending ? (
@@ -434,29 +389,21 @@ export default function ArticleDetail({
             ) : (
               <Copy className="w-4 h-4" />
             )}
-          </Button>
+          </button>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              onEdit();
-            }}
-            className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+          <button
+            onClick={() => onEdit()}
+            className="h-9 px-3 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 text-white text-sm flex items-center gap-2 transition-colors"
           >
             <Edit className="w-4 h-4" />
-          </Button>
+          </button>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              onDelete();
-            }}
-            className="bg-slate-800 border-slate-600 hover:bg-red-900/50 hover:border-red-500/50 text-white"
+          <button
+            onClick={() => onDelete()}
+            className="h-9 px-3 rounded-lg bg-slate-800 border border-slate-600 hover:bg-red-900/50 hover:border-red-500/50 text-white text-sm flex items-center gap-2 transition-colors"
           >
             <Trash2 className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
       </div>
 
