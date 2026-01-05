@@ -22,6 +22,7 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
   const [globalNotes, setGlobalNotes] = useState("");
   const [uploadingImages, setUploadingImages] = useState(false);
   const [globalImages, setGlobalImages] = useState([]);
+  const [shippingDocuments, setShippingDocuments] = useState([]);
 
   const { data: items = [] } = useQuery({
     queryKey: ['purchaseOrderItems', purchaseOrder.id],
@@ -74,7 +75,7 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
           quality_check_passed: itemData.quality_check_passed,
           has_discrepancy: itemData.has_discrepancy,
           discrepancy_reason: itemData.discrepancy_reason || data.globalNotes,
-          image_urls: [...itemData.image_urls, ...data.globalImages],
+          image_urls: [...itemData.image_urls, ...data.globalImages, ...data.shippingDocuments],
           received_by: user?.email || "unknown"
         });
         results.receivingRecords.push(receivingRecord);
@@ -175,6 +176,28 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
     }
   };
 
+  const handleDocumentUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setUploadingImages(true);
+    try {
+      const uploadPromises = files.map(file => 
+        base44.integrations.Core.UploadFile({ file })
+      );
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.map(r => r.file_url);
+      
+      setShippingDocuments(prev => [...prev, ...newUrls]);
+      
+      toast.success(`${files.length} dokument uppladdad${files.length > 1 ? 'e' : ''}`);
+    } catch (error) {
+      toast.error('Kunde inte ladda upp dokument');
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
   const handleSubmit = () => {
     const hasAnyReceiving = Object.values(receivingData).some(
       data => data.quantity_received > 0
@@ -185,7 +208,7 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
       return;
     }
 
-    receiveMutation.mutate({ receivingData, globalNotes, globalImages });
+    receiveMutation.mutate({ receivingData, globalNotes, globalImages, shippingDocuments });
   };
 
   const totalOrdered = items.reduce((sum, item) => sum + item.quantity_ordered, 0);
@@ -403,6 +426,61 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
               </div>
             );
           })}
+
+          {/* Shipping Documents */}
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Följesedel / Fraktdokumentation
+            </h3>
+            <p className="text-sm text-emerald-200 mb-3">
+              Ladda upp följesedel, fraktsedel eller andra leveransdokument
+            </p>
+            
+            <div>
+              <input
+                type="file"
+                multiple
+                accept="image/*,.pdf"
+                onChange={handleDocumentUpload}
+                className="hidden"
+                id="document-upload"
+              />
+              <label
+                htmlFor="document-upload"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/20 hover:bg-emerald-500/30 cursor-pointer text-sm text-white transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                Ladda upp dokument
+              </label>
+              
+              {shippingDocuments.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {shippingDocuments.map((url, idx) => {
+                    const fileName = url.split('/').pop().split('?')[0];
+                    const isPdf = fileName.toLowerCase().endsWith('.pdf');
+                    
+                    return (
+                      <a
+                        key={idx}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-2 rounded bg-emerald-500/20 hover:bg-emerald-500/30 transition-colors"
+                      >
+                        {isPdf ? (
+                          <FileText className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <img src={url} alt={`Dokument ${idx + 1}`} className="w-10 h-10 rounded object-cover" />
+                        )}
+                        <span className="text-sm text-white truncate flex-1">{fileName}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Global Notes and Images */}
           <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
