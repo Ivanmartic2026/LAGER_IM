@@ -347,8 +347,6 @@ export default function ArticleDetail({
             variant="outline"
             size="sm"
             onClick={async (e) => {
-              e.preventDefault();
-              e.stopPropagation();
               const loadingToast = toast.loading('Genererar etikett...');
               try {
                 const response = await base44.functions.invoke('generateA4Label', { articleId: article.id });
@@ -405,9 +403,7 @@ export default function ArticleDetail({
           <Button
             variant="outline"
             size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
+            onClick={() => {
               setShowPrintModal(true);
             }}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white hidden sm:flex"
@@ -419,9 +415,7 @@ export default function ArticleDetail({
           <Button
             variant="outline"
             size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
+            onClick={() => {
               handleCopyArticle();
             }}
             disabled={createArticleMutation.isPending}
@@ -438,9 +432,7 @@ export default function ArticleDetail({
           <Button
             variant="outline"
             size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
+            onClick={() => {
               onEdit();
             }}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
@@ -451,9 +443,7 @@ export default function ArticleDetail({
           <Button
             variant="outline"
             size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
+            onClick={() => {
               onDelete();
             }}
             className="bg-slate-800 border-slate-600 hover:bg-red-900/50 hover:border-red-500/50 text-white"
