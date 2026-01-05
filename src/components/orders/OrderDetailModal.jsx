@@ -185,6 +185,21 @@ export default function OrderDetailModal({ order, onClose }) {
                 )}
               </div>
             )}
+
+            {order.created_by && (
+              <div>
+                <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
+                  <User className="w-4 h-4" />
+                  <span>Skapad av</span>
+                </div>
+                <p className="text-white font-medium">{order.created_by}</p>
+                {order.created_date && (
+                  <p className="text-xs text-slate-500">
+                    {format(new Date(order.created_date), "d MMM yyyy HH:mm", { locale: sv })}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {order.delivery_address && (

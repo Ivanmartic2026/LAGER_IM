@@ -27,6 +27,13 @@ Deno.serve(async (req) => {
       articles.filter(Boolean).map(a => [a.id, a])
     );
 
+    // Fetch full names for created_by and picked_by
+    const createdByUser = order.created_by ? (await base44.entities.User.filter({ email: order.created_by }))[0] : null;
+    const createdByName = createdByUser?.full_name || order.created_by || '-';
+
+    const pickedByUser = order.picked_by ? (await base44.entities.User.filter({ email: order.picked_by }))[0] : null;
+    const pickedByName = pickedByUser?.full_name || order.picked_by || '-';
+
     const itemsHtml = orderItems.map(item => {
       const article = articleMap[item.article_id];
       return `
@@ -208,9 +215,19 @@ Deno.serve(async (req) => {
                 <div class="info-value">${order.order_number || order.id.slice(0, 8)}</div>
               </div>
               <div class="info-item">
-                <div class="info-label">Datum</div>
+                <div class="info-label">Skapad av</div>
+                <div class="info-value">${createdByName}</div>
+                <div class="info-label" style="margin-top: 5px;">Skapad datum</div>
                 <div class="info-value">${new Date(order.created_date).toLocaleDateString('sv-SE')}</div>
               </div>
+              ${order.picked_by ? `
+              <div class="info-item">
+                <div class="info-label">Plockad av</div>
+                <div class="info-value">${pickedByName}</div>
+                <div class="info-label" style="margin-top: 5px;">Plockat datum</div>
+                <div class="info-value">${order.picked_date ? new Date(order.picked_date).toLocaleDateString('sv-SE') : '-'}</div>
+              </div>
+              ` : ''}
               ${order.delivery_date ? `
               <div class="info-item">
                 <div class="info-label">Leveransdatum</div>
