@@ -50,7 +50,7 @@ export default function InventoryPage() {
   const [pickListOpen, setPickListOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [sortBy, setSortBy] = useState('name');
+  const [sortBy, setSortBy] = useState('newest');
   const [selectedArticleIds, setSelectedArticleIds] = useState([]);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const fileInputRef = React.useRef(null);
@@ -326,6 +326,8 @@ export default function InventoryPage() {
     })
     .sort((a, b) => {
       switch(sortBy) {
+        case 'newest':
+          return new Date(b.created_date) - new Date(a.created_date);
         case 'name':
           return (a.name || '').localeCompare(b.name || '');
         case 'shelf':
@@ -606,10 +608,11 @@ export default function InventoryPage() {
             
             <Tabs value={sortBy} onValueChange={setSortBy}>
               <TabsList className="h-9 bg-white/5 border border-white/10 backdrop-blur-xl">
-                <TabsTrigger value="name" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
+                <TabsTrigger value="newest" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
                   <ArrowUpDown className="w-3 h-3 mr-1" />
-                  Namn
+                  Nyast
                 </TabsTrigger>
+                <TabsTrigger value="name" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Namn</TabsTrigger>
                 <TabsTrigger value="batch" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Batch</TabsTrigger>
                 <TabsTrigger value="shelf" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Hylla</TabsTrigger>
                 <TabsTrigger value="supplier" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leverantör</TabsTrigger>
