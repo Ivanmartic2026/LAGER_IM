@@ -41,16 +41,23 @@ export default function OrdersPage() {
 
   const deleteOrderMutation = useMutation({
     mutationFn: async (orderId) => {
+      console.log('Deleting order:', orderId);
       // Delete order items first
       const items = orderItems.filter(item => item.order_id === orderId);
+      console.log('Found items to delete:', items.length);
       await Promise.all(items.map(item => base44.entities.OrderItem.delete(item.id)));
       // Then delete order
       await base44.entities.Order.delete(orderId);
+      console.log('Order deleted successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orderItems'] });
       toast.success("Order borttagen");
+    },
+    onError: (error) => {
+      console.error('Delete order error:', error);
+      toast.error('Kunde inte ta bort order: ' + error.message);
     }
   });
 
