@@ -127,9 +127,9 @@ Deno.serve(async (req) => {
     </div>
   </div>
   
-  ${article.shelf_address || article.warehouse ? `
+  ${(article.shelf_address && article.shelf_address.length > 0) || article.warehouse ? `
   <div class="bottom">
-    ${article.shelf_address ? `<div class="location">📍 ${article.shelf_address}</div>` : ''}
+    ${article.shelf_address && article.shelf_address.length > 0 ? `<div class="location">📍 ${Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}</div>` : ''}
     ${article.warehouse ? `<div class="field">${article.warehouse}</div>` : ''}
   </div>
   ` : ''}
