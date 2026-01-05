@@ -491,30 +491,42 @@ export default function ArticleDetail({
       {/* Quick Actions - Mobile Optimized */}
       <div className="space-y-2 md:space-y-3 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
-          <Button
-            onClick={() => onAdjustStock("add")}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-12 md:h-14 text-sm md:text-base active:scale-95 transition-transform"
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onAdjustStock("add");
+            }}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-12 md:h-14 text-sm md:text-base active:scale-95 transition-transform rounded-lg flex items-center justify-center gap-2"
           >
-            <Plus className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+            <Plus className="w-4 h-4 md:w-5 md:h-5" />
             Lägg till lager
-          </Button>
-          <Button
-            onClick={() => onAdjustStock("remove")}
-            className="bg-red-600 hover:bg-red-500 text-white font-semibold h-12 md:h-14 text-sm md:text-base active:scale-95 transition-transform"
+          </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onAdjustStock("remove");
+            }}
+            className="bg-red-600 hover:bg-red-500 text-white font-semibold h-12 md:h-14 text-sm md:text-base active:scale-95 transition-transform rounded-lg flex items-center justify-center gap-2"
           >
-            <Minus className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+            <Minus className="w-4 h-4 md:w-5 md:h-5" />
             Ta ut från lager
-          </Button>
+          </button>
         </div>
 
         {article.status !== "on_repair" && (
-          <Button
-            onClick={() => setRepairModalOpen(true)}
-            className="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium h-10 md:h-11 text-sm md:text-base active:scale-95 transition-transform"
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setRepairModalOpen(true);
+            }}
+            className="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium h-10 md:h-11 text-sm md:text-base active:scale-95 transition-transform rounded-lg flex items-center justify-center gap-2"
           >
-            <Wrench className="w-3 h-3 md:w-4 md:h-4 mr-2" />
+            <Wrench className="w-3 h-3 md:w-4 md:h-4" />
             Rapportera till Reparation
-          </Button>
+          </button>
         )}
       </div>
 
@@ -595,10 +607,10 @@ export default function ArticleDetail({
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-white">Mått & Vikt</h3>
                 {!editingDimensions ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       setEditingDimensions(true);
                       setDimensionsData({
                         dimensions_width_mm: article.dimensions_width_mm || '',
@@ -607,24 +619,27 @@ export default function ArticleDetail({
                         weight_g: article.weight_g || ''
                       });
                     }}
-                    className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                    className="h-8 px-3 text-sm rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 flex items-center gap-1 transition-colors"
                   >
-                    <Edit className="w-3 h-3 mr-1" />
+                    <Edit className="w-3 h-3" />
                     Redigera
-                  </Button>
+                  </button>
                 ) : (
                   <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setEditingDimensions(false)}
-                      className="text-slate-400 hover:text-white"
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditingDimensions(false);
+                      }}
+                      className="h-8 px-3 text-sm rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
                     >
                       Avbryt
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={async () => {
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         try {
                           await updateArticleMutation.mutateAsync({
                             id: article.id,
@@ -642,10 +657,10 @@ export default function ArticleDetail({
                         }
                       }}
                       disabled={updateArticleMutation.isPending}
-                      className="bg-blue-600 hover:bg-blue-500"
+                      className="h-8 px-3 text-sm rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors disabled:opacity-50"
                     >
                       Spara
-                    </Button>
+                    </button>
                   </div>
                 )}
               </div>
