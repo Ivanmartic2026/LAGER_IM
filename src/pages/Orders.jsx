@@ -137,6 +137,7 @@ export default function OrdersPage() {
 
           <Button
             onClick={() => {
+              console.log('Ny order clicked');
               setEditingOrder(null);
               setShowForm(true);
             }}
@@ -336,15 +337,17 @@ export default function OrdersPage() {
         )}
 
         {/* Order Form Modal */}
-        {showForm && (
-          <OrderForm
-            order={editingOrder}
-            onClose={() => {
-              setShowForm(false);
-              setEditingOrder(null);
-            }}
-          />
-        )}
+        <AnimatePresence>
+          {showForm && (
+            <OrderForm
+              order={editingOrder}
+              onClose={() => {
+                setShowForm(false);
+                setEditingOrder(null);
+              }}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Order Detail Modal */}
         {selectedOrder && (
