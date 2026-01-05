@@ -71,8 +71,34 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
         await Promise.all(toDelete.map(id => base44.entities.PurchaseOrderItem.delete(id)));
       }
 
-      // Save PO items
+      // Create articles for custom items and map IDs
+      const updatedPoItems = [];
       for (const item of poItems) {
+        let finalArticleId = item.article_id;
+        
+        // If this is a custom article without an article_id, create it
+        if (item.is_custom && !item.article_id) {
+          const newArticle = await base44.entities.Article.create({
+            name: item.article_name,
+            batch_number: item.article_batch_number || null,
+            supplier_id: formData.supplier_id || null,
+            supplier_name: formData.supplier_name || null,
+            unit_cost: item.unit_price || 0,
+            stock_qty: 0,
+            status: 'out_of_stock',
+            storage_type: 'company_owned'
+          });
+          finalArticleId = newArticle.id;
+        }
+        
+        updatedPoItems.push({
+          ...item,
+          article_id: finalArticleId
+        });
+      }
+
+      // Save PO items with correct article IDs
+      for (const item of updatedPoItems) {
         const article = articles.find(a => a.id === item.article_id);
         const itemData = {
           purchase_order_id: savedPO.id,
@@ -104,6 +130,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
       queryClient.invalidateQueries({ queryKey: ['purchaseOrderItems'] });
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
       toast.success(purchaseOrder ? "Inköpsorder uppdaterad" : "Inköpsorder skapad");
       onClose();
     },
