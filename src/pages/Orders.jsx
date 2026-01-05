@@ -326,13 +326,19 @@ export default function OrdersPage() {
                           size="sm"
                           variant="outline"
                           className="bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20"
-                          onClick={() => {
-                            if (confirm('Är du säker på att du vill ta bort denna order?')) {
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log('Ta bort clicked for order:', order.id);
+                            if (window.confirm('Är du säker på att du vill ta bort denna order?')) {
+                              console.log('User confirmed deletion');
                               deleteOrderMutation.mutate(order.id);
+                            } else {
+                              console.log('User cancelled deletion');
                             }
                           }}
+                          disabled={deleteOrderMutation.isPending}
                         >
-                          Ta bort
+                          {deleteOrderMutation.isPending ? 'Tar bort...' : 'Ta bort'}
                         </Button>
                       </div>
                     </div>
