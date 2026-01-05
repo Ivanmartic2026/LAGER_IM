@@ -73,6 +73,10 @@ Deno.serve(async (req) => {
               <td>${po.po_number || '-'}</td>
             </tr>
             <tr>
+              <td style="padding: 5px 10px 5px 0;"><strong>Leverantör:</strong></td>
+              <td>${po.supplier_name || '-'}</td>
+            </tr>
+            <tr>
               <td style="padding: 5px 10px 5px 0;"><strong>Projektnummer:</strong></td>
               <td>${po.fortnox_project_number || '-'}</td>
             </tr>
@@ -115,27 +119,28 @@ Deno.serve(async (req) => {
           <p style="background-color: #f9fafb; padding: 15px; border-left: 3px solid #2563eb;">${po.notes}</p>
           ` : ''}
 
-          <p style="margin-top: 30px;">Vänliga hälsningar,<br>${user.full_name}</p>
+          <p style="margin-top: 30px;">
+            <strong>För att bekräfta denna order, vänligen svara på detta mail.</strong><br>
+            Email: ${recipientEmail}<br><br>
+            Vänliga hälsningar,<br>${user.full_name}
+          </p>
         </body>
       </html>
     `;
 
-    // Send email using service role to allow external emails
-    await base44.asServiceRole.integrations.Core.SendEmail({
-      to: recipientEmail,
-      subject: `Inköpsorder ${po.po_number || po.id.slice(0, 8)}`,
-      body: emailBody
-    });
-
+    // Return the HTML to be opened in email client
     return Response.json({ 
       success: true, 
-      message: `Email skickad till ${recipientEmail}` 
+      emailBody: emailBody,
+      subject: `Inköpsorder ${po.po_number || po.id.slice(0, 8)}`,
+      recipientEmail: recipientEmail,
+      message: `Email förberedd för ${recipientEmail}` 
     });
 
   } catch (error) {
-    console.error('Send PO email error:', error);
+    console.error('Prepare PO email error:', error);
     return Response.json({ 
-      error: error.message || 'Failed to send email' 
+      error: error.message || 'Failed to prepare email' 
     }, { status: 500 });
   }
 });
