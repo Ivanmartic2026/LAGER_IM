@@ -17,6 +17,7 @@ import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import PurchaseOrderForm from "@/components/orders/PurchaseOrderForm";
+import SimplifiedReceivingForm from "@/components/receiving/SimplifiedReceivingForm";
 
 export default function PurchaseOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,6 +27,7 @@ export default function PurchaseOrdersPage() {
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [selectedPOForEmail, setSelectedPOForEmail] = useState(null);
   const [customEmail, setCustomEmail] = useState("");
+  const [receivingPO, setReceivingPO] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -375,15 +377,14 @@ export default function PurchaseOrdersPage() {
                       {/* Actions */}
                       <div className="flex flex-wrap gap-2">
                         {(po.status === 'ordered' || po.status === 'partially_received') && (
-                          <Link to={`${createPageUrl("ReceivePurchaseOrder")}?poId=${po.id}`} className="flex-1 md:flex-none">
-                            <Button
-                              size="sm"
-                              className="bg-blue-600 hover:bg-blue-500 w-full"
-                            >
-                              <Package className="w-4 h-4 mr-2" />
-                              Ta emot
-                            </Button>
-                          </Link>
+                          <Button
+                            size="sm"
+                            className="bg-emerald-600 hover:bg-emerald-500"
+                            onClick={() => setReceivingPO(po)}
+                          >
+                            <Package className="w-4 h-4 mr-2" />
+                            Ta emot
+                          </Button>
                         )}
                         
                         <Button
@@ -464,6 +465,15 @@ export default function PurchaseOrdersPage() {
               setShowForm(false);
               setEditingPO(null);
             }}
+          />
+        )}
+
+        {/* Receiving Form */}
+        {receivingPO && (
+          <SimplifiedReceivingForm
+            purchaseOrder={receivingPO}
+            onClose={() => setReceivingPO(null)}
+            onComplete={() => setReceivingPO(null)}
           />
         )}
 
