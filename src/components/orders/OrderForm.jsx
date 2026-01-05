@@ -91,6 +91,10 @@ export default function OrderForm({ order, onClose }) {
       queryClient.invalidateQueries({ queryKey: ['orderItems'] });
       toast.success(order ? "Order uppdaterad" : "Order skapad");
       onClose();
+    },
+    onError: (error) => {
+      console.error('Save order error:', error);
+      toast.error('Kunde inte spara order: ' + error.message);
     }
   });
 
