@@ -346,7 +346,8 @@ export default function ArticleDetail({
           <Button
             variant="outline"
             size="sm"
-            onClick={async () => {
+            onClick={async (e) => {
+              e.stopPropagation();
               const loadingToast = toast.loading('Genererar etikett...');
               try {
                 const response = await base44.functions.invoke('generateA4Label', { articleId: article.id });
@@ -403,7 +404,10 @@ export default function ArticleDetail({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowPrintModal(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPrintModal(true);
+            }}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white hidden sm:flex"
           >
             <Printer className="w-4 h-4 md:mr-2" />
@@ -413,7 +417,10 @@ export default function ArticleDetail({
           <Button
             variant="outline"
             size="sm"
-            onClick={handleCopyArticle}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCopyArticle();
+            }}
             disabled={createArticleMutation.isPending}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
             title="Kopiera artikel"
@@ -428,7 +435,10 @@ export default function ArticleDetail({
           <Button
             variant="outline"
             size="sm"
-            onClick={onEdit}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
             className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
           >
             <Edit className="w-4 h-4" />
