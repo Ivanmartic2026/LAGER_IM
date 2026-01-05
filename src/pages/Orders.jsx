@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { 
   Search, Plus, Package, ClipboardList, Download,
-  Calendar, User, MapPin, FileText, Truck, Eye, ArrowUpDown
+  Calendar, User, MapPin, FileText, Truck, Eye, ArrowUpDown, Printer
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -77,6 +77,45 @@ export default function OrdersPage() {
       window.URL.revokeObjectURL(url);
       a.remove();
       toast.success('PDF nedladdad!');
+    }
+  });
+
+  const printOrderMutation = useMutation({
+    mutationFn: async (orderId) => {
+      const response = await base44.functions.invoke('printOrder', { orderId });
+      return response.data;
+    },
+    onSuccess: async (htmlContent) => {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = htmlContent;
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.width = '800px';
+      document.body.appendChild(tempDiv);
+
+      try {
+        const html2canvas = (await import('html2canvas')).default;
+        
+        const canvas = await html2canvas(tempDiv, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+          logging: false
+        });
+
+        canvas.toBlob((blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `order_${Date.now()}.png`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          a.remove();
+          toast.success('Order nedladdad som bild!');
+        });
+      } finally {
+        document.body.removeChild(tempDiv);
+      }
     }
   });
 
@@ -297,6 +336,17 @@ export default function OrdersPage() {
                           </Link>
                         )}
                         
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-slate-700 border-slate-600 hover:bg-slate-600"
+                          onClick={() => printOrderMutation.mutate(order.id)}
+                          disabled={printOrderMutation.isPending}
+                        >
+                          <Printer className="w-4 h-4 md:mr-2" />
+                          <span className="hidden md:inline">Skriv ut</span>
+                        </Button>
+
                         {order.status === 'picked' && (
                           <Button
                             size="sm"
