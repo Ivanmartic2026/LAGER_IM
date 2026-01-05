@@ -347,6 +347,7 @@ export default function ArticleDetail({
             variant="outline"
             size="sm"
             onClick={async (e) => {
+              e.preventDefault();
               e.stopPropagation();
               const loadingToast = toast.loading('Genererar etikett...');
               try {
@@ -405,6 +406,7 @@ export default function ArticleDetail({
             variant="outline"
             size="sm"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               setShowPrintModal(true);
             }}
@@ -418,6 +420,7 @@ export default function ArticleDetail({
             variant="outline"
             size="sm"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               handleCopyArticle();
             }}
@@ -436,6 +439,7 @@ export default function ArticleDetail({
             variant="outline"
             size="sm"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               onEdit();
             }}
@@ -447,7 +451,11 @@ export default function ArticleDetail({
           <Button
             variant="outline"
             size="sm"
-            onClick={onDelete}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
             className="bg-slate-800 border-slate-600 hover:bg-red-900/50 hover:border-red-500/50 text-white"
           >
             <Trash2 className="w-4 h-4" />
