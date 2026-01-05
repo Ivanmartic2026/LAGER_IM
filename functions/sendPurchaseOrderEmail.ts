@@ -120,8 +120,8 @@ Deno.serve(async (req) => {
       </html>
     `;
 
-    // Send email
-    await base44.integrations.Core.SendEmail({
+    // Send email using service role to allow external emails
+    await base44.asServiceRole.integrations.Core.SendEmail({
       to: recipientEmail,
       subject: `Inköpsorder ${po.po_number || po.id.slice(0, 8)}`,
       body: emailBody
