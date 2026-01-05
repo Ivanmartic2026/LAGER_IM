@@ -375,13 +375,55 @@ export default function ArticleDetail({
           </div>
           
           <div
-            onClick={() => setShowPrintModal(true)}
+            onClick={async () => {
+              const loadingToast = toast.loading('Genererar liten etikett...');
+              try {
+                const response = await base44.functions.invoke('generateSmallLabel', { articleId: article.id });
+
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'absolute';
+                iframe.style.width = '472px';
+                iframe.style.height = '354px';
+                iframe.style.left = '-9999px';
+                document.body.appendChild(iframe);
+
+                iframe.contentDocument.write(response.data);
+                iframe.contentDocument.close();
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const html2canvas = (await import('html2canvas')).default;
+                const canvas = await html2canvas(iframe.contentDocument.body, {
+                  width: 472,
+                  height: 354,
+                  scale: 2,
+                  backgroundColor: '#ffffff'
+                });
+
+                canvas.toBlob((blob) => {
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `etikett_40x30mm_${article.batch_number || article.id.slice(0, 8)}_${Date.now()}.png`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  a.remove();
+                  document.body.removeChild(iframe);
+                  toast.success('40x30mm etikett nedladdad', { id: loadingToast });
+                }, 'image/png');
+
+              } catch (error) {
+                console.error('Label error:', error);
+                toast.error('Kunde inte generera etikett: ' + error.message, { id: loadingToast });
+              }
+            }}
             role="button"
             tabIndex={0}
             className="h-10 px-4 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-white text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-xl"
           >
             <Printer className="w-4 h-4" />
-            <span className="hidden md:inline">Liten</span>
+            <span className="hidden md:inline">40x30mm</span>
           </div>
           
           <div
