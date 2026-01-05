@@ -72,14 +72,22 @@ export default function UsersManagementPage() {
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
-    onSuccess: () => {
+    mutationFn: async ({ id, data }) => {
+      console.log('Updating user:', id, data);
+      const result = await base44.entities.User.update(id, data);
+      console.log('Update result:', result);
+      return result;
+    },
+    onSuccess: (data) => {
+      console.log('Update success:', data);
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       setEditingUser(null);
       setEditName("");
       toast.success("Användarnamn uppdaterat");
     },
     onError: (error) => {
+      console.error('Update error:', error);
       toast.error(`Kunde inte uppdatera användare: ${error.message}`);
     }
   });
@@ -110,10 +118,16 @@ export default function UsersManagementPage() {
       toast.error("Ange ett namn");
       return;
     }
-    updateUserMutation.mutate({ 
-      id: editingUser.id, 
-      data: { full_name: editName.trim() }
-    });
+    console.log('Attempting to save edit:', editingUser.id, editName.trim());
+    try {
+      updateUserMutation.mutate({ 
+        id: editingUser.id, 
+        data: { full_name: editName.trim() }
+      });
+    } catch (error) {
+      console.error('Error in handleSaveEdit:', error);
+      toast.error('Ett fel uppstod vid sparning');
+    }
   };
 
   const filteredUsers = users.filter(user => 
