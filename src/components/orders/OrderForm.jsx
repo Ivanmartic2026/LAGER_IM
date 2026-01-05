@@ -66,12 +66,16 @@ export default function OrderForm({ order, onClose }) {
       // Save order items
       for (const item of orderItems) {
         const article = articles.find(a => a.id === item.article_id);
+        const shelfAddress = article?.shelf_address 
+          ? (Array.isArray(article.shelf_address) ? article.shelf_address.join(', ') : article.shelf_address)
+          : (item.shelf_address || '');
+        
         const itemData = {
           order_id: savedOrder.id,
           article_id: item.article_id,
           article_name: article?.name || item.article_name,
           article_batch_number: article?.batch_number || item.article_batch_number,
-          shelf_address: article?.shelf_address || item.shelf_address,
+          shelf_address: shelfAddress,
           quantity_ordered: item.quantity_ordered,
           quantity_picked: item.quantity_picked || 0,
           status: item.status || 'pending'
