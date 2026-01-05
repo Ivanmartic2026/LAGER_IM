@@ -126,7 +126,7 @@ export default function ReceivePurchaseOrderPage() {
                   newStockQty <= (article.min_stock_level || 5) ? "low_stock" : "active"
         };
 
-        if (shelfAddress && shelfAddress !== article.shelf_address) {
+        if (shelfAddress) {
           updateData.shelf_address = shelfAddress;
         }
 
@@ -174,6 +174,13 @@ export default function ReceivePurchaseOrderPage() {
       });
 
       toast.success(`${quantity} st mottagen${hasDiscrepancy ? ' (avvikelse registrerad)' : ''}`);
+
+      // Open article page for shelf selection if article exists
+      if (article) {
+        setTimeout(() => {
+          window.location.href = `${createPageUrl("Inventory")}?articleId=${article.id}`;
+        }, 1500);
+      }
 
       // Check if all items are received
       const allItems = await base44.entities.PurchaseOrderItem.filter({ purchase_order_id: poId });
