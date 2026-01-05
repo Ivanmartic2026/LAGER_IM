@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { 
   Search, Plus, Package, ClipboardList, Download,
-  Calendar, User, MapPin, FileText, Truck, Eye, ArrowUpDown, Printer
+  Calendar, User, MapPin, FileText, Truck, Eye, ArrowUpDown, Printer,
+  CheckSquare, X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -26,6 +28,7 @@ export default function OrdersPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   
   const queryClient = useQueryClient();
 
@@ -119,6 +122,26 @@ export default function OrdersPage() {
     }
   });
 
+  const exportMultipleOrdersMutation = useMutation({
+    mutationFn: async (orderIds) => {
+      const response = await base44.functions.invoke('exportMultipleOrders', { orderIds });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `orders_${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.success('PDF nedladdad!');
+      setSelectedOrderIds([]);
+    }
+  });
+
   const filteredAndSortedOrders = orders
     .filter(order => {
       const matchesSearch = !searchQuery || 
@@ -181,17 +204,30 @@ export default function OrdersPage() {
             </Badge>
           </div>
 
-          <Button
-            onClick={() => {
-              console.log('Ny order clicked');
-              setEditingOrder(null);
-              setShowForm(true);
-            }}
-            className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Ny order
-          </Button>
+          <div className="flex gap-2">
+            {selectedOrderIds.length > 0 && (
+              <Button
+                onClick={() => exportMultipleOrdersMutation.mutate(selectedOrderIds)}
+                disabled={exportMultipleOrdersMutation.isPending}
+                variant="outline"
+                className="bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Ladda ner {selectedOrderIds.length} ordrar
+              </Button>
+            )}
+            <Button
+              onClick={() => {
+                console.log('Ny order clicked');
+                setEditingOrder(null);
+                setShowForm(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ny order
+            </Button>
+          </div>
         </div>
 
         {/* Search & Filters */}
@@ -217,17 +253,31 @@ export default function OrdersPage() {
             </Tabs>
           </div>
 
-          <div className="flex items-center gap-2 text-sm">
-            <ArrowUpDown className="w-4 h-4 text-slate-400" />
-            <span className="text-slate-400">Sortera:</span>
-            <Tabs value={sortBy} onValueChange={setSortBy}>
-              <TabsList className="h-8 bg-white/5 border border-white/10 backdrop-blur-xl">
-                <TabsTrigger value="date_desc" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Senaste</TabsTrigger>
-                <TabsTrigger value="date_asc" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Äldsta</TabsTrigger>
-                <TabsTrigger value="customer_asc" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Kund A-Ö</TabsTrigger>
-                <TabsTrigger value="delivery_date" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leveransdatum</TabsTrigger>
-              </TabsList>
-            </Tabs>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <ArrowUpDown className="w-4 h-4 text-slate-400" />
+              <span className="text-slate-400">Sortera:</span>
+              <Tabs value={sortBy} onValueChange={setSortBy}>
+                <TabsList className="h-8 bg-white/5 border border-white/10 backdrop-blur-xl">
+                  <TabsTrigger value="date_desc" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Senaste</TabsTrigger>
+                  <TabsTrigger value="date_asc" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Äldsta</TabsTrigger>
+                  <TabsTrigger value="customer_asc" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Kund A-Ö</TabsTrigger>
+                  <TabsTrigger value="delivery_date" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leveransdatum</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            {selectedOrderIds.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedOrderIds([])}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Avmarkera alla
+              </Button>
+            )}
           </div>
         </div>
 
@@ -272,7 +322,20 @@ export default function OrdersPage() {
                     className="group p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300"
                   >
                     <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
+                      <div className="flex items-start gap-3 flex-1">
+                        <Checkbox
+                          checked={selectedOrderIds.includes(order.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedOrderIds(prev => [...prev, order.id]);
+                            } else {
+                              setSelectedOrderIds(prev => prev.filter(id => id !== order.id));
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1"
+                        />
+                        <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="text-lg font-semibold text-white">
                             {order.order_number || `Order #${order.id.slice(0, 8)}`}
@@ -311,6 +374,7 @@ export default function OrdersPage() {
                             {order.notes}
                           </p>
                         )}
+                        </div>
                       </div>
 
                       <div className="flex gap-2 ml-4">
