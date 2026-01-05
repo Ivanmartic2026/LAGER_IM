@@ -299,6 +299,7 @@ export default function ArticleDetail({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="space-y-6"
+      onClick={(e) => e.stopPropagation()}
     >
       {/* Header - Mobile Optimized */}
       <div className="flex items-center justify-between mb-4">
