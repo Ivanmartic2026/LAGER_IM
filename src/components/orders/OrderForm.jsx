@@ -40,10 +40,10 @@ export default function OrderForm({ order, onClose }) {
   });
 
   React.useEffect(() => {
-    if (existingItems.length > 0) {
+    if (order?.id && existingItems.length > 0) {
       setOrderItems(existingItems);
     }
-  }, [existingItems]);
+  }, [order?.id, existingItems]);
 
   const saveOrderMutation = useMutation({
     mutationFn: async (data) => {
