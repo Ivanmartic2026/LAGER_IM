@@ -18,46 +18,57 @@ Deno.serve(async (req) => {
 
     const article = articles[0];
 
-    // 40x30mm at 300 DPI = 472x354 pixels
-    const width = 472;
-    const height = 354;
+    // 40x30mm - using mm directly for print
+    const widthMM = 40;
+    const heightMM = 30;
 
-    // Create QR code - smaller for compact label
+    // Create QR code - compact for small label
     const qrCodeDataUrl = article.batch_number 
       ? await QRCode.toDataURL(article.batch_number, { 
-          width: 150,
+          width: 100,
           margin: 0,
-          errorCorrectionLevel: 'H'
+          errorCorrectionLevel: 'M'
         })
       : null;
 
-    // Build compact HTML
+    // Build compact HTML with exact mm dimensions
     const html = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <style>
+    @page {
+      size: ${widthMM}mm ${heightMM}mm;
+      margin: 0;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { 
+      width: ${widthMM}mm;
+      height: ${heightMM}mm;
+      max-width: ${widthMM}mm;
+      max-height: ${heightMM}mm;
+      overflow: hidden;
+    }
     body { 
       font-family: Arial, sans-serif; 
-      width: ${width}px; 
-      height: ${height}px; 
       background: white;
-      display: flex;
-      padding: 6px;
+      padding: 1.5mm;
     }
     .container {
       display: flex;
-      gap: 6px;
+      gap: 2mm;
       width: 100%;
+      height: 100%;
     }
     .qr {
       flex-shrink: 0;
+      width: 10mm;
+      height: 10mm;
     }
     .qr img {
-      width: 110px;
-      height: 110px;
+      width: 10mm;
+      height: 10mm;
       display: block;
     }
     .content {
@@ -66,9 +77,10 @@ Deno.serve(async (req) => {
       flex-direction: column;
       min-width: 0;
       justify-content: space-between;
+      overflow: hidden;
     }
     .name {
-      font-size: 11px;
+      font-size: 7pt;
       font-weight: bold;
       color: #000;
       line-height: 1.1;
@@ -77,43 +89,38 @@ Deno.serve(async (req) => {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
-      margin-bottom: 3px;
     }
     .batch {
-      font-size: 14px;
+      font-size: 9pt;
       font-weight: bold;
       color: #1e40af;
-      margin-bottom: 2px;
       word-break: break-all;
+      margin-top: 0.5mm;
     }
     .sku {
-      font-size: 8px;
+      font-size: 5pt;
       color: #6b7280;
-      margin-bottom: 4px;
     }
     .location-section {
       margin-top: auto;
-      padding-top: 4px;
-      border-top: 1px solid #e5e7eb;
+      border-top: 0.3mm solid #e5e7eb;
+      padding-top: 0.5mm;
     }
     .location {
-      font-size: 11px;
+      font-size: 7pt;
       font-weight: bold;
       color: #059669;
       display: flex;
       align-items: center;
-      gap: 2px;
-      margin-bottom: 2px;
+      gap: 0.5mm;
     }
     .warehouse {
-      font-size: 8px;
+      font-size: 5pt;
       color: #6b7280;
-      line-height: 1.1;
     }
     .footer {
-      font-size: 7px;
+      font-size: 4pt;
       color: #9ca3af;
-      margin-top: 2px;
     }
   </style>
 </head>
