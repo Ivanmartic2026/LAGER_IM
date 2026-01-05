@@ -22,11 +22,11 @@ Deno.serve(async (req) => {
     const width = 472;
     const height = 354;
 
-    // Create QR code
+    // Create QR code - smaller for compact label
     const qrCodeDataUrl = article.batch_number 
       ? await QRCode.toDataURL(article.batch_number, { 
-          width: 200,
-          margin: 1,
+          width: 150,
+          margin: 0,
           errorCorrectionLevel: 'H'
         })
       : null;
@@ -45,97 +45,103 @@ Deno.serve(async (req) => {
       height: ${height}px; 
       background: white;
       display: flex;
-      flex-direction: column;
-      padding: 8px;
+      padding: 6px;
     }
-    .top {
+    .container {
       display: flex;
-      gap: 8px;
-      margin-bottom: 4px;
+      gap: 6px;
+      width: 100%;
     }
     .qr {
       flex-shrink: 0;
     }
     .qr img {
-      width: 120px;
-      height: 120px;
+      width: 110px;
+      height: 110px;
       display: block;
     }
-    .info {
+    .content {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 2px;
       min-width: 0;
+      justify-content: space-between;
     }
     .name {
-      font-size: 14px;
+      font-size: 11px;
       font-weight: bold;
       color: #000;
-      line-height: 1.2;
+      line-height: 1.1;
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
+      margin-bottom: 3px;
     }
     .batch {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: bold;
       color: #1e40af;
-      margin-top: 4px;
+      margin-bottom: 2px;
+      word-break: break-all;
     }
-    .field {
-      font-size: 10px;
-      color: #374151;
-      line-height: 1.3;
-    }
-    .field-label {
-      font-weight: 600;
+    .sku {
+      font-size: 8px;
       color: #6b7280;
+      margin-bottom: 4px;
     }
-    .bottom {
+    .location-section {
       margin-top: auto;
       padding-top: 4px;
       border-top: 1px solid #e5e7eb;
     }
     .location {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: bold;
       color: #059669;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-bottom: 2px;
+    }
+    .warehouse {
+      font-size: 8px;
+      color: #6b7280;
+      line-height: 1.1;
     }
     .footer {
-      font-size: 8px;
+      font-size: 7px;
       color: #9ca3af;
       margin-top: 2px;
     }
   </style>
 </head>
 <body>
-  <div class="top">
+  <div class="container">
     ${qrCodeDataUrl ? `
     <div class="qr">
       <img src="${qrCodeDataUrl}" alt="QR" />
     </div>
     ` : ''}
-    <div class="info">
-      <div class="name">${article.customer_name || article.name || 'Artikel'}</div>
-      ${article.batch_number ? `<div class="batch">#${article.batch_number}</div>` : ''}
-      ${article.sku ? `<div class="field"><span class="field-label">SKU:</span> ${article.sku}</div>` : ''}
-      ${article.supplier_name ? `<div class="field"><span class="field-label">Lev:</span> ${article.supplier_name}</div>` : ''}
-      ${article.category ? `<div class="field"><span class="field-label">Kat:</span> ${article.category}</div>` : ''}
+
+    <div class="content">
+      <div>
+        <div class="name">${article.customer_name || article.name || 'Artikel'}</div>
+        ${article.batch_number ? `<div class="batch">#${article.batch_number}</div>` : ''}
+        ${article.sku ? `<div class="sku">SKU: ${article.sku}</div>` : ''}
+      </div>
+
+      <div class="location-section">
+        ${article.shelf_address && article.shelf_address.length > 0 ? `
+        <div class="location">
+          📍 ${Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}
+        </div>
+        ` : ''}
+        ${article.warehouse ? `<div class="warehouse">${article.warehouse}</div>` : ''}
+        <div class="footer">${new Date().toLocaleDateString('sv-SE')}</div>
+      </div>
     </div>
-  </div>
-  
-  ${(article.shelf_address && article.shelf_address.length > 0) || article.warehouse ? `
-  <div class="bottom">
-    ${article.shelf_address && article.shelf_address.length > 0 ? `<div class="location">📍 ${Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}</div>` : ''}
-    ${article.warehouse ? `<div class="field">${article.warehouse}</div>` : ''}
-  </div>
-  ` : ''}
-  
-  <div class="footer">
-    ${new Date().toLocaleDateString('sv-SE')}
   </div>
 </body>
 </html>
