@@ -14,6 +14,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
     po_number: purchaseOrder?.po_number || '',
     supplier_id: purchaseOrder?.supplier_id || '',
     supplier_name: purchaseOrder?.supplier_name || '',
+    fortnox_project_number: purchaseOrder?.fortnox_project_number || '',
     status: purchaseOrder?.status || 'draft',
     expected_delivery_date: purchaseOrder?.expected_delivery_date || '',
     order_date: purchaseOrder?.order_date || new Date().toISOString().split('T')[0],
@@ -308,6 +309,11 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
       return;
     }
 
+    if (!formData.fortnox_project_number) {
+      toast.error("Projektnummer Fortnox krävs");
+      return;
+    }
+
     if (poItems.length === 0) {
       toast.error("Lägg till minst en artikel");
       return;
@@ -383,6 +389,19 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                Projektnummer Fortnox *
+              </label>
+              <Input
+                value={formData.fortnox_project_number}
+                onChange={(e) => setFormData({ ...formData, fortnox_project_number: e.target.value })}
+                placeholder="T.ex. PRJ-2025-001"
+                className="bg-slate-800 border-slate-700 text-white"
+                required
+              />
             </div>
 
             <div>
