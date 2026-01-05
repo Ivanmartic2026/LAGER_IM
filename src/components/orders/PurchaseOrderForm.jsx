@@ -464,11 +464,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                 <SelectContent>
                   <SelectItem value="draft">Utkast</SelectItem>
                   <SelectItem value="ordered">Beställd</SelectItem>
-                  <SelectItem value="ordered_paid">Beställd & Betald</SelectItem>
-                  <SelectItem value="ordered_paid_30">Beställd & Betald 30%</SelectItem>
-                  <SelectItem value="ordered_paid_50">Beställd & Betald 50%</SelectItem>
-                  <SelectItem value="ordered_paid_100">Beställd & Betald 100%</SelectItem>
-                  <SelectItem value="partially_received">Delvis mottagen</SelectItem>
+                  <SelectItem value="prepaid">Förskottbetald</SelectItem>
                   <SelectItem value="received">Mottagen</SelectItem>
                   <SelectItem value="cancelled">Avbruten</SelectItem>
                 </SelectContent>
