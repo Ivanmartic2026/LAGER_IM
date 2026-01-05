@@ -308,22 +308,20 @@ export default function ArticleDetail({
       className="space-y-6"
     >
       {/* Header - Mobile Optimized */}
-      <div className="flex items-center justify-between mb-4 relative z-10">
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onBack();
-          }}
-          className="px-3 py-2 -ml-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2 transition-colors"
+      <div className="flex items-center justify-between mb-4">
+        <div
+          onClick={onBack}
+          role="button"
+          tabIndex={0}
+          className="px-3 py-2 -ml-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden md:inline">Tillbaka</span>
-        </button>
+        </div>
         
         {/* Mobile: Compact action menu */}
-        <div className="flex gap-2 relative z-10">
-          <button
+        <div className="flex gap-2 flex-wrap">
+          <div
             onClick={async () => {
               const loadingToast = toast.loading('Genererar etikett...');
               try {
@@ -367,46 +365,55 @@ export default function ArticleDetail({
                 toast.error('Kunde inte generera etikett: ' + error.message, { id: loadingToast });
               }
             }}
-            className="h-9 px-3 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 text-white text-sm flex items-center gap-2 transition-colors"
+            role="button"
+            tabIndex={0}
+            className="h-10 px-4 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-white text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-xl"
           >
             <Printer className="w-4 h-4" />
             <span className="hidden sm:inline">A4</span>
-          </button>
+          </div>
           
-          <button
+          <div
             onClick={() => setShowPrintModal(true)}
-            className="h-9 px-3 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 text-white text-sm flex items-center gap-2 transition-colors"
+            role="button"
+            tabIndex={0}
+            className="h-10 px-4 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-white text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-xl"
           >
             <Printer className="w-4 h-4" />
             <span className="hidden md:inline">Liten</span>
-          </button>
+          </div>
           
-          <button
-            onClick={() => handleCopyArticle()}
-            disabled={createArticleMutation.isPending}
-            className="h-9 px-3 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 text-white text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
+          <div
+            onClick={() => !createArticleMutation.isPending && handleCopyArticle()}
+            role="button"
+            tabIndex={0}
             title="Kopiera artikel"
+            className={`h-10 px-4 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-white text-sm font-medium flex items-center gap-2 transition-all shadow-lg hover:shadow-xl ${createArticleMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             {createArticleMutation.isPending ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <Copy className="w-4 h-4" />
             )}
-          </button>
+          </div>
           
-          <button
+          <div
             onClick={() => onEdit()}
-            className="h-9 px-3 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 text-white text-sm flex items-center gap-2 transition-colors"
+            role="button"
+            tabIndex={0}
+            className="h-10 px-4 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-white text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-xl"
           >
             <Edit className="w-4 h-4" />
-          </button>
+          </div>
           
-          <button
+          <div
             onClick={() => onDelete()}
-            className="h-9 px-3 rounded-lg bg-slate-800 border border-slate-600 hover:bg-red-900/50 hover:border-red-500/50 text-white text-sm flex items-center gap-2 transition-colors"
+            role="button"
+            tabIndex={0}
+            className="h-10 px-4 rounded-xl bg-red-600/80 hover:bg-red-500 text-white text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-xl"
           >
             <Trash2 className="w-4 h-4" />
-          </button>
+          </div>
         </div>
       </div>
 
