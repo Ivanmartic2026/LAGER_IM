@@ -594,66 +594,70 @@ export default function InventoryPage() {
             )}
           </AnimatePresence>
 
-          {/* Compact Search & Filters */}
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+          {/* Search & Filters */}
+          <div className="space-y-3">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Sök artikelnummer, batch, benämning eller tillverkare..."
-                className="pl-10 h-9 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300"
+                className="pl-11 h-11 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300 text-base"
               />
             </div>
-            
-            <Tabs value={sortBy} onValueChange={setSortBy}>
-              <TabsList className="h-9 bg-white/5 border border-white/10 backdrop-blur-xl">
-                <TabsTrigger value="newest" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
-                  <ArrowUpDown className="w-3 h-3 mr-1" />
-                  Nyast
-                </TabsTrigger>
-                <TabsTrigger value="name" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Namn</TabsTrigger>
-                <TabsTrigger value="batch" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Batch</TabsTrigger>
-                <TabsTrigger value="shelf" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Hylla</TabsTrigger>
-                <TabsTrigger value="supplier" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leverantör</TabsTrigger>
-                <TabsTrigger value="stock" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Saldo</TabsTrigger>
-              </TabsList>
-            </Tabs>
 
-            <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-              <TabsList className="h-9 bg-white/5 border border-white/10 backdrop-blur-xl">
-                <TabsTrigger value="all" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
-                <TabsTrigger value="active" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">I lager</TabsTrigger>
-                <TabsTrigger value="low_stock" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Lågt</TabsTrigger>
-                <TabsTrigger value="out_of_stock" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Slut</TabsTrigger>
-                <TabsTrigger value="on_repair" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Reparation</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            {/* Filters Row */}
+            <div className="flex flex-wrap gap-3">
+              <Tabs value={sortBy} onValueChange={setSortBy}>
+                <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
+                  <TabsTrigger value="newest" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
+                    <ArrowUpDown className="w-4 h-4 mr-2" />
+                    Nyast
+                  </TabsTrigger>
+                  <TabsTrigger value="name" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Namn</TabsTrigger>
+                  <TabsTrigger value="batch" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Batch</TabsTrigger>
+                  <TabsTrigger value="shelf" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Hylla</TabsTrigger>
+                  <TabsTrigger value="supplier" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leverantör</TabsTrigger>
+                  <TabsTrigger value="stock" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Saldo</TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-            <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
-              <SelectTrigger className="w-48 h-9 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300">
-                <SelectValue placeholder="Lager" />
-              </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                <SelectItem value="all">Alla lager</SelectItem>
-                {warehouses.map(warehouse => (
-                  <SelectItem key={warehouse.id} value={warehouse.name}>
-                    {warehouse.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+                <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
+                  <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
+                  <TabsTrigger value="active" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">I lager</TabsTrigger>
+                  <TabsTrigger value="low_stock" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Lågt</TabsTrigger>
+                  <TabsTrigger value="out_of_stock" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Slut</TabsTrigger>
+                  <TabsTrigger value="on_repair" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Reparation</TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-            <Select value={storageTypeFilter} onValueChange={setStorageTypeFilter}>
-              <SelectTrigger className="w-48 h-9 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300">
-                <SelectValue placeholder="Lagertyp" />
-              </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                <SelectItem value="all">Alla typer</SelectItem>
-                <SelectItem value="company_owned">Företagsägt</SelectItem>
-                <SelectItem value="customer_owned">Kundägt</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
+                <SelectTrigger className="w-52 h-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300">
+                  <SelectValue placeholder="Lager" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectItem value="all">Alla lager</SelectItem>
+                  {warehouses.map(warehouse => (
+                    <SelectItem key={warehouse.id} value={warehouse.name}>
+                      {warehouse.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={storageTypeFilter} onValueChange={setStorageTypeFilter}>
+                <SelectTrigger className="w-52 h-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300">
+                  <SelectValue placeholder="Lagertyp" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectItem value="all">Alla typer</SelectItem>
+                  <SelectItem value="company_owned">Företagsägt</SelectItem>
+                  <SelectItem value="customer_owned">Kundägt</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             </div>
         </div>
 
