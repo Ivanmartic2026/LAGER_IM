@@ -232,40 +232,41 @@ export default function OrdersPage() {
 
         {/* Search & Filters */}
         <div className="space-y-3 mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Sök ordernummer eller kund..."
+              className="pl-11 h-11 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300 text-base"
+            />
+          </div>
+
           <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sök ordernummer eller kund..."
-                className="pl-10 h-9 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300"
-              />
-            </div>
             
             <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-              <TabsList className="h-9 bg-white/5 border border-white/10 backdrop-blur-xl">
-                <TabsTrigger value="all" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
-                <TabsTrigger value="ready_to_pick" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Redo</TabsTrigger>
-                <TabsTrigger value="picking" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockar</TabsTrigger>
-                <TabsTrigger value="picked" className="text-xs h-7 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockad</TabsTrigger>
+              <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
+                <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
+                <TabsTrigger value="ready_to_pick" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Redo</TabsTrigger>
+                <TabsTrigger value="picking" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockar</TabsTrigger>
+                <TabsTrigger value="picked" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockad</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <Tabs value={sortBy} onValueChange={setSortBy}>
+              <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
+                <TabsTrigger value="date_desc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
+                  <ArrowUpDown className="w-4 h-4 mr-2" />
+                  Senaste
+                </TabsTrigger>
+                <TabsTrigger value="date_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Äldsta</TabsTrigger>
+                <TabsTrigger value="customer_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Kund A-Ö</TabsTrigger>
+                <TabsTrigger value="delivery_date" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leveransdatum</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <ArrowUpDown className="w-4 h-4 text-slate-400" />
-              <span className="text-slate-400">Sortera:</span>
-              <Tabs value={sortBy} onValueChange={setSortBy}>
-                <TabsList className="h-8 bg-white/5 border border-white/10 backdrop-blur-xl">
-                  <TabsTrigger value="date_desc" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Senaste</TabsTrigger>
-                  <TabsTrigger value="date_asc" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Äldsta</TabsTrigger>
-                  <TabsTrigger value="customer_asc" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Kund A-Ö</TabsTrigger>
-                  <TabsTrigger value="delivery_date" className="text-xs h-6 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leveransdatum</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+          <div className="flex items-center justify-end">
 
             {selectedOrderIds.length > 0 && (
               <Button
