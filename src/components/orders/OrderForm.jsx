@@ -37,12 +37,13 @@ export default function OrderForm({ order, onClose }) {
     queryKey: ['orderItems', order?.id],
     queryFn: () => order?.id ? base44.entities.OrderItem.filter({ order_id: order.id }) : Promise.resolve([]),
     enabled: !!order?.id,
-    onSuccess: (items) => {
-      if (items.length > 0) {
-        setOrderItems(items);
-      }
-    }
   });
+
+  React.useEffect(() => {
+    if (existingItems.length > 0) {
+      setOrderItems(existingItems);
+    }
+  }, [existingItems]);
 
   const saveOrderMutation = useMutation({
     mutationFn: async (data) => {
