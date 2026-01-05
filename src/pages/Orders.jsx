@@ -141,7 +141,7 @@ export default function OrdersPage() {
               setEditingOrder(null);
               setShowForm(true);
             }}
-            className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
+            className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300 relative z-10"
           >
             <Plus className="w-4 h-4 mr-2" />
             Ny order
