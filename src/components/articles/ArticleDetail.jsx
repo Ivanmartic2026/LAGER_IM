@@ -308,18 +308,21 @@ export default function ArticleDetail({
       className="space-y-6"
     >
       {/* Header - Mobile Optimized */}
-      <div className="flex items-center justify-between mb-4">
-        <Button
-          variant="ghost"
-          onClick={onBack}
-          className="text-slate-400 hover:text-white hover:bg-slate-800 -ml-2"
+      <div className="flex items-center justify-between mb-4 relative z-10">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onBack();
+          }}
+          className="px-3 py-2 -ml-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 flex items-center gap-2 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 md:mr-2" />
+          <ArrowLeft className="w-4 h-4" />
           <span className="hidden md:inline">Tillbaka</span>
-        </Button>
+        </button>
         
         {/* Mobile: Compact action menu */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 relative z-10">
           <button
             onClick={async () => {
               const loadingToast = toast.loading('Genererar etikett...');
