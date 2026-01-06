@@ -361,9 +361,18 @@ export default function OrderForm({ order, onClose }) {
                           {item.shelf_address && ` • Hylla: ${item.shelf_address}`}
                         </div>
                       </div>
-                      <div className="text-sm font-semibold text-white">
-                        {item.quantity_ordered} st
-                      </div>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={item.quantity_ordered}
+                        onChange={(e) => {
+                          const newItems = [...orderItems];
+                          newItems[index].quantity_ordered = parseInt(e.target.value) || 1;
+                          setOrderItems(newItems);
+                        }}
+                        className="w-20 bg-slate-900 border-slate-700 text-white text-center"
+                      />
+                      <span className="text-sm text-slate-400">st</span>
                     </div>
                     <Button
                       type="button"
