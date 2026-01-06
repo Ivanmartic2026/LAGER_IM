@@ -43,7 +43,10 @@ export default function HomePage() {
     queryFn: () => base44.entities.Order.list('-created_date', 10),
   });
 
-  const pendingOrders = orders.filter(o => o.status === 'ready_to_pick' || o.status === 'picking');
+  const pendingOrders = orders.filter(o => 
+    (o.status === 'ready_to_pick' || o.status === 'picking' || o.status === 'picked') && 
+    !o.fortnox_invoiced
+  );
 
   const stats = {
     total: articles.length,
