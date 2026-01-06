@@ -186,6 +186,26 @@ export default function OrderDetailModal({ order, onClose }) {
               </div>
             )}
 
+            {order.fortnox_invoiced && order.fortnox_invoice_number && (
+              <div className="col-span-2">
+                <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
+                  <FileText className="w-4 h-4" />
+                  <span>Fakturerad i Fortnox</span>
+                </div>
+                <p className="text-white font-medium font-mono">{order.fortnox_invoice_number}</p>
+                {order.invoiced_date && (
+                  <p className="text-xs text-slate-500">
+                    {format(new Date(order.invoiced_date), "d MMM yyyy HH:mm", { locale: sv })}
+                  </p>
+                )}
+                {order.invoiced_by && (
+                  <p className="text-xs text-slate-500">
+                    Fakturerad av: {order.invoiced_by}
+                  </p>
+                )}
+              </div>
+            )}
+
             {order.created_by && (
               <div>
                 <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
