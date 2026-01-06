@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { 
-  Search, Plus, Package, ClipboardList, Download,
+  Search, Plus, Package, ClipboardList, Download, Upload,
   Calendar, User, MapPin, FileText, Truck, Eye, ArrowUpDown, Printer,
   CheckSquare, X, CheckCircle2, AlertCircle
 } from "lucide-react";
@@ -34,6 +34,8 @@ export default function OrdersPage() {
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [invoiceModalOrder, setInvoiceModalOrder] = useState(null);
   const [warehouseFilter, setWarehouseFilter] = useState("all");
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+  const fileInputRef = React.useRef(null);
   
   const queryClient = useQueryClient();
 
@@ -193,6 +195,37 @@ export default function OrdersPage() {
     }
   });
 
+  const handleDocumentUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingDocument(true);
+    const uploadToastId = toast.loading("Laddar upp orderdokument...");
+
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      toast.loading("Analyserar orderdokument med AI...", { id: uploadToastId });
+      
+      const response = await base44.functions.invoke('processOrderDocument', { file_url });
+
+      if (response.data.success) {
+        toast.success(response.data.message, { id: uploadToastId });
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+        queryClient.invalidateQueries({ queryKey: ['orderItems'] });
+      } else {
+        toast.error(response.data.error || "Kunde inte bearbeta orderdokumentet.", { id: uploadToastId });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Misslyckades: " + error.message, { id: uploadToastId });
+    } finally {
+      setIsUploadingDocument(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   const filteredAndSortedOrders = orders
     .filter(order => {
       const matchesSearch = !searchQuery || 
@@ -338,6 +371,32 @@ export default function OrdersPage() {
               )}
               {viewMode === "orders" && (
                 <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg"
+                    onChange={handleDocumentUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingDocument}
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
+                  >
+                    {isUploadingDocument ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                        Laddar upp...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Ladda upp
+                      </>
+                    )}
+                  </Button>
                   <Button
                     onClick={() => exportOrdersToExcelMutation.mutate(invoiceFilter)}
                     disabled={exportOrdersToExcelMutation.isPending}
