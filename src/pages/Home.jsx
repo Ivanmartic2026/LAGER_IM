@@ -174,33 +174,43 @@ export default function HomePage() {
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
-        {/* Hero Section */}
+        {/* Quick Action Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-3xl md:rounded-[2rem] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-6 md:p-12 mb-6 md:mb-8 shadow-2xl shadow-blue-500/20"
+          transition={{ duration: 0.5 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
         >
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl transform translate-x-32 -translate-y-32" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl transform -translate-x-16 translate-y-16" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
-          
-          <div className="relative z-10">
-            <h1 className="text-xl md:text-4xl font-bold text-white mb-2 md:mb-3">
-              Smart Lagerhantering
-            </h1>
-            <p className="text-sm md:text-base text-blue-100 mb-4 md:mb-6 max-w-lg">
-              Fotografera en etikett och fyll i alla artikeluppgifter automatiskt.
-            </p>
-            
-            <Link to={createPageUrl("Scan")}>
-              <Button size="sm" className="bg-white text-blue-600 hover:bg-white hover:shadow-lg hover:shadow-white/20 transition-all duration-300 hover:scale-105 md:h-11 md:px-6 font-semibold">
-                <Camera className="w-4 h-4 mr-2" />
-                Starta skanning
-                <ArrowRight className="w-3 h-3 md:w-4 md:h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
+          <motion.div 
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            onClick={() => setShowQuickWithdrawal(true)}
+            className="p-6 rounded-2xl bg-gradient-to-br from-amber-600/20 to-orange-700/10 backdrop-blur-sm border border-amber-500/30 hover:border-amber-500/50 hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-300 cursor-pointer group"
+          >
+            <Zap className="w-8 h-8 text-amber-400 mb-3 group-hover:scale-110 transition-transform duration-300" />
+            <h3 className="font-semibold text-white text-lg mb-1">Snabb utplockning</h3>
+            <p className="text-sm text-slate-400">Ta ut från lager</p>
+          </motion.div>
+
+          <Link to={createPageUrl("Scan") + "?mode=inbound"}>
+            <motion.div 
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="p-6 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 backdrop-blur-sm border border-emerald-500/30 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 cursor-pointer group"
+            >
+              <Package className="w-8 h-8 text-emerald-400 mb-3 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="font-semibold text-white text-lg mb-1">Inleverans</h3>
+              <p className="text-sm text-slate-400">Registrera nya varor</p>
+            </motion.div>
+          </Link>
+
+          <motion.div 
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            onClick={() => searchInputRef.current?.focus()}
+            className="p-6 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 backdrop-blur-sm border border-blue-500/30 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 cursor-pointer group"
+          >
+            <Search className="w-8 h-8 text-blue-400 mb-3 group-hover:scale-110 transition-transform duration-300" />
+            <h3 className="font-semibold text-white text-lg mb-1">Sök artikel</h3>
+            <p className="text-sm text-slate-400">Hitta snabbt i lagret</p>
+          </motion.div>
         </motion.div>
 
         {/* Orders to Pick */}
