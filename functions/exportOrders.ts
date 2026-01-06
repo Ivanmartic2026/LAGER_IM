@@ -115,8 +115,8 @@ Deno.serve(async (req) => {
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Ordrar');
 
-    // Konvertera till buffer
-    const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    // Konvertera till buffer med array
+    const excelBuffer = XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
 
     return new Response(excelBuffer, {
       status: 200,
