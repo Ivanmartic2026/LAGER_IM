@@ -417,11 +417,13 @@ export default function HomePage() {
               </div>
               <div className="space-y-3">
                 {alertArticles.map(article => (
-                  <Link 
-                    key={article.id} 
-                    to={createPageUrl("Inventory")}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 hover:bg-slate-800/50 transition-colors"
-                  >
+                 <div
+                   key={article.id}
+                   onClick={() => {
+                     window.location.href = createPageUrl("Inventory") + `?articleId=${article.id}`;
+                   }}
+                   className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 hover:bg-slate-800/50 cursor-pointer transition-all duration-200 active:scale-[0.98]"
+                 >
                     <div className="flex items-center gap-3">
                       <div className={cn(
                         "w-8 h-8 rounded-lg flex items-center justify-center",
@@ -445,13 +447,13 @@ export default function HomePage() {
                       <p className="font-bold text-white">{article.stock_qty || 0}</p>
                       <p className="text-xs text-slate-400">i lager</p>
                     </div>
-                  </Link>
-                ))}
-              </div>
-            </motion.div>
-          )}
+                    </div>
+                    ))}
+                    </div>
+                    </motion.div>
+                    )}
 
-          {/* Recent Activity */}
+                    {/* Recent Activity */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -475,12 +477,17 @@ export default function HomePage() {
             {movements.length > 0 ? (
               <div className="space-y-3">
                 {movements.slice(0, 5).map(movement => {
-                  const article = articles.find(a => a.id === movement.article_id);
-                  return (
-                    <div 
-                      key={movement.id}
-                      className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50"
-                    >
+                 const article = articles.find(a => a.id === movement.article_id);
+                 return (
+                   <div 
+                     key={movement.id}
+                     onClick={() => {
+                       if (article) {
+                         window.location.href = createPageUrl("Inventory") + `?articleId=${article.id}`;
+                       }
+                     }}
+                     className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 hover:bg-slate-800/70 cursor-pointer transition-all duration-200 active:scale-[0.98]"
+                   >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className={cn(
                           "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
@@ -549,7 +556,10 @@ export default function HomePage() {
                 {recentArticles.map(article => (
                   <div 
                     key={article.id}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50"
+                    onClick={() => {
+                      window.location.href = createPageUrl("Inventory") + `?articleId=${article.id}`;
+                    }}
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 hover:bg-slate-800/70 cursor-pointer transition-all duration-200 active:scale-[0.98]"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center">
