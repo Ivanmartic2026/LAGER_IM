@@ -51,7 +51,7 @@ export default function ShelfLabel({ article }) {
           
           {/* Name */}
           {article.name && (
-            <div className="text-[7px] font-medium leading-tight break-words">
+            <div className="text-[7px] font-medium leading-tight break-words line-clamp-3">
               {article.name}
             </div>
           )}
