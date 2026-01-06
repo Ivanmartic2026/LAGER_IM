@@ -594,66 +594,7 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Search Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="mt-6 md:mt-8"
-          >
-          <div className="p-4 md:p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300">
-            <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                <Search className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
-              </div>
-              <div className="min-w-0">
-                <h2 className="text-base md:text-lg font-semibold text-white tracking-tight">Sök Artiklar</h2>
-                <p className="text-xs md:text-sm text-white/50 hidden md:block">Snabbsökning efter namn, batch eller hyllplats</p>
-              </div>
-            </div>
 
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <Input
-                ref={searchInputRef}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sök artikel, batch eller hyllplats..."
-                className="pl-12 pr-12 h-12 bg-slate-900/50 border-slate-700 text-white"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
-                  <X className="w-5 h-5" />
-                </button>
-              )}
-
-              {searchResults.length > 0 && (
-                <div className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl max-h-[300px] overflow-y-auto">
-                  {searchResults.map((article) => (
-                    <button
-                      key={article.id}
-                      onClick={() => handleSelectArticle(article)}
-                      className="w-full p-4 text-left hover:bg-slate-700/50 transition-colors border-b border-slate-700/50 last:border-0"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-white">{article.name}</p>
-                          <p className="text-sm text-slate-400">#{article.batch_number}</p>
-                        </div>
-                        {article.shelf_address && (
-                          <div className="flex items-center gap-2 text-emerald-400">
-                            <MapPin className="w-4 h-4" />
-                            <span className="font-bold">{article.shelf_address}</span>
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </motion.div>
 
 
 
