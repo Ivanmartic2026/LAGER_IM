@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { 
   Search, Plus, Package, ClipboardList, Download,
   Calendar, User, MapPin, FileText, Truck, Eye, ArrowUpDown, Printer,
-  CheckSquare, X, CheckCircle2
+  CheckSquare, X, CheckCircle2, AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -25,6 +25,7 @@ import InvoiceModal from "@/components/orders/InvoiceModal";
 export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [invoiceFilter, setInvoiceFilter] = useState("all"); // all, invoiced, not_invoiced
   const [sortBy, setSortBy] = useState("date_desc"); // date_desc, date_asc, customer_asc
   const [showForm, setShowForm] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
@@ -169,7 +170,13 @@ export default function OrdersPage() {
       
       const matchesStatus = statusFilter === "all" || order.status === statusFilter;
       
-      return matchesSearch && matchesStatus;
+      const matchesInvoice = 
+        invoiceFilter === "all" ? true :
+        invoiceFilter === "invoiced" ? order.fortnox_invoiced === true :
+        invoiceFilter === "not_invoiced" ? (order.status === "picked" && !order.fortnox_invoiced) :
+        true;
+      
+      return matchesSearch && matchesStatus && matchesInvoice;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -261,14 +268,22 @@ export default function OrdersPage() {
             />
           </div>
 
-          <div className="flex gap-3">
-            
+          <div className="flex gap-3 flex-wrap">
+
             <Tabs value={statusFilter} onValueChange={setStatusFilter}>
               <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
                 <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
                 <TabsTrigger value="ready_to_pick" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Redo</TabsTrigger>
                 <TabsTrigger value="picking" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockar</TabsTrigger>
                 <TabsTrigger value="picked" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockad</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <Tabs value={invoiceFilter} onValueChange={setInvoiceFilter}>
+              <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
+                <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
+                <TabsTrigger value="not_invoiced" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Ej fakturerad</TabsTrigger>
+                <TabsTrigger value="invoiced" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Fakturerad</TabsTrigger>
               </TabsList>
             </Tabs>
 
@@ -339,7 +354,12 @@ export default function OrdersPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="group p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300"
+                    className={cn(
+                      "group p-5 rounded-2xl backdrop-blur-xl transition-all duration-300",
+                      order.fortnox_invoiced 
+                        ? "bg-purple-500/10 border-2 border-purple-500/40 hover:border-purple-500/60 hover:bg-purple-500/15 hover:shadow-2xl hover:shadow-purple-500/20"
+                        : "bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5"
+                    )}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-start gap-3 flex-1">
