@@ -559,7 +559,7 @@ export default function OrdersPage() {
                             </Badge>
                           )}
                           {order.fortnox_invoiced && order.fortnox_invoice_number && (
-                            <Badge className="bg-purple-500/30 text-purple-300 border-purple-500/50 text-xs flex items-center gap-1 font-semibold">
+                            <Badge className="bg-green-500/30 text-green-300 border-green-500/50 text-xs flex items-center gap-1 font-semibold">
                               <FileText className="w-3 h-3" />
                               #{order.fortnox_invoice_number}
                             </Badge>
