@@ -40,24 +40,51 @@ Deno.serve(async (req) => {
         cancelled: "Avbruten"
       };
 
+      const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        try {
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) return '';
+          return date.toLocaleDateString('sv-SE');
+        } catch {
+          return '';
+        }
+      };
+
+      const formatDateTime = (dateStr) => {
+        if (!dateStr) return '';
+        try {
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) return '';
+          return date.toLocaleString('sv-SE');
+        } catch {
+          return '';
+        }
+      };
+
+      const cleanString = (str) => {
+        if (!str) return '';
+        return String(str).replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+      };
+
       return {
-        'Ordernummer': order.order_number || `#${order.id.slice(0, 8)}`,
-        'Kund': order.customer_name || '',
-        'Status': statusLabels[order.status] || order.status,
+        'Ordernummer': cleanString(order.order_number || `#${order.id.slice(0, 8)}`),
+        'Kund': cleanString(order.customer_name),
+        'Status': statusLabels[order.status] || order.status || '',
         'Antal artiklar': items.length,
         'Totalt beställt': totalOrdered,
         'Totalt plockat': totalPicked,
-        'Leveransdatum': order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('sv-SE') : '',
-        'Leveransadress': order.delivery_address || '',
+        'Leveransdatum': formatDate(order.delivery_date),
+        'Leveransadress': cleanString(order.delivery_address),
         'Fakturerad': order.fortnox_invoiced ? 'Ja' : 'Nej',
-        'Fakturanummer': order.fortnox_invoice_number || '',
-        'Fakturerad datum': order.invoiced_date ? new Date(order.invoiced_date).toLocaleString('sv-SE') : '',
-        'Fakturerad av': order.invoiced_by || '',
-        'Plockad av': order.picked_by || '',
-        'Plockad datum': order.picked_date ? new Date(order.picked_date).toLocaleString('sv-SE') : '',
-        'Skapad': new Date(order.created_date).toLocaleString('sv-SE'),
-        'Skapad av': order.created_by || '',
-        'Anteckningar': order.notes || ''
+        'Fakturanummer': cleanString(order.fortnox_invoice_number),
+        'Fakturerad datum': formatDateTime(order.invoiced_date),
+        'Fakturerad av': cleanString(order.invoiced_by),
+        'Plockad av': cleanString(order.picked_by),
+        'Plockad datum': formatDateTime(order.picked_date),
+        'Skapad': formatDateTime(order.created_date),
+        'Skapad av': cleanString(order.created_by),
+        'Anteckningar': cleanString(order.notes)
       };
     });
 
