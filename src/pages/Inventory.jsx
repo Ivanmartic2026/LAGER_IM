@@ -329,9 +329,12 @@ export default function InventoryPage() {
       const remaining = item.quantity_ordered - (item.quantity_received || 0);
       if (remaining > 0) {
         if (!incomingQuantities[item.article_id]) {
-          incomingQuantities[item.article_id] = 0;
+          incomingQuantities[item.article_id] = { quantity: 0, dates: [] };
         }
-        incomingQuantities[item.article_id] += remaining;
+        incomingQuantities[item.article_id].quantity += remaining;
+        if (po.expected_delivery_date) {
+          incomingQuantities[item.article_id].dates.push(po.expected_delivery_date);
+        }
       }
     }
   });
@@ -837,7 +840,10 @@ export default function InventoryPage() {
                             )}
                             {incomingQuantities[article.id] && (
                               <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
-                                Inkommande ({incomingQuantities[article.id]} st)
+                                Inkommande ({incomingQuantities[article.id].quantity} st)
+                                {incomingQuantities[article.id].dates.length > 0 && 
+                                  ` - ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
+                                }
                               </Badge>
                             )}
                             {article.status !== 'active' && (
@@ -958,7 +964,10 @@ export default function InventoryPage() {
                         <div className="flex items-center justify-end gap-2 min-w-0">
                           {incomingQuantities[article.id] && (
                             <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs px-2 py-0.5 flex-shrink-0">
-                              Inkommande ({incomingQuantities[article.id]})
+                              Inkommande ({incomingQuantities[article.id].quantity})
+                              {incomingQuantities[article.id].dates.length > 0 && 
+                                ` - ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
+                              }
                             </Badge>
                           )}
                           {article.status !== 'active' && (
