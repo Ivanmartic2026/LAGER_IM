@@ -22,10 +22,10 @@ Deno.serve(async (req) => {
     const width = 320;  // 40mm at 203 DPI
     const height = 240; // 30mm at 203 DPI
 
-    // Create QR code - compact but scannable
+    // Create QR code - smaller for better layout
     const qrCodeDataUrl = article.batch_number 
       ? await QRCode.toDataURL(article.batch_number, { 
-          width: 110,
+          width: 90,
           margin: 0,
           errorCorrectionLevel: 'M'
         })
@@ -53,19 +53,20 @@ Deno.serve(async (req) => {
     body { 
       font-family: Arial, sans-serif; 
       background: white;
-      padding: 6px;
+      padding: 4px;
     }
     .container {
       display: flex;
-      gap: 5px;
+      gap: 6px;
       width: 100%;
       height: 100%;
-      align-items: flex-start;
+      align-items: stretch;
     }
     .qr {
       flex-shrink: 0;
-      width: 105px;
-      height: 105px;
+      width: 85px;
+      height: 85px;
+      align-self: center;
     }
     .qr img {
       width: 100%;
@@ -77,47 +78,38 @@ Deno.serve(async (req) => {
       display: flex;
       flex-direction: column;
       min-width: 0;
-      height: 100%;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 4px;
     }
     .batch {
-      font-size: 16px;
+      font-size: 22px;
       font-weight: bold;
-      color: #1e40af;
+      color: #2563eb;
       word-break: break-all;
-      line-height: 1.1;
-      margin-bottom: 3px;
+      line-height: 1;
     }
     .name {
-      font-size: 9px;
-      font-weight: bold;
-      color: #000;
-      line-height: 1.1;
+      font-size: 8px;
+      font-weight: 600;
+      color: #374151;
+      line-height: 1.2;
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
-      margin-bottom: 2px;
-    }
-    .location-section {
-      margin-top: auto;
-      padding-top: 3px;
-      border-top: 1px solid #ddd;
     }
     .location {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: bold;
       color: #059669;
-      line-height: 1.2;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      line-height: 1;
     }
     .warehouse {
       font-size: 7px;
-      color: #666;
+      color: #6b7280;
       margin-top: 1px;
+      line-height: 1;
     }
   </style>
 </head>
@@ -130,19 +122,14 @@ Deno.serve(async (req) => {
     ` : ''}
 
     <div class="content">
-      <div>
-        ${article.batch_number ? `<div class="batch">#${article.batch_number}</div>` : ''}
-        <div class="name">${article.customer_name || article.name || 'Artikel'}</div>
+      ${article.batch_number ? `<div class="batch">#${article.batch_number}</div>` : ''}
+      <div class="name">${article.customer_name || article.name || 'Artikel'}</div>
+      ${article.shelf_address && article.shelf_address.length > 0 ? `
+      <div class="location">
+        📍 ${Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}
       </div>
-
-      <div class="location-section">
-        ${article.shelf_address && article.shelf_address.length > 0 ? `
-        <div class="location">
-          📍 ${Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}
-        </div>
-        ` : ''}
-        ${article.warehouse ? `<div class="warehouse">${article.warehouse}</div>` : ''}
-      </div>
+      ` : ''}
+      ${article.warehouse ? `<div class="warehouse">${article.warehouse}</div>` : ''}
     </div>
   </div>
 </body>
