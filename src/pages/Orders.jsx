@@ -376,7 +376,7 @@ export default function OrdersPage() {
                           className="mt-1"
                         />
                         <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
                           <h3 className="text-lg font-semibold text-white">
                             {order.order_number || `Order #${order.id.slice(0, 8)}`}
                           </h3>
@@ -386,6 +386,18 @@ export default function OrdersPage() {
                           {order.priority === 'urgent' && (
                             <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
                               Brådskande
+                            </Badge>
+                          )}
+                          {order.status === 'picked' && !order.fortnox_invoiced && (
+                            <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              Väntar fakturering
+                            </Badge>
+                          )}
+                          {order.fortnox_invoiced && order.fortnox_invoice_number && (
+                            <Badge className="bg-purple-500/30 text-purple-300 border-purple-500/50 text-xs flex items-center gap-1 font-semibold">
+                              <FileText className="w-3 h-3" />
+                              #{order.fortnox_invoice_number}
                             </Badge>
                           )}
                         </div>
