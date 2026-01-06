@@ -19,6 +19,10 @@ Deno.serve(async (req) => {
       purchase_order_id: purchaseOrderId 
     });
 
+    const receivingRecords = await base44.asServiceRole.entities.ReceivingRecord.filter({ 
+      purchase_order_id: purchaseOrderId 
+    });
+
     let totalCost = 0;
     const itemsHtml = items.map(item => {
       const itemTotal = item.quantity_ordered * (item.unit_price || 0);
@@ -239,6 +243,60 @@ Deno.serve(async (req) => {
               <div class="notes">
                 <div class="notes-label">Anteckningar</div>
                 <div class="notes-text">${po.notes}</div>
+              </div>
+            ` : ''}
+
+            ${receivingRecords.length > 0 ? `
+              <div style="margin-top: 40px; padding-top: 40px; border-top: 2px solid #000000;">
+                <h2 style="font-size: 24px; margin: 0 0 25px 0; font-weight: 600; letter-spacing: -0.5px;">FÖLJESEDEL & MOTTAGNING</h2>
+                
+                ${receivingRecords.map(record => `
+                  <div style="margin-bottom: 25px; padding: 25px; background: #fafafa; border-left: 3px solid ${record.has_discrepancy ? '#ef4444' : record.quality_check_passed ? '#10b981' : '#000000'};">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                      <div>
+                        <div style="font-size: 16px; font-weight: 600; color: #000000; margin-bottom: 8px;">${record.article_name}</div>
+                        <div style="font-size: 14px; color: #666666;">
+                          Mottaget: <strong style="color: #000000;">${record.quantity_received} st</strong>
+                          ${record.shelf_address ? ` • Hyllplats: <strong style="color: #000000;">${record.shelf_address}</strong>` : ''}
+                        </div>
+                      </div>
+                      <div style="font-size: 24px;">
+                        ${record.quality_check_passed ? '✓' : '✗'}
+                      </div>
+                    </div>
+
+                    ${record.has_discrepancy ? `
+                      <div style="margin-top: 12px; padding: 12px; background: #fee2e2; border: 1px solid #ef4444; border-radius: 4px;">
+                        <div style="font-size: 11px; text-transform: uppercase; color: #991b1b; font-weight: 600; letter-spacing: 0.8px; margin-bottom: 4px;">⚠ AVVIKELSE</div>
+                        <div style="font-size: 13px; color: #991b1b;">${record.discrepancy_reason || 'Ingen anledning angiven'}</div>
+                      </div>
+                    ` : ''}
+
+                    ${record.notes ? `
+                      <div style="margin-top: 12px; padding: 12px; background: white; border: 1px solid #e0e0e0; border-radius: 4px;">
+                        <div style="font-size: 11px; text-transform: uppercase; color: #666666; font-weight: 500; letter-spacing: 0.8px; margin-bottom: 4px;">ANTECKNINGAR</div>
+                        <div style="font-size: 13px; color: #333333; line-height: 1.5;">${record.notes}</div>
+                      </div>
+                    ` : ''}
+
+                    ${record.image_urls && record.image_urls.length > 0 ? `
+                      <div style="margin-top: 12px;">
+                        <div style="font-size: 11px; text-transform: uppercase; color: #666666; font-weight: 500; letter-spacing: 0.8px; margin-bottom: 8px;">BILDER (${record.image_urls.length} st)</div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                          ${record.image_urls.map(url => `
+                            <div style="width: 100%; height: 120px; background: #e5e7eb; border: 1px solid #d1d5db; border-radius: 4px; overflow: hidden;">
+                              <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;" crossorigin="anonymous" />
+                            </div>
+                          `).join('')}
+                        </div>
+                      </div>
+                    ` : ''}
+
+                    <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid #e0e0e0; font-size: 11px; color: #666666;">
+                      Mottagen av ${record.received_by} • ${new Date(record.created_date).toLocaleString('sv-SE')}
+                    </div>
+                  </div>
+                `).join('')}
               </div>
             ` : ''}
           </div>
