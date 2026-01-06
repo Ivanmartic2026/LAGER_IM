@@ -472,43 +472,51 @@ export default function HomePage() {
             
             {movements.length > 0 ? (
               <div className="space-y-3">
-                {movements.slice(0, 5).map(movement => (
-                  <div 
-                    key={movement.id}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50"
-                  >
-                    <div className="flex items-center gap-3">
+                {movements.slice(0, 5).map(movement => {
+                  const article = articles.find(a => a.id === movement.article_id);
+                  return (
+                    <div 
+                      key={movement.id}
+                      className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
+                          movement.quantity > 0 
+                            ? "bg-emerald-500/20" 
+                            : "bg-amber-500/20"
+                        )}>
+                          {movement.quantity > 0 ? (
+                            <TrendingUp className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <TrendingDown className="w-4 h-4 text-amber-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-white text-sm">
+                            {movement.movement_type === "inbound" ? "Inleverans" : 
+                             movement.movement_type === "outbound" ? "Uttag" :
+                             movement.movement_type === "inventory" ? "Inventering" : "Justering"}
+                          </p>
+                          {article && (
+                            <p className="text-xs text-slate-500 truncate">
+                              {article.name}
+                            </p>
+                          )}
+                          <p className="text-xs text-slate-400">
+                            {movement.created_date && format(new Date(movement.created_date), "d MMM HH:mm", { locale: sv })}
+                          </p>
+                        </div>
+                      </div>
                       <div className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center",
-                        movement.quantity > 0 
-                          ? "bg-emerald-500/20" 
-                          : "bg-amber-500/20"
+                        "font-bold flex-shrink-0 ml-2",
+                        movement.quantity > 0 ? "text-emerald-400" : "text-amber-400"
                       )}>
-                        {movement.quantity > 0 ? (
-                          <TrendingUp className="w-4 h-4 text-emerald-400" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-amber-400" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-white text-sm">
-                          {movement.movement_type === "inbound" ? "Inleverans" : 
-                           movement.movement_type === "outbound" ? "Uttag" :
-                           movement.movement_type === "inventory" ? "Inventering" : "Justering"}
-                        </p>
-                        <p className="text-xs text-slate-400">
-                          {movement.created_date && format(new Date(movement.created_date), "d MMM HH:mm", { locale: sv })}
-                        </p>
+                        {movement.quantity > 0 ? "+" : ""}{movement.quantity}
                       </div>
                     </div>
-                    <div className={cn(
-                      "font-bold",
-                      movement.quantity > 0 ? "text-emerald-400" : "text-amber-400"
-                    )}>
-                      {movement.quantity > 0 ? "+" : ""}{movement.quantity}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-8 text-slate-400">
