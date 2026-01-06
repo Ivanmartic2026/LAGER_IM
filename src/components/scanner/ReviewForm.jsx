@@ -9,10 +9,12 @@ import { base44 } from "@/api/base44Client";
 import ExtractedFieldCard from './ExtractedFieldCard';
 
 const CATEGORY_OPTIONS = [
-  { value: "LED Module", label: "LED-modul" },
   { value: "Cabinet", label: "Kabinett" },
-  { value: "Controller", label: "Controller" },
+  { value: "LED Module", label: "LED-modul" },
   { value: "Power Supply", label: "Strömförsörjning" },
+  { value: "Receiving Card", label: "Receiving card" },
+  { value: "Control Processor", label: "Control Processor" },
+  { value: "Computer", label: "Dator" },
   { value: "Cable", label: "Kabel" },
   { value: "Accessory", label: "Tillbehör" },
   { value: "Other", label: "Övrigt" }
