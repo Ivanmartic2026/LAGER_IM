@@ -10,7 +10,6 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 const NAV_ITEMS = [
   { name: "Home", label: "Hem", icon: Home },
   { name: "Inventory", label: "Lager", icon: Package },
-  { name: "Picking", label: "Plockning", icon: ClipboardList },
   { name: "Orders", label: "Ordrar", icon: ShoppingCart },
   { name: "PurchaseOrders", label: "Inköp", icon: ShoppingCart },
   { name: "UnknownDeliveries", label: "Okända", icon: PackageSearch },

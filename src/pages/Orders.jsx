@@ -23,6 +23,7 @@ import OrderDetailModal from "@/components/orders/OrderDetailModal";
 import InvoiceModal from "@/components/orders/InvoiceModal";
 
 export default function OrdersPage() {
+  const [viewMode, setViewMode] = useState("orders"); // orders, picking
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [invoiceFilter, setInvoiceFilter] = useState("all"); // all, invoiced, not_invoiced
@@ -32,6 +33,7 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [invoiceModalOrder, setInvoiceModalOrder] = useState(null);
+  const [warehouseFilter, setWarehouseFilter] = useState("all");
   
   const queryClient = useQueryClient();
 
@@ -43,6 +45,16 @@ export default function OrdersPage() {
   const { data: orderItems = [] } = useQuery({
     queryKey: ['orderItems'],
     queryFn: () => base44.entities.OrderItem.list(),
+  });
+
+  const { data: articles = [] } = useQuery({
+    queryKey: ['articles'],
+    queryFn: () => base44.entities.Article.list(),
+  });
+
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: () => base44.entities.Warehouse.list(),
   });
 
   const deleteOrderMutation = useMutation({
@@ -236,61 +248,143 @@ export default function OrdersPage() {
     cancelled: "Avbruten"
   };
 
+  // Plockningsvy - gruppera orderitems efter artikel
+  const pickingTasks = orderItems
+    .filter(item => item.status !== 'picked')
+    .reduce((acc, item) => {
+      const article = articles.find(a => a.id === item.article_id);
+      if (!article) return acc;
+
+      const order = orders.find(o => o.id === item.order_id);
+      if (!order || !['ready_to_pick', 'picking'].includes(order.status)) return acc;
+
+      const existingTask = acc.find(t => t.article_id === item.article_id);
+      
+      if (existingTask) {
+        existingTask.orders.push({
+          orderId: order.id,
+          orderNumber: order.order_number || `#${order.id.slice(0, 8)}`,
+          customerName: order.customer_name,
+          quantityNeeded: item.quantity_ordered - (item.quantity_picked || 0),
+          priority: order.priority,
+          itemId: item.id
+        });
+        existingTask.totalQuantity += item.quantity_ordered - (item.quantity_picked || 0);
+      } else {
+        acc.push({
+          article_id: article.id,
+          article_name: article.customer_name || article.name,
+          article_batch: article.batch_number,
+          shelf_address: article.shelf_address,
+          warehouse: article.warehouse,
+          stock_qty: article.stock_qty,
+          totalQuantity: item.quantity_ordered - (item.quantity_picked || 0),
+          orders: [{
+            orderId: order.id,
+            orderNumber: order.order_number || `#${order.id.slice(0, 8)}`,
+            customerName: order.customer_name,
+            quantityNeeded: item.quantity_ordered - (item.quantity_picked || 0),
+            priority: order.priority,
+            itemId: item.id
+          }]
+        });
+      }
+      
+      return acc;
+    }, []);
+
+  const filteredPickingTasks = pickingTasks.filter(task => {
+    const matchesSearch = !searchQuery || 
+      task.article_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.article_batch?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.shelf_address?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesWarehouse = warehouseFilter === "all" || task.warehouse === warehouseFilter;
+    
+    return matchesSearch && matchesWarehouse;
+  });
+
   return (
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 relative z-[60]">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Ordrar</h1>
-            <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
-              {filteredAndSortedOrders.length} ordrar
-            </Badge>
-          </div>
-
-          <div className="flex gap-2">
-            {selectedOrderIds.length > 0 && (
-              <Button
-                onClick={() => exportMultipleOrdersMutation.mutate(selectedOrderIds)}
-                disabled={exportMultipleOrdersMutation.isPending}
-                variant="outline"
-                className="bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Ladda ner {selectedOrderIds.length} ordrar
-              </Button>
-            )}
-            <Button
-              onClick={() => exportOrdersToExcelMutation.mutate(invoiceFilter)}
-              disabled={exportOrdersToExcelMutation.isPending}
-              variant="outline"
-              className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
-            >
-              {exportOrdersToExcelMutation.isPending ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                  Exporterar...
-                </>
+        <div className="mb-6 relative z-[60]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-white tracking-tight">Ordrar & Plockning</h1>
+              {viewMode === "orders" ? (
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                  {filteredAndSortedOrders.length} ordrar
+                </Badge>
               ) : (
-                <>
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                  {filteredPickingTasks.length} artiklar att plocka
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              {viewMode === "orders" && selectedOrderIds.length > 0 && (
+                <Button
+                  onClick={() => exportMultipleOrdersMutation.mutate(selectedOrderIds)}
+                  disabled={exportMultipleOrdersMutation.isPending}
+                  variant="outline"
+                  className="bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30"
+                >
                   <Download className="w-4 h-4 mr-2" />
-                  Excel
+                  Ladda ner {selectedOrderIds.length} ordrar
+                </Button>
+              )}
+              {viewMode === "orders" && (
+                <>
+                  <Button
+                    onClick={() => exportOrdersToExcelMutation.mutate(invoiceFilter)}
+                    disabled={exportOrdersToExcelMutation.isPending}
+                    variant="outline"
+                    className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
+                  >
+                    {exportOrdersToExcelMutation.isPending ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                        Exporterar...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4 mr-2" />
+                        Excel
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      console.log('Ny order clicked');
+                      setEditingOrder(null);
+                      setShowForm(true);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Ny order
+                  </Button>
                 </>
               )}
-            </Button>
-            <Button
-              onClick={() => {
-                console.log('Ny order clicked');
-                setEditingOrder(null);
-                setShowForm(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Ny order
-            </Button>
+            </div>
           </div>
+
+          {/* View Mode Tabs */}
+          <Tabs value={viewMode} onValueChange={setViewMode}>
+            <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
+              <TabsTrigger value="orders" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
+                <ClipboardList className="w-4 h-4 mr-2" />
+                Ordrar
+              </TabsTrigger>
+              <TabsTrigger value="picking" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
+                <Package className="w-4 h-4 mr-2" />
+                Plockningslista
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
         {/* Search & Filters */}
@@ -300,41 +394,61 @@ export default function OrdersPage() {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Sök ordernummer eller kund..."
+              placeholder={viewMode === "orders" ? "Sök ordernummer eller kund..." : "Sök artikel, batch eller hyllplats..."}
               className="pl-11 h-11 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300 text-base"
             />
           </div>
 
           <div className="flex gap-3 flex-wrap">
+            {viewMode === "orders" ? (
+              <>
+                <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+                  <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
+                    <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
+                    <TabsTrigger value="ready_to_pick" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Redo</TabsTrigger>
+                    <TabsTrigger value="picking" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockar</TabsTrigger>
+                    <TabsTrigger value="picked" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockad</TabsTrigger>
+                  </TabsList>
+                </Tabs>
 
-            <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-              <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
-                <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
-                <TabsTrigger value="ready_to_pick" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Redo</TabsTrigger>
-                <TabsTrigger value="picking" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockar</TabsTrigger>
-                <TabsTrigger value="picked" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockad</TabsTrigger>
-              </TabsList>
-            </Tabs>
+                <Tabs value={invoiceFilter} onValueChange={setInvoiceFilter}>
+                  <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
+                    <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
+                    <TabsTrigger value="not_invoiced" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Ej fakturerad</TabsTrigger>
+                    <TabsTrigger value="invoiced" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Fakturerad</TabsTrigger>
+                  </TabsList>
+                </Tabs>
 
-            <Tabs value={invoiceFilter} onValueChange={setInvoiceFilter}>
-              <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
-                <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
-                <TabsTrigger value="not_invoiced" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Ej fakturerad</TabsTrigger>
-                <TabsTrigger value="invoiced" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Fakturerad</TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <Tabs value={sortBy} onValueChange={setSortBy}>
-              <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
-                <TabsTrigger value="date_desc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
-                  <ArrowUpDown className="w-4 h-4 mr-2" />
-                  Senaste
-                </TabsTrigger>
-                <TabsTrigger value="date_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Äldsta</TabsTrigger>
-                <TabsTrigger value="customer_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Kund A-Ö</TabsTrigger>
-                <TabsTrigger value="delivery_date" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leveransdatum</TabsTrigger>
-              </TabsList>
-            </Tabs>
+                <Tabs value={sortBy} onValueChange={setSortBy}>
+                  <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
+                    <TabsTrigger value="date_desc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
+                      <ArrowUpDown className="w-4 h-4 mr-2" />
+                      Senaste
+                    </TabsTrigger>
+                    <TabsTrigger value="date_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Äldsta</TabsTrigger>
+                    <TabsTrigger value="customer_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Kund A-Ö</TabsTrigger>
+                    <TabsTrigger value="delivery_date" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leveransdatum</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </>
+            ) : (
+              <Tabs value={warehouseFilter} onValueChange={setWarehouseFilter}>
+                <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
+                  <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
+                    Alla lager
+                  </TabsTrigger>
+                  {warehouses.map(wh => (
+                    <TabsTrigger 
+                      key={wh.id} 
+                      value={wh.name}
+                      className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10"
+                    >
+                      {wh.code || wh.name}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            )}
           </div>
 
           <div className="flex items-center justify-end">
@@ -353,6 +467,9 @@ export default function OrdersPage() {
           </div>
         </div>
 
+        {/* Content */}
+        {viewMode === "orders" ? (
+          <>
         {/* Orders List */}
         {isLoading ? (
           <div className="space-y-2">
@@ -561,6 +678,157 @@ export default function OrdersPage() {
                 );
               })}
             </AnimatePresence>
+          </div>
+        )}
+          </>
+        ) : (
+          /* Plockningslista */
+          <div className="space-y-3">
+            {filteredPickingTasks.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-green-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Inga plockningsuppgifter
+                </h3>
+                <p className="text-white/50">
+                  Allt är plockat eller så finns inga aktiva ordrar
+                </p>
+              </div>
+            ) : (
+              <AnimatePresence>
+                {filteredPickingTasks.map((task) => {
+                  const hasUrgent = task.orders.some(o => o.priority === 'urgent');
+                  const hasHighPriority = task.orders.some(o => o.priority === 'high');
+                  const hasEnoughStock = task.stock_qty >= task.totalQuantity;
+
+                  return (
+                    <motion.div
+                      key={task.article_id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className={cn(
+                        "p-5 rounded-2xl backdrop-blur-xl border transition-all duration-300",
+                        hasUrgent 
+                          ? "bg-red-500/10 border-red-500/40 hover:border-red-500/60"
+                          : hasHighPriority
+                          ? "bg-amber-500/10 border-amber-500/30 hover:border-amber-500/50"
+                          : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
+                      )}
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* Location */}
+                        <div className="flex-shrink-0">
+                          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30 flex flex-col items-center justify-center">
+                            <MapPin className="w-6 h-6 text-purple-400 mb-1" />
+                            <span className="text-xs font-bold text-purple-300">
+                              {task.shelf_address || '—'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <div>
+                              <h3 className="text-lg font-semibold text-white mb-1">
+                                {task.article_name}
+                              </h3>
+                              <div className="flex items-center gap-3 text-sm text-white/50">
+                                {task.article_batch && (
+                                  <span className="font-mono">#{task.article_batch}</span>
+                                )}
+                                {task.warehouse && (
+                                  <span>{task.warehouse}</span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="text-right flex-shrink-0">
+                              <div className={cn(
+                                "text-2xl font-bold",
+                                hasEnoughStock ? "text-green-400" : "text-red-400"
+                              )}>
+                                {task.totalQuantity}
+                              </div>
+                              <div className="text-xs text-white/40">
+                                att plocka
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Stock Status */}
+                          <div className="flex items-center gap-2 mb-3 flex-wrap">
+                            <div className={cn(
+                              "text-sm px-2 py-1 rounded-lg",
+                              hasEnoughStock 
+                                ? "bg-green-500/20 text-green-400"
+                                : "bg-red-500/20 text-red-400"
+                            )}>
+                              {hasEnoughStock ? (
+                                <span className="flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  {task.stock_qty} st i lager
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1">
+                                  <AlertCircle className="w-3 h-3" />
+                                  Endast {task.stock_qty} st
+                                </span>
+                              )}
+                            </div>
+                            {hasUrgent && (
+                              <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
+                                Brådskande
+                              </Badge>
+                            )}
+                            {hasHighPriority && (
+                              <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                                Hög prioritet
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Orders */}
+                          <div className="space-y-1 mb-3">
+                            {task.orders.map((order, idx) => (
+                              <div 
+                                key={idx}
+                                className="text-sm text-white/70 flex items-center gap-2"
+                              >
+                                <span className="font-medium">{order.orderNumber}</span>
+                                <span>•</span>
+                                <span>{order.customerName}</span>
+                                <span>•</span>
+                                <span className="font-semibold text-white">{order.quantityNeeded} st</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Action */}
+                          <Link to={`${createPageUrl("PickOrder")}?orderId=${task.orders[0].orderId}`}>
+                            <Button 
+                              size="sm"
+                              className={cn(
+                                "w-full",
+                                hasUrgent 
+                                  ? "bg-red-600 hover:bg-red-500"
+                                  : "bg-blue-600 hover:bg-blue-500"
+                              )}
+                            >
+                              <ClipboardList className="w-4 h-4 mr-2" />
+                              Börja plocka
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            )}
           </div>
         )}
 
