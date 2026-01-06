@@ -542,7 +542,13 @@ export default function OrdersPage() {
                               Brådskande
                             </Badge>
                           )}
-                          {order.status === 'picked' && !order.fortnox_invoiced && (
+                          {order.is_incomplete && (
+                            <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs flex items-center gap-1 font-semibold">
+                              <AlertCircle className="w-3 h-3" />
+                              Ofullständig
+                            </Badge>
+                          )}
+                          {order.status === 'picked' && !order.fortnox_invoiced && !order.is_incomplete && (
                             <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs flex items-center gap-1">
                               <AlertCircle className="w-3 h-3" />
                               Väntar fakturering

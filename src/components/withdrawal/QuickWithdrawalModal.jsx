@@ -28,15 +28,32 @@ export default function QuickWithdrawalModal({ onClose }) {
   const createWithdrawalMutation = useMutation({
     mutationFn: async (data) => {
       const user = await base44.auth.me();
+      const article = articles.find(a => a.id === data.article_id);
       
-      // Create withdrawal record
-      await base44.entities.InternalWithdrawal.create({
-        ...data,
-        withdrawn_by: user.email
+      // Create Order
+      const order = await base44.entities.Order.create({
+        order_number: `SNABB-${Date.now()}`,
+        customer_name: data.customer_reference,
+        customer_reference: data.customer_reference,
+        status: 'picked',
+        picked_by: user.email,
+        picked_date: new Date().toISOString(),
+        notes: data.notes || 'Snabb utplockning',
+        is_incomplete: true
+      });
+
+      // Create OrderItem
+      await base44.entities.OrderItem.create({
+        order_id: order.id,
+        article_id: article.id,
+        article_name: data.article_name,
+        article_batch_number: data.article_batch_number,
+        quantity_ordered: data.quantity,
+        quantity_picked: data.quantity,
+        status: 'picked'
       });
 
       // Update article stock
-      const article = articles.find(a => a.id === data.article_id);
       const newQty = (article.stock_qty || 0) - data.quantity;
       await base44.entities.Article.update(article.id, {
         stock_qty: newQty,
@@ -52,13 +69,13 @@ export default function QuickWithdrawalModal({ onClose }) {
         previous_qty: article.stock_qty,
         new_qty: newQty,
         reason: `Snabb utplockning: ${data.customer_reference}`,
-        reference: 'internal_withdrawal'
+        reference: order.id
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
-      queryClient.invalidateQueries({ queryKey: ['internalWithdrawals'] });
-      toast.success('Artikel utplockad!');
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      toast.success('Artikel utplockad och order skapad!');
       onClose();
     },
     onError: (error) => {
