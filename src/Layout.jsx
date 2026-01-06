@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch } from "lucide-react";
+import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -10,6 +10,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 const NAV_ITEMS = [
   { name: "Home", label: "Hem", icon: Home },
   { name: "Inventory", label: "Lager", icon: Package },
+  { name: "Picking", label: "Plockning", icon: ClipboardList },
   { name: "Orders", label: "Ordrar", icon: ShoppingCart },
   { name: "PurchaseOrders", label: "Inköp", icon: ShoppingCart },
   { name: "UnknownDeliveries", label: "Okända", icon: PackageSearch },
