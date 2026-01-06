@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { 
   Search, Plus, ShoppingCart, Download, Calendar,
-  Truck, Package, User, Printer, Mail
+  Truck, Package, User, Printer, Mail, Eye, X, CheckCircle2, AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -28,6 +28,7 @@ export default function PurchaseOrdersPage() {
   const [selectedPOForEmail, setSelectedPOForEmail] = useState(null);
   const [customEmail, setCustomEmail] = useState("");
   const [receivingPO, setReceivingPO] = useState(null);
+  const [viewingPO, setViewingPO] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -39,6 +40,11 @@ export default function PurchaseOrdersPage() {
   const { data: poItems = [] } = useQuery({
     queryKey: ['purchaseOrderItems'],
     queryFn: () => base44.entities.PurchaseOrderItem.list(),
+  });
+
+  const { data: receivingRecords = [] } = useQuery({
+    queryKey: ['receivingRecords'],
+    queryFn: () => base44.entities.ReceivingRecord.list(),
   });
 
   const deletePOMutation = useMutation({
@@ -386,6 +392,18 @@ export default function PurchaseOrdersPage() {
                             Ta emot
                           </Button>
                         )}
+
+                        {(po.status === 'received' || po.status === 'partially_received') && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-blue-600/20 border-blue-500/30 text-blue-400 hover:bg-blue-600/30"
+                            onClick={() => setViewingPO(po)}
+                          >
+                            <Eye className="w-4 h-4 md:mr-2" />
+                            <span className="hidden md:inline">Följesedel</span>
+                          </Button>
+                        )}
                         
                         <Button
                           size="sm"
@@ -551,6 +569,131 @@ export default function PurchaseOrdersPage() {
                     )}
                   </Button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Receiving Records Detail Modal */}
+        {viewingPO && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setViewingPO(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-slate-700">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Följesedel & Mottagningsdetaljer</h2>
+                  <p className="text-sm text-slate-400 mt-1">
+                    {viewingPO.po_number || `PO #${viewingPO.id.slice(0, 8)}`} · {viewingPO.supplier_name}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setViewingPO(null)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                {(() => {
+                  const records = receivingRecords.filter(r => r.purchase_order_id === viewingPO.id);
+                  
+                  if (records.length === 0) {
+                    return (
+                      <div className="text-center py-16">
+                        <Package className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                        <p className="text-slate-400">Inga mottagningar registrerade ännu</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {records.map((record) => (
+                        <div key={record.id} className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-white mb-1">{record.article_name}</h3>
+                              <div className="flex items-center gap-4 text-sm text-slate-400">
+                                <span>Kvantitet: <span className="text-white font-medium">{record.quantity_received} st</span></span>
+                                {record.shelf_address && (
+                                  <span>Hyllplats: <span className="text-white font-medium">{record.shelf_address}</span></span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {record.quality_check_passed ? (
+                                <CheckCircle2 className="w-5 h-5 text-green-400" />
+                              ) : (
+                                <AlertCircle className="w-5 h-5 text-red-400" />
+                              )}
+                            </div>
+                          </div>
+
+                          {record.has_discrepancy && (
+                            <div className="mb-3 p-2 rounded bg-red-500/10 border border-red-500/30">
+                              <p className="text-sm text-red-400">
+                                <AlertCircle className="w-4 h-4 inline mr-1" />
+                                Avvikelse: {record.discrepancy_reason || 'Ingen anledning angiven'}
+                              </p>
+                            </div>
+                          )}
+
+                          {record.notes && (
+                            <div className="mb-3">
+                              <p className="text-sm text-slate-400 mb-1">Anteckningar:</p>
+                              <p className="text-sm text-slate-300">{record.notes}</p>
+                            </div>
+                          )}
+
+                          {record.image_urls && record.image_urls.length > 0 && (
+                            <div>
+                              <p className="text-sm text-slate-400 mb-2">Bilder från mottagning:</p>
+                              <div className="grid grid-cols-3 gap-2">
+                                {record.image_urls.map((url, imgIndex) => (
+                                  <img 
+                                    key={imgIndex} 
+                                    src={url} 
+                                    alt={`Bild ${imgIndex + 1}`}
+                                    className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                    onClick={() => window.open(url, '_blank')}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="mt-3 pt-3 border-t border-slate-700/50 text-xs text-slate-500">
+                            Mottagen av {record.received_by} · {format(new Date(record.created_date), "d MMM yyyy HH:mm", { locale: sv })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <div className="flex justify-end p-6 border-t border-slate-700 bg-slate-900/50">
+                <Button
+                  onClick={() => setViewingPO(null)}
+                  variant="outline"
+                  className="bg-slate-800 border-slate-600 hover:bg-slate-700"
+                >
+                  Stäng
+                </Button>
               </div>
             </motion.div>
           </motion.div>
