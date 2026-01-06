@@ -17,12 +17,14 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { toast } from "sonner";
 import LabelDownloader from "@/components/labels/LabelDownloader";
+import QuickWithdrawalModal from "@/components/withdrawal/QuickWithdrawalModal";
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [showPrintModal, setShowPrintModal] = useState(false);
+  const [showQuickWithdrawal, setShowQuickWithdrawal] = useState(false);
   const searchInputRef = useRef(null);
 
   const { data: articles = [] } = useQuery({
@@ -637,6 +639,16 @@ export default function HomePage() {
           transition={{ delay: 0.45, duration: 0.5 }}
           className="mt-4 md:mt-6 grid grid-cols-2 gap-3 md:gap-4"
         >
+          <motion.div 
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            onClick={() => setShowQuickWithdrawal(true)}
+            className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-amber-600/20 to-orange-700/10 backdrop-blur-sm border border-amber-500/30 hover:border-amber-500/50 hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-300 cursor-pointer group"
+          >
+            <Zap className="w-5 h-5 md:w-6 md:h-6 text-amber-400 mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300" />
+            <h3 className="font-semibold text-white text-sm md:text-base mb-1">Snabb utplockning</h3>
+            <p className="text-xs md:text-sm text-slate-400">Ta ut från lager</p>
+          </motion.div>
+
           <Link to={createPageUrl("Scan") + "?mode=inbound"}>
             <motion.div 
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
@@ -647,18 +659,16 @@ export default function HomePage() {
               <p className="text-xs md:text-sm text-slate-400">Registrera nya varor</p>
             </motion.div>
           </Link>
-          
-          <Link to={createPageUrl("Scan") + "?mode=inventory"}>
-            <motion.div 
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 backdrop-blur-sm border border-blue-500/30 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 cursor-pointer group"
-            >
-              <ClipboardList className="w-5 h-5 md:w-6 md:h-6 text-blue-400 mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300" />
-              <h3 className="font-semibold text-white text-sm md:text-base mb-1">Inventering</h3>
-              <p className="text-xs md:text-sm text-slate-400">Justera lagersaldo</p>
-            </motion.div>
-          </Link>
         </motion.div>
+
+        {/* Quick Withdrawal Modal */}
+        <AnimatePresence>
+          {showQuickWithdrawal && (
+            <QuickWithdrawalModal
+              onClose={() => setShowQuickWithdrawal(false)}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
