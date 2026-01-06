@@ -51,8 +51,8 @@ export default function ShelfLabel({ article }) {
           
           {/* Name */}
           {article.name && (
-            <div className="text-[7px] truncate font-medium leading-tight">
-              {article.name.length > 35 ? article.name.substring(0, 35) + '...' : article.name}
+            <div className="text-[7px] font-medium leading-tight break-words">
+              {article.name}
             </div>
           )}
         </div>
