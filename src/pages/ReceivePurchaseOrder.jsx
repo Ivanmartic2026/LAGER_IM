@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { 
   ArrowLeft, Package, CheckCircle2, Camera,
-  AlertCircle, Download, Truck, FileText
+  AlertCircle, Download, Truck, FileText, Eye, X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import ReceivingItemCard from "@/components/receiving/ReceivingItemCard";
+import ReceivingRecordDetailModal from "@/components/receiving/ReceivingRecordDetailModal";
 
 export default function ReceivePurchaseOrderPage() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -20,6 +21,8 @@ export default function ReceivePurchaseOrderPage() {
 
   const [scanMode, setScanMode] = useState(false);
   const [receivingItemId, setReceivingItemId] = useState(null);
+  const [selectedReceivingRecords, setSelectedReceivingRecords] = useState([]);
+  const [showReceivingModal, setShowReceivingModal] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -41,6 +44,12 @@ export default function ReceivePurchaseOrderPage() {
   const { data: articles = [] } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list(),
+  });
+
+  const { data: receivingRecords = [] } = useQuery({
+    queryKey: ['receivingRecords', poId],
+    queryFn: () => base44.entities.ReceivingRecord.filter({ purchase_order_id: poId }),
+    enabled: !!poId
   });
 
   const updatePOMutation = useMutation({
@@ -261,16 +270,31 @@ export default function ReceivePurchaseOrderPage() {
             </Button>
           </Link>
 
-          {purchaseOrder.status === 'received' && (
-            <Button
-              onClick={() => exportPOMutation.mutate()}
-              disabled={exportPOMutation.isPending}
-              className="bg-green-600 hover:bg-green-500"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Ladda ner PDF
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {(purchaseOrder.status === 'received' || purchaseOrder.status === 'partially_received') && receivingRecords.length > 0 && (
+              <Button
+                onClick={() => {
+                  setSelectedReceivingRecords(receivingRecords);
+                  setShowReceivingModal(true);
+                }}
+                variant="outline"
+                className="bg-slate-800 border-slate-600 hover:bg-slate-700"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Visa följesedel
+              </Button>
+            )}
+            {purchaseOrder.status === 'received' && (
+              <Button
+                onClick={() => exportPOMutation.mutate()}
+                disabled={exportPOMutation.isPending}
+                className="bg-green-600 hover:bg-green-500"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Ladda ner PDF
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* PO Info */}
@@ -410,6 +434,113 @@ export default function ReceivePurchaseOrderPage() {
               <Download className="w-4 h-4 mr-2" />
               Ladda ner mottagningskvitto
             </Button>
+          </motion.div>
+        )}
+
+        {/* Receiving Records Modal */}
+        {showReceivingModal && selectedReceivingRecords.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowReceivingModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-slate-700">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Följesedel & Mottagningsdetaljer</h2>
+                  <p className="text-sm text-slate-400 mt-1">
+                    {purchaseOrder.po_number || `PO #${purchaseOrder.id.slice(0, 8)}`} · {purchaseOrder.supplier_name}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowReceivingModal(false)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-4">
+                  {selectedReceivingRecords.map((record, index) => (
+                    <div key={record.id} className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-white mb-1">{record.article_name}</h3>
+                          <div className="flex items-center gap-4 text-sm text-slate-400">
+                            <span>Kvantitet: <span className="text-white font-medium">{record.quantity_received} st</span></span>
+                            {record.shelf_address && (
+                              <span>Hyllplats: <span className="text-white font-medium">{record.shelf_address}</span></span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {record.quality_check_passed ? (
+                            <CheckCircle2 className="w-5 h-5 text-green-400" />
+                          ) : (
+                            <AlertCircle className="w-5 h-5 text-red-400" />
+                          )}
+                        </div>
+                      </div>
+
+                      {record.has_discrepancy && (
+                        <div className="mb-3 p-2 rounded bg-red-500/10 border border-red-500/30">
+                          <p className="text-sm text-red-400">
+                            <AlertCircle className="w-4 h-4 inline mr-1" />
+                            Avvikelse: {record.discrepancy_reason || 'Ingen anledning angiven'}
+                          </p>
+                        </div>
+                      )}
+
+                      {record.notes && (
+                        <div className="mb-3">
+                          <p className="text-sm text-slate-400 mb-1">Anteckningar:</p>
+                          <p className="text-sm text-slate-300">{record.notes}</p>
+                        </div>
+                      )}
+
+                      {record.image_urls && record.image_urls.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2">
+                          {record.image_urls.map((url, imgIndex) => (
+                            <img 
+                              key={imgIndex} 
+                              src={url} 
+                              alt={`Bild ${imgIndex + 1}`}
+                              className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={() => window.open(url, '_blank')}
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="mt-3 pt-3 border-t border-slate-700/50 text-xs text-slate-500">
+                        Mottagen av {record.received_by} · {format(new Date(record.created_date), "d MMM yyyy HH:mm", { locale: sv })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end p-6 border-t border-slate-700 bg-slate-900/50">
+                <Button
+                  onClick={() => setShowReceivingModal(false)}
+                  variant="outline"
+                  className="bg-slate-800 border-slate-600 hover:bg-slate-700"
+                >
+                  Stäng
+                </Button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </div>
