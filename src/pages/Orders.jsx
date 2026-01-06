@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { 
   Search, Plus, Package, ClipboardList, Download,
   Calendar, User, MapPin, FileText, Truck, Eye, ArrowUpDown, Printer,
-  CheckSquare, X
+  CheckSquare, X, CheckCircle2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import OrderForm from "@/components/orders/OrderForm";
 import OrderDetailModal from "@/components/orders/OrderDetailModal";
+import InvoiceModal from "@/components/orders/InvoiceModal";
 
 export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,6 +30,7 @@ export default function OrdersPage() {
   const [editingOrder, setEditingOrder] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+  const [invoiceModalOrder, setInvoiceModalOrder] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -139,6 +141,23 @@ export default function OrdersPage() {
       a.remove();
       toast.success('PDF nedladdad!');
       setSelectedOrderIds([]);
+    }
+  });
+
+  const markAsInvoicedMutation = useMutation({
+    mutationFn: async ({ orderId, invoiceNumber }) => {
+      const user = await base44.auth.me();
+      await base44.entities.Order.update(orderId, {
+        fortnox_invoiced: true,
+        fortnox_invoice_number: invoiceNumber,
+        invoiced_date: new Date().toISOString(),
+        invoiced_by: user.email
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      setInvoiceModalOrder(null);
+      toast.success('Order markerad som fakturerad!');
     }
   });
 
@@ -378,7 +397,7 @@ export default function OrdersPage() {
                         </div>
                       </div>
 
-                      <div className="flex gap-2 ml-4">
+                      <div className="flex gap-2 ml-4 flex-wrap">
                         <Button
                           size="sm"
                           variant="outline"
@@ -400,7 +419,7 @@ export default function OrdersPage() {
                             </Button>
                           </Link>
                         )}
-                        
+
                         <Button
                           size="sm"
                           variant="outline"
@@ -411,6 +430,18 @@ export default function OrdersPage() {
                           <Printer className="w-4 h-4 md:mr-2" />
                           <span className="hidden md:inline">Skriv ut</span>
                         </Button>
+
+                        {order.status === 'picked' && !order.fortnox_invoiced && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30"
+                            onClick={() => setInvoiceModalOrder(order)}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Fakturera
+                          </Button>
+                        )}
 
                         {order.status === 'picked' && (
                           <Button
@@ -484,7 +515,24 @@ export default function OrdersPage() {
             onClose={() => setSelectedOrder(null)}
           />
         )}
-      </div>
-    </div>
-  );
-}
+
+        {/* Invoice Modal */}
+        <AnimatePresence>
+          {invoiceModalOrder && (
+            <InvoiceModal
+              order={invoiceModalOrder}
+              onConfirm={(invoiceNumber) => {
+                markAsInvoicedMutation.mutate({
+                  orderId: invoiceModalOrder.id,
+                  invoiceNumber
+                });
+              }}
+              onCancel={() => setInvoiceModalOrder(null)}
+              isSubmitting={markAsInvoicedMutation.isPending}
+            />
+          )}
+        </AnimatePresence>
+        </div>
+        </div>
+        );
+        }
