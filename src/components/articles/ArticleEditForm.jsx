@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { X, Save, Plus, Sparkles, MapPin, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 export default function ArticleEditForm({ article, onSave, onCancel, isSaving }) {
   const [formData, setFormData] = useState({
@@ -187,13 +188,45 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
               <h3 className="text-lg font-semibold text-white mb-4">Grundläggande information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Artikelnummer</Label>
-                  <Input
-                    value={formData.sku}
-                    onChange={(e) => handleChange('sku', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                    placeholder="SKU-123"
-                  />
+                  <Label className="text-slate-300">
+                    Artikelnummer
+                    <span className="text-xs text-slate-400 ml-2">(Genereras automatiskt)</span>
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={formData.sku}
+                      onChange={(e) => handleChange('sku', e.target.value)}
+                      className="bg-slate-800 border-slate-700 text-white flex-1"
+                      placeholder="Genereras vid sparning"
+                      readOnly={!formData.sku}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={async () => {
+                        if (!formData.name || !formData.category) {
+                          toast.error('Fyll i artikelnamn och kategori först');
+                          return;
+                        }
+                        try {
+                          const response = await base44.functions.invoke('generateArticleSku', {
+                            name: formData.name,
+                            category: formData.category,
+                            supplier_name: formData.supplier_name
+                          });
+                          if (response.data.success) {
+                            handleChange('sku', response.data.sku);
+                            toast.success('SKU genererad: ' + response.data.sku);
+                          }
+                        } catch (error) {
+                          toast.error('Kunde inte generera SKU');
+                        }
+                      }}
+                      className="bg-slate-700 border-slate-600 hover:bg-slate-600 whitespace-nowrap"
+                    >
+                      Generera
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <Label className="text-slate-300">Benämning *</Label>
@@ -261,13 +294,15 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                       <SelectValue placeholder="Välj kategori" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="LED Module">LED Module</SelectItem>
-                      <SelectItem value="Cabinet">Cabinet</SelectItem>
-                      <SelectItem value="Controller">Controller</SelectItem>
-                      <SelectItem value="Power Supply">Power Supply</SelectItem>
-                      <SelectItem value="Cable">Cable</SelectItem>
-                      <SelectItem value="Accessory">Accessory</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
+                      <SelectItem value="Cabinet">10 - Cabinet</SelectItem>
+                      <SelectItem value="LED Module">11 - LED Module</SelectItem>
+                      <SelectItem value="Power Supply">12 - Power Supply</SelectItem>
+                      <SelectItem value="Receiving Card">13 - Receiving Card</SelectItem>
+                      <SelectItem value="Control Processor">14 - Control Processor</SelectItem>
+                      <SelectItem value="Computer">20 - Computer</SelectItem>
+                      <SelectItem value="Cable">70 - Cable</SelectItem>
+                      <SelectItem value="Accessory">80 - Accessory</SelectItem>
+                      <SelectItem value="Other">90 - Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
