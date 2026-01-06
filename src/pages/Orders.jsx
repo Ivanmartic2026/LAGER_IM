@@ -162,6 +162,25 @@ export default function OrdersPage() {
     }
   });
 
+  const exportOrdersToExcelMutation = useMutation({
+    mutationFn: async (filter) => {
+      const response = await base44.functions.invoke('exportOrders', { filterInvoiced: filter });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ordrar_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.success('Excel-fil nedladdad!');
+    }
+  });
+
   const filteredAndSortedOrders = orders
     .filter(order => {
       const matchesSearch = !searchQuery || 
@@ -242,6 +261,24 @@ export default function OrdersPage() {
                 Ladda ner {selectedOrderIds.length} ordrar
               </Button>
             )}
+            <Button
+              onClick={() => exportOrdersToExcelMutation.mutate(invoiceFilter)}
+              disabled={exportOrdersToExcelMutation.isPending}
+              variant="outline"
+              className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
+            >
+              {exportOrdersToExcelMutation.isPending ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  Exporterar...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  Excel
+                </>
+              )}
+            </Button>
             <Button
               onClick={() => {
                 console.log('Ny order clicked');
