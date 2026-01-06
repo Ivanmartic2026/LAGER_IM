@@ -44,6 +44,7 @@ export default function InventoryPage() {
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [warehouseFilter, setWarehouseFilter] = useState("all");
   const [storageTypeFilter, setStorageTypeFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [adjustmentModal, setAdjustmentModal] = useState({ open: false, type: null });
   const [editingArticle, setEditingArticle] = useState(null);
   const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
@@ -346,8 +347,9 @@ export default function InventoryPage() {
       const matchesStatus = statusFilter === "all" || article.status === statusFilter;
       const matchesWarehouse = warehouseFilter === "all" || article.warehouse === warehouseFilter;
       const matchesStorageType = storageTypeFilter === "all" || article.storage_type === storageTypeFilter;
+      const matchesCategory = categoryFilter === "all" || article.category === categoryFilter;
       
-      return matchesSearch && matchesStatus && matchesWarehouse && matchesStorageType;
+      return matchesSearch && matchesStatus && matchesWarehouse && matchesStorageType && matchesCategory;
     })
     .sort((a, b) => {
       switch(sortBy) {
@@ -682,8 +684,24 @@ export default function InventoryPage() {
                   <SelectItem value="customer_owned">Kundägt</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            </div>
+
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-52 h-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300">
+                  <SelectValue placeholder="Kategori" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectItem value="all">Alla kategorier</SelectItem>
+                  <SelectItem value="LED Module">LED Module</SelectItem>
+                  <SelectItem value="Cabinet">Cabinet</SelectItem>
+                  <SelectItem value="Controller">Controller</SelectItem>
+                  <SelectItem value="Power Supply">Power Supply</SelectItem>
+                  <SelectItem value="Cable">Cable</SelectItem>
+                  <SelectItem value="Accessory">Accessory</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              </div>
+              </div>
         </div>
 
         {/* Articles List */}
