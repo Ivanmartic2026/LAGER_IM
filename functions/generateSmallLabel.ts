@@ -86,6 +86,13 @@ Deno.serve(async (req) => {
       color: #000;
       line-height: 1.1;
     }
+    .article-number {
+      font-size: 9px;
+      font-weight: 600;
+      color: #000;
+      font-family: 'Courier New', monospace;
+      line-height: 1.1;
+    }
     .name {
       font-size: 9px;
       font-weight: 500;
@@ -94,7 +101,7 @@ Deno.serve(async (req) => {
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
     }
   </style>
@@ -113,6 +120,9 @@ Deno.serve(async (req) => {
         ${Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}
       </div>
       ` : '<div class="location">-</div>'}
+      ${article.sku || article.batch_number ? `
+      <div class="article-number">${article.sku || article.batch_number}</div>
+      ` : ''}
       <div class="name">${article.customer_name || article.name || 'Artikel'}</div>
     </div>
   </div>
