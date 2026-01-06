@@ -73,6 +73,16 @@ export default function InventoryPage() {
     queryFn: () => base44.entities.Warehouse.list(),
   });
 
+  const { data: purchaseOrders = [] } = useQuery({
+    queryKey: ['purchaseOrders'],
+    queryFn: () => base44.entities.PurchaseOrder.list(),
+  });
+
+  const { data: purchaseOrderItems = [] } = useQuery({
+    queryKey: ['purchaseOrderItems'],
+    queryFn: () => base44.entities.PurchaseOrderItem.list(),
+  });
+
   const updateArticleMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Article.update(id, data),
     onSuccess: () => {
@@ -309,6 +319,21 @@ export default function InventoryPage() {
 
   const supplierMap = {};
   suppliers.forEach(s => supplierMap[s.id] = s.name);
+
+  // Calculate incoming quantities for each article
+  const incomingQuantities = {};
+  purchaseOrderItems.forEach(item => {
+    const po = purchaseOrders.find(p => p.id === item.purchase_order_id);
+    if (po && (po.status === 'ordered' || po.status === 'prepaid')) {
+      const remaining = item.quantity_ordered - (item.quantity_received || 0);
+      if (remaining > 0) {
+        if (!incomingQuantities[item.article_id]) {
+          incomingQuantities[item.article_id] = 0;
+        }
+        incomingQuantities[item.article_id] += remaining;
+      }
+    }
+  });
 
   const filteredArticles = articles
     .filter(article => {
@@ -792,6 +817,11 @@ export default function InventoryPage() {
                                 {article.shelf_address}
                               </Badge>
                             )}
+                            {incomingQuantities[article.id] && (
+                              <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
+                                Inkommande ({incomingQuantities[article.id]} st)
+                              </Badge>
+                            )}
                             {article.status !== 'active' && (
                               <Badge className={cn(
                                 "text-xs border",
@@ -908,6 +938,11 @@ export default function InventoryPage() {
                         </div>
 
                         <div className="flex items-center justify-end gap-2 min-w-0">
+                          {incomingQuantities[article.id] && (
+                            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs px-2 py-0.5 flex-shrink-0">
+                              Inkommande ({incomingQuantities[article.id]})
+                            </Badge>
+                          )}
                           {article.status !== 'active' && (
                             <Badge className={cn(
                               "text-xs border px-2 py-0.5 flex-shrink-0",
