@@ -23,6 +23,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
     dimensions_height_mm: article.dimensions_height_mm || '',
     dimensions_depth_mm: article.dimensions_depth_mm || '',
     weight_g: article.weight_g || (article.weight_kg ? article.weight_kg * 1000 : ''),
+    stock_qty: article.stock_qty || 0,
     warehouse: article.warehouse || '',
     shelf_address: Array.isArray(article.shelf_address) ? article.shelf_address : (article.shelf_address ? [article.shelf_address] : []),
     batch_number: article.batch_number || '',
@@ -141,7 +142,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
       const response = await base44.functions.invoke('suggestPlacements', {
         items: [{
           article_id: article.id,
-          quantity: 1
+          quantity: formData.stock_qty || 1
         }],
         warehouseId: warehouseObj?.id || null
       });
@@ -287,6 +288,31 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   </Select>
                 </div>
               </div>
+
+              {/* Volume Calculation */}
+              {formData.dimensions_width_mm && formData.dimensions_height_mm && formData.dimensions_depth_mm && formData.stock_qty > 0 && (
+                <div className="mt-4 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                  <h4 className="text-sm font-semibold text-blue-300 mb-2">Volymberäkning</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-slate-400">Volym per enhet:</span>
+                      <span className="text-white ml-2 font-medium">
+                        {((formData.dimensions_width_mm * formData.dimensions_height_mm * formData.dimensions_depth_mm) / 1000000).toFixed(2)} L
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Total volym:</span>
+                      <span className="text-white ml-2 font-medium">
+                        {((formData.dimensions_width_mm * formData.dimensions_height_mm * formData.dimensions_depth_mm * formData.stock_qty) / 1000000).toFixed(2)} L
+                      </span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-slate-400">Antal i lager:</span>
+                      <span className="text-white ml-2 font-medium">{formData.stock_qty} st</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Mått & Vikt */}
@@ -340,7 +366,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white">Lagerplats</h3>
-                {formData.dimensions_width_mm && formData.dimensions_height_mm && formData.dimensions_depth_mm && (
+                {formData.dimensions_width_mm && formData.dimensions_height_mm && formData.dimensions_depth_mm && formData.stock_qty > 0 && (
                   <Button
                     type="button"
                     onClick={handleGetPlacementSuggestions}
@@ -357,7 +383,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4 mr-2" />
-                        Föreslå plats
+                        Föreslå {formData.stock_qty} st
                       </>
                     )}
                   </Button>
@@ -366,10 +392,12 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
 
               {placementSuggestions && (
                 <div className="mb-4 p-4 rounded-lg bg-purple-500/10 border border-purple-500/30">
-                  <h4 className="text-sm font-semibold text-purple-300 mb-2">Föreslagna platser:</h4>
+                  <h4 className="text-sm font-semibold text-purple-300 mb-3">
+                    Rekommenderade hyllor för {formData.stock_qty} st:
+                  </h4>
                   {placementSuggestions.suggestions.length > 0 ? (
                     <div className="space-y-2">
-                      {placementSuggestions.suggestions.slice(0, 3).map((suggestion, idx) => (
+                      {placementSuggestions.suggestions.slice(0, 5).map((suggestion, idx) => (
                         <button
                           key={idx}
                           type="button"
@@ -377,9 +405,9 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                             handleChange('shelf_address', suggestion.shelf_code);
                             setPlacementSuggestions(null);
                           }}
-                          className="w-full p-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500/50 transition-all text-left"
+                          className="w-full p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500/50 transition-all text-left"
                         >
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2">
                               <MapPin className="w-4 h-4 text-purple-400" />
                               <span className="text-white font-medium">{suggestion.shelf_code}</span>
@@ -388,11 +416,19 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                               {suggestion.occupancyAfter.toFixed(0)}% beläggning
                             </span>
                           </div>
+                          {suggestion.itemsFit && (
+                            <div className="text-xs text-green-400">
+                              ✓ Plats för alla {formData.stock_qty} enheter
+                            </div>
+                          )}
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-amber-300">Inga tillgängliga platser hittades</p>
+                    <p className="text-sm text-amber-300">
+                      Inga tillgängliga platser hittades för denna volym. 
+                      {formData.stock_qty > 1 && " Överväg att fördela på flera hyllor."}
+                    </p>
                   )}
                 </div>
               )}
