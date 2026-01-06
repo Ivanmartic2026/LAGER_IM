@@ -373,7 +373,7 @@ export default function OrdersPage() {
           </div>
 
           {/* View Mode Tabs */}
-          <Tabs value={viewMode} onValueChange={setViewMode}>
+          {/* <Tabs value={viewMode} onValueChange={setViewMode}>
             <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
               <TabsTrigger value="orders" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
                 <ClipboardList className="w-4 h-4 mr-2" />
@@ -384,7 +384,7 @@ export default function OrdersPage() {
                 Plockningslista
               </TabsTrigger>
             </TabsList>
-          </Tabs>
+          </Tabs> */}
         </div>
 
         {/* Search & Filters */}
