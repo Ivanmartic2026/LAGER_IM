@@ -655,34 +655,7 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45, duration: 0.5 }}
-          className="mt-4 md:mt-6 grid grid-cols-2 gap-3 md:gap-4"
-        >
-          <motion.div 
-            whileHover={{ y: -4, transition: { duration: 0.2 } }}
-            onClick={() => setShowQuickWithdrawal(true)}
-            className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-amber-600/20 to-orange-700/10 backdrop-blur-sm border border-amber-500/30 hover:border-amber-500/50 hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-300 cursor-pointer group"
-          >
-            <Zap className="w-5 h-5 md:w-6 md:h-6 text-amber-400 mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300" />
-            <h3 className="font-semibold text-white text-sm md:text-base mb-1">Snabb utplockning</h3>
-            <p className="text-xs md:text-sm text-slate-400">Ta ut från lager</p>
-          </motion.div>
 
-          <Link to={createPageUrl("Scan") + "?mode=inbound"}>
-            <motion.div 
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 backdrop-blur-sm border border-emerald-500/30 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 cursor-pointer group"
-            >
-              <Package className="w-5 h-5 md:w-6 md:h-6 text-emerald-400 mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300" />
-              <h3 className="font-semibold text-white text-sm md:text-base mb-1">Inleverans</h3>
-              <p className="text-xs md:text-sm text-slate-400">Registrera nya varor</p>
-            </motion.div>
-          </Link>
-        </motion.div>
 
         {/* Quick Withdrawal Modal */}
         <AnimatePresence>
