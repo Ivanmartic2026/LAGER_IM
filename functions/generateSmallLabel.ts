@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
         })
       : null;
 
-    // Build compact HTML
+    // Build compact HTML - 40mm x 30mm
     const html = `
 <!DOCTYPE html>
 <html>
@@ -60,13 +60,12 @@ Deno.serve(async (req) => {
       gap: 6px;
       width: 100%;
       height: 100%;
-      align-items: stretch;
+      align-items: center;
     }
     .qr {
       flex-shrink: 0;
-      width: 85px;
-      height: 85px;
-      align-self: center;
+      width: 90px;
+      height: 90px;
     }
     .qr img {
       width: 100%;
@@ -79,37 +78,24 @@ Deno.serve(async (req) => {
       flex-direction: column;
       min-width: 0;
       justify-content: center;
-      gap: 4px;
+      gap: 3px;
     }
-    .batch {
-      font-size: 22px;
+    .location {
+      font-size: 20px;
       font-weight: bold;
-      color: #2563eb;
-      word-break: break-all;
-      line-height: 1;
+      color: #000;
+      line-height: 1.1;
     }
     .name {
-      font-size: 8px;
-      font-weight: 600;
-      color: #374151;
+      font-size: 9px;
+      font-weight: 500;
+      color: #333;
       line-height: 1.2;
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
-    }
-    .location {
-      font-size: 11px;
-      font-weight: bold;
-      color: #059669;
-      line-height: 1;
-    }
-    .warehouse {
-      font-size: 7px;
-      color: #6b7280;
-      margin-top: 1px;
-      line-height: 1;
     }
   </style>
 </head>
@@ -122,14 +108,12 @@ Deno.serve(async (req) => {
     ` : ''}
 
     <div class="content">
-      ${article.batch_number ? `<div class="batch">#${article.batch_number}</div>` : ''}
-      <div class="name">${article.customer_name || article.name || 'Artikel'}</div>
       ${article.shelf_address && article.shelf_address.length > 0 ? `
       <div class="location">
-        📍 ${Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}
+        ${Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}
       </div>
-      ` : ''}
-      ${article.warehouse ? `<div class="warehouse">${article.warehouse}</div>` : ''}
+      ` : '<div class="location">-</div>'}
+      <div class="name">${article.customer_name || article.name || 'Artikel'}</div>
     </div>
   </div>
 </body>
