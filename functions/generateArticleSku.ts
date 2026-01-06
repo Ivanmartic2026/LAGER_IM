@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { name, category, supplier_name } = await req.json();
+    const { name, category, supplier_name, batch_number } = await req.json();
 
     if (!name || !category) {
       return Response.json({ error: 'Name and category are required' }, { status: 400 });
@@ -38,15 +38,21 @@ Deno.serve(async (req) => {
       .map(w => w.substring(0, 4))
       .join('-');
 
+    // Add last 4 digits from batch number if available
+    let batchSuffix = '';
+    if (batch_number && batch_number.length >= 4) {
+      batchSuffix = `-${batch_number.slice(-4)}`;
+    }
+    
     // Get existing articles to check for duplicates
     const existingArticles = await base44.asServiceRole.entities.Article.list();
     
     let counter = 1;
-    let proposedSku = `${prefix}-${namePart}`;
+    let proposedSku = `${prefix}-${namePart}${batchSuffix}`;
     
     // Check if SKU exists and increment counter if needed
     while (existingArticles.some(a => a.sku === proposedSku)) {
-      proposedSku = `${prefix}-${namePart}-${counter.toString().padStart(2, '0')}`;
+      proposedSku = `${prefix}-${namePart}${batchSuffix}-${counter.toString().padStart(2, '0')}`;
       counter++;
     }
 

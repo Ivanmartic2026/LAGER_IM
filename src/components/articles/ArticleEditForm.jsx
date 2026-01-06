@@ -212,7 +212,8 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                           const response = await base44.functions.invoke('generateArticleSku', {
                             name: formData.name,
                             category: formData.category,
-                            supplier_name: formData.supplier_name
+                            supplier_name: formData.supplier_name,
+                            batch_number: formData.batch_number
                           });
                           if (response.data.success) {
                             handleChange('sku', response.data.sku);
