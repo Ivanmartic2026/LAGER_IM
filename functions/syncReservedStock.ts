@@ -7,10 +7,11 @@ Deno.serve(async (req) => {
     // Get all articles
     const articles = await base44.asServiceRole.entities.Article.list();
     
-    // Get all order items for orders in ready_to_pick or picking status
-    const orders = await base44.asServiceRole.entities.Order.filter({
-      status: { $in: ['ready_to_pick', 'picking'] }
-    });
+    // Get all orders and filter for active picking status
+    const allOrders = await base44.asServiceRole.entities.Order.list();
+    const orders = allOrders.filter(o => 
+      o.status === 'ready_to_pick' || o.status === 'picking'
+    );
     
     const orderIds = orders.map(o => o.id);
     
@@ -31,9 +32,9 @@ Deno.serve(async (req) => {
       });
     }
     
-    const orderItems = await base44.asServiceRole.entities.OrderItem.filter({
-      order_id: { $in: orderIds }
-    });
+    // Get all order items and filter for active orders
+    const allOrderItems = await base44.asServiceRole.entities.OrderItem.list();
+    const orderItems = allOrderItems.filter(item => orderIds.includes(item.order_id));
     
     // Calculate reserved quantities per article
     const reservedByArticle = {};
