@@ -11,6 +11,15 @@ import { cn } from "@/lib/utils";
 export default function AdminPage() {
   const adminSections = [
     {
+      name: "StockForecast",
+      label: "Lagerprognos",
+      description: "Översikt över reserverade artiklar",
+      icon: TrendingUp,
+      color: "from-cyan-600 to-cyan-700",
+      iconBg: "bg-cyan-500/20",
+      iconColor: "text-cyan-400"
+    },
+    {
       name: "WarehouseDashboard",
       label: "TV Dashboard",
       description: "Realtidsöversikt för lagerskärm",
