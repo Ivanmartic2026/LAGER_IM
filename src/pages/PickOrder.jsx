@@ -147,11 +147,13 @@ export default function PickOrderPage() {
       return;
     }
 
-    // Update article stock
+    // Update article stock and reserved stock
+    const newReserved = Math.max(0, (article.reserved_stock_qty || 0) - stockNeeded);
     await updateArticleMutation.mutateAsync({
       id: article.id,
       data: { 
         stock_qty: newStockQty,
+        reserved_stock_qty: newReserved,
         status: newStockQty <= 0 ? "out_of_stock" : 
                 newStockQty <= (article.min_stock_level || 5) ? "low_stock" : "active"
       }

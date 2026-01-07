@@ -97,11 +97,17 @@ export default function OrderForm({ order, onClose }) {
         }
       }
 
+      // Sync reserved stock if order is ready_to_pick or picking
+      if (['ready_to_pick', 'picking'].includes(savedOrder.status)) {
+        await base44.functions.invoke('syncReservedStock');
+      }
+
       return savedOrder;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orderItems'] });
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
       toast.success(order ? "Order uppdaterad" : "Order skapad");
       onClose();
     },
@@ -342,11 +348,18 @@ export default function OrderForm({ order, onClose }) {
                       Ingen artikel hittades
                     </div>
                   ) : (
-                    filteredArticles.map((article) => (
-                      <SelectItem key={article.id} value={article.id}>
-                        {article.customer_name || article.name} ({article.batch_number || 'N/A'}) - Lager: {article.stock_qty || 0}
-                      </SelectItem>
-                    ))
+                    filteredArticles.map((article) => {
+                      const available = (article.stock_qty || 0) - (article.reserved_stock_qty || 0);
+                      return (
+                        <SelectItem key={article.id} value={article.id}>
+                          {article.customer_name || article.name} ({article.batch_number || 'N/A'}) - 
+                          Tillgängligt: <span className={available > 0 ? "text-green-400 font-semibold" : "text-red-400 font-semibold"}>{available}</span> 
+                          {article.reserved_stock_qty > 0 && (
+                            <span className="text-amber-400 text-xs ml-1">({article.reserved_stock_qty} reserverat)</span>
+                          )}
+                        </SelectItem>
+                      );
+                    })
                   )}
                 </SelectContent>
               </Select>
