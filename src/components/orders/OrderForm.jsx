@@ -25,6 +25,7 @@ export default function OrderForm({ order, onClose }) {
   const [orderItems, setOrderItems] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [articleSearch, setArticleSearch] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -32,6 +33,14 @@ export default function OrderForm({ order, onClose }) {
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list(),
   });
+
+  const filteredArticles = articles.filter(a =>
+    !articleSearch ||
+    a.name?.toLowerCase().includes(articleSearch.toLowerCase()) ||
+    a.sku?.toLowerCase().includes(articleSearch.toLowerCase()) ||
+    a.batch_number?.toLowerCase().includes(articleSearch.toLowerCase()) ||
+    a.customer_name?.toLowerCase().includes(articleSearch.toLowerCase())
+  );
 
   const { data: existingItems = [] } = useQuery({
     queryKey: ['orderItems', order?.id],
@@ -311,16 +320,34 @@ export default function OrderForm({ order, onClose }) {
             </label>
 
             <div className="flex gap-2 mb-3">
-              <Select value={selectedArticle} onValueChange={setSelectedArticle}>
+              <Select value={selectedArticle} onValueChange={(value) => {
+                setSelectedArticle(value);
+                setArticleSearch('');
+              }}>
                 <SelectTrigger className="flex-1 bg-slate-800 border-slate-700 text-white">
                   <SelectValue placeholder="Välj artikel..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {articles.map((article) => (
-                    <SelectItem key={article.id} value={article.id}>
-                      {article.name} ({article.batch_number || 'N/A'}) - Lager: {article.stock_qty || 0}
-                    </SelectItem>
-                  ))}
+                  <div className="p-2 border-b border-slate-700 sticky top-0 bg-slate-900 z-10">
+                    <Input
+                      placeholder="Sök artikelnamn, SKU, batch..."
+                      value={articleSearch}
+                      onChange={(e) => setArticleSearch(e.target.value)}
+                      className="h-9 bg-slate-800 border-slate-700 text-white"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  {filteredArticles.length === 0 ? (
+                    <div className="p-4 text-center text-slate-400 text-sm">
+                      Ingen artikel hittades
+                    </div>
+                  ) : (
+                    filteredArticles.map((article) => (
+                      <SelectItem key={article.id} value={article.id}>
+                        {article.customer_name || article.name} ({article.batch_number || 'N/A'}) - Lager: {article.stock_qty || 0}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
 
