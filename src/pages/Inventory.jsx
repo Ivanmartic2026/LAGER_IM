@@ -495,7 +495,44 @@ export default function InventoryPage() {
                 onChange={handleImport}
                 className="hidden"
               />
-
+              <Button
+                onClick={handleExport}
+                disabled={isExporting}
+                variant="outline"
+                size="sm"
+                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
+              >
+                {isExporting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Exporterar...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Exportera
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isImporting}
+                variant="outline"
+                size="sm"
+                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
+              >
+                {isImporting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Importerar...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Importera
+                  </>
+                )}
+              </Button>
               <Link to={createPageUrl("Scan")}>
                 <Button size="sm" className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300">
                   <Camera className="w-4 h-4 mr-2" />
