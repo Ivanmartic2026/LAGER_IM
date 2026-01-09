@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Settings, Users, TrendingUp, FileText, Calendar,
-  ArrowRight, Activity, Package, Monitor, Mail
+  ArrowRight, Activity, Package, Monitor, Mail, Smartphone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -99,6 +99,15 @@ export default function AdminPage() {
       color: "from-violet-600 to-violet-700",
       iconBg: "bg-violet-500/20",
       iconColor: "text-violet-400"
+    },
+    {
+      name: "PWASetup",
+      label: "PWA & Push",
+      description: "Installera appen och aktivera push-notiser",
+      icon: Smartphone,
+      color: "from-pink-600 to-pink-700",
+      iconBg: "bg-pink-500/20",
+      iconColor: "text-pink-400"
     }
   ];
 
