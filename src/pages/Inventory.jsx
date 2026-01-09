@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useOfflineQuery } from "@/hooks/useOfflineQuery";
+import { syncQueue } from "@/utils/syncQueue";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +14,7 @@ import {
   Search, Camera, Package, AlertTriangle, Filter,
   Grid3X3, List, Plus, SlidersHorizontal, Sparkles,
   ClipboardList, Download, Upload, ArrowUpDown, MapPin,
-  CheckSquare, Trash2, Edit2, X
+  CheckSquare, Trash2, Edit2, X, Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -58,11 +60,10 @@ export default function InventoryPage() {
   
   const queryClient = useQueryClient();
 
-  const { data: articles = [], isLoading } = useQuery({
-    queryKey: ['articles'],
-    queryFn: () => base44.entities.Article.list('-created_date'),
-    staleTime: 30000, // Cache for 30 seconds
-  });
+  const { data: articles = [], isLoading, fromCache } = useOfflineQuery(
+    'articles',
+    () => base44.entities.Article.list('-created_date')
+  );
 
   const { data: suppliers = [] } = useQuery({
     queryKey: ['suppliers'],
@@ -85,7 +86,19 @@ export default function InventoryPage() {
   });
 
   const updateArticleMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Article.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      if (!navigator.onLine) {
+        syncQueue.add({
+          type: 'entity',
+          entityName: 'Article',
+          method: 'update',
+          data: { id, ...data }
+        });
+        toast.info("Offline - synkas när online");
+        return;
+      }
+      return base44.entities.Article.update(id, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
       setEditingArticle(null);

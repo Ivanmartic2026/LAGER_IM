@@ -7,6 +7,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import PushNotificationSetup from "@/components/pwa/PushNotificationSetup";
+import CacheManager from "@/components/pwa/CacheManager";
 
 export default function PWASetupPage() {
   const [sendingTest, setSendingTest] = useState(false);
@@ -59,6 +60,9 @@ export default function PWASetupPage() {
         </div>
 
         <div className="space-y-6">
+          {/* Cache Manager */}
+          <CacheManager />
+
           {/* Push Notifications */}
           <PushNotificationSetup />
 
