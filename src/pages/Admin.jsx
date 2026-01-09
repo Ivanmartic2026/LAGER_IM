@@ -4,8 +4,9 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Settings, Users, TrendingUp, FileText, Calendar,
-  ArrowRight, Activity, Package, Monitor, Mail, Smartphone
+  ArrowRight, Activity, Package, Monitor, Mail, Smartphone, LogOut
 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import { cn } from "@/lib/utils";
 
 export default function AdminPage() {
@@ -191,7 +192,24 @@ export default function AdminPage() {
             </div>
           </div>
         </motion.div>
-      </div>
-    </div>
-  );
-}
+
+        {/* Logout Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-6 flex justify-center"
+        >
+          <Button
+            onClick={() => base44.auth.logout()}
+            variant="outline"
+            className="bg-white/5 border-white/10 hover:bg-red-500/10 hover:border-red-500/30 text-white/70 hover:text-red-400 transition-all duration-300"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Logga ut
+          </Button>
+        </motion.div>
+        </div>
+        </div>
+        );
+        }
