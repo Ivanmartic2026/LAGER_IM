@@ -1,12 +1,39 @@
-import React from 'react';
-import { ArrowLeft, Smartphone, Bell, Wifi } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Smartphone, Bell, Wifi, Send } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
 import PushNotificationSetup from "@/components/pwa/PushNotificationSetup";
 
 export default function PWASetupPage() {
+  const [sendingTest, setSendingTest] = useState(false);
+
+  const sendTestNotification = async () => {
+    setSendingTest(true);
+    try {
+      const user = await base44.auth.me();
+      const response = await base44.functions.invoke('sendPushNotification', {
+        userEmail: user.email,
+        title: '🎉 Test lyckades!',
+        body: 'Push-notiser fungerar perfekt på din enhet.',
+        data: { type: 'test', timestamp: new Date().toISOString() }
+      });
+
+      if (response.data?.success) {
+        toast.success(`Testnotis skickad! (${response.data.sent} mottagen)`);
+      } else {
+        toast.error('Ingen aktiv prenumeration hittades');
+      }
+    } catch (error) {
+      console.error('Test notification error:', error);
+      toast.error('Kunde inte skicka testnotis: ' + error.message);
+    } finally {
+      setSendingTest(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
@@ -27,6 +54,41 @@ export default function PWASetupPage() {
         <div className="space-y-6">
           {/* Push Notifications */}
           <PushNotificationSetup />
+
+          {/* Test Push Notification */}
+          <Card className="bg-slate-900 border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Send className="w-5 h-5" />
+                Testa Push-notis
+              </CardTitle>
+              <CardDescription className="text-slate-400">
+                Skicka en testnotis till dig själv för att verifiera att allt fungerar
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={sendTestNotification}
+                disabled={sendingTest}
+                className="bg-blue-600 hover:bg-blue-500"
+              >
+                {sendingTest ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Skickar...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Skicka testnotis
+                  </>
+                )}
+              </Button>
+              <p className="text-sm text-slate-400 mt-3">
+                Du måste först aktivera push-notiser ovan innan du kan testa
+              </p>
+            </CardContent>
+          </Card>
 
           {/* Installation Guide */}
           <Card className="bg-slate-900 border-slate-700">
