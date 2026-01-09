@@ -17,10 +17,11 @@ export default function PushNotificationSetup() {
   }, []);
 
   const checkPushSupport = () => {
-    const supported = 'serviceWorker' in navigator && 'PushManager' in window;
+    // Check basic browser support
+    const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
     setIsSupported(supported);
     
-    if (supported && 'Notification' in window) {
+    if (supported) {
       setPermission(Notification.permission);
     }
   };
@@ -66,34 +67,11 @@ export default function PushNotificationSetup() {
         return;
       }
 
-      // Register service worker if not already registered
-      let registration;
-      if ('serviceWorker' in navigator) {
-        registration = await navigator.serviceWorker.register('/service-worker.js');
-        await navigator.serviceWorker.ready;
-      }
-
-      // VAPID public key - this should match your backend VAPID_PUBLIC_KEY
-      const vapidPublicKey = 'YOUR_VAPID_PUBLIC_KEY_HERE';
-      const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-
-      // Subscribe to push
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: convertedVapidKey
-      });
-
-      // Send subscription to backend
-      await base44.functions.invoke('subscribeToPush', {
-        subscription: subscription.toJSON()
-      });
-
-      setIsSubscribed(true);
-      toast.success('Push-notiser aktiverade!');
-
+      toast.error('Push-notifikationer kräver ytterligare plattformskonfiguration som inte är tillgänglig än.');
+      
     } catch (error) {
       console.error('Subscribe error:', error);
-      toast.error('Kunde inte aktivera push-notiser: ' + error.message);
+      toast.error('Push-notifikationer stöds inte i denna miljö');
     } finally {
       setLoading(false);
     }
@@ -125,10 +103,10 @@ export default function PushNotificationSetup() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
             <AlertCircle className="w-5 h-5 text-amber-400" />
-            Push-notiser stöds ej
+            Push-notiser kräver plattformsstöd
           </CardTitle>
           <CardDescription className="text-slate-400">
-            Din webbläsare stöder inte push-notiser.
+            PWA push-notifikationer kräver Service Worker-stöd och VAPID-konfiguration som måste aktiveras av plattformen.
           </CardDescription>
         </CardHeader>
       </Card>
