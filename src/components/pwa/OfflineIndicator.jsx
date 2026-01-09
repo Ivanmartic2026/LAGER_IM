@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { WifiOff, Wifi, RefreshCw, Database } from "lucide-react";
-import { offlineStorage } from "@/utils/offlineStorage";
-import { syncQueue } from "@/utils/syncQueue";
+import { offlineStorage } from "@/components/utils/offlineStorage";
+import { syncQueue } from "@/components/utils/syncQueue";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function OfflineIndicator() {
