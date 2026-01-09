@@ -14,6 +14,13 @@ export default function PWASetupPage() {
   const sendTestNotification = async () => {
     setSendingTest(true);
     try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        toast.error('Du måste vara inloggad för att skicka testnotiser');
+        setSendingTest(false);
+        return;
+      }
+
       const user = await base44.auth.me();
       const response = await base44.functions.invoke('sendPushNotification', {
         userEmail: user.email,
