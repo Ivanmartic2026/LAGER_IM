@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export default function AdminPage() {
   const adminSections = [
