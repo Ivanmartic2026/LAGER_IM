@@ -14,6 +14,7 @@ import ReceivePurchaseOrder from './pages/ReceivePurchaseOrder';
 import Repairs from './pages/Repairs';
 import Reports from './pages/Reports';
 import Scan from './pages/Scan';
+import StockForecast from './pages/StockForecast';
 import SupplierLogin from './pages/SupplierLogin';
 import SupplierPortal from './pages/SupplierPortal';
 import SupplierPortalAdmin from './pages/SupplierPortalAdmin';
@@ -22,7 +23,7 @@ import UnknownDeliveries from './pages/UnknownDeliveries';
 import UsersManagement from './pages/UsersManagement';
 import WarehouseDashboard from './pages/WarehouseDashboard';
 import Warehouses from './pages/Warehouses';
-import StockForecast from './pages/StockForecast';
+import PWASetup from './pages/PWASetup';
 import __Layout from './Layout.jsx';
 
 
@@ -43,6 +44,7 @@ export const PAGES = {
     "Repairs": Repairs,
     "Reports": Reports,
     "Scan": Scan,
+    "StockForecast": StockForecast,
     "SupplierLogin": SupplierLogin,
     "SupplierPortal": SupplierPortal,
     "SupplierPortalAdmin": SupplierPortalAdmin,
@@ -51,7 +53,7 @@ export const PAGES = {
     "UsersManagement": UsersManagement,
     "WarehouseDashboard": WarehouseDashboard,
     "Warehouses": Warehouses,
-    "StockForecast": StockForecast,
+    "PWASetup": PWASetup,
 }
 
 export const pagesConfig = {
