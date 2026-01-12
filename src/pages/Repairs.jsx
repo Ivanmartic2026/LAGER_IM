@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { 
   Wrench, CheckCircle2, ArrowLeft, Calendar, 
-  Package, MapPin, User, AlertTriangle, Search, Eye
+  Package, MapPin, User, AlertTriangle, Search, Eye, Download
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
