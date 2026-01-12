@@ -1,16 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Settings, Users, TrendingUp, FileText, Calendar,
-  ArrowRight, Activity, Package, Monitor, Mail, Smartphone, LogOut
+  ArrowRight, Activity, Package, Monitor, Mail, Smartphone, LogOut, Bell
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function AdminPage() {
+  const [testingNotification, setTestingNotification] = useState(false);
+
+  const handleTestNotification = async () => {
+    try {
+      setTestingNotification(true);
+      await base44.functions.invoke('testPushNotification');
+      toast.success('Test-notifikation skickad!');
+    } catch (error) {
+      toast.error('Kunde inte skicka test-notifikation');
+    } finally {
+      setTestingNotification(false);
+    }
+  };
   const adminSections = [
     {
       name: "StockForecast",
