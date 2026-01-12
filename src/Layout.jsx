@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
+
+// Detect if mobile for performance optimization
+const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
 const NAV_ITEMS = [
   { name: "Home", label: "Hem", icon: Home },
