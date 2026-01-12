@@ -32,17 +32,22 @@ export default function RepairLabel({ article, repairNotes, repairDate, quantity
 
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <div className="text-[10px] text-gray-600 uppercase font-semibold">Batch-nummer</div>
-            <div className="text-[14px] font-bold">#{article.batch_number}</div>
+            <div className="text-[10px] text-gray-600 uppercase font-semibold">Artikelnummer</div>
+            <div className="text-[14px] font-bold">{article.sku || 'N/A'}</div>
           </div>
           
-          {article.shelf_address && (
-            <div>
-              <div className="text-[10px] text-gray-600 uppercase font-semibold">Hyllplats</div>
-              <div className="text-[14px] font-bold">{article.shelf_address}</div>
-            </div>
-          )}
+          <div>
+            <div className="text-[10px] text-gray-600 uppercase font-semibold">Batch-nummer</div>
+            <div className="text-[14px] font-bold">#{article.batch_number || 'N/A'}</div>
+          </div>
         </div>
+
+        {article.supplier_name && (
+          <div>
+            <div className="text-[10px] text-gray-600 uppercase font-semibold">Leverantör</div>
+            <div className="text-[12px]">{article.supplier_name}</div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-2">
           {article.manufacturer && (
