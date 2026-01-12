@@ -208,13 +208,25 @@ export default function AdminPage() {
           </div>
         </motion.div>
 
-        {/* Logout Button */}
+        {/* Test & Logout Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="mt-6 flex justify-center"
+          className="mt-6 flex gap-3 justify-center flex-wrap"
         >
+          <Button
+            onClick={handleTestNotification}
+            disabled={testingNotification}
+            className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/50"
+          >
+            {testingNotification ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+            ) : (
+              <Bell className="w-4 h-4 mr-2" />
+            )}
+            Testa Notifikation
+          </Button>
           <Button
             onClick={() => base44.auth.logout()}
             variant="outline"
