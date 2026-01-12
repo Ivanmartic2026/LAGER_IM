@@ -402,13 +402,20 @@ export default function RepairsPage() {
               )}
             </div>
 
-            <DialogFooter className="bg-white border-t p-4">
+            <DialogFooter className="bg-white border-t p-4 gap-2">
               <Button
                 variant="outline"
                 onClick={() => setPrintLabelArticle(null)}
                 className="text-black border-gray-300"
               >
                 Avbryt
+              </Button>
+              <Button
+                onClick={handleDownloadPNG}
+                className="bg-blue-600 hover:bg-blue-500 text-white"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Spara PNG
               </Button>
               <Button
                 onClick={handlePrintConfirm}
