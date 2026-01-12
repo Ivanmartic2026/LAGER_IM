@@ -168,6 +168,18 @@ export default function RepairsPage() {
     }
   };
 
+  const handlePrintLabel = (article) => {
+    setPrintLabelArticle(article);
+  };
+
+  const handlePrintConfirm = () => {
+    const repairQty = printLabelArticle.repair_notes?.match(/^(\d+)\s*st/)?.[1] || '1';
+    window.print();
+    setTimeout(() => {
+      setPrintLabelArticle(null);
+    }, 100);
+  };
+
   return (
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
