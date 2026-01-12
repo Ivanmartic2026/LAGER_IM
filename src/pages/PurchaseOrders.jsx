@@ -166,7 +166,10 @@ export default function PurchaseOrdersPage() {
       po.po_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       po.supplier_name?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesStatus = statusFilter === "all" || po.status === statusFilter;
+    // On main view (statusFilter "all"), exclude received orders
+    const matchesStatus = statusFilter === "all" 
+      ? po.status !== "received"
+      : po.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
