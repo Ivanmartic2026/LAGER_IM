@@ -490,16 +490,17 @@ export default function OrdersPage() {
                 </Tabs>
 
                 <Tabs value={sortBy} onValueChange={setSortBy}>
-                  <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
-                    <TabsTrigger value="date_desc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
-                      <ArrowUpDown className="w-4 h-4 mr-2" />
-                      Senaste
-                    </TabsTrigger>
-                    <TabsTrigger value="date_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Äldsta</TabsTrigger>
-                    <TabsTrigger value="customer_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Kund A-Ö</TabsTrigger>
-                    <TabsTrigger value="delivery_date" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leveransdatum</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                   <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
+                     <TabsTrigger value="date_desc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
+                       <ArrowUpDown className="w-4 h-4 mr-2" />
+                       Senaste
+                     </TabsTrigger>
+                     <TabsTrigger value="oldest" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Äldsta först</TabsTrigger>
+                     <TabsTrigger value="date_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Datum ASC</TabsTrigger>
+                     <TabsTrigger value="customer_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Kund A-Ö</TabsTrigger>
+                     <TabsTrigger value="delivery_date" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leveransdatum</TabsTrigger>
+                   </TabsList>
+                 </Tabs>
               </>
             ) : (
               <Tabs value={warehouseFilter} onValueChange={setWarehouseFilter}>
