@@ -148,6 +148,24 @@ export default function RepairsPage() {
     return match ? match[1] : "—";
   };
 
+  const handleExportPdf = async () => {
+    try {
+      const response = await base44.functions.invoke('exportRepairsPdf');
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reparationsrapport.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.success('PDF exporterad');
+    } catch (error) {
+      toast.error('Kunde inte exportera PDF');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
