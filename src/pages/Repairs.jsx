@@ -174,11 +174,37 @@ export default function RepairsPage() {
   };
 
   const handlePrintConfirm = () => {
-    const repairQty = printLabelArticle.repair_notes?.match(/^(\d+)\s*st/)?.[1] || '1';
     window.print();
     setTimeout(() => {
       setPrintLabelArticle(null);
     }, 100);
+  };
+
+  const handleDownloadPNG = async () => {
+    try {
+      const labelElement = document.querySelector('[data-label-container]');
+      if (!labelElement) {
+        toast.error('Kunde inte hitta etiketten');
+        return;
+      }
+
+      const canvas = await html2canvas(labelElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `etikett-${printLabelArticle.sku || printLabelArticle.id}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('PNG sparad');
+    } catch (error) {
+      toast.error('Kunde inte spara PNG');
+    }
   };
 
   return (
