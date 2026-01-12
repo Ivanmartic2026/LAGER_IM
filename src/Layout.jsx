@@ -153,7 +153,7 @@ export default function Layout({ children, currentPageName }) {
               key={item.name}
               to={createPageUrl(item.name)}
               className={cn(
-                "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300",
+                "flex flex-col items-center gap-1 px-3 py-2 rounded-xl",
                 currentPageName === item.name
                   ? "text-blue-400"
                   : "text-white/50"
