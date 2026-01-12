@@ -391,7 +391,7 @@ export default function RepairsPage() {
             
             <div className="p-4 bg-gray-50">
               {printLabelArticle && (
-                <div className="flex justify-center">
+                <div className="flex justify-center" data-label-container>
                   <RepairLabel
                     article={printLabelArticle}
                     repairNotes={printLabelArticle.repair_notes || ''}
