@@ -8,6 +8,7 @@ import { useState, useMemo } from "react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import PWAOptimizer from "@/components/pwa/PWAOptimizer";
+import PushManager from "@/components/pwa/PushManager";
 
 // Detect if mobile for performance optimization
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
