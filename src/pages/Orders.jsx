@@ -266,6 +266,14 @@ export default function OrdersPage() {
     return orderItems.filter(item => item.order_id === orderId).length;
   };
 
+  const getDaysOld = (createdDate) => {
+    const now = new Date();
+    const created = new Date(createdDate);
+    const diffTime = Math.abs(now - created);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   const statusColors = {
     draft: "bg-slate-500/20 text-slate-400 border-slate-500/30",
     ready_to_pick: "bg-blue-500/20 text-blue-400 border-blue-500/30",
