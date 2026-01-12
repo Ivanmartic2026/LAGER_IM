@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import html2canvas from 'html2canvas';
 import { 
   Wrench, CheckCircle2, ArrowLeft, Calendar, 
   Package, MapPin, User, AlertTriangle, Search, Eye, Download, Printer
