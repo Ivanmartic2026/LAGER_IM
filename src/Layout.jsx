@@ -56,6 +56,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-black">
+      <PWAOptimizer />
       <OfflineIndicator />
       {/* Logo and Notifications - Top */}
       <div className="hidden md:flex fixed top-6 left-6 right-6 z-50 items-center justify-between">
