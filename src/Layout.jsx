@@ -123,26 +123,26 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black/98 backdrop-blur-2xl pt-16">
-          <nav className="p-4 space-y-2">
-            {NAV_ITEMS.map(item => (
-              <Link 
-                key={item.name}
-                to={createPageUrl(item.name)}
-                onClick={() => setMobileMenuOpen(false)}
-                className={cn(
-                  "flex items-center gap-4 p-4 rounded-xl transition-all duration-300",
-                  currentPageName === item.name
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/50"
-                    : "text-white/70 hover:text-white hover:bg-white/10"
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                <span className="font-medium tracking-tight">{item.label}</span>
-              </Link>
-            ))}
-          </nav>
-        </div>
+       <div className="md:hidden fixed inset-0 z-40 bg-black/98 pt-16">
+         <nav className="p-4 space-y-2">
+           {NAV_ITEMS.map(item => (
+             <Link 
+               key={item.name}
+               to={createPageUrl(item.name)}
+               onClick={() => setMobileMenuOpen(false)}
+               className={cn(
+                 "flex items-center gap-4 p-4 rounded-xl",
+                 currentPageName === item.name
+                   ? "bg-blue-600 text-white shadow-lg shadow-blue-500/50"
+                   : "text-white/70 hover:text-white hover:bg-white/10"
+               )}
+             >
+               <item.icon className="w-5 h-5" />
+               <span className="font-medium tracking-tight">{item.label}</span>
+             </Link>
+           ))}
+         </nav>
+       </div>
       )}
 
       {/* Mobile Bottom Nav */}
