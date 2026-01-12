@@ -30,6 +30,7 @@ export default function RepairsPage() {
   const [selectedRepair, setSelectedRepair] = useState(null);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
   const [returnData, setReturnData] = useState({ returned: 0, discarded: 0, notes: "" });
+  const [printLabelArticle, setPrintLabelArticle] = useState(null);
   
   const queryClient = useQueryClient();
 
