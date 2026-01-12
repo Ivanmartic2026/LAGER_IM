@@ -355,6 +355,45 @@ export default function RepairsPage() {
           </div>
         )}
 
+        {/* Print Label Modal */}
+        <Dialog open={!!printLabelArticle} onOpenChange={() => setPrintLabelArticle(null)}>
+          <DialogContent className="bg-white border-0 max-w-2xl p-0 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
+              <DialogTitle>Reparationsetikett</DialogTitle>
+            </div>
+            
+            <div className="p-4 bg-gray-50">
+              {printLabelArticle && (
+                <div className="flex justify-center">
+                  <RepairLabel
+                    article={printLabelArticle}
+                    repairNotes={printLabelArticle.repair_notes || ''}
+                    repairDate={printLabelArticle.repair_date || new Date()}
+                    quantity={printLabelArticle.repair_notes?.match(/^(\d+)\s*st/)?.[1] || '1'}
+                  />
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="bg-white border-t p-4">
+              <Button
+                variant="outline"
+                onClick={() => setPrintLabelArticle(null)}
+                className="text-black border-gray-300"
+              >
+                Avbryt
+              </Button>
+              <Button
+                onClick={handlePrintConfirm}
+                className="bg-red-600 hover:bg-red-500 text-white"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Skriv ut
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Return Modal */}
         <Dialog open={returnModalOpen} onOpenChange={setReturnModalOpen}>
           <DialogContent className="bg-zinc-950 border-white/10 text-white backdrop-blur-2xl">
