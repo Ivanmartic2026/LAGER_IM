@@ -184,6 +184,15 @@ export default function RepairsPage() {
                 {repairArticles.length} artikel{repairArticles.length !== 1 ? 'ar' : ''} på reparation
               </p>
             </div>
+            {repairArticles.length > 0 && (
+              <Button 
+                onClick={handleExportPdf}
+                className="bg-orange-600 hover:bg-orange-500 text-white gap-2 shadow-lg shadow-orange-500/50"
+              >
+                <Download className="w-4 h-4" />
+                Exportera PDF
+              </Button>
+            )}
           </div>
 
           {/* Search */}
