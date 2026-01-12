@@ -62,6 +62,7 @@ export default function Layout({ children, currentPageName }) {
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
           alt="IMvision"
           className="h-8 object-contain"
+          loading="lazy"
         />
         <NotificationBell />
       </div>
