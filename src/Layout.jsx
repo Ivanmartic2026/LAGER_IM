@@ -67,7 +67,7 @@ export default function Layout({ children, currentPageName }) {
         <NotificationBell />
       </div>
 
-      {/* Desktop Navigation - Bottom */}
+      {/* Desktop Navigation - Bottom - No transition on mobile */}
       <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4">
         <div className="flex items-center gap-2 min-w-max mx-auto">
           {NAV_ITEMS.map(item => (
@@ -77,7 +77,7 @@ export default function Layout({ children, currentPageName }) {
               className="flex flex-col items-center gap-1"
             >
               <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
+                "w-10 h-10 rounded-xl flex items-center justify-center md:transition-all duration-300",
                 currentPageName === item.name
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-500/50"
                   : "text-white/50 hover:text-white hover:bg-white/10"
@@ -85,7 +85,7 @@ export default function Layout({ children, currentPageName }) {
                 <item.icon className="w-4 h-4" />
               </div>
               <span className={cn(
-                "text-xs font-medium transition-colors whitespace-nowrap tracking-tight",
+                "text-xs font-medium md:transition-colors whitespace-nowrap tracking-tight",
                 currentPageName === item.name
                   ? "text-blue-400"
                   : "text-white/50"
