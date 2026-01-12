@@ -577,20 +577,22 @@ export default function OrdersPage() {
                 
                 return (
                   <motion.div
-                    key={order.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className={cn(
-                      "group p-5 rounded-2xl backdrop-blur-xl transition-all duration-300",
-                      order.is_incomplete
-                        ? "bg-red-500/10 border-2 border-red-500/40 hover:border-red-500/60 hover:bg-red-500/15 hover:shadow-2xl hover:shadow-red-500/20"
-                        : order.fortnox_invoiced 
-                        ? "bg-green-500/10 border-2 border-green-500/40 hover:border-green-500/60 hover:bg-green-500/15 hover:shadow-2xl hover:shadow-green-500/20"
-                        : order.status === 'picked'
-                        ? "bg-blue-500/10 border-2 border-blue-500/40 hover:border-blue-500/60 hover:bg-blue-500/15 hover:shadow-2xl hover:shadow-blue-500/20"
-                        : "bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5"
-                    )}
+                   key={order.id}
+                   initial={{ opacity: 0, y: 10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   exit={{ opacity: 0, y: -10 }}
+                   className={cn(
+                     "group p-5 rounded-2xl backdrop-blur-xl transition-all duration-300",
+                     order.is_incomplete
+                       ? "bg-red-500/10 border-2 border-red-500/40 hover:border-red-500/60 hover:bg-red-500/15 hover:shadow-2xl hover:shadow-red-500/20"
+                       : order.fortnox_invoiced 
+                       ? "bg-green-500/10 border-2 border-green-500/40 hover:border-green-500/60 hover:bg-green-500/15 hover:shadow-2xl hover:shadow-green-500/20"
+                       : getDaysOld(order.created_date) > 5
+                       ? "bg-orange-500/10 border-2 border-orange-500/40 hover:border-orange-500/60 hover:bg-orange-500/15 hover:shadow-2xl hover:shadow-orange-500/20"
+                       : order.status === 'picked'
+                       ? "bg-blue-500/10 border-2 border-blue-500/40 hover:border-blue-500/60 hover:bg-blue-500/15 hover:shadow-2xl hover:shadow-blue-500/20"
+                       : "bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5"
+                   )}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-start gap-3 flex-1">
