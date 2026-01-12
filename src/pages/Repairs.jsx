@@ -291,6 +291,14 @@ export default function RepairsPage() {
                   </div>
 
                   <div className="flex gap-2">
+                    <Button
+                      onClick={() => handlePrintLabel(article)}
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-500/50"
+                    >
+                      <Printer className="w-4 h-4 mr-2" />
+                      Etikett
+                    </Button>
                     <Link to={`${createPageUrl("Inventory")}?articleId=${article.id}`}>
                       <Button
                         variant="outline"
