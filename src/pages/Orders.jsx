@@ -240,7 +240,10 @@ export default function OrdersPage() {
         invoiceFilter === "not_invoiced" ? (order.status === "picked" && !order.fortnox_invoiced) :
         true;
       
-      return matchesSearch && matchesStatus && matchesInvoice;
+      // On main view (invoiceFilter "all"), exclude invoiced orders
+      const excludeInvoiced = invoiceFilter === "all" && order.status === "picked" && order.fortnox_invoiced;
+      
+      return matchesSearch && matchesStatus && matchesInvoice && !excludeInvoiced;
     })
     .sort((a, b) => {
       switch (sortBy) {
