@@ -246,21 +246,23 @@ export default function OrdersPage() {
       return matchesSearch && matchesStatus && matchesInvoice && !excludeInvoiced;
     })
     .sort((a, b) => {
-      switch (sortBy) {
-        case 'date_desc':
-          return new Date(b.created_date) - new Date(a.created_date);
-        case 'date_asc':
-          return new Date(a.created_date) - new Date(b.created_date);
-        case 'customer_asc':
-          return (a.customer_name || '').localeCompare(b.customer_name || '');
-        case 'delivery_date':
-          if (!a.delivery_date) return 1;
-          if (!b.delivery_date) return -1;
-          return new Date(a.delivery_date) - new Date(b.delivery_date);
-        default:
-          return 0;
-      }
-    });
+       switch (sortBy) {
+         case 'date_desc':
+           return new Date(b.created_date) - new Date(a.created_date);
+         case 'oldest':
+           return new Date(a.created_date) - new Date(b.created_date);
+         case 'date_asc':
+           return new Date(a.created_date) - new Date(b.created_date);
+         case 'customer_asc':
+           return (a.customer_name || '').localeCompare(b.customer_name || '');
+         case 'delivery_date':
+           if (!a.delivery_date) return 1;
+           if (!b.delivery_date) return -1;
+           return new Date(a.delivery_date) - new Date(b.delivery_date);
+         default:
+           return 0;
+       }
+     });
 
   const getOrderItemsCount = (orderId) => {
     return orderItems.filter(item => item.order_id === orderId).length;
