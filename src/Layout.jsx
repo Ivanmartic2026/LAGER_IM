@@ -24,6 +24,34 @@ const NAV_ITEMS = [
 
 export default function Layout({ children, currentPageName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobile = isMobile();
+
+  // Register manifest for PWA
+  useEffect(() => {
+    if (!document.querySelector('link[rel="manifest"]')) {
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = 'data:application/json;base64,eyJuYW1lIjoiSU12aXNpb24gTGFnZXIgJiBPcmRlciIsInNob3J0X25hbWUiOiJJTXZpc2lvbiIsImRlc2NyaXB0aW9uIjoiTGFnZXJzdHlybmluZyBvY2ggb3JkZXJoYW5kZXJpbmcgZsO2ciBJTXZpc2lvbiIsInN0YXJ0X3VybCI6Ii8iLCJzY29wZSI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsIm9yaWVudGF0aW9uIjoicG9ydHJhaXQtcHJpbWFyeSIsImJhY2tncm91bmRfY29sb3IiOiIjMDAwMDAwIiwidGhlbWVfY29sb3IiOiIjMjU2M2ViIiwicHJlZmVyX3JlbGF0ZWRfYXBwbGljYXRpb25zIjpmYWxzZX0=';
+      document.head.appendChild(link);
+    }
+
+    // Viewport optimization for mobile
+    if (!document.querySelector('meta[name="viewport"]')) {
+      const viewport = document.createElement('meta');
+      viewport.name = 'viewport';
+      viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no';
+      document.head.appendChild(viewport);
+    }
+
+    // iOS app mode
+    const appleStatusBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+    if (!appleStatusBar) {
+      const meta = document.createElement('meta');
+      meta.name = 'apple-mobile-web-app-status-bar-style';
+      meta.content = 'black-translucent';
+      document.head.appendChild(meta);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-black">
