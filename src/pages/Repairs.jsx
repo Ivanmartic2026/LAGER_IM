@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { 
   Wrench, CheckCircle2, ArrowLeft, Calendar, 
-  Package, MapPin, User, AlertTriangle, Search, Eye, Download
+  Package, MapPin, User, AlertTriangle, Search, Eye, Download, Printer
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import RepairLabel from "@/components/labels/RepairLabel";
 
 export default function RepairsPage() {
   const [searchQuery, setSearchQuery] = useState("");
