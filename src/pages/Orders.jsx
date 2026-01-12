@@ -642,23 +642,32 @@ export default function OrdersPage() {
                         </div>
                         
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-400">
-                          <div className="flex items-center gap-1.5">
-                            <User className="w-4 h-4" />
-                            <span>{order.customer_name}</span>
-                          </div>
-                          {order.delivery_date && (
-                            <div className="flex items-center gap-1.5">
-                              <Calendar className="w-4 h-4" />
-                              <span>{format(new Date(order.delivery_date), "d MMM yyyy", { locale: sv })}</span>
-                            </div>
-                          )}
-                          {itemsCount > 0 && (
-                            <div className="flex items-center gap-1.5">
-                              <Package className="w-4 h-4" />
-                              <span>{itemsCount} artiklar</span>
-                            </div>
-                          )}
-                        </div>
+                           <div className="flex items-center gap-1.5">
+                             <User className="w-4 h-4" />
+                             <span>{order.customer_name}</span>
+                           </div>
+                           <div className={cn(
+                             "flex items-center gap-1.5 px-2 py-1 rounded-lg",
+                             getDaysOld(order.created_date) > 5 
+                               ? "bg-orange-500/20 text-orange-400" 
+                               : "bg-slate-700/50 text-slate-300"
+                           )}>
+                             <Calendar className="w-4 h-4" />
+                             <span className="font-medium">{getDaysOld(order.created_date)} dagar</span>
+                           </div>
+                           {order.delivery_date && (
+                             <div className="flex items-center gap-1.5">
+                               <Calendar className="w-4 h-4" />
+                               <span>{format(new Date(order.delivery_date), "d MMM yyyy", { locale: sv })}</span>
+                             </div>
+                           )}
+                           {itemsCount > 0 && (
+                             <div className="flex items-center gap-1.5">
+                               <Package className="w-4 h-4" />
+                               <span>{itemsCount} artiklar</span>
+                             </div>
+                           )}
+                         </div>
 
                         {order.notes && (
                           <p className="text-sm text-slate-500 mt-2 line-clamp-1">
