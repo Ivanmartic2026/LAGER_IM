@@ -35,6 +35,8 @@ export default function RepairsPage() {
   
   const queryClient = useQueryClient();
 
+  const { data: user } = useQuery({ queryKey: ["user"], queryFn: () => base44.auth.me() });
+
   const { data: articles = [], isLoading } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list('-updated_date'),
@@ -49,6 +51,10 @@ export default function RepairsPage() {
 
   const createMovementMutation = useMutation({
     mutationFn: (data) => base44.entities.StockMovement.create(data),
+  });
+
+  const createRepairLogMutation = useMutation({
+    mutationFn: (data) => base44.entities.RepairLog.create(data),
   });
 
   const repairArticles = articles.filter(a => a.status === 'on_repair');
@@ -81,6 +87,18 @@ export default function RepairsPage() {
         previous_qty: currentQty,
         new_qty: currentQty,
         reason: "Återställd från reparation till lager"
+      });
+
+      await createRepairLogMutation.mutateAsync({
+        article_id: article.id,
+        article_name: article.name,
+        article_batch_number: article.batch_number,
+        repair_date_start: article.repair_date,
+        repair_date_end: new Date().toISOString(),
+        notes: article.repair_notes,
+        status: "completed",
+        returned_quantity: 1,
+        processed_by: user?.email
       });
 
       toast.success("Artikel återförd till lager");
@@ -136,6 +154,19 @@ export default function RepairsPage() {
           reason: `Kasserad efter reparation (${discardedQty} st)${returnData.notes ? ': ' + returnData.notes : ''}`
         });
       }
+
+      await createRepairLogMutation.mutateAsync({
+        article_id: selectedRepair.id,
+        article_name: selectedRepair.name,
+        article_batch_number: selectedRepair.batch_number,
+        repair_date_start: selectedRepair.repair_date,
+        repair_date_end: new Date().toISOString(),
+        notes: returnData.notes || selectedRepair.repair_notes,
+        status: discardedQty > 0 && returnedQty === 0 ? "discarded" : "completed",
+        returned_quantity: returnedQty,
+        discarded_quantity: discardedQty,
+        processed_by: user?.email
+      });
 
       toast.success(`${returnedQty} st återförda${discardedQty > 0 ? `, ${discardedQty} st kasserade` : ''}`);
       setReturnModalOpen(false);
