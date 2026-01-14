@@ -162,13 +162,16 @@ export default function ArticleDetail({
   const handleSendToRepair = async (repairNotes, quantity) => {
     try {
       const newQty = (article.stock_qty || 0) - quantity;
+      const currentRepairCount = article.repair_notes?.match(/^(\d+)\s*st/) ? 
+        parseInt(article.repair_notes.match(/^(\d+)\s*st/)[1]) : 0;
+      const totalRepairCount = currentRepairCount + quantity;
       
       await updateArticleMutation.mutateAsync({
         id: article.id,
         data: {
           status: "on_repair",
-          repair_notes: `${quantity} st - ${repairNotes}`,
-          repair_date: new Date().toISOString().split('T')[0],
+          repair_notes: `${totalRepairCount} st - ${repairNotes}`,
+          repair_date: article.repair_date || new Date().toISOString().split('T')[0],
           stock_qty: newQty
         }
       });
@@ -568,7 +571,7 @@ export default function ArticleDetail({
           </button>
         </div>
 
-        {article.status !== "on_repair" && (
+        {(article.stock_qty || 0) > 0 && (
           <button
             onClick={(e) => {
               e.preventDefault();
