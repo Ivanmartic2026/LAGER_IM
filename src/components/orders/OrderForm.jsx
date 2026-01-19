@@ -270,6 +270,7 @@ export default function OrderForm({ order, onClose }) {
                   <SelectItem value="picking">Plockar</SelectItem>
                   <SelectItem value="picked">Plockad</SelectItem>
                   <SelectItem value="delivered">Levererad</SelectItem>
+                  <SelectItem value="production">Produktion</SelectItem>
                 </SelectContent>
               </Select>
             </div>
