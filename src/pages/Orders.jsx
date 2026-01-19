@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { 
   Search, Plus, Package, ClipboardList, Download, Upload,
   Calendar, User, MapPin, FileText, Truck, Eye, ArrowUpDown, Printer,
-  CheckSquare, X, CheckCircle2, AlertCircle
+  CheckSquare, X, CheckCircle2, AlertCircle, Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -709,6 +709,26 @@ export default function OrdersPage() {
                         >
                           <Printer className="w-4 h-4 md:mr-2" />
                           <span className="hidden md:inline">Skriv ut</span>
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-blue-600 border-blue-500 hover:bg-blue-500 text-white"
+                          onClick={async () => {
+                            const email = prompt("Ange mottagarens e-postadress:");
+                            if (!email) return;
+                            const loadingToast = toast.loading('Skickar email...');
+                            try {
+                              await base44.functions.invoke('exportOrder', { orderId: order.id, email });
+                              toast.success('Email skickad!', { id: loadingToast });
+                            } catch (error) {
+                              toast.error('Kunde inte skicka email', { id: loadingToast });
+                            }
+                          }}
+                        >
+                          <Mail className="w-4 h-4 md:mr-2" />
+                          <span className="hidden md:inline">Skicka</span>
                         </Button>
 
                         {order.status === 'picked' && !order.fortnox_invoiced && (
