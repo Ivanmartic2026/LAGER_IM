@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
     const orderNumber = order.order_number || `Order #${order.id.slice(0, 8)}`;
-    doc.text(decodeURIComponent(escape(orderNumber)), margin, 35);
+    doc.text(orderNumber, margin, 35);
 
     doc.setTextColor(0, 0, 0);
 
@@ -79,11 +79,9 @@ Deno.serve(async (req) => {
     const addField = (label, value) => {
       if (value !== null && value !== undefined && value !== '') {
         doc.setFont('helvetica', 'bold');
-        const encodedLabel = decodeURIComponent(escape(`${label}:`));
-        doc.text(encodedLabel, margin + 5, y);
+        doc.text(`${label}:`, margin + 5, y);
         doc.setFont('helvetica', 'normal');
-        const encodedValue = decodeURIComponent(escape(String(value)));
-        doc.text(encodedValue, margin + 50, y);
+        doc.text(String(value), margin + 50, y);
         y += 8;
       }
     };
@@ -94,10 +92,10 @@ Deno.serve(async (req) => {
     
     if (order.delivery_address) {
       doc.setFont('helvetica', 'bold');
-      doc.text(decodeURIComponent(escape('Leveransadress:')), margin + 5, y);
+      doc.text('Leveransadress:', margin + 5, y);
       doc.setFont('helvetica', 'normal');
       const addressLines = doc.splitTextToSize(
-        decodeURIComponent(escape(order.delivery_address)), 
+        order.delivery_address, 
         contentWidth - 55
       );
       doc.text(addressLines, margin + 50, y);
@@ -147,7 +145,7 @@ Deno.serve(async (req) => {
         y = 20;
       }
 
-      const name = decodeURIComponent(escape(item.article_name || ''));
+      const name = item.article_name || '';
       const nameLines = doc.splitTextToSize(name, 70);
       
       doc.text(nameLines[0], margin + 3, y);
@@ -191,15 +189,14 @@ Deno.serve(async (req) => {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
       
-      const encodedNotes = decodeURIComponent(escape(order.notes));
-      const notesLines = doc.splitTextToSize(encodedNotes, contentWidth - 10);
+      const notesLines = doc.splitTextToSize(order.notes, contentWidth - 10);
       doc.text(notesLines, margin + 5, y);
     }
 
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    const footerLeft = decodeURIComponent(escape(`Genererad: ${new Date().toLocaleString('sv-SE')}`));
+    const footerLeft = `Genererad: ${new Date().toLocaleString('sv-SE')}`;
     doc.text(footerLeft, margin, 285);
 
     // Generate PDF
