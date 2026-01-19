@@ -205,29 +205,33 @@ Deno.serve(async (req) => {
     // Generate PDF
     const pdfBytes = doc.output('arraybuffer');
 
-    // If email is provided, send email with PDF attachment
+    // If email is provided, upload PDF and send email with link
     if (email) {
-      const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
-      
-      const emailBody = `
-        Hej,<br><br>
-        Här kommer plockkvitto för order ${order.order_number || orderId}.<br><br>
-        <strong>Kund:</strong> ${order.customer_name || '-'}<br>
-        <strong>Antal artiklar:</strong> ${orderItems.reduce((sum, item) => sum + (item.quantity_picked || 0), 0)}<br><br>
-        Se bifogad PDF för fullständiga detaljer.<br><br>
-        Med vänlig hälsning
-      `;
-
       try {
+        // Upload PDF
+        const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const pdfFile = new File([pdfBlob], `order_${order.order_number || orderId}.pdf`, { type: 'application/pdf' });
+        
+        const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({ 
+          file: pdfFile 
+        });
+        
+        const totalItems = orderItems.reduce((sum, item) => sum + (item.quantity_picked || 0), 0);
+        
+        const emailBody = `
+          <h2>Plockkvitto för order ${order.order_number || orderId}</h2>
+          <p><strong>Kund:</strong> ${order.customer_name || '-'}</p>
+          <p><strong>Antal artiklar:</strong> ${totalItems}</p>
+          <br>
+          <p><a href="${file_url}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Ladda ner plockkvitto (PDF)</a></p>
+          <br>
+          <p>Med vänlig hälsning</p>
+        `;
+
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: email,
           subject: `Plockkvitto - ${order.order_number || orderId}`,
-          body: emailBody,
-          attachments: [{
-            filename: `order_${order.order_number || orderId}.pdf`,
-            content: pdfBase64,
-            encoding: 'base64'
-          }]
+          body: emailBody
         });
         
         return Response.json({ 
