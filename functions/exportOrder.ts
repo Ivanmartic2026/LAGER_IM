@@ -5,7 +5,7 @@ Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
   
   try {
-    const { orderId } = await req.json();
+    const { orderId, email } = await req.json();
 
     if (!orderId) {
       return Response.json({ error: 'Order ID required' }, { status: 400 });
@@ -205,6 +205,44 @@ Deno.serve(async (req) => {
     // Generate PDF
     const pdfBytes = doc.output('arraybuffer');
 
+    // If email is provided, send email with PDF attachment
+    if (email) {
+      const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+      
+      const emailBody = `
+        Hej,<br><br>
+        Här kommer plockkvitto för order ${order.order_number || orderId}.<br><br>
+        <strong>Kund:</strong> ${order.customer_name || '-'}<br>
+        <strong>Antal artiklar:</strong> ${orderItems.reduce((sum, item) => sum + (item.quantity_picked || 0), 0)}<br><br>
+        Se bifogad PDF för fullständiga detaljer.<br><br>
+        Med vänlig hälsning
+      `;
+
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: email,
+          subject: `Plockkvitto - ${order.order_number || orderId}`,
+          body: emailBody,
+          attachments: [{
+            filename: `order_${order.order_number || orderId}.pdf`,
+            content: pdfBase64,
+            encoding: 'base64'
+          }]
+        });
+        
+        return Response.json({ 
+          success: true, 
+          message: 'Email skickad!' 
+        });
+      } catch (emailError) {
+        console.error('Error sending email:', emailError);
+        return Response.json({ 
+          error: `Kunde inte skicka email: ${emailError.message}` 
+        }, { status: 500 });
+      }
+    }
+
+    // Otherwise return PDF for download
     return new Response(pdfBytes, {
       status: 200,
       headers: {
