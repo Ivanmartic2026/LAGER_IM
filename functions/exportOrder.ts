@@ -225,7 +225,7 @@ Deno.serve(async (req) => {
           <p>Med vänlig hälsning</p>
         `;
 
-        await base44.asServiceRole.integrations.Core.SendEmail({
+        await base44.integrations.Core.SendEmail({
           to: email,
           subject: `Plockkvitto - ${order.order_number || orderId}`,
           body: emailBody
