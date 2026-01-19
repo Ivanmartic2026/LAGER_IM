@@ -202,32 +202,25 @@ Deno.serve(async (req) => {
     // Generate PDF
     const pdfBytes = doc.output('arraybuffer');
 
-    // If email is provided, upload PDF and send email with link
+    // If email is provided, send notification email
     if (email) {
       try {
-        // Upload PDF
-        const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-        const pdfFile = new File([pdfBlob], `order_${order.order_number || orderId}.pdf`, { type: 'application/pdf' });
-        
-        const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({ 
-          file: pdfFile 
-        });
-        
         const totalItems = orderItems.reduce((sum, item) => sum + (item.quantity_picked || 0), 0);
         
         const emailBody = `
-          <h2>Plockkvitto för order ${order.order_number || orderId}</h2>
+          <h2>Ny order att plocka</h2>
+          <p><strong>Ordernummer:</strong> ${order.order_number || orderId}</p>
           <p><strong>Kund:</strong> ${order.customer_name || '-'}</p>
           <p><strong>Antal artiklar:</strong> ${totalItems}</p>
+          ${order.delivery_date ? `<p><strong>Leveransdatum:</strong> ${order.delivery_date}</p>` : ''}
+          ${order.notes ? `<p><strong>Anteckningar:</strong> ${order.notes}</p>` : ''}
           <br>
-          <p><a href="${file_url}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Ladda ner plockkvitto (PDF)</a></p>
-          <br>
-          <p>Med vänlig hälsning</p>
+          <p>Logga in i systemet för att se detaljer och börja plocka.</p>
         `;
 
         await base44.integrations.Core.SendEmail({
           to: email,
-          subject: `Plockkvitto - ${order.order_number || orderId}`,
+          subject: `Ny order att plocka - ${order.order_number || orderId}`,
           body: emailBody
         });
         
