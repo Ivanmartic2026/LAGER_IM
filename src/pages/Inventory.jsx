@@ -507,9 +507,14 @@ export default function InventoryPage() {
                 accept=".xlsx,.xls"
                 onChange={handleImport}
                 className="hidden"
+                id="file-import-input"
               />
               <Button
-                onClick={handleExport}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleExport();
+                }}
                 disabled={isExporting}
                 variant="outline"
                 size="sm"
@@ -528,7 +533,11 @@ export default function InventoryPage() {
                 )}
               </Button>
               <Button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
                 disabled={isImporting}
                 variant="outline"
                 size="sm"
