@@ -193,18 +193,16 @@ export default function InventoryPage() {
     toast.success("Lagersaldo uppdaterat");
   };
 
-  const handleExport = async () => {
+  const handleExportExcel = async () => {
     setIsExporting(true);
-    const loadingToast = toast.loading('Förbereder export...');
+    const loadingToast = toast.loading('Förbereder Excel-export...');
 
     try {
       const response = await base44.functions.invoke('exportArticles', {});
 
-      // Axios returns response.data which could be string, ArrayBuffer, or Blob
       let binaryData;
 
       if (typeof response.data === 'string') {
-        // If it's a string, convert to Uint8Array
         const bytes = new Uint8Array(response.data.length);
         for (let i = 0; i < response.data.length; i++) {
           bytes[i] = response.data.charCodeAt(i);
@@ -235,6 +233,35 @@ export default function InventoryPage() {
       }, 100);
 
       toast.success('Excel-fil nedladdad!', { id: loadingToast });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Kunde inte exportera: ' + error.message, { id: loadingToast });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    setIsExporting(true);
+    const loadingToast = toast.loading('Förbereder CSV-export...');
+
+    try {
+      const response = await base44.functions.invoke('exportArticlesCsv', {});
+
+      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `artiklar_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      }, 100);
+
+      toast.success('CSV-fil nedladdad!', { id: loadingToast });
     } catch (error) {
       console.error('Export error:', error);
       toast.error('Kunde inte exportera: ' + error.message, { id: loadingToast });
@@ -529,7 +556,7 @@ export default function InventoryPage() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  handleExport();
+                  handleExportExcel();
                 }}
                 disabled={isExporting}
                 variant="outline"
@@ -544,7 +571,30 @@ export default function InventoryPage() {
                 ) : (
                   <>
                     <Download className="w-4 h-4 mr-2" />
-                    Exportera
+                    Excel
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleExportCsv();
+                }}
+                disabled={isExporting}
+                variant="outline"
+                size="sm"
+                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
+              >
+                {isExporting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Exporterar...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    CSV
                   </>
                 )}
               </Button>
