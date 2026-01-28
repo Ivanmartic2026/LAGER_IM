@@ -196,19 +196,19 @@ export default function InventoryPage() {
   const handleExport = async () => {
     setIsExporting(true);
     const loadingToast = toast.loading('Förbereder export...');
-    
-    try {
-      console.log('Starting export...');
-      
-      toast.loading('Skapar Excel-fil...', { id: loadingToast });
-      
-      const response = await base44.functions.invoke('exportArticles', {});
-      
-      console.log('Export complete, downloading...');
-      
-      toast.loading('Laddar ner fil...', { id: loadingToast });
 
-      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    try {
+      const response = await base44.functions.invoke('exportArticles', {});
+
+      let blob;
+      if (response.data instanceof Blob) {
+        blob = response.data;
+      } else if (response.data instanceof ArrayBuffer) {
+        blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      } else {
+        blob = new Blob([new Uint8Array(response.data)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      }
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -217,7 +217,7 @@ export default function InventoryPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
-      
+
       toast.success('Excel-fil nedladdad!', { id: loadingToast });
     } catch (error) {
       console.error('Export error:', error);
