@@ -200,14 +200,27 @@ export default function InventoryPage() {
     try {
       const response = await base44.functions.invoke('exportArticles', {});
 
-      let blob;
-      if (response.data instanceof Blob) {
-        blob = response.data;
+      // Axios returns response.data which could be string, ArrayBuffer, or Blob
+      let binaryData;
+
+      if (typeof response.data === 'string') {
+        // If it's a string, convert to Uint8Array
+        const bytes = new Uint8Array(response.data.length);
+        for (let i = 0; i < response.data.length; i++) {
+          bytes[i] = response.data.charCodeAt(i);
+        }
+        binaryData = bytes;
       } else if (response.data instanceof ArrayBuffer) {
-        blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        binaryData = response.data;
+      } else if (response.data instanceof Blob) {
+        binaryData = response.data;
       } else {
-        blob = new Blob([new Uint8Array(response.data)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        binaryData = new Uint8Array(response.data);
       }
+
+      const blob = binaryData instanceof Blob 
+        ? binaryData 
+        : new Blob([binaryData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -215,8 +228,11 @@ export default function InventoryPage() {
       a.download = `artiklar_${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      }, 100);
 
       toast.success('Excel-fil nedladdad!', { id: loadingToast });
     } catch (error) {
