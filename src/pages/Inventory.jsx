@@ -557,11 +557,11 @@ export default function InventoryPage() {
                 onClick={handleExportExcel}
                 disabled={isExportingExcel}
                 size="sm"
-                className="bg-green-600/20 border border-green-500/40 hover:bg-green-600/30 hover:border-green-500/60 text-green-300 hover:text-green-200 transition-all duration-300 shadow-lg"
+                className="bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/30 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 {isExportingExcel ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-green-300/30 border-t-green-300 rounded-full animate-spin mr-2" />
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                     Exporterar...
                   </>
                 ) : (
@@ -575,11 +575,11 @@ export default function InventoryPage() {
                 onClick={handleExportCsv}
                 disabled={isExportingCsv}
                 size="sm"
-                className="bg-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-600/30 hover:border-emerald-500/60 text-emerald-300 hover:text-emerald-200 transition-all duration-300 shadow-lg"
+                className="bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/30 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 {isExportingCsv ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-emerald-300/30 border-t-emerald-300 rounded-full animate-spin mr-2" />
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                     Exporterar...
                   </>
                 ) : (
@@ -593,11 +593,11 @@ export default function InventoryPage() {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isImporting}
                 size="sm"
-                className="bg-purple-600/20 border border-purple-500/40 hover:bg-purple-600/30 hover:border-purple-500/60 text-purple-300 hover:text-purple-200 transition-all duration-300 shadow-lg"
+                className="bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/30 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 {isImporting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-purple-300/30 border-t-purple-300 rounded-full animate-spin mr-2" />
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                     Importerar...
                   </>
                 ) : (
@@ -608,7 +608,7 @@ export default function InventoryPage() {
                 )}
               </Button>
               <Link to={createPageUrl("Scan")}>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300">
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-200">
                   <Camera className="w-4 h-4 mr-2" />
                   Skanna
                 </Button>
