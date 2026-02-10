@@ -171,7 +171,7 @@ export default function Layout({ children, currentPageName }) {
       </nav>
 
       {/* Main Content */}
-      <main className="pt-16 md:pt-0 pb-24 md:pb-24 min-h-screen will-change-auto">
+      <main className="pt-16 md:pt-20 pb-24 md:pb-24 min-h-screen will-change-auto">
         {children}
       </main>
     </div>
