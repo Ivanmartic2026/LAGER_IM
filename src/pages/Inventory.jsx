@@ -52,7 +52,8 @@ export default function InventoryPage() {
   const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
   const [pickListOpen, setPickListOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [isExportingCsv, setIsExportingCsv] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
   const [selectedArticleIds, setSelectedArticleIds] = useState([]);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
@@ -194,7 +195,7 @@ export default function InventoryPage() {
   };
 
   const handleExportExcel = async () => {
-    setIsExporting(true);
+    setIsExportingExcel(true);
     const loadingToast = toast.loading('Förbereder Excel-export...');
 
     try {
@@ -237,12 +238,12 @@ export default function InventoryPage() {
       console.error('Export error:', error);
       toast.error('Kunde inte exportera: ' + error.message, { id: loadingToast });
     } finally {
-      setIsExporting(false);
+      setIsExportingExcel(false);
     }
   };
 
   const handleExportCsv = async () => {
-    setIsExporting(true);
+    setIsExportingCsv(true);
     const loadingToast = toast.loading('Förbereder CSV-export...');
 
     try {
@@ -266,7 +267,7 @@ export default function InventoryPage() {
       console.error('Export error:', error);
       toast.error('Kunde inte exportera: ' + error.message, { id: loadingToast });
     } finally {
-      setIsExporting(false);
+      setIsExportingCsv(false);
     }
   };
 
@@ -558,12 +559,12 @@ export default function InventoryPage() {
                   e.stopPropagation();
                   handleExportExcel();
                 }}
-                disabled={isExporting}
+                disabled={isExportingExcel}
                 variant="outline"
                 size="sm"
                 className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
               >
-                {isExporting ? (
+                {isExportingExcel ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                     Exporterar...
@@ -581,12 +582,12 @@ export default function InventoryPage() {
                   e.stopPropagation();
                   handleExportCsv();
                 }}
-                disabled={isExporting}
+                disabled={isExportingCsv}
                 variant="outline"
                 size="sm"
                 className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300"
               >
-                {isExporting ? (
+                {isExportingCsv ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
                     Exporterar...
