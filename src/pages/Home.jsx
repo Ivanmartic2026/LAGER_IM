@@ -214,32 +214,35 @@ export default function HomePage() {
         </motion.div>
 
         {/* Documentation Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-purple-600/20 to-purple-700/10 backdrop-blur-sm border border-purple-500/30 hover:border-purple-500/50 hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-300"
-        >
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-purple-500/30 flex items-center justify-center flex-shrink-0">
-              <BookOpen className="w-6 h-6 text-purple-400" />
+        <Link to={createPageUrl("Documentation")}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-purple-600/20 to-purple-700/10 backdrop-blur-sm border border-purple-500/30 hover:border-purple-500/50 hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-300 cursor-pointer group"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <BookOpen className="w-6 h-6 text-purple-400" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-white text-lg">Systemdokumentation</h3>
+                  <ArrowRight className="w-5 h-5 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <p className="text-sm text-slate-300 mb-2">
+                  Komplett guide för att använda IMvision Lager & Order-systemet
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs px-2 py-1 rounded-lg bg-purple-500/20 text-purple-300">Användarmanual</span>
+                  <span className="text-xs px-2 py-1 rounded-lg bg-purple-500/20 text-purple-300">Systemdokumentation</span>
+                  <span className="text-xs px-2 py-1 rounded-lg bg-purple-500/20 text-purple-300">AI Agent Guide</span>
+                </div>
+              </div>
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-white text-lg mb-2">Systemdokumentation</h3>
-              <p className="text-sm text-slate-300 mb-4">Komplett dokumentation för IMvision-systemet finns tillgänglig:</p>
-              <Link to={createPageUrl("Documentation")}>
-                <Button className="w-full md:w-auto bg-purple-600 hover:bg-purple-500">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Öppna dokumentation
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-              <p className="text-xs text-slate-400 mt-3">
-                Innehåller: Användarmanual, Systemdokumentation och AI Agent Guide
-              </p>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </Link>
 
         {/* Orders to Pick */}
         {pendingOrders.length > 0 && (

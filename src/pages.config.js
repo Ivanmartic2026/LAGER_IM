@@ -49,6 +49,7 @@
  */
 import Admin from './pages/Admin';
 import Analytics from './pages/Analytics';
+import Documentation from './pages/Documentation';
 import EmailOrderSetup from './pages/EmailOrderSetup';
 import Find from './pages/Find';
 import Home from './pages/Home';
@@ -73,13 +74,13 @@ import UnknownDeliveries from './pages/UnknownDeliveries';
 import UsersManagement from './pages/UsersManagement';
 import WarehouseDashboard from './pages/WarehouseDashboard';
 import Warehouses from './pages/Warehouses';
-import Documentation from './pages/Documentation';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Admin": Admin,
     "Analytics": Analytics,
+    "Documentation": Documentation,
     "EmailOrderSetup": EmailOrderSetup,
     "Find": Find,
     "Home": Home,
@@ -104,7 +105,6 @@ export const PAGES = {
     "UsersManagement": UsersManagement,
     "WarehouseDashboard": WarehouseDashboard,
     "Warehouses": Warehouses,
-    "Documentation": Documentation,
 }
 
 export const pagesConfig = {
