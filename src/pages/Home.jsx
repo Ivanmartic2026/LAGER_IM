@@ -227,53 +227,16 @@ export default function HomePage() {
             <div className="flex-1">
               <h3 className="font-semibold text-white text-lg mb-2">Systemdokumentation</h3>
               <p className="text-sm text-slate-300 mb-4">Komplett dokumentation för IMvision-systemet finns tillgänglig:</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <a 
-                  href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/apps/69455d52c9eab36b7d26cc74/components/docs/Användarmanual.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                    <BookOpen className="w-4 h-4 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Användarmanual</p>
-                    <p className="text-xs text-slate-400">Steg-för-steg guider</p>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-purple-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                </a>
-                <a 
-                  href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/apps/69455d52c9eab36b7d26cc74/components/docs/SystemDokumentation.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                    <BookOpen className="w-4 h-4 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Systemdokumentation</p>
-                    <p className="text-xs text-slate-400">Teknisk översikt</p>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-purple-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                </a>
-                <a 
-                  href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/apps/69455d52c9eab36b7d26cc74/components/docs/Base44AgentDokumentation.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                    <BookOpen className="w-4 h-4 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">AI Agent Guide</p>
-                    <p className="text-xs text-slate-400">Hur systemet byggdes</p>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-purple-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                </a>
-              </div>
+              <Link to={createPageUrl("Documentation")}>
+                <Button className="w-full md:w-auto bg-purple-600 hover:bg-purple-500">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Öppna dokumentation
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+              <p className="text-xs text-slate-400 mt-3">
+                Innehåller: Användarmanual, Systemdokumentation och AI Agent Guide
+              </p>
             </div>
           </div>
         </motion.div>
