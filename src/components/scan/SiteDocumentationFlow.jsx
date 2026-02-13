@@ -1,20 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, MapPin, Upload, Loader2, CheckCircle2, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Camera, MapPin, Upload, Loader2, CheckCircle2, X, Navigation, Package } from "lucide-react";
 import { toast } from "sonner";
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 export default function SiteDocumentationFlow({ onComplete, onCancel }) {
   const [step, setStep] = useState('info'); // 'info', 'capture', 'uploading', 'success'
   const [siteData, setSiteData] = useState({
     site_name: '',
     site_address: '',
-    notes: ''
+    notes: '',
+    gps_latitude: null,
+    gps_longitude: null,
+    linked_order_id: null
   });
   const [capturedImages, setCapturedImages] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [gettingLocation, setGettingLocation] = useState(false);
+
+  // Fetch picked orders (ready for delivery)
+  const { data: pickedOrders = [] } = useQuery({
+    queryKey: ['pickedOrders'],
+    queryFn: async () => {
+      const orders = await base44.entities.Order.filter({ status: 'picked' });
+      return orders;
+    }
+  });
+
+  // Get GPS position on mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      setGettingLocation(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setSiteData(prev => ({
+            ...prev,
+            gps_latitude: position.coords.latitude,
+            gps_longitude: position.coords.longitude
+          }));
+          setGettingLocation(false);
+          toast.success('GPS-position hämtad');
+        },
+        (error) => {
+          console.log('GPS error:', error);
+          setGettingLocation(false);
+        }
+      );
+    }
+  }, []);
 
   const handleImageCapture = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -57,7 +96,10 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
         technician_name: user.full_name,
         technician_email: user.email,
         report_date: new Date().toISOString(),
-        status: 'pending_review'
+        status: 'pending_review',
+        gps_latitude: siteData.gps_latitude,
+        gps_longitude: siteData.gps_longitude,
+        linked_order_id: siteData.linked_order_id
       });
 
       // Ladda upp bilder
@@ -132,6 +174,70 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
               placeholder="Gatuadress"
               className="bg-zinc-900 border-white/10 text-white"
             />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-white/70 mb-2 block">
+              Koppla till order (valfritt)
+            </label>
+            <Select 
+              value={siteData.linked_order_id || ''} 
+              onValueChange={(value) => setSiteData(prev => ({ ...prev, linked_order_id: value || null }))}
+            >
+              <SelectTrigger className="bg-zinc-900 border-white/10 text-white">
+                <SelectValue placeholder="Ingen order vald" />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                <SelectItem value={null}>Ingen order</SelectItem>
+                {pickedOrders.map(order => (
+                  <SelectItem key={order.id} value={order.id}>
+                    <div className="flex items-center gap-2">
+                      <Package className="w-4 h-4" />
+                      <span>{order.order_number || order.customer_name} - {order.customer_name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {pickedOrders.length === 0 && (
+              <p className="text-xs text-white/40 mt-1">Inga plockade ordrar tillgängliga</p>
+            )}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-white/70 mb-2 flex items-center gap-2">
+              GPS-position
+              {gettingLocation && (
+                <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+              )}
+            </label>
+            {siteData.gps_latitude && siteData.gps_longitude ? (
+              <div className="space-y-2">
+                <div className="h-48 rounded-xl overflow-hidden border border-white/10">
+                  <MapContainer 
+                    center={[siteData.gps_latitude, siteData.gps_longitude]} 
+                    zoom={15} 
+                    style={{ height: '100%', width: '100%' }}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    />
+                    <Marker position={[siteData.gps_latitude, siteData.gps_longitude]}>
+                      <Popup>{siteData.site_name}</Popup>
+                    </Marker>
+                  </MapContainer>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-white/50">
+                  <Navigation className="w-3 h-3" />
+                  <span>{siteData.gps_latitude.toFixed(6)}, {siteData.gps_longitude.toFixed(6)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center text-sm text-white/50">
+                {gettingLocation ? 'Hämtar position...' : 'GPS-position ej tillgänglig'}
+              </div>
+            )}
           </div>
 
           <div>
