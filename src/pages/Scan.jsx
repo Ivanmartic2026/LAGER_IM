@@ -12,6 +12,7 @@ import CameraCapture from "@/components/scanner/CameraCapture";
 import ReviewForm from "@/components/scanner/ReviewForm";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import UnknownDeliveryForm from "@/components/scanner/UnknownDeliveryForm";
+import SiteDocumentationFlow from "@/components/scan/SiteDocumentationFlow";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 
@@ -36,6 +37,13 @@ const MODE_OPTIONS = [
     description: "Justera lagersaldo för befintlig artikel",
     icon: ClipboardList,
     color: "from-emerald-500 to-emerald-600"
+  },
+  {
+    id: "site_documentation",
+    title: "Site-Dokumentation",
+    description: "Dokumentera komponenter på plats",
+    icon: Camera,
+    color: "from-cyan-500 to-cyan-600"
   },
   {
     id: "unknown",
@@ -69,6 +77,8 @@ export default function ScanPage() {
     setMode(selectedMode);
     if (selectedMode === "barcode") {
       setStep("barcode");
+    } else if (selectedMode === "site_documentation") {
+      setStep("site_documentation");
     } else if (selectedMode === "unknown") {
       setStep("capture"); // Use same capture for unknown delivery
     } else {
@@ -960,6 +970,18 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
                   </motion.div>
                 </motion.div>
               )}
+            </motion.div>
+          )}
+
+          {/* Step: Site Documentation */}
+          {step === "site_documentation" && (
+            <motion.div
+              key="site_documentation"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <SiteDocumentationFlow onComplete={handleReset} onCancel={handleReset} />
             </motion.div>
           )}
 
