@@ -12,7 +12,7 @@ export default function DocumentationPage() {
     user: {
       title: "Användarmanual",
       icon: Users,
-      file: "Användarmanual.md",
+      file: "Anvandarmanual.md",
       description: "Komplett guide för daglig användning av systemet"
     },
     system: {
