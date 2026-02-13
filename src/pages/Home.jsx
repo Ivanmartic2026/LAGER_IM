@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Camera, Package, TrendingUp, TrendingDown, 
   AlertTriangle, Clock, ArrowRight, Zap, MapPin,
-  Search, X, Hash, Factory, Printer, ClipboardList
+  Search, X, Hash, Factory, Printer, ClipboardList, BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -211,6 +211,71 @@ export default function HomePage() {
             <h3 className="font-semibold text-white text-lg mb-1">Sök artikel</h3>
             <p className="text-sm text-slate-400">Hitta snabbt i lagret</p>
           </motion.div>
+        </motion.div>
+
+        {/* Documentation Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-purple-600/20 to-purple-700/10 backdrop-blur-sm border border-purple-500/30 hover:border-purple-500/50 hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-300"
+        >
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-purple-500/30 flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-6 h-6 text-purple-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-white text-lg mb-2">Systemdokumentation</h3>
+              <p className="text-sm text-slate-300 mb-4">Komplett dokumentation för IMvision-systemet finns tillgänglig:</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <a 
+                  href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/apps/69455d52c9eab36b7d26cc74/components/docs/Användarmanual.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Användarmanual</p>
+                    <p className="text-xs text-slate-400">Steg-för-steg guider</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-purple-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
+                <a 
+                  href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/apps/69455d52c9eab36b7d26cc74/components/docs/SystemDokumentation.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Systemdokumentation</p>
+                    <p className="text-xs text-slate-400">Teknisk översikt</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-purple-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
+                <a 
+                  href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/apps/69455d52c9eab36b7d26cc74/components/docs/Base44AgentDokumentation.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">AI Agent Guide</p>
+                    <p className="text-xs text-slate-400">Hur systemet byggdes</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-purple-400 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Orders to Pick */}
