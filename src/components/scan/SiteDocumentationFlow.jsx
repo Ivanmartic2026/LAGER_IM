@@ -23,6 +23,7 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
   const [capturedImages, setCapturedImages] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
 
   // Fetch all orders (not just picked)
   const { data: allOrders = [] } = useQuery({
@@ -348,11 +349,15 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
                   <img 
                     src={img} 
                     alt={`Bild ${idx + 1}`}
-                    className="w-full h-32 object-cover rounded-xl"
+                    className="w-full h-32 object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => setPreviewImage(img)}
                   />
                   <button
-                    onClick={() => setCapturedImages(prev => prev.filter((_, i) => i !== idx))}
-                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCapturedImages(prev => prev.filter((_, i) => i !== idx));
+                    }}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
                   >
                     <X className="w-4 h-4 text-white" />
                   </button>
@@ -396,6 +401,27 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
             )}
           </Button>
         </div>
+
+        {/* Image Preview Modal */}
+        {previewImage && (
+          <div 
+            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+            onClick={() => setPreviewImage(null)}
+          >
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <img 
+              src={previewImage} 
+              alt="Förhandsvisning"
+              className="max-w-full max-h-[90vh] object-contain rounded-xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
       </div>
     );
   }
