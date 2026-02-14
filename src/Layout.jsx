@@ -26,6 +26,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: "Orders", label: t('nav_orders', language), icon: ShoppingCart },
     { name: "Production", label: t('nav_production', language), icon: Activity },
     { name: "PurchaseOrders", label: t('nav_purchase', language), icon: ShoppingCart },
+    { name: "SupplierPortal", label: "Leverantörsportal", icon: Truck },
     { name: "SiteReports", label: t('nav_site', language), icon: MapPin },
     { name: "UnknownDeliveries", label: t('nav_unknown', language), icon: PackageSearch },
     { name: "Repairs", label: t('nav_repairs', language), icon: Activity },
