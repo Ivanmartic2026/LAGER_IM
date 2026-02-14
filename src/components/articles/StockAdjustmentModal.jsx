@@ -118,7 +118,7 @@ export default function StockAdjustmentModal({
                 <div className="flex items-center justify-between">
                   <span className="text-slate-300">Nytt saldo</span>
                   <span className="text-xl font-bold text-white">
-                    {(article?.stock_qty || 0) + (type === "add" ? parseInt(quantity) || 0 : -(parseInt(quantity) || 0))}
+                    {type === "add" ? optimisticStock : optimisticStock - parseInt(quantity)}
                   </span>
                 </div>
               </div>
