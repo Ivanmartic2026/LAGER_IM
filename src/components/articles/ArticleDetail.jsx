@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Package, MapPin, Calendar, Hash, Factory, Ruler, 
   Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2, History,
-  DollarSign, Warehouse, Tag, Check, X, ShoppingCart, Copy, Camera
+  DollarSign, Warehouse, Tag, Check, X, ShoppingCart, Copy, Camera, MessageSquare
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -19,6 +19,7 @@ import RepairModal from "./RepairModal";
 import ReturnFromRepairModal from "./ReturnFromRepairModal";
 import ImageGallery from "./ImageGallery";
 import ProductAssemblyManager from "./ProductAssemblyManager";
+import ArticleComments from "./ArticleComments";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -660,7 +661,14 @@ export default function ArticleDetail({
             <Camera className="w-4 h-4" />
             <span className="hidden sm:inline">Onsite ({siteReports.length})</span>
           </TabsTrigger>
-        </TabsList>
+          <TabsTrigger 
+            value="comments" 
+            className="flex items-center justify-center gap-2 text-sm font-medium text-white/50 data-[state=active]:text-white data-[state=active]:bg-white/10 rounded-lg px-4 py-2.5 transition-all hover:text-white/70 hover:bg-white/5"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span className="hidden sm:inline">Kommentarer</span>
+          </TabsTrigger>
+          </TabsList>
 
         <TabsContent value="details" className="space-y-6 mt-6">
           {/* Grundläggande information */}
@@ -1190,6 +1198,10 @@ export default function ArticleDetail({
               </div>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="comments" className="mt-6">
+          <ArticleComments articleId={article.id} />
         </TabsContent>
 
         <TabsContent value="onsite" className="mt-6">
