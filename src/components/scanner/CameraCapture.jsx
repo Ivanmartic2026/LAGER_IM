@@ -12,8 +12,16 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      processFiles(files);
+    const validFiles = files.filter(f => {
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(f.type)) {
+        toast.error(`${f.name} är inte ett stödd bildformat (JPEG, PNG, WebP)`);
+        return false;
+      }
+      return true;
+    });
+    if (validFiles.length > 0) {
+      processFiles(validFiles);
     }
   };
 
