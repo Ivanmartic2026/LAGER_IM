@@ -64,12 +64,21 @@ export default function HomePage() {
     return diffDays;
   };
 
+  const productionOrders = orders.filter(o => 
+    o.status === 'picked' || 
+    o.status === 'in_production' || 
+    o.status === 'production_completed'
+  );
+
   const stats = {
     total: articles.length,
     totalValue: articles.reduce((sum, a) => sum + (a.stock_qty || 0), 0),
     lowStock: articles.filter(a => a.status === "low_stock").length,
     outOfStock: articles.filter(a => a.status === "out_of_stock").length,
-    onRepair: articles.filter(a => a.status === "on_repair").length
+    onRepair: articles.filter(a => a.status === "on_repair").length,
+    ordersTotal: orders.length,
+    ordersInProduction: orders.filter(o => o.status === 'in_production').length,
+    ordersReadyProduction: orders.filter(o => o.status === 'picked').length
   };
 
   const recentArticles = articles.slice(0, 5);
@@ -287,6 +296,63 @@ export default function HomePage() {
             </div>
           </motion.div>
         )}
+
+        {/* Production Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Link to={createPageUrl("Orders")}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05, duration: 0.4 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300 cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/30 to-purple-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-purple-500/30 transition-all duration-300">
+                  <ClipboardList className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.ordersTotal}</p>
+              <p className="text-sm text-white/50">Totalt ordrar</p>
+            </motion.div>
+          </Link>
+
+          <Link to={createPageUrl("Production") + "?status=picked"}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="p-5 rounded-2xl bg-gradient-to-br from-amber-600/20 to-amber-700/10 backdrop-blur-sm border border-amber-500/30 hover:border-amber-500/50 hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-300 cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-amber-500/30 transition-all duration-300">
+                  <Clock className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform duration-300" />
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.ordersReadyProduction}</p>
+              <p className="text-sm text-white/50">Redo för produktion</p>
+            </motion.div>
+          </Link>
+
+          <Link to={createPageUrl("Production") + "?status=in_production"}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="p-5 rounded-2xl bg-gradient-to-br from-blue-600/20 to-blue-700/10 backdrop-blur-sm border border-blue-500/30 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300">
+                  <Factory className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.ordersInProduction}</p>
+              <p className="text-sm text-white/50">Under produktion</p>
+            </motion.div>
+          </Link>
+        </div>
 
         {/* Stats Grid - Desktop Only */}
         <div className="hidden md:grid grid-cols-5 gap-4 mb-8">
