@@ -227,7 +227,7 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
               <SelectTrigger className="bg-zinc-900 border-white/10 text-white">
                 <SelectValue placeholder="Ingen order vald" />
               </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-white/10 text-white">
+              <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-[200px]">
                 <SelectItem value={null}>Ingen order</SelectItem>
                 {allOrders.map(order => (
                   <SelectItem key={order.id} value={order.id}>
@@ -242,6 +242,18 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
             {allOrders.length === 0 && (
               <p className="text-xs text-white/40 mt-1">Inga ordrar tillgängliga</p>
             )}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-white/70 mb-2 flex items-center gap-2">
+              Anteckningar
+            </label>
+            <Textarea
+              value={siteData.notes}
+              onChange={(e) => setSiteData(prev => ({ ...prev, notes: e.target.value }))}
+              placeholder="Övriga noteringar om besöket..."
+              className="bg-zinc-900 border-white/10 text-white min-h-24"
+            />
           </div>
 
           <div>
@@ -278,18 +290,6 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
                 {gettingLocation ? 'Hämtar position...' : 'GPS-position ej tillgänglig'}
               </div>
             )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-white/70 mb-2 block">
-              Anteckningar
-            </label>
-            <Textarea
-              value={siteData.notes}
-              onChange={(e) => setSiteData(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="Övriga noteringar om besöket..."
-              className="bg-zinc-900 border-white/10 text-white min-h-24"
-            />
           </div>
         </div>
 
