@@ -253,12 +253,189 @@ export default function SupplierDocumentUpload() {
           </p>
         </div>
 
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6 border-b border-white/10">
+          <button
+            onClick={() => setCurrentTab("batch")}
+            className={cn(
+              "px-4 py-2 font-medium text-sm transition-colors",
+              currentTab === "batch"
+                ? "text-blue-400 border-b-2 border-blue-400"
+                : "text-white/50 hover:text-white"
+            )}
+          >
+            1. Batchinformation
+          </button>
+          <button
+            onClick={() => setCurrentTab("documents")}
+            className={cn(
+              "px-4 py-2 font-medium text-sm transition-colors",
+              currentTab === "documents"
+                ? "text-blue-400 border-b-2 border-blue-400"
+                : "text-white/50 hover:text-white"
+            )}
+          >
+            2. Dokument
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Upload Form */}
+          {/* Main Content */}
           <div className="lg:col-span-2">
-            <Card className="bg-white/5 border-white/10 p-6">
-              <h2 className="text-lg font-semibold text-white mb-6">Ladda upp dokument</h2>
+            {currentTab === "batch" ? (
+              // Batch Information Tab
+              <div className="space-y-4">
+                {poItems.length === 0 ? (
+                  <Card className="bg-white/5 border-white/10 p-6">
+                    <p className="text-white/50">Inga artiklar på denna order</p>
+                  </Card>
+                ) : (
+                  poItems.map((item) => {
+                    const batches = itemBatches[item.id] || [];
+                    const totalQty = batches.reduce((sum, b) => sum + (parseFloat(b.quantity) || 0), 0);
+                    const confirmedQty = item.quantity_confirmed || item.quantity_ordered || 0;
+                    const isValid = batches.length > 0 && Math.abs(totalQty - confirmedQty) < 0.01 && batches.every(b => b.evidence_file);
+
+                    return (
+                      <Card key={item.id} className="bg-white/5 border-white/10 p-6">
+                        {/* Item Header */}
+                        <div className="mb-4 pb-4 border-b border-white/10">
+                          <h3 className="text-lg font-semibold text-white mb-1">{item.article_name}</h3>
+                          <p className="text-sm text-white/50 mb-3">Beställt: {item.quantity_ordered} st | Bekräftat: {confirmedQty} st</p>
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 bg-white/10 rounded-full flex-1 overflow-hidden">
+                              <div 
+                                className={cn(
+                                  "h-full transition-all",
+                                  isValid ? "bg-green-500" : "bg-orange-500"
+                                )}
+                                style={{ width: `${Math.min((totalQty / confirmedQty) * 100, 100)}%` }}
+                              />
+                            </div>
+                            <span className={cn(
+                              "text-xs font-medium whitespace-nowrap",
+                              isValid ? "text-green-400" : "text-orange-400"
+                            )}>
+                              {totalQty} / {confirmedQty}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Batch Rows */}
+                        <div className="space-y-3 mb-4">
+                          {batches.length === 0 ? (
+                            <p className="text-sm text-white/40">Ingen batchinformation ännu</p>
+                          ) : (
+                            batches.map((batch, batchIdx) => (
+                              <div key={batchIdx} className="bg-white/5 rounded-lg p-4 border border-white/10 space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                    <label className="text-xs text-white/40 mb-1 block">Batch nummer *</label>
+                                    <Input
+                                      value={batch.batch_no}
+                                      onChange={(e) => updateBatch(item.id, batchIdx, 'batch_no', e.target.value)}
+                                      placeholder="t.ex. 2024-001"
+                                      className="bg-white/5 border-white/10 text-white placeholder:text-white/40 text-sm h-8"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-white/40 mb-1 block">Kvantitet *</label>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      value={batch.quantity}
+                                      onChange={(e) => updateBatch(item.id, batchIdx, 'quantity', e.target.value)}
+                                      placeholder="0"
+                                      className="bg-white/5 border-white/10 text-white placeholder:text-white/40 text-sm h-8"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                    <label className="text-xs text-white/40 mb-1 block">Produktionsdatum</label>
+                                    <Input
+                                      type="date"
+                                      value={batch.prod_date}
+                                      onChange={(e) => updateBatch(item.id, batchIdx, 'prod_date', e.target.value)}
+                                      className="bg-white/5 border-white/10 text-white text-sm h-8"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-white/40 mb-1 block">Kommentar</label>
+                                    <Input
+                                      value={batch.comment}
+                                      onChange={(e) => updateBatch(item.id, batchIdx, 'comment', e.target.value)}
+                                      placeholder="t.ex. Utg.datum"
+                                      className="bg-white/5 border-white/10 text-white placeholder:text-white/40 text-sm h-8"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Evidence Upload */}
+                                <div>
+                                  <label className="text-xs text-white/40 mb-2 block">Bevis (foto på etikett/batch-dokument) *</label>
+                                  {batch.evidence_file ? (
+                                    <div className="flex items-center gap-2 p-2 bg-green-500/10 border border-green-500/30 rounded">
+                                      <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                      <p className="text-xs text-green-400 truncate">{batch.evidence_file.split('/').pop()}</p>
+                                    </div>
+                                  ) : (
+                                    <label className="block border-2 border-dashed border-white/20 rounded p-2 text-center cursor-pointer hover:border-white/40 transition-colors">
+                                      <Upload className="w-4 h-4 text-white/50 mx-auto mb-1" />
+                                      <p className="text-xs text-white/70">Klicka för att ladda upp</p>
+                                      <input
+                                        type="file"
+                                        onChange={(e) => uploadBatchEvidence(item.id, batchIdx, e.target.files?.[0])}
+                                        className="hidden"
+                                        accept=".jpg,.jpeg,.png,.pdf"
+                                      />
+                                    </label>
+                                  )}
+                                </div>
+
+                                <Button
+                                  onClick={() => removeBatch(item.id, batchIdx)}
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full bg-red-500/10 border-red-500/30 hover:bg-red-500/20 text-red-400 h-8"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Ta bort
+                                </Button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        {/* Add Batch Button */}
+                        <Button
+                          onClick={() => addBatchToItem(item.id)}
+                          variant="outline"
+                          className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white mb-4"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Lägg till batch
+                        </Button>
+                      </Card>
+                    );
+                  })
+                )}
+
+                {poItems.length > 0 && (
+                  <Button
+                    onClick={submitAllBatches}
+                    className="w-full bg-blue-600 hover:bg-blue-500 h-10"
+                  >
+                    Spara batchinformation & gå till dokument
+                  </Button>
+                )}
+              </div>
+            ) : (
+              // Documents Tab
+              <Card className="bg-white/5 border-white/10 p-6">
+                <h2 className="text-lg font-semibold text-white mb-6">Ladda upp dokument</h2>
 
               <div className="space-y-4">
                 <div>
