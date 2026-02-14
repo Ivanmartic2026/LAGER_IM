@@ -1207,6 +1207,69 @@ export default function ScanPage() {
           )}
         </AnimatePresence>
 
+        {/* Image Zoom Viewer */}
+        <AnimatePresence>
+          {zoomViewerOpen && (
+            <ImageZoomViewer
+              imageUrl={zoomViewerOpen}
+              onClose={() => setZoomViewerOpen(null)}
+              onAnalyzeZoomArea={async (croppedImage) => {
+                // Upload cropped image and analyze
+                try {
+                  const { file_url } = await base44.integrations.Core.UploadFile({ file: new File([croppedImage], 'crop.png', { type: 'image/png' }) });
+                  
+                  // Analyze the cropped area
+                  const schema = {
+                    type: "object",
+                    properties: {
+                      batch_number: { type: "string" },
+                      batch_number_confidence: { type: "number" },
+                      sku: { type: "string" },
+                      sku_confidence: { type: "number" },
+                      serial_number: { type: "string" },
+                      serial_number_confidence: { type: "number" }
+                    }
+                  };
+
+                  const result = await base44.integrations.Core.InvokeLLM({
+                    prompt: `ANALYSERA DENNA FÖRSTORAD ETIKETT MYCKET NOGGRANT:
+
+Du MÅSTE läsa och extrahera ALLA siffror, bokstäver och nummer som syns:
+- BATCHNUMMER (oft i format "123-456", "LOT123", "BATCH-001")
+- ARTIKELNUMMER / SKU
+- SERIENUMMER
+- PRODUKTKODER
+
+VAR EXAKT: Skriv EXAKT vad du ser, ingen normalisering.
+
+För varje fält ge confidence (0-1):
+- 1.0 = helt säker
+- 0.7-0.9 = säker men lite suddig
+- 0.4-0.6 = osäker
+- <0.4 = mycket osäker/oläsbar`,
+                    file_urls: [file_url],
+                    response_json_schema: schema
+                  });
+
+                  // Auto-fill the fields
+                  if (result.batch_number) {
+                    handleFieldChange('batch_number', result.batch_number);
+                  }
+                  if (result.sku) {
+                    handleFieldChange('sku', result.sku);
+                  }
+
+                  toast.success('Etiketten analyserad och fält uppdaterade!');
+                  setZoomViewerOpen(null);
+                } catch (error) {
+                  console.error('Error analyzing zoomed area:', error);
+                  toast.error('Kunde inte analysera området');
+                }
+              }}
+            />
+          )}
+        </AnimatePresence>
+
         {/* Image Comparison Modal */}
         <AnimatePresence>
           {imageCompareModal && (
