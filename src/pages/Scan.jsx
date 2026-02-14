@@ -453,40 +453,56 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
         
         setProgress(95);
         
-        // If we found a match, verify against extracted codes
+        // If we found a match, verify batch number specifically
         if (uniqueMatches.length > 0) {
-          // Check if top match has conflicting article numbers
           const topMatch = uniqueMatches[0];
-          const extractedCodes = [
-            data.sku,
-            data.batch_number,
-            data.product_numbers?.[0]?.value
-          ].filter(Boolean);
+          
+          // Calculate batch number match percentage
+          let batchMatchPercentage = 0;
+          if (data.batch_number && topMatch.article.batch_number) {
+            const extractedBatch = data.batch_number.toString();
+            const existingBatch = topMatch.article.batch_number.toString();
+            
+            // Levenshtein-like simple similarity check
+            const longer = extractedBatch.length > existingBatch.length ? extractedBatch : existingBatch;
+            const shorter = extractedBatch.length > existingBatch.length ? existingBatch : extractedBatch;
+            
+            if (longer.includes(shorter) || shorter.includes(longer)) {
+              batchMatchPercentage = 100;
+            } else {
+              // Count matching characters
+              let matches = 0;
+              for (let i = 0; i < shorter.length; i++) {
+                if (longer[i] === shorter[i]) matches++;
+              }
+              batchMatchPercentage = Math.round((matches / longer.length) * 100);
+            }
+          }
 
-          // Only show match if:
-          // 1. It's a visual match (high confidence) OR
-          // 2. Extracted codes match the article's codes OR
-          // 3. No specific codes were extracted (ambiguous)
-          const hasCodeConflict = extractedCodes.length > 0 && 
-            !extractedCodes.some(code => 
-              topMatch.article.sku?.includes(code) || 
-              topMatch.article.batch_number?.includes(code) ||
-              topMatch.article.name?.includes(code)
-            );
+          console.log(`Match found. Batch match: ${batchMatchPercentage}%`);
+          
+          // Show match only if:
+          // 1. Visual match is high (>= 0.7) OR
+          // 2. Batch number match is >= 90% OR
+          // 3. No batch number was extracted
+          const shouldShowMatch = 
+            topMatch.visualConfidence >= 0.7 ||
+            batchMatchPercentage >= 90 ||
+            !data.batch_number;
 
-          if (!hasCodeConflict || topMatch.matchScore >= 7) {
-            // Safe to show match
-            console.log(`Found ${uniqueMatches.length} potential match(es)`);
-            setPotentialMatches(uniqueMatches);
-            setExistingArticle(uniqueMatches[0].article);
+          if (shouldShowMatch) {
+            setPotentialMatches([{ 
+              ...topMatch, 
+              batchMatchPercentage 
+            }]);
+            setExistingArticle(topMatch.article);
             setExtractedData({ ...data, image_urls: urls });
             setConfidences(confs);
             setProgress(100);
             setShowMatchConfirm(true);
             return;
           } else {
-            // Code conflict - skip to manual review
-            console.log("Code conflict detected - skipping match suggestion");
+            console.log(`Batch mismatch (${batchMatchPercentage}%) - skipping match suggestion`);
           }
         }
       } catch (searchError) {
@@ -1207,23 +1223,47 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
                     </div>
                   </div>
 
-                  {potentialMatches[0]?.visualConfidence && (
-                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-blue-300">Matchsannolikhet</span>
-                        <span className="text-sm font-bold text-blue-400">{Math.round(potentialMatches[0].visualConfidence * 100)}%</span>
+                  <div className="space-y-2">
+                    {potentialMatches[0]?.batchMatchPercentage !== undefined && (
+                      <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold text-amber-300">Batch-nummer match</span>
+                          <span className="text-sm font-bold text-amber-400">{potentialMatches[0].batchMatchPercentage}%</span>
+                        </div>
+                        <div className="w-full bg-slate-700 rounded-full h-1.5">
+                          <div 
+                            className={`h-1.5 rounded-full transition-all ${
+                              potentialMatches[0].batchMatchPercentage >= 90 ? 'bg-emerald-500' :
+                              potentialMatches[0].batchMatchPercentage >= 70 ? 'bg-amber-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${potentialMatches[0].batchMatchPercentage}%` }}
+                          />
+                        </div>
+                        <div className="mt-2 text-xs text-amber-200 space-y-1">
+                          <div>Skannad: <span className="font-mono">{extractedData.batch_number || 'N/A'}</span></div>
+                          <div>Befintlig: <span className="font-mono">{existingArticle.batch_number || 'N/A'}</span></div>
+                        </div>
                       </div>
-                      <div className="w-full bg-slate-700 rounded-full h-1.5">
-                        <div 
-                          className="bg-blue-500 h-1.5 rounded-full transition-all"
-                          style={{ width: `${potentialMatches[0].visualConfidence * 100}%` }}
-                        />
+                    )}
+
+                    {potentialMatches[0]?.visualConfidence && (
+                      <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold text-blue-300">Visuell matchning</span>
+                          <span className="text-sm font-bold text-blue-400">{Math.round(potentialMatches[0].visualConfidence * 100)}%</span>
+                        </div>
+                        <div className="w-full bg-slate-700 rounded-full h-1.5">
+                          <div 
+                            className="bg-blue-500 h-1.5 rounded-full transition-all"
+                            style={{ width: `${potentialMatches[0].visualConfidence * 100}%` }}
+                          />
+                        </div>
+                        {potentialMatches[0].visualReason && (
+                          <p className="text-xs text-blue-200 mt-2">{potentialMatches[0].visualReason}</p>
+                        )}
                       </div>
-                      {potentialMatches[0].visualReason && (
-                        <p className="text-xs text-blue-200 mt-2">{potentialMatches[0].visualReason}</p>
-                      )}
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   <div className="flex items-center justify-between text-sm border-t border-slate-700 pt-3">
                     <span className="text-slate-400">Lagersaldo:</span>
