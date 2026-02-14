@@ -9,23 +9,29 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import PWAOptimizer from "@/components/pwa/PWAOptimizer";
 import PushManager from "@/components/pwa/PushManager";
+import { LanguageProvider } from "@/components/language/LanguageProvider";
+import LanguageToggle from "@/components/language/LanguageToggle";
+import { useLanguage } from "@/components/language/LanguageProvider";
+import { t } from "@/components/language/translations";
 
 // Detect if mobile for performance optimization
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
-const NAV_ITEMS = [
-  { name: "Home", label: "Hem", icon: Home },
-  { name: "Inventory", label: "Lager", icon: Package },
-  { name: "Orders", label: "Ordrar", icon: ShoppingCart },
-  { name: "Production", label: "Produktion", icon: Activity },
-  { name: "PurchaseOrders", label: "Inköp", icon: ShoppingCart },
-  { name: "SiteReports", label: "Site", icon: MapPin },
-  { name: "UnknownDeliveries", label: "Okända", icon: PackageSearch },
-  { name: "Repairs", label: "Reparation", icon: Activity },
-  { name: "Admin", label: "Admin", icon: FileText }
-];
+const LayoutContent = ({ children, currentPageName }) => {
+  const { language } = useLanguage();
+  
+  const NAV_ITEMS = [
+    { name: "Home", label: t('nav_home', language), icon: Home },
+    { name: "Inventory", label: t('nav_inventory', language), icon: Package },
+    { name: "Orders", label: t('nav_orders', language), icon: ShoppingCart },
+    { name: "Production", label: t('nav_production', language), icon: Activity },
+    { name: "PurchaseOrders", label: t('nav_purchase', language), icon: ShoppingCart },
+    { name: "SiteReports", label: t('nav_site', language), icon: MapPin },
+    { name: "UnknownDeliveries", label: t('nav_unknown', language), icon: PackageSearch },
+    { name: "Repairs", label: t('nav_repairs', language), icon: Activity },
+    { name: "Admin", label: t('nav_admin', language), icon: FileText }
+  ];
 
-export default function Layout({ children, currentPageName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobile = isMobile();
 
@@ -69,7 +75,10 @@ export default function Layout({ children, currentPageName }) {
           className="h-8 object-contain"
           loading="lazy"
         />
-        <NotificationBell />
+        <div className="flex items-center gap-2">
+          <LanguageToggle />
+          <NotificationBell />
+        </div>
       </div>
 
       {/* Desktop Navigation - Bottom - No transition on mobile */}
@@ -114,6 +123,7 @@ export default function Layout({ children, currentPageName }) {
        </div>
 
         <div className="flex items-center gap-2">
+          <LanguageToggle />
           <NotificationBell />
           <Button
             variant="ghost"
