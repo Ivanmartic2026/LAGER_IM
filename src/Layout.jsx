@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState as useReactState } from 'react';
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
+import { base44 } from "@/api/base44Client";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import PWAOptimizer from "@/components/pwa/PWAOptimizer";
@@ -19,18 +20,37 @@ const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
 function LayoutContent({ children, currentPageName }) {
   const { language } = useLanguage();
-  
+  const [userModules, setUserModules] = useReactState([]);
+  const [loadingUser, setLoadingUser] = useReactState(true);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await base44.auth.me();
+        setUserModules(user?.allowed_modules || []);
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   const NAV_ITEMS = [
-    { name: "Home", label: t('nav_home', language), icon: Home },
-    { name: "Inventory", label: t('nav_inventory', language), icon: Package },
-    { name: "Orders", label: t('nav_orders', language), icon: ShoppingCart },
-    { name: "Production", label: t('nav_production', language), icon: Activity },
-    { name: "PurchaseOrders", label: t('nav_purchase', language), icon: ShoppingCart },
-    { name: "SiteReports", label: t('nav_site', language), icon: MapPin },
-    { name: "UnknownDeliveries", label: t('nav_unknown', language), icon: PackageSearch },
-    { name: "Repairs", label: t('nav_repairs', language), icon: Activity },
-    { name: "Admin", label: t('nav_admin', language), icon: FileText }
+    { name: "Home", label: t('nav_home', language), icon: Home, module: null },
+    { name: "Inventory", label: t('nav_inventory', language), icon: Package, module: "Inventory" },
+    { name: "Orders", label: t('nav_orders', language), icon: ShoppingCart, module: "Orders" },
+    { name: "Production", label: t('nav_production', language), icon: Activity, module: "Production" },
+    { name: "PurchaseOrders", label: t('nav_purchase', language), icon: ShoppingCart, module: "PurchaseOrders" },
+    { name: "SiteReports", label: t('nav_site', language), icon: MapPin, module: "SiteReports" },
+    { name: "UnknownDeliveries", label: t('nav_unknown', language), icon: PackageSearch, module: "UnknownDeliveries" },
+    { name: "Repairs", label: t('nav_repairs', language), icon: Activity, module: "Repairs" },
+    { name: "Admin", label: t('nav_admin', language), icon: FileText, module: null }
   ];
+
+  const visibleNavItems = NAV_ITEMS.filter(item => !item.module || userModules.includes(item.module));
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobile = isMobile();
@@ -84,7 +104,7 @@ function LayoutContent({ children, currentPageName }) {
       {/* Desktop Navigation - Bottom - No transition on mobile */}
       <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4">
         <div className="flex items-center gap-2 min-w-max mx-auto">
-          {NAV_ITEMS.map(item => (
+          {visibleNavItems.map(item => (
             <Link 
               key={item.name}
               to={createPageUrl(item.name)}
@@ -140,7 +160,7 @@ function LayoutContent({ children, currentPageName }) {
       {mobileMenuOpen && (
        <div className="md:hidden fixed inset-0 z-40 bg-black/98 pt-16">
          <nav className="p-4 space-y-2">
-           {NAV_ITEMS.map(item => (
+           {visibleNavItems.map(item => (
              <Link 
                key={item.name}
                to={createPageUrl(item.name)}
@@ -163,7 +183,7 @@ function LayoutContent({ children, currentPageName }) {
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4 pb-safe">
         <div className="flex items-center gap-1 min-w-max h-full">
-          {NAV_ITEMS.map(item => (
+          {visibleNavItems.map(item => (
             <Link 
               key={item.name}
               to={createPageUrl(item.name)}
