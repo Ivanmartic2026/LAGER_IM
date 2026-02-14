@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Camera, Upload, X, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import AIProcessingScreen from "./AIProcessingScreen";
 
 export default function CameraCapture({ onImageCaptured, isProcessing, progress = 0 }) {
   const fileInputRef = useRef(null);
@@ -67,6 +68,8 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
 
   return (
     <div className="w-full">
+      {isProcessing && <AIProcessingScreen progress={progress} />}
+      
       <input
         type="file"
         ref={cameraInputRef}
@@ -169,25 +172,7 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
               ))}
             </div>
             
-            {isProcessing && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4 max-w-xs w-full px-4">
-                  <div className="w-12 h-12 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                  <div className="w-full">
-                    <p className="text-white font-medium text-center mb-2">
-                      Analyserar {previews.length} bild{previews.length > 1 ? 'er' : ''} med AI...
-                    </p>
-                    <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-blue-500 transition-all duration-300 ease-out"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                    <p className="text-slate-300 text-sm text-center mt-1">{progress}%</p>
-                  </div>
-                </div>
-              </div>
-            )}
+
 
             {!isProcessing && (
               <div className="absolute top-3 right-3 flex gap-2">
