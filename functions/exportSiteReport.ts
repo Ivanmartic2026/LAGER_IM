@@ -131,23 +131,43 @@ Deno.serve(async (req) => {
           // Add image from site
           try {
             const imageResponse = await fetch(image.image_url);
-            const imageBlob = await imageResponse.blob();
-            const imageArrayBuffer = await imageBlob.arrayBuffer();
-            const imageBase64 = btoa(
-              new Uint8Array(imageArrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-            );
+            if (!imageResponse.ok) {
+              throw new Error(`Failed to fetch image: ${imageResponse.status}`);
+            }
             
-            // Determine image format
-            const imageFormat = image.image_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
+            const imageArrayBuffer = await imageResponse.arrayBuffer();
+            const uint8Array = new Uint8Array(imageArrayBuffer);
             
-            // Add image to PDF (max width 80mm, maintain aspect ratio)
+            // Convert to base64
+            let binary = '';
+            for (let i = 0; i < uint8Array.length; i++) {
+              binary += String.fromCharCode(uint8Array[i]);
+            }
+            const imageBase64 = btoa(binary);
+            
+            // Determine image format from URL or content type
+            const contentType = imageResponse.headers.get('content-type') || '';
+            let imageFormat = 'JPEG';
+            if (contentType.includes('png') || image.image_url.toLowerCase().includes('.png')) {
+              imageFormat = 'PNG';
+            }
+            
+            // Add image to PDF
             const imgWidth = 80;
             const imgHeight = 60;
-            doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${imageBase64}`, imageFormat, 25, y, imgWidth, imgHeight);
+            doc.addImage(
+              `data:${contentType || 'image/jpeg'};base64,${imageBase64}`, 
+              imageFormat, 
+              25, 
+              y, 
+              imgWidth, 
+              imgHeight
+            );
             y += imgHeight + 10;
           } catch (imgError) {
             console.error('Error adding image:', imgError);
-            doc.text('(Bild kunde inte laddas)', 25, y);
+            doc.setFontSize(8);
+            doc.text(`(Bild kunde inte laddas: ${imgError.message})`, 25, y);
             y += 5;
           }
         }
