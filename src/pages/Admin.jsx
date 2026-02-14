@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Settings, Users, TrendingUp, FileText, Calendar,
-  ArrowRight, Activity, Package, Monitor, Mail, Smartphone, LogOut, Bell
+  ArrowRight, Activity, Package, Monitor, Mail, Smartphone, LogOut, Bell, AlertCircle
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { cn } from "@/lib/utils";
