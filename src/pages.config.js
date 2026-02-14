@@ -78,6 +78,7 @@ import WarehouseDashboard from './pages/WarehouseDashboard';
 import Warehouses from './pages/Warehouses';
 import Production from './pages/Production';
 import ProductionView from './pages/ProductionView';
+import SupplierPOView from './pages/SupplierPOView';
 import __Layout from './Layout.jsx';
 
 
@@ -113,6 +114,7 @@ export const PAGES = {
     "Warehouses": Warehouses,
     "Production": Production,
     "ProductionView": ProductionView,
+    "SupplierPOView": SupplierPOView,
 }
 
 export const pagesConfig = {
