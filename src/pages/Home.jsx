@@ -447,7 +447,7 @@ export default function HomePage() {
               {siteReports.slice(0, 3).map(report => (
                 <Link
                   key={report.id}
-                  to={createPageUrl("SiteReports")}
+                  to={`${createPageUrl("SiteReports")}?reportId=${report.id}`}
                 >
                   <div className="flex items-center gap-3 p-3 md:p-4 rounded-xl bg-slate-900/40 hover:bg-slate-900/60 border border-slate-700/50 hover:border-slate-600 transition-all cursor-pointer group">
                     <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
@@ -456,7 +456,7 @@ export default function HomePage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-white text-sm md:text-base truncate">{report.site_name}</p>
                       <p className="text-xs md:text-sm text-slate-400 truncate">
-                        {report.technician_name || report.technician_email}
+                        {report.site_address || report.technician_name || report.technician_email}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
