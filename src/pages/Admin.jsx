@@ -63,6 +63,15 @@ export default function AdminPage() {
       iconColor: "text-blue-400"
     },
     {
+      name: "Warehouses",
+      label: "Lagerställen",
+      description: "Hantera lagerställen och hyllplatser",
+      icon: Activity,
+      color: "from-slate-600 to-slate-700",
+      iconBg: "bg-slate-500/20",
+      iconColor: "text-slate-400"
+    },
+    {
       name: "SupplierPortalAdmin",
       label: "Leverantörsportal",
       description: "Hantera leverantörsinloggningar och åtkomst",
