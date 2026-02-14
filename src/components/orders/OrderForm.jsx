@@ -15,6 +15,8 @@ export default function OrderForm({ order, onClose }) {
     order_number: order?.order_number || '',
     customer_name: order?.customer_name || '',
     customer_reference: order?.customer_reference || '',
+    rm_system_id: order?.rm_system_id || '',
+    rm_system_url: order?.rm_system_url || '',
     status: order?.status || 'draft',
     priority: order?.priority || 'normal',
     delivery_date: order?.delivery_date || '',
@@ -237,6 +239,30 @@ export default function OrderForm({ order, onClose }) {
                 value={formData.customer_reference}
                 onChange={(e) => setFormData({ ...formData, customer_reference: e.target.value })}
                 placeholder="Referens"
+                className="bg-slate-800 border-slate-700 text-white"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                RM System ID
+              </label>
+              <Input
+                value={formData.rm_system_id}
+                onChange={(e) => setFormData({ ...formData, rm_system_id: e.target.value })}
+                placeholder="T.ex. RM-12345"
+                className="bg-slate-800 border-slate-700 text-white"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                RM System URL
+              </label>
+              <Input
+                value={formData.rm_system_url}
+                onChange={(e) => setFormData({ ...formData, rm_system_url: e.target.value })}
+                placeholder="https://rm-system.example.com/order/12345"
                 className="bg-slate-800 border-slate-700 text-white"
               />
             </div>
