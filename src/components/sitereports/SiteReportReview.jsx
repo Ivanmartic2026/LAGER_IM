@@ -312,8 +312,26 @@ export default function SiteReportReview({ report, onBack }) {
                     className="w-full h-32 rounded-lg object-cover bg-slate-900 cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => window.open(image.image_url, '_blank')}
                   />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                    <Download className="w-6 h-6 text-white" />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(image.image_url, '_blank');
+                      }}
+                      className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                      title="Öppna i ny flik"
+                    >
+                      <ExternalLink className="w-5 h-5 text-white" />
+                    </button>
+                    <a
+                      href={image.image_url}
+                      download={`site-bild-${image.id}.jpg`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                      title="Ladda ner"
+                    >
+                      <Download className="w-5 h-5 text-white" />
+                    </a>
                   </div>
                   {image.match_status === 'confirmed' && (
                     <div className="absolute top-2 right-2">
@@ -437,26 +455,68 @@ function ImageMatchCard({ image, article, onConfirm }) {
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         {/* Site Image */}
         <div>
-          <div className="text-sm font-medium text-white/70 mb-2">Bild från site</div>
+          <div className="text-sm font-medium text-white/70 mb-2 flex items-center justify-between">
+            <span>Bild från site</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => window.open(image.image_url, '_blank')}
+                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+              >
+                <ExternalLink className="w-3 h-3" />
+                Öppna
+              </button>
+              <a
+                href={image.image_url}
+                download={`site-bild-${image.id}.jpg`}
+                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+              >
+                <Download className="w-3 h-3" />
+                Ladda ner
+              </a>
+            </div>
+          </div>
           <img 
             src={image.image_url} 
             alt="Site" 
-            className="w-full h-64 rounded-xl object-cover bg-slate-900"
+            className="w-full h-64 rounded-xl object-cover bg-slate-900 cursor-pointer"
+            onClick={() => window.open(image.image_url, '_blank')}
           />
         </div>
 
         {/* Matched Article Image */}
         <div>
-          <div className="text-sm font-medium text-white/70 mb-2">
-            Matchad artikel
-            <Badge className="ml-2 bg-blue-500/20 text-blue-400 border-blue-500/30">
-              {Math.round(image.match_confidence * 100)}% säkerhet
-            </Badge>
+          <div className="text-sm font-medium text-white/70 mb-2 flex items-center justify-between">
+            <div>
+              Matchad artikel
+              <Badge className="ml-2 bg-blue-500/20 text-blue-400 border-blue-500/30">
+                {Math.round(image.match_confidence * 100)}% säkerhet
+              </Badge>
+            </div>
+            {(article?.image_urls?.[0] || article?.image_url) && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.open(article?.image_urls?.[0] || article?.image_url, '_blank')}
+                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Öppna
+                </button>
+                <a
+                  href={article?.image_urls?.[0] || article?.image_url}
+                  download={`artikel-${article?.sku || article?.id}.jpg`}
+                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                >
+                  <Download className="w-3 h-3" />
+                  Ladda ner
+                </a>
+              </div>
+            )}
           </div>
           <img 
             src={article?.image_urls?.[0] || article?.image_url} 
             alt={article?.name}
-            className="w-full h-64 rounded-xl object-cover bg-slate-900"
+            className="w-full h-64 rounded-xl object-cover bg-slate-900 cursor-pointer"
+            onClick={() => window.open(article?.image_urls?.[0] || article?.image_url, '_blank')}
           />
         </div>
       </div>
