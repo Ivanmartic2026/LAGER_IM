@@ -24,6 +24,8 @@ const AVAILABLE_MODULES = [
 
 export default function UsersManagement() {
   const [expandedUser, setExpandedUser] = useState(null);
+  const [editingUserId, setEditingUserId] = useState(null);
+  const [editingName, setEditingName] = useState('');
   const { language } = useLanguage();
   const queryClient = useQueryClient();
 
@@ -47,12 +49,34 @@ export default function UsersManagement() {
     }
   });
 
+  const updateNameMutation = useMutation({
+    mutationFn: async ({ userId, full_name }) => {
+      const response = await base44.functions.invoke('updateUserName', { userId, full_name });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setEditingUserId(null);
+      setEditingName('');
+      toast.success(language === 'sv' ? 'Namn uppdaterat' : 'Name updated');
+    },
+    onError: (error) => {
+      toast.error(language === 'sv' ? 'Kunde inte uppdatera namn' : 'Failed to update name');
+    }
+  });
+
   const handleModuleToggle = (userId, moduleId, currentModules) => {
     const newModules = currentModules.includes(moduleId)
       ? currentModules.filter(m => m !== moduleId)
       : [...currentModules, moduleId];
     
     updateUserMutation.mutate({ userId, allowed_modules: newModules });
+  };
+
+  const handleSaveName = (userId, newName) => {
+    if (newName.trim()) {
+      updateNameMutation.mutate({ userId, full_name: newName });
+    }
   };
 
   if (isLoading) {
@@ -96,8 +120,50 @@ export default function UsersManagement() {
                   className="p-6"
                 >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-white">{user.full_name}</h3>
+                    <div className="flex-1">
+                      {editingUserId === user.id ? (
+                        <div className="flex gap-2 mb-3">
+                          <input
+                            type="text"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            placeholder={user.full_name}
+                            className="flex-1 bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                          />
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSaveName(user.id, editingName);
+                            }}
+                            disabled={updateNameMutation.isPending}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            {updateNameMutation.isPending ? 'Sparar...' : 'Spara'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingUserId(null);
+                            }}
+                          >
+                            Avbryt
+                          </Button>
+                        </div>
+                      ) : (
+                        <h3
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingUserId(user.id);
+                            setEditingName(user.full_name);
+                          }}
+                          className="text-lg font-semibold text-white hover:text-blue-400 cursor-pointer transition-colors"
+                        >
+                          {user.full_name}
+                        </h3>
+                      )}
                       <p className="text-sm text-white/50">{user.email}</p>
                       <p className="text-xs text-white/40 mt-1">
                         {t('users_role', language)}: <span className="font-semibold text-blue-400">{user.role}</span>
