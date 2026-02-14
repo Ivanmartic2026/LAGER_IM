@@ -8,20 +8,23 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/language/LanguageProvider";
+import { t } from "@/components/language/translations";
 
 const AVAILABLE_MODULES = [
-  { id: "Inventory", label: "Lager" },
-  { id: "Orders", label: "Ordrar" },
-  { id: "Production", label: "Produktion" },
-  { id: "PurchaseOrders", label: "Inköpsordrar" },
-  { id: "SiteReports", label: "Site Reports" },
-  { id: "UnknownDeliveries", label: "Okända leveranser" },
-  { id: "Repairs", label: "Reparationer" },
-  { id: "Reports", label: "Rapporter" }
+  { id: "Inventory", labelKey: "module_inventory" },
+  { id: "Orders", labelKey: "module_orders" },
+  { id: "Production", labelKey: "module_production" },
+  { id: "PurchaseOrders", labelKey: "module_purchase_orders" },
+  { id: "SiteReports", labelKey: "module_site_reports" },
+  { id: "UnknownDeliveries", labelKey: "module_unknown_deliveries" },
+  { id: "Repairs", labelKey: "module_repairs" },
+  { id: "Reports", labelKey: "module_reports" }
 ];
 
 export default function UsersManagement() {
   const [expandedUser, setExpandedUser] = useState(null);
+  const { language } = useLanguage();
   const queryClient = useQueryClient();
 
   const { data: users, isLoading, error } = useQuery({
@@ -73,8 +76,8 @@ export default function UsersManagement() {
               <Users className="w-6 h-6 text-indigo-400" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white">Användarhantering</h1>
-              <p className="text-sm text-white/50">Hantera användaråtkomst till moduler</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white">{t('users_title', language)}</h1>
+              <p className="text-sm text-white/50">{t('users_manage_access', language)}</p>
             </div>
           </div>
         </motion.div>
@@ -97,12 +100,12 @@ export default function UsersManagement() {
                       <h3 className="text-lg font-semibold text-white">{user.full_name}</h3>
                       <p className="text-sm text-white/50">{user.email}</p>
                       <p className="text-xs text-white/40 mt-1">
-                        Roll: <span className="font-semibold text-blue-400">{user.role}</span>
+                        {t('users_role', language)}: <span className="font-semibold text-blue-400">{user.role}</span>
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-white/50 mb-2">
-                        {user.allowed_modules?.length || 0}/{AVAILABLE_MODULES.length} moduler
+                        {user.allowed_modules?.length || 0}/{AVAILABLE_MODULES.length} {t('users_modules', language)}
                       </p>
                       <div className="flex gap-1 flex-wrap justify-end">
                         {user.allowed_modules?.slice(0, 3).map(mod => (
@@ -127,10 +130,10 @@ export default function UsersManagement() {
                     exit={{ opacity: 0, height: 0 }}
                     className="border-t border-white/10 p-6"
                   >
-                    <p className="text-sm font-semibold text-white/70 mb-4">Välj moduler som användaren ska ha tillgång till:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <p className="text-sm font-semibold text-white/70 mb-6">{t('users_select_modules', language)}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {AVAILABLE_MODULES.map(module => (
-                        <label key={module.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors">
+                        <label key={module.id} className="flex items-center gap-4 p-4 rounded-lg bg-white/5 hover:bg-white/10 hover:border hover:border-white/20 transition-all cursor-pointer border border-white/10">
                           <Checkbox
                             checked={user.allowed_modules?.includes(module.id) || false}
                             onCheckedChange={() => handleModuleToggle(
@@ -139,9 +142,9 @@ export default function UsersManagement() {
                               user.allowed_modules || []
                             )}
                             disabled={updateUserMutation.isPending}
-                            className="w-5 h-5"
+                            className="w-6 h-6"
                           />
-                          <span className="text-white/80">{module.label}</span>
+                          <span className="text-white/80 font-medium">{t(module.labelKey, language)}</span>
                         </label>
                       ))}
                     </div>
@@ -154,7 +157,7 @@ export default function UsersManagement() {
 
         {users.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-white/50">Inga användare hittade</p>
+            <p className="text-white/50">{language === 'sv' ? 'Inga användare hittade' : 'No users found'}</p>
           </div>
         )}
       </div>

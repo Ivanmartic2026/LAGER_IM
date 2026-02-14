@@ -137,7 +137,22 @@ export const translations = {
     time_hours: "timmar",
     time_minute: "minut",
     time_minutes: "minuter",
-  },
+
+    // User Management
+    users_title: "Användarhantering",
+    users_manage_access: "Hantera användaråtkomst till moduler",
+    users_select_modules: "Välj moduler som användaren ska ha tillgång till:",
+    users_modules: "moduler",
+    users_role: "Roll",
+    module_inventory: "Lager",
+    module_orders: "Ordrar",
+    module_production: "Produktion",
+    module_purchase_orders: "Inköpsordrar",
+    module_site_reports: "Site Reports",
+    module_unknown_deliveries: "Okända leveranser",
+    module_repairs: "Reparationer",
+    module_reports: "Rapporter",
+    },
   en: {
     // Navigation
     nav_home: "Home",
@@ -276,8 +291,23 @@ export const translations = {
     time_hours: "hours",
     time_minute: "minute",
     time_minutes: "minutes",
-  }
-};
+
+    // User Management
+    users_title: "User Management",
+    users_manage_access: "Manage user access to modules",
+    users_select_modules: "Select modules this user should have access to:",
+    users_modules: "modules",
+    users_role: "Role",
+    module_inventory: "Inventory",
+    module_orders: "Orders",
+    module_production: "Production",
+    module_purchase_orders: "Purchase Orders",
+    module_site_reports: "Site Reports",
+    module_unknown_deliveries: "Unknown Deliveries",
+    module_repairs: "Repairs",
+    module_reports: "Reports",
+    }
+    };
 
 export const t = (key, lang = 'sv') => {
   return translations[lang]?.[key] || key;
