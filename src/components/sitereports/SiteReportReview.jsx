@@ -15,6 +15,7 @@ import { sv } from "date-fns/locale";
 
 export default function SiteReportReview({ report, onBack }) {
   const [processing, setProcessing] = useState(false);
+  const [editingOrder, setEditingOrder] = useState(false);
 
   const { data: images = [], isLoading: imagesLoading } = useQuery({
     queryKey: ['siteReportImages', report.id],
@@ -24,6 +25,11 @@ export default function SiteReportReview({ report, onBack }) {
   const { data: articles = [] } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list()
+  });
+
+  const { data: allOrders = [] } = useQuery({
+    queryKey: ['allOrders'],
+    queryFn: () => base44.entities.Order.list('-created_date')
   });
 
   const runMatchingMutation = useMutation({
@@ -53,6 +59,19 @@ export default function SiteReportReview({ report, onBack }) {
     },
     onSuccess: () => {
       toast.success('Matchning bekräftad');
+      window.location.reload();
+    }
+  });
+
+  const updateOrderMutation = useMutation({
+    mutationFn: async (orderId) => {
+      await base44.entities.SiteReport.update(report.id, {
+        linked_order_id: orderId || null
+      });
+    },
+    onSuccess: () => {
+      toast.success('Order uppdaterad');
+      setEditingOrder(false);
       window.location.reload();
     }
   });
@@ -130,6 +149,12 @@ export default function SiteReportReview({ report, onBack }) {
                 <div>
                   Datum: {format(new Date(report.report_date), "d MMMM yyyy HH:mm", { locale: sv })}
                 </div>
+                {report.linked_order_id && (
+                  <div className="flex items-center gap-2 text-blue-400">
+                    <Package className="w-4 h-4" />
+                    <span>Kopplad till order</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -149,6 +174,67 @@ export default function SiteReportReview({ report, onBack }) {
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Linked Order Section */}
+        <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-white flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              Kopplad order
+            </h3>
+            {!editingOrder && (
+              <Button
+                onClick={() => setEditingOrder(true)}
+                variant="outline"
+                size="sm"
+                className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+              >
+                {report.linked_order_id ? 'Ändra' : 'Koppla order'}
+              </Button>
+            )}
+          </div>
+
+          {editingOrder ? (
+            <div className="space-y-3">
+              <Select
+                value={report.linked_order_id || ''}
+                onValueChange={(value) => updateOrderMutation.mutate(value || null)}
+              >
+                <SelectTrigger className="bg-zinc-900 border-white/10 text-white">
+                  <SelectValue placeholder="Välj order..." />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-[200px]">
+                  <SelectItem value={null}>Ingen order</SelectItem>
+                  {allOrders.map(order => (
+                    <SelectItem key={order.id} value={order.id}>
+                      {order.order_number || order.customer_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                onClick={() => setEditingOrder(false)}
+                variant="ghost"
+                size="sm"
+                className="text-white/50 hover:text-white"
+              >
+                Avbryt
+              </Button>
+            </div>
+          ) : (
+            <div className="text-sm text-white/60">
+              {report.linked_order_id ? (
+                <div>
+                  {allOrders.find(o => o.id === report.linked_order_id)?.order_number || 
+                   allOrders.find(o => o.id === report.linked_order_id)?.customer_name || 
+                   'Order hittades inte'}
+                </div>
+              ) : (
+                <div>Ingen order kopplad</div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Stats */}
