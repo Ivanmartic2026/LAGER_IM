@@ -17,6 +17,7 @@ export default function StockAdjustmentModal({
 }) {
   const [quantity, setQuantity] = useState("");
   const [reason, setReason] = useState("");
+  const [optimisticStock, setOptimisticStock] = useState(article?.stock_qty || 0);
 
   const handleSubmit = () => {
     const qty = parseInt(quantity);
