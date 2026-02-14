@@ -23,9 +23,14 @@ export default function StockAdjustmentModal({
     const qty = parseInt(quantity);
     if (!qty || qty <= 0) return;
     
+    // Optimistic update
+    const newQty = type === "add" ? optimisticStock + qty : optimisticStock - qty;
+    setOptimisticStock(newQty);
+    
     onSubmit({
       quantity: type === "add" ? qty : -qty,
-      reason
+      reason,
+      onSuccess: () => setQuantity("")
     });
   };
 
