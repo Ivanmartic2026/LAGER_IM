@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Upload, CheckCircle2, AlertCircle, Download, X } from "lucide-react";
+import { Upload, CheckCircle2, AlertCircle, Download, X, Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,8 @@ export default function SupplierDocumentUpload() {
   const [error, setError] = useState(null);
   const [uploadType, setUploadType] = useState("packing_list");
   const [notes, setNotes] = useState("");
+  const [itemBatches, setItemBatches] = useState({}); // {itemId: [{batch_no, quantity, prod_date, evidence_file}, ...]}
+  const [currentTab, setCurrentTab] = useState("batch"); // batch or documents
 
   const queryClient = useQueryClient();
 
@@ -111,6 +113,106 @@ export default function SupplierDocumentUpload() {
 
   const poItems = purchaseOrderItems.filter(item => item.purchase_order_id === po?.id);
   const poDocuments = supplierDocuments.filter(doc => doc.purchase_order_id === po?.id);
+
+  // Initialize batch state for items
+  useEffect(() => {
+    if (poItems.length > 0) {
+      const newState = {};
+      poItems.forEach(item => {
+        if (!itemBatches[item.id]) {
+          newState[item.id] = item.supplier_batch_numbers || [];
+        }
+      });
+      if (Object.keys(newState).length > 0) {
+        setItemBatches(prev => ({ ...prev, ...newState }));
+      }
+    }
+  }, [poItems]);
+
+  // Validate all items have correct batch quantities
+  const validateBatches = () => {
+    for (const item of poItems) {
+      const batches = itemBatches[item.id] || [];
+      if (batches.length === 0) {
+        toast.error(`${item.article_name} saknar batchinformation`);
+        return false;
+      }
+      const totalQty = batches.reduce((sum, b) => sum + (parseFloat(b.quantity) || 0), 0);
+      const confirmedQty = item.quantity_confirmed || item.quantity_ordered || 0;
+      if (Math.abs(totalQty - confirmedQty) > 0.01) {
+        toast.error(`${item.article_name}: Summa batchkvantiteter (${totalQty}) matchar inte bekräftat antal (${confirmedQty})`);
+        return false;
+      }
+      // Check that each batch has evidence
+      for (const batch of batches) {
+        if (!batch.evidence_file) {
+          toast.error(`${item.article_name} - Batch ${batch.batch_no}: Behöver bevis (foto/dokument)`);
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  const submitAllBatches = async () => {
+    if (!validateBatches()) return;
+
+    const loadingToastId = toast.loading("Sparar batchinformation...");
+
+    try {
+      for (const item of poItems) {
+        const batches = itemBatches[item.id] || [];
+        await base44.entities.PurchaseOrderItem.update(item.id, {
+          supplier_batch_numbers: batches.map(b => ({
+            batch_no: b.batch_no,
+            quantity: parseFloat(b.quantity),
+            production_date: b.prod_date || null,
+            comment: b.comment || null
+          }))
+        });
+      }
+
+      toast.success("Batchinformation sparad!", { id: loadingToastId });
+      setCurrentTab("documents");
+    } catch (error) {
+      toast.error("Kunde inte spara batchinformation: " + error.message, { id: loadingToastId });
+    }
+  };
+
+  const addBatchToItem = (itemId) => {
+    setItemBatches(prev => ({
+      ...prev,
+      [itemId]: [...(prev[itemId] || []), { batch_no: '', quantity: '', prod_date: '', comment: '', evidence_file: null }]
+    }));
+  };
+
+  const updateBatch = (itemId, batchIdx, field, value) => {
+    setItemBatches(prev => {
+      const newBatches = [...(prev[itemId] || [])];
+      newBatches[batchIdx] = { ...newBatches[batchIdx], [field]: value };
+      return { ...prev, [itemId]: newBatches };
+    });
+  };
+
+  const removeBatch = (itemId, batchIdx) => {
+    setItemBatches(prev => {
+      const newBatches = (prev[itemId] || []).filter((_, i) => i !== batchIdx);
+      return { ...prev, [itemId]: newBatches };
+    });
+  };
+
+  const uploadBatchEvidence = async (itemId, batchIdx, file) => {
+    if (!file) return;
+
+    const uploadToastId = toast.loading("Laddar upp bevis...");
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      updateBatch(itemId, batchIdx, 'evidence_file', file_url);
+      toast.success("Bevis uppladdad!", { id: uploadToastId });
+    } catch (error) {
+      toast.error("Kunde inte ladda upp bevis", { id: uploadToastId });
+    }
+  };
 
   if (error) {
     return (
