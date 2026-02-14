@@ -217,34 +217,78 @@ export default function AdminPage() {
           </div>
         </motion.div>
 
-        {/* Test & Logout Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-6 flex gap-3 justify-center flex-wrap"
-        >
-          <Button
-            onClick={handleTestNotification}
-            disabled={testingNotification}
-            className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/50"
-          >
-            {testingNotification ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-            ) : (
-              <Bell className="w-4 h-4 mr-2" />
-            )}
-            Testa Notifikation
-          </Button>
-          <Button
-            onClick={() => base44.auth.logout()}
-            variant="outline"
-            className="bg-white/5 border-white/10 hover:bg-red-500/10 hover:border-red-500/30 text-white/70 hover:text-red-400 transition-all duration-300"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Logga ut
-          </Button>
-        </motion.div>
+        {/* Delete Account Section */}
+         <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.45 }}
+           className="mt-8 p-6 rounded-2xl bg-red-500/5 backdrop-blur-xl border border-red-500/20"
+         >
+           <div className="flex items-start gap-4">
+             <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0">
+               <AlertCircle className="w-5 h-5 text-red-400" />
+             </div>
+             <div className="flex-1">
+               <h3 className="font-semibold text-red-400 mb-1">Ta bort konto</h3>
+               <p className="text-sm text-red-300/70 mb-4">
+                 Denna åtgärd kan inte ångras. Ditt konto och all associerad data kommer att tas bort permanent.
+               </p>
+               <Button
+                 onClick={() => {
+                   if (window.confirm('Är du helt säker? Det finns ingen väg tillbaka.')) {
+                     if (window.confirm('Skriv DIN E-POSTADRESS för att bekräfta:')) {
+                       const email = prompt('Bekräfta med din e-postadress:');
+                       if (email) {
+                         const user = base44.auth.me();
+                         user.then(u => {
+                           if (email === u.email) {
+                             toast.loading('Tar bort konto...');
+                             base44.auth.deleteMe?.() || toast.error('Borttagning stöds inte');
+                           } else {
+                             toast.error('E-postadress stämmer inte');
+                           }
+                         });
+                       }
+                     }
+                   }
+                 }}
+                 variant="outline"
+                 className="bg-red-600 hover:bg-red-700 border-red-500 text-white"
+               >
+                 Ta bort mitt konto
+               </Button>
+             </div>
+           </div>
+         </motion.div>
+
+         {/* Test & Logout Buttons */}
+         <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.5 }}
+           className="mt-6 flex gap-3 justify-center flex-wrap"
+         >
+           <Button
+             onClick={handleTestNotification}
+             disabled={testingNotification}
+             className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/50"
+           >
+             {testingNotification ? (
+               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+             ) : (
+               <Bell className="w-4 h-4 mr-2" />
+             )}
+             Testa Notifikation
+           </Button>
+           <Button
+             onClick={() => base44.auth.logout()}
+             variant="outline"
+             className="bg-white/5 border-white/10 hover:bg-red-500/10 hover:border-red-500/30 text-white/70 hover:text-red-400 transition-all duration-300"
+           >
+             <LogOut className="w-4 h-4 mr-2" />
+             Logga ut
+           </Button>
+         </motion.div>
         </div>
         </div>
         );
