@@ -187,4 +187,14 @@ const LayoutContent = ({ children, currentPageName }) => {
       </main>
     </div>
   );
+};
+
+export default function Layout({ children, currentPageName }) {
+  return (
+    <LanguageProvider>
+      <LayoutContent currentPageName={currentPageName}>
+        {children}
+      </LayoutContent>
+    </LanguageProvider>
+  );
 }
