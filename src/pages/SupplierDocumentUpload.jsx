@@ -496,6 +496,7 @@ export default function SupplierDocumentUpload() {
                 )}
               </div>
             </Card>
+            )}
           </div>
 
           {/* Info & Progress */}
