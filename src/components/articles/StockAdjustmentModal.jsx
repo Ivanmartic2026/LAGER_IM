@@ -86,7 +86,7 @@ export default function StockAdjustmentModal({
               <span className="text-slate-400">Nuvarande saldo</span>
               <div className="flex items-center gap-2">
                 <Package className="w-4 h-4 text-slate-400" />
-                <span className="text-xl font-bold text-white">{article?.stock_qty || 0}</span>
+                <span className="text-xl font-bold text-white">{optimisticStock}</span>
               </div>
             </div>
 
