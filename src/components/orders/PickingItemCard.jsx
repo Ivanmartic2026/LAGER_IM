@@ -19,9 +19,10 @@ export default function PickingItemCard({
   onToggleExpand
 }) {
   const [quantity, setQuantity] = useState(1);
-  const remaining = item.quantity_ordered - (item.quantity_picked || 0);
-  const isPicked = item.status === 'picked';
-  const isPartial = item.status === 'partial';
+  const [optimisticPicked, setOptimisticPicked] = useState(item.quantity_picked || 0);
+  const remaining = item.quantity_ordered - optimisticPicked;
+  const isPicked = remaining === 0;
+  const isPartial = optimisticPicked > 0 && remaining > 0;
   const hasLowStock = article && article.stock_qty < remaining;
 
   const handleQuickPick = () => {
