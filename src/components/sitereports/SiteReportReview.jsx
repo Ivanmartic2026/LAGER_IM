@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   ArrowLeft, Loader2, CheckCircle2, XCircle, AlertTriangle,
-  Package, MapPin, Wrench, Camera
+  Package, MapPin, Wrench, Camera, FileText, Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -61,8 +61,36 @@ export default function SiteReportReview({ report, onBack }) {
     setProcessing(true);
     try {
       await runMatchingMutation.mutateAsync();
+    } catch (error) {
+      console.error('Matching error:', error);
+      toast.error('Matchning misslyckades');
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      toast.info('Genererar PDF...');
+      const response = await base44.functions.invoke('exportSiteReport', {
+        report_id: report.id
+      });
+      
+      // Create blob from response
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `site-rapport-${report.site_name}-${format(new Date(report.report_date), 'yyyy-MM-dd')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      
+      toast.success('PDF nedladdad');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Kunde inte generera PDF');
     }
   };
 
@@ -105,11 +133,21 @@ export default function SiteReportReview({ report, onBack }) {
               </div>
             </div>
 
-            {matchedImages.length > 0 && (
-              <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                {matchedImages.length} matchningar redo
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {matchedImages.length > 0 && (
+                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                  {matchedImages.length} matchningar redo
+                </Badge>
+              )}
+              <Button
+                onClick={handleExportPDF}
+                variant="outline"
+                className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Exportera PDF
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -129,15 +167,45 @@ export default function SiteReportReview({ report, onBack }) {
           </div>
         </div>
 
+        {/* All Images Gallery */}
+        {images.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <Camera className="w-5 h-5" />
+              Alla bilder från site ({images.length})
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {images.map(image => (
+                <div key={image.id} className="relative group">
+                  <img 
+                    src={image.image_url} 
+                    alt="Site" 
+                    className="w-full h-32 rounded-lg object-cover bg-slate-900 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => window.open(image.image_url, '_blank')}
+                  />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                    <Download className="w-6 h-6 text-white" />
+                  </div>
+                  {image.match_status === 'confirmed' && (
+                    <div className="absolute top-2 right-2">
+                      <CheckCircle2 className="w-5 h-5 text-green-400 bg-black/50 rounded-full" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Actions */}
         {pendingImages.length > 0 && (
           <div className="mb-6">
             <Button
               onClick={handleRunMatching}
-              disabled={processing}
+              disabled={processing || runMatchingMutation.isPending}
               className="bg-blue-600 hover:bg-blue-500"
             >
-              {processing ? (
+              {processing || runMatchingMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Matchar bilder...
