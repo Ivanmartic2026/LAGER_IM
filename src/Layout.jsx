@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { name: "Home", label: "Hem", icon: Home },
   { name: "Inventory", label: "Lager", icon: Package },
   { name: "Orders", label: "Ordrar", icon: ShoppingCart },
+  { name: "Production", label: "Produktion", icon: Activity },
   { name: "PurchaseOrders", label: "Inköp", icon: ShoppingCart },
   { name: "SiteReports", label: "Site", icon: MapPin },
   { name: "UnknownDeliveries", label: "Okända", icon: PackageSearch },
