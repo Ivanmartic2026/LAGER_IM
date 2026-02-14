@@ -33,19 +33,43 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
     }
   });
 
-  // Get GPS position on mount
+  // Get GPS position and address on mount
   useEffect(() => {
     if (navigator.geolocation) {
       setGettingLocation(true);
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          
           setSiteData(prev => ({
             ...prev,
-            gps_latitude: position.coords.latitude,
-            gps_longitude: position.coords.longitude
+            gps_latitude: lat,
+            gps_longitude: lon
           }));
+          
+          // Reverse geocode to get address
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`
+            );
+            const data = await response.json();
+            
+            if (data.display_name) {
+              setSiteData(prev => ({
+                ...prev,
+                site_address: data.display_name
+              }));
+              toast.success('GPS-position och adress hämtad');
+            } else {
+              toast.success('GPS-position hämtad');
+            }
+          } catch (error) {
+            console.log('Reverse geocoding error:', error);
+            toast.success('GPS-position hämtad');
+          }
+          
           setGettingLocation(false);
-          toast.success('GPS-position hämtad');
         },
         (error) => {
           console.log('GPS error:', error);
