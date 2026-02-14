@@ -481,12 +481,10 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
 
           console.log(`Match found. Batch match: ${batchMatchPercentage}%`);
           
-          // Show match only if:
-          // 1. Batch number match is >= 80% OR
-          // 2. No batch number was extracted (ambiguous)
-          const shouldShowMatch = 
-            batchMatchPercentage >= 80 ||
-            !data.batch_number;
+          // Show match only if batch number match is >= 80%
+          // Never show if batch numbers exist but don't match
+          const hasBatchNumbers = !!(data.batch_number && topMatch.article.batch_number);
+          const shouldShowMatch = hasBatchNumbers ? batchMatchPercentage >= 80 : false;
 
           if (shouldShowMatch) {
             setPotentialMatches([{ 
@@ -1258,20 +1256,32 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
                 </p>
 
                 <div className="flex gap-3">
-                  <Button
-                    onClick={handleRejectMatch}
-                    variant="outline"
-                    className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-                  >
-                    Nej, skapa ny
-                  </Button>
-                  <Button
-                    onClick={handleConfirmMatch}
-                    className="flex-1 bg-blue-600 hover:bg-blue-500 text-white"
-                  >
-                    Ja, det är den här
-                  </Button>
-                </div>
+                   <Button
+                     onClick={handleRejectMatch}
+                     variant="outline"
+                     className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                   >
+                     Nej, skapa ny
+                   </Button>
+                   <Button
+                     onClick={() => {
+                       setShowMatchConfirm(false);
+                       setMode(null);
+                       setStep("mode");
+                       handleReset();
+                     }}
+                     variant="outline"
+                     className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                   >
+                     ✕ Avbryt
+                   </Button>
+                   <Button
+                     onClick={handleConfirmMatch}
+                     className="flex-1 bg-blue-600 hover:bg-blue-500 text-white"
+                   >
+                     Ja, det är den här
+                   </Button>
+                 </div>
               </motion.div>
             </motion.div>
           )}
