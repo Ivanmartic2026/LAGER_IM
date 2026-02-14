@@ -33,12 +33,12 @@ export default function ArticleDraftForm({ extracted, onFieldChange, onSave, isS
     if (!extracted) return [];
     
     const fieldMap = {
-      name: extracted.product_name || [],
-      batch_number: extracted.batch_lot || [],
+      name: extracted.product_names || [],
+      batch_number: extracted.batch_numbers || [],
       sku: extracted.article_numbers || [],
-      supplier_name: extracted.supplier || [],
-      unit: extracted.unit || [],
-      stock_qty: extracted.quantity || []
+      supplier_name: extracted.suppliers || [],
+      unit: extracted.units || [],
+      stock_qty: extracted.quantities || []
     };
 
     return fieldMap[field] || [];
