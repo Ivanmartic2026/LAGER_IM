@@ -189,21 +189,35 @@ export default function ScanPage() {
       // Analyze all images in parallel
       const analysisPromises = urls.map(url => 
         base44.integrations.Core.InvokeLLM({
-          prompt: `Analysera denna bild av en artikel/etikett/följesedel och extrahera all relevant information för ett lagersystem.
+          prompt: `ANALYSERA DENNA BILD MYCKET NOGGRANT OCH EXTRAHERA ALLA NUMMER/KODER:
 
-        Bilden kan innehålla:
-        - Batchnummer/artikelnummer
-        - Artikelnamn
-        - Tillverkare
-        - Tillverkningsdatum
-        - Pixel pitch (mm)
-        - Hyllplats/lagerlokation
-        - Dimensioner (bredd, höjd, djup i mm)
-        - Vikt (kg)
-        - Antal
-        - Kategori (LED Module, Cabinet, Controller, Power Supply, Cable, Accessory, Other)
+      Du MÅSTE läsa av ALLA siffror, bokstäver och nummer som syns på bilden, speciellt:
+      - BATCHNUMMER (ofta i format som "123-456-789", "LOT123", "BATCH-001", etc)
+      - ARTIKELNUMMER / SKU
+      - SERIENUMMER
+      - PRODUKTKODER
 
-        Returnera all information du kan hitta. För varje fält, ge ett confidence-värde (0-1) baserat på hur säker du är.`,
+      VAR EXAKT: Skriv EXAKT vad du ser, ingen gissning eller normalisering.
+
+      Identifiera även:
+      - Artikelnamn/benämning
+      - Tillverkare
+      - Tillverkningsdatum
+      - Pixel pitch (mm) - om det är en LED-modul
+      - Kategori baserat på vad produkten är:
+      * LED Module - om det är LED-panel, LED-modul, ljusmodul
+      * Cabinet - om det är ett kabinett, hölje, låda
+      * Controller - om det är en kontrollenhet, processor
+      * Power Supply - om det är en strömförsörjning, transformator
+      * Cable - om det är en kabel, kontakt
+      * Accessory - övriga tillbehör
+      * Other - om det inte passar någon av ovanstående
+
+      För VARJE fält ge ett confidence-värde (0-1):
+      - 1.0 = helt säker, kan läsa tydligt
+      - 0.7-0.9 = säker, läsbara men lite suddig
+      - 0.4-0.6 = osäker, svårläst
+      - <0.4 = mycket osäker eller inte läsbar`,
           file_urls: [url],
           response_json_schema: schema
         })
