@@ -37,15 +37,15 @@ export default function UsersManagement() {
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, allowed_modules }) => {
-      await base44.auth.updateMe({ allowed_modules });
-      return { userId, allowed_modules };
+      const response = await base44.functions.invoke('updateUserModules', { userId, allowed_modules });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Användaråtkomst uppdaterad');
+      toast.success(language === 'sv' ? 'Användaråtkomst uppdaterad' : 'User access updated');
     },
     onError: (error) => {
-      toast.error('Kunde inte uppdatera användaråtkomst');
+      toast.error(language === 'sv' ? 'Kunde inte uppdatera användaråtkomst' : 'Failed to update user access');
     }
   });
 
