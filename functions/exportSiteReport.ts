@@ -22,6 +22,16 @@ Deno.serve(async (req) => {
       site_report_id: report_id 
     });
     const allArticles = await base44.asServiceRole.entities.Article.list();
+    
+    // Fetch linked order if exists
+    let linkedOrder = null;
+    if (report.linked_order_id) {
+      try {
+        linkedOrder = await base44.asServiceRole.entities.Order.get(report.linked_order_id);
+      } catch (e) {
+        console.log('Could not fetch linked order:', e);
+      }
+    }
 
     // Create PDF
     const doc = new jsPDF();
@@ -46,7 +56,18 @@ Deno.serve(async (req) => {
     doc.text(`Tekniker: ${report.technician_name || report.technician_email}`, 20, y);
     y += 6;
     doc.text(`Datum: ${new Date(report.report_date).toLocaleDateString('sv-SE')}`, 20, y);
-    y += 10;
+    y += 6;
+    
+    if (linkedOrder) {
+      doc.text(`Kopplad till order: ${linkedOrder.order_number || linkedOrder.customer_name}`, 20, y);
+      y += 6;
+      if (linkedOrder.customer_name && linkedOrder.order_number) {
+        doc.text(`Kund: ${linkedOrder.customer_name}`, 20, y);
+        y += 6;
+      }
+    }
+    
+    y += 4;
 
     if (report.notes) {
       doc.setFontSize(10);
