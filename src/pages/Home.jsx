@@ -43,6 +43,14 @@ export default function HomePage() {
     queryFn: () => base44.entities.Order.list('-created_date', 10),
   });
 
+  const { data: siteReports = [] } = useQuery({
+    queryKey: ['siteReports'],
+    queryFn: async () => {
+      const reports = await base44.entities.SiteReport.list('-created_date', 10);
+      return reports.filter(r => r.status === 'pending_review' || r.status === 'in_review');
+    }
+  });
+
   const pendingOrders = orders.filter(o => 
     (o.status === 'ready_to_pick' || o.status === 'picking' || o.status === 'picked') && 
     !o.fortnox_invoiced
@@ -410,6 +418,59 @@ export default function HomePage() {
             </Link>
           )}
         </div>
+
+        {/* Inkommande Site-rapporter */}
+        {siteReports.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="p-5 md:p-6 rounded-2xl bg-gradient-to-br from-cyan-600/20 to-cyan-700/10 border border-cyan-500/30 mb-6 backdrop-blur-sm shadow-lg shadow-cyan-500/10 hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-300"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 md:mb-2">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-cyan-500/30 flex items-center justify-center flex-shrink-0">
+                    <Camera className="w-4 h-4 md:w-5 md:h-5 text-cyan-300" />
+                  </div>
+                  <h2 className="text-base md:text-lg font-semibold text-white truncate">Inkommande Site-rapporter</h2>
+                </div>
+                <p className="text-xs md:text-sm text-cyan-200">{siteReports.length} rapport{siteReports.length !== 1 ? 'er' : ''} väntar på granskning</p>
+              </div>
+              <Link to={createPageUrl("SiteReports")} className="flex-shrink-0">
+                <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500 text-xs md:text-sm h-8 md:h-9 px-3 md:px-4">
+                  Alla
+                </Button>
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {siteReports.slice(0, 3).map(report => (
+                <Link
+                  key={report.id}
+                  to={createPageUrl("SiteReports")}
+                >
+                  <div className="flex items-center gap-3 p-3 md:p-4 rounded-xl bg-slate-900/40 hover:bg-slate-900/60 border border-slate-700/50 hover:border-slate-600 transition-all cursor-pointer group">
+                    <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-cyan-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-white text-sm md:text-base truncate">{report.site_name}</p>
+                      <p className="text-xs md:text-sm text-slate-400 truncate">
+                        {report.technician_name || report.technician_email}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 whitespace-nowrap text-xs">
+                        {report.status === 'pending_review' ? 'Väntar' : 'Granskas'}
+                      </Badge>
+                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-cyan-400 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           
