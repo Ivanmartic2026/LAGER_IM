@@ -217,7 +217,7 @@ export default function PickingItemCard({
 
               {isPartial && (
                 <div className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-3 py-2">
-                  {item.quantity_picked} av {item.quantity_ordered} st redan plockade
+                  {optimisticPicked} av {item.quantity_ordered} st redan plockade
                 </div>
               )}
             </div>
