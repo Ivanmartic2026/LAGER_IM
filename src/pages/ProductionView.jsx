@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ArrowLeft, Factory, Package, Upload, FileText,
   Phone, Mail, AlertCircle, CheckCircle2, Camera,
-  Download, ExternalLink, User, Calendar
+  Download, ExternalLink, User, Calendar, Save, Clock
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -193,12 +193,19 @@ export default function ProductionViewPage() {
     });
   };
 
+  const handleSaveProgress = () => {
+    toast.success('Ändringar sparade automatiskt');
+  };
+
   const handleCompleteProduction = async () => {
+    const completedDate = new Date();
+    const startDate = order.production_started_date ? new Date(order.production_started_date) : null;
+    
     await updateOrderMutation.mutateAsync({
       id: orderId,
       data: { 
         status: 'production_completed',
-        production_completed_date: new Date().toISOString()
+        production_completed_date: completedDate.toISOString()
       }
     });
 
@@ -207,12 +214,31 @@ export default function ProductionViewPage() {
         id: productionRecord.id,
         data: { 
           production_status: 'completed',
-          completed_date: new Date().toISOString()
+          completed_date: completedDate.toISOString()
         }
       });
     }
 
-    toast.success('Produktion markerad som klar');
+    // Calculate production time
+    if (startDate) {
+      const diffMs = completedDate - startDate;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      
+      let timeMessage = 'Produktion klar!';
+      if (diffDays > 0) {
+        timeMessage += ` Tog ${diffDays} dag${diffDays > 1 ? 'ar' : ''} och ${diffHours} timme${diffHours !== 1 ? 'r' : ''}`;
+      } else if (diffHours > 0) {
+        timeMessage += ` Tog ${diffHours} timme${diffHours !== 1 ? 'r' : ''}`;
+      } else {
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        timeMessage += ` Tog ${diffMinutes} minut${diffMinutes !== 1 ? 'er' : ''}`;
+      }
+      
+      toast.success(timeMessage, { duration: 5000 });
+    } else {
+      toast.success('Produktion markerad som klar');
+    }
   };
 
   if (!order) {
@@ -263,14 +289,26 @@ export default function ProductionViewPage() {
                   Starta produktion
                 </Button>
               )}
-              {order.status === 'in_production' && productionRecord?.checklist?.assembled && productionRecord?.checklist?.tested && (
-                <Button
-                  onClick={handleCompleteProduction}
-                  className="bg-green-600 hover:bg-green-500"
-                >
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Markera som klar
-                </Button>
+              {order.status === 'in_production' && (
+                <>
+                  <Button
+                    onClick={handleSaveProgress}
+                    variant="outline"
+                    className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Spara
+                  </Button>
+                  {productionRecord?.checklist?.assembled && productionRecord?.checklist?.tested && (
+                    <Button
+                      onClick={handleCompleteProduction}
+                      className="bg-green-600 hover:bg-green-500"
+                    >
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Slutför produktion
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -290,28 +328,84 @@ export default function ProductionViewPage() {
 
         {order.status !== 'picked' && (
           <>
-            {/* Production Info */}
-            {productionRecord && (
-              <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
-                <h3 className="font-semibold text-white mb-4">Produktionsinformation</h3>
+            {/* Production Status & Info */}
+            {productionRecord && order.status === 'in_production' && (
+              <div className="mb-6 p-5 rounded-2xl bg-blue-500/10 border border-blue-500/30">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                    <Factory className="w-5 h-5 text-blue-400 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-blue-400">Under produktion</h3>
+                    {order.production_started_date && (
+                      <p className="text-sm text-blue-400/70 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Startad {format(new Date(order.production_started_date), "d MMMM yyyy 'kl' HH:mm", { locale: sv })}
+                      </p>
+                    )}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <div className="text-white/50 mb-1">Ansvarig montör</div>
-                    <div className="text-white flex items-center gap-2">
+                    <div className="text-blue-400/60 mb-1">Ansvarig montör</div>
+                    <div className="text-blue-300 flex items-center gap-2">
                       <User className="w-4 h-4" />
                       {productionRecord.responsible_name || productionRecord.responsible_person}
                     </div>
                   </div>
-                  {productionRecord.assembly_date && (
+                  {order.production_started_date && (
                     <div>
-                      <div className="text-white/50 mb-1">Monteringsdatum</div>
-                      <div className="text-white flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        {format(new Date(productionRecord.assembly_date), "d MMMM yyyy", { locale: sv })}
+                      <div className="text-blue-400/60 mb-1">Tid i produktion</div>
+                      <div className="text-blue-300 flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        {(() => {
+                          const diffMs = new Date() - new Date(order.production_started_date);
+                          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                          const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                          if (diffDays > 0) return `${diffDays} dag${diffDays > 1 ? 'ar' : ''} ${diffHours}h`;
+                          if (diffHours > 0) return `${diffHours} timme${diffHours !== 1 ? 'r' : ''}`;
+                          const diffMinutes = Math.floor(diffMs / (1000 * 60));
+                          return `${diffMinutes} minut${diffMinutes !== 1 ? 'er' : ''}`;
+                        })()}
                       </div>
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+            
+            {/* Completed Production Info */}
+            {order.status === 'production_completed' && (
+              <div className="mb-6 p-5 rounded-2xl bg-green-500/10 border border-green-500/30">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-green-400">Produktion slutförd</h3>
+                    {order.production_completed_date && (
+                      <p className="text-sm text-green-400/70">
+                        Slutförd {format(new Date(order.production_completed_date), "d MMMM yyyy 'kl' HH:mm", { locale: sv })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {order.production_started_date && order.production_completed_date && (
+                  <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <div className="text-sm text-green-400/70 mb-1">Total produktionstid</div>
+                    <div className="text-lg font-semibold text-green-300">
+                      {(() => {
+                        const diffMs = new Date(order.production_completed_date) - new Date(order.production_started_date);
+                        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                        const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        if (diffDays > 0) return `${diffDays} dag${diffDays > 1 ? 'ar' : ''} och ${diffHours} timme${diffHours !== 1 ? 'r' : ''}`;
+                        if (diffHours > 0) return `${diffHours} timme${diffHours !== 1 ? 'r' : ''}`;
+                        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+                        return `${diffMinutes} minut${diffMinutes !== 1 ? 'er' : ''}`;
+                      })()}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
