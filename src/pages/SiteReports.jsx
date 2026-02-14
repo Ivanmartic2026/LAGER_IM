@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,16 +7,31 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   MapPin, Calendar, User, CheckCircle2, XCircle, 
-  Loader2, ArrowLeft, Wrench, FileCheck
+  Loader2, ArrowLeft, Wrench, FileCheck, Search, History
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { toast } from "sonner";
 import SiteReportReview from "@/components/sitereports/SiteReportReview";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export default function SiteReportsPage() {
   const [selectedReport, setSelectedReport] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const savedReportId = localStorage.getItem('selectedReportId');
+    if (savedReportId) {
+      const report = reports.find(r => r.id === savedReportId);
+      if (report) {
+        setSelectedReport(report);
+        localStorage.removeItem('selectedReportId');
+      }
+    }
+  }, []);
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ['siteReports'],
@@ -42,12 +57,57 @@ export default function SiteReportsPage() {
     );
   }
 
+  const filteredReports = reports.filter(report => {
+    const matchesSearch = 
+      report.site_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.site_address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.technician_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'all' || report.status === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white tracking-tight mb-2">Site-rapporter</h1>
-          <p className="text-slate-400">Granska och matcha komponenter från site-besök</p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight mb-2">Site-rapporter</h1>
+              <p className="text-slate-400">Granska och matcha komponenter från site-besök</p>
+            </div>
+            <Link to={createPageUrl('SiteHistory')}>
+              <Button variant="outline" className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+                <History className="w-4 h-4 mr-2" />
+                Site-historik
+              </Button>
+            </Link>
+          </div>
+          
+          {/* Search and Filter */}
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Sök på plats, adress eller tekniker..."
+                className="pl-10 bg-white/5 border-white/10 text-white"
+              />
+            </div>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white"
+            >
+              <option value="all">Alla status</option>
+              <option value="pending_review">Väntar granskning</option>
+              <option value="in_review">Granskas</option>
+              <option value="completed">Klar</option>
+              <option value="archived">Arkiverad</option>
+            </select>
+          </div>
         </div>
 
         {isLoading ? (
@@ -56,17 +116,23 @@ export default function SiteReportsPage() {
               <div key={i} className="h-24 rounded-2xl bg-white/5 animate-pulse" />
             ))}
           </div>
-        ) : reports.length === 0 ? (
+        ) : filteredReports.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
               <FileCheck className="w-8 h-8 text-white/30" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Inga site-rapporter ännu</h3>
-            <p className="text-white/50">Tekniker kan skapa rapporter via scan-läget</p>
+            <h3 className="text-lg font-semibold text-white mb-2">
+              {searchTerm || filterStatus !== 'all' ? 'Inga resultat' : 'Inga site-rapporter ännu'}
+            </h3>
+            <p className="text-white/50">
+              {searchTerm || filterStatus !== 'all' 
+                ? 'Försök med andra sökkriterier' 
+                : 'Tekniker kan skapa rapporter via scan-läget'}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
-            {reports.map(report => {
+            {filteredReports.map(report => {
               const reportDate = format(new Date(report.report_date), "d MMM yyyy HH:mm", { locale: sv });
               
               return (
