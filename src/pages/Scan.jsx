@@ -482,12 +482,10 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
           console.log(`Match found. Batch match: ${batchMatchPercentage}%`);
           
           // Show match only if:
-          // 1. Visual match is high (>= 0.7) OR
-          // 2. Batch number match is >= 90% OR
-          // 3. No batch number was extracted
+          // 1. Batch number match is >= 80% OR
+          // 2. No batch number was extracted (ambiguous)
           const shouldShowMatch = 
-            topMatch.visualConfidence >= 0.7 ||
-            batchMatchPercentage >= 90 ||
+            batchMatchPercentage >= 80 ||
             !data.batch_number;
 
           if (shouldShowMatch) {
