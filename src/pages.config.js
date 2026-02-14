@@ -79,7 +79,6 @@ import UnknownDeliveries from './pages/UnknownDeliveries';
 import UsersManagement from './pages/UsersManagement';
 import WarehouseDashboard from './pages/WarehouseDashboard';
 import Warehouses from './pages/Warehouses';
-import SupplierPortalDashboard from './pages/SupplierPortalDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -116,7 +115,6 @@ export const PAGES = {
     "UsersManagement": UsersManagement,
     "WarehouseDashboard": WarehouseDashboard,
     "Warehouses": Warehouses,
-    "SupplierPortalDashboard": SupplierPortalDashboard,
 }
 
 export const pagesConfig = {
