@@ -242,7 +242,7 @@ export default function SiteReportReview({ report, onBack }) {
                   
                   {orderItems.length > 0 && (
                     <div className="space-y-2">
-                      <div className="text-xs font-medium text-white/50 mb-2">Artiklar i ordern:</div>
+                      <div className="text-xs font-medium text-white/50 mb-2">Artiklar kopplade till Site:</div>
                       {orderItems.map(item => (
                         <div key={item.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
                           <div className="flex-1 min-w-0">
