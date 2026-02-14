@@ -521,33 +521,6 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                 Artiklar
               </label>
               <div className="flex gap-2">
-                <input
-                  ref={invoiceInputRef}
-                  type="file"
-                  accept=".pdf,.png,.jpg,.jpeg"
-                  onChange={handleInvoiceScan}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => invoiceInputRef.current?.click()}
-                  disabled={isScanningInvoice}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 hover:from-purple-500 hover:to-blue-500 text-white"
-                >
-                  {isScanningInvoice ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                      Skannar...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Skanna faktura
-                    </>
-                  )}
-                </Button>
                 <Button
                   type="button"
                   size="sm"
