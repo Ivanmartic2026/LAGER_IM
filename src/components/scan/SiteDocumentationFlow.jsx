@@ -173,17 +173,22 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
         throw new Error('Inga bilder kunde laddas upp');
       }
 
-      // Steg 3: AI-matchning (70% -> 90%)
-      setUploadStatus('Analyserar med AI...');
-      setUploadProgress(70);
-      
-      try {
-        await base44.functions.invoke('matchSiteImages', {
-          site_report_id: report.id
-        });
-        setUploadProgress(90);
-      } catch (matchError) {
-        console.error('Matching error:', matchError);
+      // Steg 3: AI-matchning (70% -> 90%) - bara om ingen order är kopplad
+      if (!siteData.linked_order_id) {
+        setUploadStatus('Analyserar med AI...');
+        setUploadProgress(70);
+        
+        try {
+          await base44.functions.invoke('matchSiteImages', {
+            site_report_id: report.id
+          });
+          setUploadProgress(90);
+        } catch (matchError) {
+          console.error('Matching error:', matchError);
+          setUploadProgress(90);
+        }
+      } else {
+        // Om order är kopplad, hoppa över AI-matchning
         setUploadProgress(90);
       }
 
