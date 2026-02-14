@@ -72,6 +72,7 @@ export default function ScanPage() {
   const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
   const [showMatchConfirm, setShowMatchConfirm] = useState(false);
   const [potentialMatches, setPotentialMatches] = useState([]);
+  const [imageCompareModal, setImageCompareModal] = useState(null);
 
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
@@ -1147,14 +1148,26 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 mb-4">
-                  <div className="flex gap-3 mb-3">
+                <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 mb-4 space-y-3">
+                  <div className="flex gap-3">
                     {existingArticle.image_urls?.[0] && (
-                      <img 
-                        src={existingArticle.image_urls[0]} 
-                        alt={existingArticle.name}
-                        className="w-20 h-20 rounded-lg object-cover bg-slate-900"
-                      />
+                      <button
+                        onClick={() => setImageCompareModal({
+                          scannedImage: imageUrls[0],
+                          existingImage: existingArticle.image_urls[0],
+                          existingName: existingArticle.name
+                        })}
+                        className="relative group cursor-pointer"
+                      >
+                        <img 
+                          src={existingArticle.image_urls[0]} 
+                          alt={existingArticle.name}
+                          className="w-20 h-20 rounded-lg object-cover bg-slate-900 group-hover:opacity-75 transition-opacity"
+                        />
+                        <div className="absolute inset-0 rounded-lg bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Package className="w-4 h-4 text-white" />
+                        </div>
+                      </button>
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white mb-1 truncate">{existingArticle.name}</p>
@@ -1168,12 +1181,31 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
                       </div>
                     </div>
                   </div>
+
+                  {potentialMatches[0]?.visualConfidence && (
+                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-blue-300">Matchsannolikhet</span>
+                        <span className="text-sm font-bold text-blue-400">{Math.round(potentialMatches[0].visualConfidence * 100)}%</span>
+                      </div>
+                      <div className="w-full bg-slate-700 rounded-full h-1.5">
+                        <div 
+                          className="bg-blue-500 h-1.5 rounded-full transition-all"
+                          style={{ width: `${potentialMatches[0].visualConfidence * 100}%` }}
+                        />
+                      </div>
+                      {potentialMatches[0].visualReason && (
+                        <p className="text-xs text-blue-200 mt-2">{potentialMatches[0].visualReason}</p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between text-sm border-t border-slate-700 pt-3">
                     <span className="text-slate-400">Lagersaldo:</span>
                     <span className="text-white font-semibold">{existingArticle.stock_qty || 0} st</span>
                   </div>
                   {existingArticle.shelf_address && (
-                    <div className="flex items-center justify-between text-sm mt-2">
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-400">Hyllplats:</span>
                       <span className="text-white">{existingArticle.shelf_address}</span>
                     </div>
@@ -1197,6 +1229,66 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
                     className="flex-1 bg-blue-600 hover:bg-blue-500 text-white"
                   >
                     Ja, det är den här
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Image Comparison Modal */}
+        <AnimatePresence>
+          {imageCompareModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setImageCompareModal(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-auto"
+              >
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-white mb-2">
+                    Jämför bilder
+                  </h3>
+                  <p className="text-sm text-slate-400">
+                    {imageCompareModal.existingName}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Ny skannad bild</p>
+                    <img 
+                      src={imageCompareModal.scannedImage}
+                      alt="Scanned"
+                      className="w-full rounded-lg border border-slate-700 object-contain max-h-96 bg-slate-800"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Befintlig artikel</p>
+                    <img 
+                      src={imageCompareModal.existingImage}
+                      alt="Existing"
+                      className="w-full rounded-lg border border-slate-700 object-contain max-h-96 bg-slate-800"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setImageCompareModal(null)}
+                    variant="outline"
+                    className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700"
+                  >
+                    Stäng
                   </Button>
                 </div>
               </motion.div>
