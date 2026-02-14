@@ -1177,14 +1177,7 @@ export default function ScanPage() {
                   Är det denna artikel du skannade?
                 </p>
 
-                <div className="flex gap-3">
-                   <Button
-                     onClick={handleRejectMatch}
-                     variant="outline"
-                     className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-                   >
-                     Nej, skapa ny
-                   </Button>
+                <div className="flex flex-col-reverse md:flex-row gap-3">
                    <Button
                      onClick={() => {
                        setShowMatchConfirm(false);
@@ -1196,6 +1189,13 @@ export default function ScanPage() {
                      className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
                    >
                      ✕ Avbryt
+                   </Button>
+                   <Button
+                     onClick={handleRejectMatch}
+                     variant="outline"
+                     className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                   >
+                     Nej, skapa ny
                    </Button>
                    <Button
                      onClick={handleConfirmMatch}
