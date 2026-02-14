@@ -74,6 +74,7 @@ export default function ScanPage() {
   const [showMatchConfirm, setShowMatchConfirm] = useState(false);
   const [potentialMatches, setPotentialMatches] = useState([]);
   const [imageCompareModal, setImageCompareModal] = useState(null);
+  const [zoomViewerOpen, setZoomViewerOpen] = useState(null);
 
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
