@@ -209,6 +209,17 @@ export default function ReviewForm({
         />
       </div>
 
+      {(!extractedData.batch_number || !extractedData.name) && (
+        <div className="p-4 rounded-xl bg-red-500/10 border-2 border-red-500/40">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-300">
+              <strong className="font-semibold">Obligatoriska fält</strong> saknas. Fyll i minst Batchnummer och Artikelnamn före sparning.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-3 pt-6">
         <Button
           variant="outline"
@@ -222,7 +233,7 @@ export default function ReviewForm({
         <Button
           onClick={onSave}
           disabled={isSaving || !extractedData.batch_number || !extractedData.name}
-          className="flex-1 bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all h-12"
+          className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all h-12"
         >
           {isSaving ? (
             <>
