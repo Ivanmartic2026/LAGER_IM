@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   ArrowLeft, Loader2, CheckCircle2, XCircle, AlertTriangle,
-  Package, MapPin, Wrench, Camera, FileText, Download
+  Package, MapPin, Wrench, Camera, FileText, Download, ExternalLink
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -246,7 +248,11 @@ export default function SiteReportReview({ report, onBack }) {
                       {orderItems.map(item => {
                         const article = articles.find(a => a.id === item.article_id);
                         return (
-                          <div key={item.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                          <Link
+                            key={item.id}
+                            to={createPageUrl(`Inventory?articleId=${item.article_id}`)}
+                            className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
+                          >
                             <div className="flex-1 min-w-0">
                               <div className="text-sm text-white truncate">{item.article_name}</div>
                               <div className="text-xs text-white/40">
@@ -255,10 +261,13 @@ export default function SiteReportReview({ report, onBack }) {
                                 {item.article_batch_number && <span>Batch: {item.article_batch_number}</span>}
                               </div>
                             </div>
-                            <div className="text-sm font-medium text-white/70 ml-2">
-                              {item.quantity_ordered} st
+                            <div className="flex items-center gap-2 ml-2">
+                              <div className="text-sm font-medium text-white/70">
+                                {item.quantity_ordered} st
+                              </div>
+                              <ExternalLink className="w-4 h-4 text-white/40 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
-                          </div>
+                          </Link>
                         );
                       })}
                     </div>
