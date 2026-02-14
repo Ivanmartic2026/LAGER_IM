@@ -243,19 +243,24 @@ export default function SiteReportReview({ report, onBack }) {
                   {orderItems.length > 0 && (
                     <div className="space-y-2">
                       <div className="text-xs font-medium text-white/50 mb-2">Artiklar kopplade till Site:</div>
-                      {orderItems.map(item => (
-                        <div key={item.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm text-white truncate">{item.article_name}</div>
-                            {item.article_batch_number && (
-                              <div className="text-xs text-white/40">Batch: {item.article_batch_number}</div>
-                            )}
+                      {orderItems.map(item => {
+                        const article = articles.find(a => a.id === item.article_id);
+                        return (
+                          <div key={item.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm text-white truncate">{item.article_name}</div>
+                              <div className="text-xs text-white/40">
+                                {article?.sku && <span>Artikelnr: {article.sku}</span>}
+                                {article?.sku && item.article_batch_number && <span> • </span>}
+                                {item.article_batch_number && <span>Batch: {item.article_batch_number}</span>}
+                              </div>
+                            </div>
+                            <div className="text-sm font-medium text-white/70 ml-2">
+                              {item.quantity_ordered} st
+                            </div>
                           </div>
-                          <div className="text-sm font-medium text-white/70 ml-2">
-                            {item.quantity_ordered} st
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
