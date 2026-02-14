@@ -667,6 +667,18 @@ export default function OrdersPage() {
                                <span>{itemsCount} artiklar</span>
                              </div>
                            )}
+                           {order.rm_system_url && (
+                             <a 
+                               href={order.rm_system_url} 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 hover:underline"
+                               onClick={(e) => e.stopPropagation()}
+                             >
+                               <Truck className="w-4 h-4" />
+                               <span>RM System</span>
+                             </a>
+                           )}
                          </div>
 
                         {order.notes && (
