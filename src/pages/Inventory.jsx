@@ -695,30 +695,6 @@ export default function InventoryPage() {
 
             {/* Filters Row */}
             <div className="flex flex-wrap gap-3">
-              <Tabs value={sortBy} onValueChange={setSortBy}>
-                <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
-                  <TabsTrigger value="newest" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
-                    <ArrowUpDown className="w-4 h-4 mr-2" />
-                    Nyast
-                  </TabsTrigger>
-                  <TabsTrigger value="name" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Namn</TabsTrigger>
-                  <TabsTrigger value="batch" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Batch</TabsTrigger>
-                  <TabsTrigger value="shelf" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Hylla</TabsTrigger>
-                  <TabsTrigger value="supplier" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leverantör</TabsTrigger>
-                  <TabsTrigger value="stock" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Saldo</TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-                <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
-                  <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
-                  <TabsTrigger value="active" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">I lager</TabsTrigger>
-                  <TabsTrigger value="low_stock" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Lågt</TabsTrigger>
-                  <TabsTrigger value="out_of_stock" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Slut</TabsTrigger>
-                  <TabsTrigger value="on_repair" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Reparation</TabsTrigger>
-                </TabsList>
-              </Tabs>
-
               <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
                 <SelectTrigger className="w-52 h-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300">
                   <SelectValue placeholder="Lager" />
