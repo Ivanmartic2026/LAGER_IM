@@ -18,11 +18,50 @@ import { toast } from "sonner";
 export default function MovementsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [isPulling, setIsPulling] = useState(false);
+  const pullStartRef = useRef(0);
+  const queryClient = useQueryClient();
 
-  const { data: movements = [], isLoading } = useQuery({
+  const { data: movements = [], isLoading, refetch } = useQuery({
     queryKey: ['movements'],
     queryFn: () => base44.entities.StockMovement.list('-created_date', 100),
   });
+
+  // Pull-to-refresh
+  useEffect(() => {
+    let touchStartY = 0;
+    
+    const handleTouchStart = (e) => {
+      touchStartY = e.touches[0].clientY;
+      pullStartRef.current = window.scrollY;
+    };
+
+    const handleTouchMove = (e) => {
+      if (pullStartRef.current === 0 && e.touches[0].clientY > touchStartY + 50) {
+        setIsPulling(true);
+      } else if (e.touches[0].clientY < touchStartY) {
+        setIsPulling(false);
+      }
+    };
+
+    const handleTouchEnd = async () => {
+      if (isPulling) {
+        setIsPulling(false);
+        await refetch();
+        toast.success('Uppdaterad!');
+      }
+    };
+
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isPulling, refetch]);
 
   const { data: articles = [] } = useQuery({
     queryKey: ['articles'],
