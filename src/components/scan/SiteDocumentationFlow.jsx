@@ -22,6 +22,8 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
   });
   const [capturedImages, setCapturedImages] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState('');
   const [gettingLocation, setGettingLocation] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -109,11 +111,16 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
     }
 
     setUploading(true);
+    setUploadProgress(0);
+    setUploadStatus('Förbereder...');
 
     try {
       const user = await base44.auth.me();
 
-      // Skapa site-rapport
+      // Steg 1: Skapa rapport (10% progress)
+      setUploadStatus('Skapar rapport...');
+      setUploadProgress(10);
+      
       const report = await base44.entities.SiteReport.create({
         site_name: siteData.site_name,
         site_address: siteData.site_address,
@@ -127,48 +134,76 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
         linked_order_id: siteData.linked_order_id
       });
 
-      // Ladda upp bilder och analysera direkt
-      toast.info('Analyserar bilder med AI...');
-      
+      // Steg 2: Ladda upp bilder (10% -> 70%)
+      const totalImages = capturedImages.length;
       const uploadedImages = [];
-      for (const imageData of capturedImages) {
-        // Konvertera base64 till blob
-        const blob = await fetch(imageData).then(r => r.blob());
-        const file = new File([blob], `site-${Date.now()}.jpg`, { type: 'image/jpeg' });
-
-        // Ladda upp
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-
-        // Skapa site-rapport-bild
-        const siteImage = await base44.entities.SiteReportImage.create({
-          site_report_id: report.id,
-          image_url: file_url,
-          match_status: 'pending'
-        });
+      
+      for (let i = 0; i < totalImages; i++) {
+        const imageData = capturedImages[i];
+        const progressStart = 10 + (i * 60 / totalImages);
+        const progressEnd = 10 + ((i + 1) * 60 / totalImages);
         
-        uploadedImages.push(siteImage);
+        setUploadStatus(`Laddar upp bild ${i + 1} av ${totalImages}...`);
+        setUploadProgress(progressStart);
+
+        try {
+          // Konvertera base64 till blob
+          const blob = await fetch(imageData).then(r => r.blob());
+          const file = new File([blob], `site-${Date.now()}-${i}.jpg`, { type: 'image/jpeg' });
+
+          // Ladda upp
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+          // Skapa site-rapport-bild
+          const siteImage = await base44.entities.SiteReportImage.create({
+            site_report_id: report.id,
+            image_url: file_url,
+            match_status: 'pending'
+          });
+          
+          uploadedImages.push(siteImage);
+          setUploadProgress(progressEnd);
+        } catch (imageError) {
+          console.error(`Error uploading image ${i + 1}:`, imageError);
+          toast.error(`Bild ${i + 1} kunde inte laddas upp`);
+        }
       }
 
-      // Kör AI-matchning direkt
+      if (uploadedImages.length === 0) {
+        throw new Error('Inga bilder kunde laddas upp');
+      }
+
+      // Steg 3: AI-matchning (70% -> 90%)
+      setUploadStatus('Analyserar med AI...');
+      setUploadProgress(70);
+      
       try {
         await base44.functions.invoke('matchSiteImages', {
           site_report_id: report.id
         });
-        toast.success('AI-matchning klar!');
+        setUploadProgress(90);
       } catch (matchError) {
         console.error('Matching error:', matchError);
-        toast.warning('Bilder sparade, matchning kan köras manuellt');
+        setUploadProgress(90);
       }
 
-      setStep('success');
+      // Steg 4: Klar (100%)
+      setUploadStatus('Klart!');
+      setUploadProgress(100);
+      
       setTimeout(() => {
-        onComplete();
-      }, 2000);
+        setStep('success');
+        setTimeout(() => {
+          onComplete();
+        }, 1500);
+      }, 500);
 
     } catch (error) {
       console.error('Submit error:', error);
-      toast.error('Kunde inte spara: ' + error.message);
+      toast.error('Något gick fel: ' + error.message);
       setUploading(false);
+      setUploadProgress(0);
+      setUploadStatus('');
     }
   };
 
@@ -317,10 +352,35 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
   if (step === 'capture') {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-bold text-white mb-2">Fotografera komponenter</h2>
-          <p className="text-white/50">Ta bilder på alla relevanta delar</p>
-        </div>
+        {uploading ? (
+          <div className="py-12 space-y-4">
+            <div className="text-center">
+              <div className="w-20 h-20 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
+                <Loader2 className="w-10 h-10 text-blue-400 animate-spin" />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">{uploadStatus}</h2>
+              <p className="text-white/50 mb-6">Vänta, stäng inte appen</p>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-white/70">Framsteg</span>
+                <span className="text-blue-400 font-medium">{Math.round(uploadProgress)}%</span>
+              </div>
+              <div className="h-3 rounded-full bg-white/5 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-300 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div>
+              <h2 className="text-xl font-bold text-white mb-2">Fotografera komponenter</h2>
+              <p className="text-white/50">Ta bilder på alla relevanta delar</p>
+            </div>
 
         <input
           type="file"
@@ -375,32 +435,26 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
           </div>
         )}
 
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={() => setStep('info')}
-            className="flex-1 bg-white/5 border-white/10 text-white hover:bg-white/10"
-          >
-            Tillbaka
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={capturedImages.length === 0 || uploading}
-            className="flex-1 bg-green-600 hover:bg-green-500"
-          >
-            {uploading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Sparar...
-              </>
-            ) : (
-              <>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setStep('info')}
+                disabled={uploading}
+                className="flex-1 bg-white/5 border-white/10 text-white hover:bg-white/10"
+              >
+                Tillbaka
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={capturedImages.length === 0 || uploading}
+                className="flex-1 bg-green-600 hover:bg-green-500"
+              >
                 <Upload className="w-4 h-4 mr-2" />
                 Skicka rapport ({capturedImages.length})
-              </>
-            )}
-          </Button>
-        </div>
+              </Button>
+            </div>
+          </>
+        )}
 
         {/* Image Preview Modal */}
         {previewImage && (
