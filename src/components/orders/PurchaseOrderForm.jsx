@@ -472,16 +472,46 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
             </div>
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-slate-300 mb-2 block">
-              Anteckningar
-            </label>
-            <Textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Interna anteckningar..."
-              className="bg-slate-800 border-slate-700 text-white h-20"
-            />
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1">
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                Anteckningar
+              </label>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Interna anteckningar..."
+                className="bg-slate-800 border-slate-700 text-white h-20"
+              />
+            </div>
+            <div>
+              <input
+                ref={invoiceInputRef}
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg"
+                onChange={handleInvoiceScan}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => invoiceInputRef.current?.click()}
+                disabled={isScanningInvoice}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 hover:from-purple-500 hover:to-blue-500 text-white h-20 whitespace-normal"
+              >
+                {isScanningInvoice ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Skannar...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Skanna faktura
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* PO Items */}
