@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import PurchaseOrderForm from "@/components/orders/PurchaseOrderForm";
 import SimplifiedReceivingForm from "@/components/receiving/SimplifiedReceivingForm";
+import InvoiceScanButton from "@/components/orders/InvoiceScanButton";
 
 export default function PurchaseOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -200,21 +201,24 @@ export default function PurchaseOrdersPage() {
         
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 gap-3">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 tracking-tight">Inköpsordrar</h1>
               <p className="text-white/50">Hantera och spåra dina inköpsordrar</p>
             </div>
-            <Button
-              onClick={() => {
-                setEditingPO(null);
-                setShowForm(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
-              >
-              <Plus className="w-4 h-4 mr-2" />
-              Ny order
-              </Button>
+            <div className="flex gap-3">
+              <InvoiceScanButton />
+              <Button
+                onClick={() => {
+                  setEditingPO(null);
+                  setShowForm(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
+                >
+                <Plus className="w-4 h-4 mr-2" />
+                Ny order
+                </Button>
+            </div>
           </div>
 
           {/* Stats Cards */}
