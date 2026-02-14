@@ -25,9 +25,13 @@ Deno.serve(async (req) => {
     
     // Fetch linked order if exists
     let linkedOrder = null;
+    let orderItems = [];
     if (report.linked_order_id) {
       try {
         linkedOrder = await base44.asServiceRole.entities.Order.get(report.linked_order_id);
+        orderItems = await base44.asServiceRole.entities.OrderItem.filter({
+          order_id: report.linked_order_id
+        });
       } catch (e) {
         console.log('Could not fetch linked order:', e);
       }
@@ -83,6 +87,44 @@ Deno.serve(async (req) => {
       y += 5;
       doc.text(`GPS: ${report.gps_latitude.toFixed(6)}, ${report.gps_longitude.toFixed(6)}`, 20, y);
       y += 10;
+    }
+
+    // Order items if linked
+    if (linkedOrder && orderItems.length > 0) {
+      y += 5;
+      doc.setFontSize(14);
+      doc.text('Artiklar från order', 20, y);
+      y += 8;
+      
+      doc.setFontSize(9);
+      orderItems.forEach(item => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        doc.setFont(undefined, 'bold');
+        doc.text(item.article_name || 'Okänd artikel', 25, y);
+        y += 5;
+        
+        doc.setFont(undefined, 'normal');
+        if (item.article_batch_number) {
+          doc.text(`Batch: ${item.article_batch_number}`, 30, y);
+          y += 5;
+        }
+        
+        doc.text(`Antal: ${item.quantity_ordered} st`, 30, y);
+        y += 5;
+        
+        if (item.shelf_address) {
+          doc.text(`Plats: ${item.shelf_address}`, 30, y);
+          y += 5;
+        }
+        
+        y += 2;
+      });
+      
+      y += 5;
     }
 
     // Statistics
