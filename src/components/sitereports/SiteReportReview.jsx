@@ -32,6 +32,14 @@ export default function SiteReportReview({ report, onBack }) {
     queryFn: () => base44.entities.Order.list('-created_date')
   });
 
+  const { data: orderItems = [] } = useQuery({
+    queryKey: ['orderItems', report.linked_order_id],
+    queryFn: () => report.linked_order_id 
+      ? base44.entities.OrderItem.filter({ order_id: report.linked_order_id })
+      : [],
+    enabled: !!report.linked_order_id
+  });
+
   const runMatchingMutation = useMutation({
     mutationFn: async () => {
       const result = await base44.functions.invoke('matchSiteImages', {
@@ -223,15 +231,36 @@ export default function SiteReportReview({ report, onBack }) {
               </Button>
             </div>
           ) : (
-            <div className="text-sm text-white/60">
+            <div>
               {report.linked_order_id ? (
                 <div>
-                  {allOrders.find(o => o.id === report.linked_order_id)?.order_number || 
-                   allOrders.find(o => o.id === report.linked_order_id)?.customer_name || 
-                   'Order hittades inte'}
+                  <div className="text-sm font-medium text-white mb-3">
+                    {allOrders.find(o => o.id === report.linked_order_id)?.order_number || 
+                     allOrders.find(o => o.id === report.linked_order_id)?.customer_name || 
+                     'Order hittades inte'}
+                  </div>
+                  
+                  {orderItems.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-white/50 mb-2">Artiklar i ordern:</div>
+                      {orderItems.map(item => (
+                        <div key={item.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm text-white truncate">{item.article_name}</div>
+                            {item.article_batch_number && (
+                              <div className="text-xs text-white/40">Batch: {item.article_batch_number}</div>
+                            )}
+                          </div>
+                          <div className="text-sm font-medium text-white/70 ml-2">
+                            {item.quantity_ordered} st
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div>Ingen order kopplad</div>
+                <div className="text-sm text-white/60">Ingen order kopplad</div>
               )}
             </div>
           )}
