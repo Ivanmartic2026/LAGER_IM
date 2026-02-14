@@ -37,8 +37,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create PDF
-    const doc = new jsPDF();
+    // Create PDF with UTF-8 support
+    const doc = new jsPDF({
+      putOnlyUsedFonts: true,
+      compress: true
+    });
+    
+    // Add Swedish font support
+    doc.setFont("helvetica");
+    
     let y = 20;
 
     // Title
@@ -48,25 +55,34 @@ Deno.serve(async (req) => {
 
     // Report info
     doc.setFontSize(12);
-    doc.text(`Plats: ${report.site_name}`, 20, y);
+    const sanitize = (text) => {
+      if (!text) return '';
+      // Replace Swedish characters for PDF compatibility
+      return text
+        .replace(/å/g, 'a').replace(/Å/g, 'A')
+        .replace(/ä/g, 'a').replace(/Ä/g, 'A')
+        .replace(/ö/g, 'o').replace(/Ö/g, 'O');
+    };
+    
+    doc.text(`Plats: ${sanitize(report.site_name)}`, 20, y);
     y += 8;
     
     if (report.site_address) {
       doc.setFontSize(10);
-      doc.text(`Adress: ${report.site_address}`, 20, y);
+      doc.text(`Adress: ${sanitize(report.site_address)}`, 20, y);
       y += 6;
     }
     
-    doc.text(`Tekniker: ${report.technician_name || report.technician_email}`, 20, y);
+    doc.text(`Tekniker: ${sanitize(report.technician_name || report.technician_email)}`, 20, y);
     y += 6;
     doc.text(`Datum: ${new Date(report.report_date).toLocaleDateString('sv-SE')}`, 20, y);
     y += 6;
     
     if (linkedOrder) {
-      doc.text(`Kopplad till order: ${linkedOrder.order_number || linkedOrder.customer_name}`, 20, y);
+      doc.text(`Kopplad till order: ${sanitize(linkedOrder.order_number || linkedOrder.customer_name)}`, 20, y);
       y += 6;
       if (linkedOrder.customer_name && linkedOrder.order_number) {
-        doc.text(`Kund: ${linkedOrder.customer_name}`, 20, y);
+        doc.text(`Kund: ${sanitize(linkedOrder.customer_name)}`, 20, y);
         y += 6;
       }
     }
@@ -77,7 +93,7 @@ Deno.serve(async (req) => {
       doc.setFontSize(10);
       doc.text('Anteckningar:', 20, y);
       y += 6;
-      const notesLines = doc.splitTextToSize(report.notes, 170);
+      const notesLines = doc.splitTextToSize(sanitize(report.notes), 170);
       doc.text(notesLines, 20, y);
       y += (notesLines.length * 6) + 4;
     }
@@ -104,12 +120,12 @@ Deno.serve(async (req) => {
         }
         
         doc.setFont(undefined, 'bold');
-        doc.text(item.article_name || 'Okänd artikel', 25, y);
+        doc.text(sanitize(item.article_name || 'Okand artikel'), 25, y);
         y += 5;
         
         doc.setFont(undefined, 'normal');
         if (item.article_batch_number) {
-          doc.text(`Batch: ${item.article_batch_number}`, 30, y);
+          doc.text(`Batch: ${sanitize(item.article_batch_number)}`, 30, y);
           y += 5;
         }
         
@@ -140,11 +156,11 @@ Deno.serve(async (req) => {
     
     doc.text(`Totalt bilder: ${images.length}`, 20, y);
     y += 6;
-    doc.text(`Bekräftade matchningar: ${confirmed.length}`, 20, y);
+    doc.text(`Bekraftade matchningar: ${confirmed.length}`, 20, y);
     y += 6;
-    doc.text(`Behöver bytas: ${needsReplacement.length}`, 20, y);
+    doc.text(`Behover bytas: ${needsReplacement.length}`, 20, y);
     y += 6;
-    doc.text(`Behöver repareras: ${needsRepair.length}`, 20, y);
+    doc.text(`Behover repareras: ${needsRepair.length}`, 20, y);
     y += 12;
 
     // Confirmed components with images
@@ -163,19 +179,19 @@ Deno.serve(async (req) => {
         if (article) {
           doc.setFontSize(9);
           doc.setFont(undefined, 'bold');
-          doc.text(article.name, 20, y);
+          doc.text(sanitize(article.name), 20, y);
           y += 5;
           
           doc.setFont(undefined, 'normal');
           
           if (article.batch_number) {
-            doc.text(`Batch: ${article.batch_number}`, 25, y);
+            doc.text(`Batch: ${sanitize(article.batch_number)}`, 25, y);
             y += 5;
           }
           
           const statusText = image.component_status === 'ok' ? 'OK - Fungerar' :
-                           image.component_status === 'needs_replacement' ? 'Behöver bytas ut' :
-                           image.component_status === 'needs_repair' ? 'Behöver repareras' : 'Dokumenterad';
+                           image.component_status === 'needs_replacement' ? 'Behover bytas ut' :
+                           image.component_status === 'needs_repair' ? 'Behover repareras' : 'Dokumenterad';
           doc.text(`Status: ${statusText}`, 25, y);
           y += 5;
 
@@ -183,7 +199,7 @@ Deno.serve(async (req) => {
           if (image.form_data) {
             Object.keys(image.form_data).forEach(key => {
               if (key !== 'component_status' && image.form_data[key]) {
-                doc.text(`${key}: ${image.form_data[key]}`, 25, y);
+                doc.text(`${sanitize(key)}: ${sanitize(String(image.form_data[key]))}`, 25, y);
                 y += 5;
               }
             });
