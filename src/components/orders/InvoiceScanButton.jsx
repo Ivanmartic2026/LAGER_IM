@@ -35,7 +35,7 @@ export default function InvoiceScanButton() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf,.jpg,.jpeg,.png"
+        accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls"
         onChange={handleFileSelect}
         className="hidden"
       />
