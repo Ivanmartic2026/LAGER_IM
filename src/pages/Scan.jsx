@@ -824,20 +824,25 @@ export default function ScanPage() {
                   <p className="text-sm text-slate-400 mb-2">{imageUrls.length} bild{imageUrls.length > 1 ? 'er' : ''} uppladdad{imageUrls.length > 1 ? 'e' : ''}</p>
                   <div className="grid grid-cols-3 gap-2">
                     {imageUrls.map((url, index) => (
-                      <div key={index} className="rounded-lg overflow-hidden bg-slate-800 relative group">
+                      <div key={index} className="rounded-lg overflow-hidden bg-slate-800 relative group cursor-pointer">
                         <img 
                           src={url} 
                           alt={`Bild ${index + 1}`} 
                           className="w-full h-24 object-contain"
+                          onClick={() => setZoomViewerOpen(url)}
                         />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
                           <Button
                             size="icon"
                             variant="secondary"
                             className="h-8 w-8 bg-slate-900/80 hover:bg-slate-800"
-                            onClick={() => window.open(url, '_blank')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setZoomViewerOpen(url);
+                            }}
+                            title="Zooma och läs etikett"
                           >
-                            <Package className="w-3 h-3" />
+                            <Download className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
