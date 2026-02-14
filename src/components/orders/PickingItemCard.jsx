@@ -26,11 +26,13 @@ export default function PickingItemCard({
   const hasLowStock = article && article.stock_qty < remaining;
 
   const handleQuickPick = () => {
+    setOptimisticPicked(item.quantity_ordered);
     onPick(remaining);
   };
 
   const handleCustomPick = () => {
     if (quantity > 0 && quantity <= remaining) {
+      setOptimisticPicked(optimisticPicked + quantity);
       onPick(quantity);
       setQuantity(1);
     }
