@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Package, MapPin, Calendar, Hash, Factory, Ruler, 
   Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2, History,
-  DollarSign, Warehouse, Tag, Check, X, ShoppingCart, Copy
+  DollarSign, Warehouse, Tag, Check, X, ShoppingCart, Copy, Camera
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -83,6 +83,25 @@ export default function ArticleDetail({
       const allItems = await base44.entities.OrderItem.list('-created_date', 100);
       return allItems.filter(item => item.article_id === article.id);
     },
+  });
+
+  const { data: siteReportImages = [] } = useQuery({
+    queryKey: ['siteReportImages', article.id],
+    queryFn: async () => {
+      const allImages = await base44.entities.SiteReportImage.list('-created_date', 100);
+      return allImages.filter(img => img.matched_article_id === article.id && img.match_status === 'confirmed');
+    },
+  });
+
+  const { data: siteReports = [] } = useQuery({
+    queryKey: ['siteReports', siteReportImages],
+    queryFn: async () => {
+      if (siteReportImages.length === 0) return [];
+      const uniqueReportIds = [...new Set(siteReportImages.map(img => img.site_report_id))];
+      const allReports = await base44.entities.SiteReport.list('-created_date');
+      return allReports.filter(r => uniqueReportIds.includes(r.id));
+    },
+    enabled: siteReportImages.length > 0,
   });
 
   const { data: allOrders = [] } = useQuery({
@@ -587,7 +606,7 @@ export default function ArticleDetail({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-white/5 border border-white/10 w-full grid grid-cols-6 md:w-auto md:inline-flex p-1 gap-1 backdrop-blur-xl">
+        <TabsList className="bg-white/5 border border-white/10 w-full grid grid-cols-7 md:w-auto md:inline-flex p-1 gap-1 backdrop-blur-xl">
           <TabsTrigger 
             value="details" 
             className="flex items-center justify-center gap-2 text-sm font-medium text-white/50 data-[state=active]:text-white data-[state=active]:bg-white/10 rounded-lg px-4 py-2.5 transition-all hover:text-white/70 hover:bg-white/5"
@@ -629,6 +648,13 @@ export default function ArticleDetail({
           >
             <Wrench className="w-4 h-4" />
             <span className="hidden sm:inline">Reparation</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="onsite" 
+            className="flex items-center justify-center gap-2 text-sm font-medium text-white/50 data-[state=active]:text-white data-[state=active]:bg-white/10 rounded-lg px-4 py-2.5 transition-all hover:text-white/70 hover:bg-white/5"
+          >
+            <Camera className="w-4 h-4" />
+            <span className="hidden sm:inline">Onsite ({siteReports.length})</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1157,6 +1183,78 @@ export default function ArticleDetail({
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="onsite" className="mt-6">
+          <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+            <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+              <Camera className="w-5 h-5 text-blue-400" />
+              Användning på site
+            </h3>
+
+            {siteReports.length === 0 ? (
+              <div className="text-center py-8">
+                <Camera className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <p className="text-slate-400">Artikeln har inte dokumenterats på någon site ännu</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {siteReports.map((report) => {
+                  const reportImages = siteReportImages.filter(img => img.site_report_id === report.id);
+                  
+                  return (
+                    <Link 
+                      key={report.id}
+                      to={`${createPageUrl("SiteReports")}?reportId=${report.id}`}
+                      className="block"
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/30 hover:border-slate-600 transition-all cursor-pointer"
+                      >
+                        <div className="flex items-start justify-between gap-4 mb-2">
+                          <div className="flex-1">
+                            <p className="text-white font-medium">{report.site_name}</p>
+                            {report.site_address && (
+                              <p className="text-sm text-slate-400 flex items-center gap-1 mt-1">
+                                <MapPin className="w-3 h-3" />
+                                {report.site_address}
+                              </p>
+                            )}
+                            <p className="text-sm text-slate-500 mt-1">
+                              Tekniker: {report.technician_name || report.technician_email}
+                            </p>
+                          </div>
+                          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                            {reportImages.length} {reportImages.length === 1 ? 'bild' : 'bilder'}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-500">
+                            {format(new Date(report.report_date), "d MMM yyyy HH:mm", { locale: sv })}
+                          </span>
+                          {reportImages[0]?.component_status && (
+                            <span className={cn(
+                              "text-xs px-2 py-1 rounded",
+                              reportImages[0].component_status === 'ok' ? 'bg-green-500/20 text-green-400' :
+                              reportImages[0].component_status === 'needs_replacement' ? 'bg-red-500/20 text-red-400' :
+                              reportImages[0].component_status === 'needs_repair' ? 'bg-orange-500/20 text-orange-400' :
+                              'bg-slate-500/20 text-slate-400'
+                            )}>
+                              {reportImages[0].component_status === 'ok' ? 'OK' :
+                               reportImages[0].component_status === 'needs_replacement' ? 'Behöver bytas' :
+                               reportImages[0].component_status === 'needs_repair' ? 'Behöver repareras' : 
+                               'Dokumenterad'}
+                            </span>
+                          )}
+                        </div>
+                      </motion.div>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>
