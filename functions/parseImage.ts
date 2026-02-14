@@ -213,33 +213,40 @@ Deno.serve(async (req) => {
       }
     };
 
-    const prompt = `Du ska analysera denna/dessa bildar och extrahera ALL information du kan hitta.
+    const prompt = `Du ska analysera denna/dessa bildar och EXAKT extrahera all synlig information.
 Detta kan vara: etiketter, följesedlar, fakturabilder, site-foton, eller produktfoton.
 
-VIKTIGT: Returnera ALLT du hittar, även osäker information. Inkludera confidence-värden för allt.
+KRITISKT VIKTIGT - LÄSA AV TEXTER:
+- Läs EXAKT alla siffror, bokstäver och koder som syns på etiketter
+- Gissa ALDRIG eller "normalisera" koderna - skriva exakt som de syns
+- Om du ser "VCP186", skriv "VCP186" - inte varianter
+- Om du ser "D/C 2443:001", skriv detta exakt - inte gissa betydelse
+- Returnera raw_text med allt du ser för verifiering
 
 För varje typ av information, returnera en array med alla möjliga värden tillsammans med:
-- value: Det identifierade värdet
-- confidence: Din säkerhet (0-1)
+- value: Det identifierade värdet (EXAKT som det syns)
+- confidence: Din säkerhet (0-1) - låg confidence om texten är suddig/svårtolkad
 - Andra relevanta fält (field_type, type, context, unit, etc)
 
 Titta efter:
-1. Artikelnummer (SKU, leverantörskod, interna koder)
+1. Artikelnummer/Produktkoder (SKU, leverantörskod, interna koder, D/C-nummer)
 2. Produktnamn/Benämning
 3. Leverantörer/Tillverkare
 4. Streckkoder (EAN, GTIN, SSCC, QR, etc)
 5. Batch/Lot-nummer
-6. Serienummer
+6. Serienummer (SN)
 7. Enheter (st, pcs, pack, kg, etc)
 8. Antal/Kvantiteter
 9. Datum (tillverkning, utgång, leverans)
 10. Dimensioner (bredd, höjd, djup)
 11. Vikt/Volym
-12. Tekniska specifikationer (pixel pitch, ljusstyrka, etc)
-13. Visuella drag för matchning (design, kabinett-typ, LED-panel, färg, etc)
+12. Tekniska specifikationer (pixel pitch, ljusstyrka, resolution, etc)
+13. Visuella drag för matchning (design, kabinett-typ, LED-panel, färg, anslutningar, etc)
+
+RETURNERA ALLT du hittar, även låga confidence-värden. Bättre att ge all info än att gissa.
 
 Inkludera även:
-- raw_text: Exakt all text du ser
+- raw_text: EXAKT all text du ser på bilden (dump av allt)
 - image_type_detected: Vad är denna bild (etikett, följesedel, etc)
 - visual_features: Fysiska egenskaper du kan se för matchning med andra bilder
 ${contextPrompt}`;
