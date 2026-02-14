@@ -17,7 +17,7 @@ import { t } from "@/components/language/translations";
 // Detect if mobile for performance optimization
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
-const LayoutContent = ({ children, currentPageName }) => {
+function LayoutContent({ children, currentPageName }) {
   const { language } = useLanguage();
   
   const NAV_ITEMS = [
@@ -187,7 +187,7 @@ const LayoutContent = ({ children, currentPageName }) => {
       </main>
     </div>
   );
-};
+}
 
 export default function Layout({ children, currentPageName }) {
   return (
