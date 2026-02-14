@@ -116,10 +116,10 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
               
               <div>
                 <p className="text-lg font-medium text-white mb-1">
-                  Ta foto eller ladda upp bild
+                  Fotografera eller ladda upp bild
                 </p>
                 <p className="text-sm text-slate-400">
-                  Fotografera etikett, följesedel eller produktmärkning
+                  Fånga etikett, följesedel eller produktmärkning
                 </p>
               </div>
 
