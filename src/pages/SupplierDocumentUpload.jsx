@@ -433,11 +433,11 @@ export default function SupplierDocumentUpload() {
                 )}
               </div>
             ) : (
-              // Documents Tab
-              <Card className="bg-white/5 border-white/10 p-6">
-                <h2 className="text-lg font-semibold text-white mb-6">Ladda upp dokument</h2>
-
-              <div className="space-y-4">
+               // Documents Tab
+               <>
+               <Card className="bg-white/5 border-white/10 p-6">
+                 <h2 className="text-lg font-semibold text-white mb-6">Ladda upp dokument</h2>
+                 <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">
                     Dokumenttyp
@@ -494,8 +494,9 @@ export default function SupplierDocumentUpload() {
                     <p className="text-sm text-blue-400">Laddar upp...</p>
                   </div>
                 )}
-              </div>
-            </Card>
+                </div>
+              </Card>
+              </>
             )}
           </div>
 
