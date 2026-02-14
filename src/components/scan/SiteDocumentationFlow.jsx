@@ -24,11 +24,11 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
   const [uploading, setUploading] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
 
-  // Fetch picked orders (ready for delivery)
-  const { data: pickedOrders = [] } = useQuery({
-    queryKey: ['pickedOrders'],
+  // Fetch all orders (not just picked)
+  const { data: allOrders = [] } = useQuery({
+    queryKey: ['allOrders'],
     queryFn: async () => {
-      const orders = await base44.entities.Order.filter({ status: 'picked' });
+      const orders = await base44.entities.Order.list('-created_date');
       return orders;
     }
   });
@@ -229,18 +229,18 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-white/10 text-white">
                 <SelectItem value={null}>Ingen order</SelectItem>
-                {pickedOrders.map(order => (
+                {allOrders.map(order => (
                   <SelectItem key={order.id} value={order.id}>
                     <div className="flex items-center gap-2">
                       <Package className="w-4 h-4" />
-                      <span>{order.order_number || order.customer_name} - {order.customer_name}</span>
+                      <span>{order.order_number || order.customer_name}</span>
                     </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {pickedOrders.length === 0 && (
-              <p className="text-xs text-white/40 mt-1">Inga plockade ordrar tillgängliga</p>
+            {allOrders.length === 0 && (
+              <p className="text-xs text-white/40 mt-1">Inga ordrar tillgängliga</p>
             )}
           </div>
 
