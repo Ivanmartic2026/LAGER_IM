@@ -126,7 +126,10 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
         linked_order_id: siteData.linked_order_id
       });
 
-      // Ladda upp bilder
+      // Ladda upp bilder och analysera direkt
+      toast.info('Analyserar bilder med AI...');
+      
+      const uploadedImages = [];
       for (const imageData of capturedImages) {
         // Konvertera base64 till blob
         const blob = await fetch(imageData).then(r => r.blob());
@@ -136,11 +139,24 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
         // Skapa site-rapport-bild
-        await base44.entities.SiteReportImage.create({
+        const siteImage = await base44.entities.SiteReportImage.create({
           site_report_id: report.id,
           image_url: file_url,
           match_status: 'pending'
         });
+        
+        uploadedImages.push(siteImage);
+      }
+
+      // Kör AI-matchning direkt
+      try {
+        await base44.functions.invoke('matchSiteImages', {
+          site_report_id: report.id
+        });
+        toast.success('AI-matchning klar!');
+      } catch (matchError) {
+        console.error('Matching error:', matchError);
+        toast.warning('Bilder sparade, matchning kan köras manuellt');
       }
 
       setStep('success');

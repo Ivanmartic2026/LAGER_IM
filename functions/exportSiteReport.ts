@@ -84,21 +84,21 @@ Deno.serve(async (req) => {
     doc.text(`Behöver repareras: ${needsRepair.length}`, 20, y);
     y += 12;
 
-    // Confirmed components
+    // Confirmed components with images
     if (confirmed.length > 0) {
       doc.setFontSize(14);
       doc.text('Dokumenterade komponenter', 20, y);
       y += 8;
 
-      doc.setFontSize(9);
-      confirmed.forEach(image => {
-        if (y > 270) {
+      for (const image of confirmed) {
+        if (y > 200) {
           doc.addPage();
           y = 20;
         }
 
         const article = allArticles.find(a => a.id === image.matched_article_id);
         if (article) {
+          doc.setFontSize(9);
           doc.setFont(undefined, 'bold');
           doc.text(article.name, 20, y);
           y += 5;
@@ -126,9 +126,32 @@ Deno.serve(async (req) => {
             });
           }
           
-          y += 3;
+          y += 5;
+
+          // Add image from site
+          try {
+            const imageResponse = await fetch(image.image_url);
+            const imageBlob = await imageResponse.blob();
+            const imageArrayBuffer = await imageBlob.arrayBuffer();
+            const imageBase64 = btoa(
+              new Uint8Array(imageArrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+            );
+            
+            // Determine image format
+            const imageFormat = image.image_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
+            
+            // Add image to PDF (max width 80mm, maintain aspect ratio)
+            const imgWidth = 80;
+            const imgHeight = 60;
+            doc.addImage(`data:image/${imageFormat.toLowerCase()};base64,${imageBase64}`, imageFormat, 25, y, imgWidth, imgHeight);
+            y += imgHeight + 10;
+          } catch (imgError) {
+            console.error('Error adding image:', imgError);
+            doc.text('(Bild kunde inte laddas)', 25, y);
+            y += 5;
+          }
         }
-      });
+      }
     }
 
     const pdfBytes = doc.output('arraybuffer');
