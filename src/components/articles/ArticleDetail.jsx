@@ -88,20 +88,24 @@ export default function ArticleDetail({
   const { data: siteReportImages = [] } = useQuery({
     queryKey: ['siteReportImages', article.id],
     queryFn: async () => {
-      const allImages = await base44.entities.SiteReportImage.list('-created_date', 100);
-      return allImages.filter(img => img.matched_article_id === article.id && img.match_status === 'confirmed');
+      const allImages = await base44.entities.SiteReportImage.filter({ 
+        matched_article_id: article.id,
+        match_status: 'confirmed'
+      });
+      return allImages;
     },
   });
 
+  const uniqueReportIds = [...new Set(siteReportImages.map(img => img.site_report_id))];
+
   const { data: siteReports = [] } = useQuery({
-    queryKey: ['siteReports', siteReportImages],
+    queryKey: ['siteReports', uniqueReportIds.join(',')],
     queryFn: async () => {
-      if (siteReportImages.length === 0) return [];
-      const uniqueReportIds = [...new Set(siteReportImages.map(img => img.site_report_id))];
+      if (uniqueReportIds.length === 0) return [];
       const allReports = await base44.entities.SiteReport.list('-created_date');
       return allReports.filter(r => uniqueReportIds.includes(r.id));
     },
-    enabled: siteReportImages.length > 0,
+    enabled: uniqueReportIds.length > 0,
   });
 
   const { data: allOrders = [] } = useQuery({
