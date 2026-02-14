@@ -13,6 +13,7 @@ import ReviewForm from "@/components/scanner/ReviewForm";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import UnknownDeliveryForm from "@/components/scanner/UnknownDeliveryForm";
 import SiteDocumentationFlow from "@/components/scan/SiteDocumentationFlow";
+import ImageZoomViewer from "@/components/scanner/ImageZoomViewer";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 
