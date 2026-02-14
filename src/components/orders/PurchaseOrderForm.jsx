@@ -11,15 +11,17 @@ import { X, Plus, Trash2, Package, FileText, Sparkles, Edit2 } from "lucide-reac
 
 export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [formData, setFormData] = useState({
-    po_number: purchaseOrder?.po_number || '',
-    supplier_id: purchaseOrder?.supplier_id || '',
-    supplier_name: purchaseOrder?.supplier_name || '',
-    fortnox_project_number: purchaseOrder?.fortnox_project_number || '',
-    status: purchaseOrder?.status || 'draft',
-    expected_delivery_date: purchaseOrder?.expected_delivery_date || '',
-    order_date: purchaseOrder?.order_date || new Date().toISOString().split('T')[0],
-    notes: purchaseOrder?.notes || ''
-  });
+     po_number: purchaseOrder?.po_number || '',
+     supplier_id: purchaseOrder?.supplier_id || '',
+     supplier_name: purchaseOrder?.supplier_name || '',
+     fortnox_project_number: purchaseOrder?.fortnox_project_number || '',
+     status: purchaseOrder?.status || 'draft',
+     expected_delivery_date: purchaseOrder?.expected_delivery_date || '',
+     order_date: purchaseOrder?.order_date || new Date().toISOString().split('T')[0],
+     notes: purchaseOrder?.notes || '',
+     rm_system_id: purchaseOrder?.rm_system_id || '',
+     rm_system_url: purchaseOrder?.rm_system_url || ''
+   });
 
   const [poItems, setPOItems] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState('');
@@ -469,6 +471,30 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                   <SelectItem value="cancelled">Avbruten</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                RM-system ID
+              </label>
+              <Input
+                value={formData.rm_system_id}
+                onChange={(e) => setFormData({ ...formData, rm_system_id: e.target.value })}
+                placeholder="ID/referens i RM-systemet"
+                className="bg-slate-800 border-slate-700 text-white"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                RM-system länk
+              </label>
+              <Input
+                value={formData.rm_system_url}
+                onChange={(e) => setFormData({ ...formData, rm_system_url: e.target.value })}
+                placeholder="Länk till ordern i RM-systemet"
+                className="bg-slate-800 border-slate-700 text-white"
+              />
             </div>
           </div>
 
