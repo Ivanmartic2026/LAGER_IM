@@ -56,6 +56,14 @@ export default function HomePage() {
     !o.fortnox_invoiced
   );
 
+  const getOrderAge = (order) => {
+    const createdDate = new Date(order.created_date);
+    const today = new Date();
+    const diffTime = Math.abs(today - createdDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   const stats = {
     total: articles.length,
     totalValue: articles.reduce((sum, a) => sum + (a.stock_qty || 0), 0),
@@ -246,23 +254,36 @@ export default function HomePage() {
               </Link>
             </div>
             <div className="space-y-2">
-              {pendingOrders.slice(0, 3).map(order => (
-                <Link 
-                  key={order.id}
-                  to={`${createPageUrl("PickOrder")}?orderId=${order.id}`}
-                  className="block p-3 md:p-4 rounded-xl bg-slate-900/40 hover:bg-slate-900/60 border border-slate-700/50 hover:border-slate-600 transition-all"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-white text-sm md:text-base truncate">
-                        {order.order_number || `Order #${order.id.slice(0, 8)}`}
-                      </p>
-                      <p className="text-xs md:text-sm text-slate-400 truncate">{order.customer_name}</p>
+              {pendingOrders.slice(0, 3).map(order => {
+                const daysOld = getOrderAge(order);
+                return (
+                  <Link 
+                    key={order.id}
+                    to={`${createPageUrl("PickOrder")}?orderId=${order.id}`}
+                    className="block p-3 md:p-4 rounded-xl bg-slate-900/40 hover:bg-slate-900/60 border border-slate-700/50 hover:border-slate-600 transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-white text-sm md:text-base truncate">
+                          {order.order_number || `Order #${order.id.slice(0, 8)}`}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs md:text-sm text-slate-400 truncate">{order.customer_name}</p>
+                          <Badge className={cn(
+                            "text-xs",
+                            daysOld > 7 ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                            daysOld > 3 ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
+                            "bg-blue-500/20 text-blue-400 border-blue-500/30"
+                          )}>
+                            {daysOld} dag{daysOld !== 1 ? 'ar' : ''}
+                          </Badge>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-blue-400 flex-shrink-0 ml-2" />
                     </div>
-                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-blue-400 flex-shrink-0 ml-2" />
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </motion.div>
         )}
