@@ -499,8 +499,6 @@ Returnera bara artiklar där is_match är true och confidence är minst 0.5.`,
             setProgress(100);
             setShowMatchConfirm(true);
             return;
-          } else {
-            console.log(`Batch mismatch (${batchMatchPercentage}%) - skipping match suggestion`);
           }
         }
       } catch (searchError) {
