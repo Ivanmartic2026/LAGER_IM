@@ -89,7 +89,7 @@ export default function PickingItemCard({
                 "font-bold text-lg",
                 isPicked ? "text-green-400" : "text-white"
               )}>
-                {isPicked ? item.quantity_picked : remaining} st
+                {isPicked ? item.quantity_ordered : remaining} st
               </div>
             </div>
 
