@@ -579,9 +579,9 @@ function ImageMatchCard({ image, article, onConfirm }) {
       </div>
 
       {/* Dynamic Form */}
-      <div className="space-y-4 mb-6">
+      <div className="space-y-3 md:space-y-4 mb-6">
         <div>
-          <label className="text-sm font-medium text-white/70 mb-2 block">
+          <label className="text-xs md:text-sm font-medium text-white/70 mb-2 block">
             Status på komponenten
           </label>
           <Select 
