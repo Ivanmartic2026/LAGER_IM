@@ -383,21 +383,23 @@ export default function SiteReportReview({ report, onBack }) {
 
         {/* Actions */}
         {pendingImages.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             <Button
               onClick={handleRunMatching}
               disabled={processing || runMatchingMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-500"
+              className="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-sm md:text-base"
             >
               {processing || runMatchingMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Matchar bilder...
+                  <span className="hidden md:inline">Matchar bilder...</span>
+                  <span className="md:hidden">Matchar...</span>
                 </>
               ) : (
                 <>
                   <Wrench className="w-4 h-4 mr-2" />
-                  Kör AI-matchning
+                  <span className="hidden md:inline">Kör AI-matchning</span>
+                  <span className="md:hidden">AI-match</span>
                 </>
               )}
             </Button>
