@@ -228,6 +228,13 @@ export default function ProductionViewPage() {
     });
   };
 
+  const handleAddComment = async (commentData) => {
+    await addCommentMutation.mutateAsync({
+      order_id: orderId,
+      ...commentData
+    });
+  };
+
   const handleChecklistChange = async (field) => {
     if (!productionRecord) return;
     
