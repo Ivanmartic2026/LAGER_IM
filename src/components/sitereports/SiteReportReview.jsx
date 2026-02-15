@@ -283,17 +283,21 @@ export default function SiteReportReview({ report, onBack }) {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-            <div className="text-2xl font-bold text-white">{images.length}</div>
-            <div className="text-xs text-white/50">Totalt bilder</div>
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-3 mb-6">
+          <div className="p-3 md:p-4 rounded-lg md:rounded-xl bg-white/5 border border-white/10">
+            <div className="text-xl md:text-2xl font-bold text-white">{images.length}</div>
+            <div className="text-xs text-white/50">Bilder</div>
           </div>
-          <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
-            <div className="text-2xl font-bold text-amber-400">{pendingImages.length}</div>
+          <div className="p-3 md:p-4 rounded-lg md:rounded-xl bg-amber-500/10 border border-amber-500/30">
+            <div className="text-xl md:text-2xl font-bold text-amber-400">{pendingImages.length}</div>
             <div className="text-xs text-amber-400/70">Väntar</div>
           </div>
-          <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
-            <div className="text-2xl font-bold text-green-400">{confirmedImages.length}</div>
+          <div className="p-3 md:p-4 rounded-lg md:rounded-xl bg-blue-500/10 border border-blue-500/30">
+            <div className="text-xl md:text-2xl font-bold text-blue-400">{matchedImages.length}</div>
+            <div className="text-xs text-blue-400/70">Matchad</div>
+          </div>
+          <div className="p-3 md:p-4 rounded-lg md:rounded-xl bg-green-500/10 border border-green-500/30">
+            <div className="text-xl md:text-2xl font-bold text-green-400">{confirmedImages.length}</div>
             <div className="text-xs text-green-400/70">Bekräftade</div>
           </div>
         </div>
