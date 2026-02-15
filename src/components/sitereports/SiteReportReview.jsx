@@ -600,74 +600,74 @@ function ImageMatchCard({ image, article, onConfirm }) {
           </Select>
         </div>
 
-        {/* Template-specific fields */}
+        {/* Template-specific fields - Hidden on mobile unless expanded */}
         {template === 'led_module' && (
-          <>
+          <div className="space-y-3 hidden md:flex md:flex-col">
             <div>
-              <label className="text-sm font-medium text-white/70 mb-2 block">Pixel Pitch</label>
+              <label className="text-xs md:text-sm font-medium text-white/70 mb-2 block">Pixel Pitch</label>
               <Input
                 value={formData.pixel_pitch}
                 onChange={(e) => setFormData(prev => ({ ...prev, pixel_pitch: e.target.value }))}
                 placeholder="t.ex. 2.6"
-                className="bg-zinc-900 border-white/10 text-white"
+                className="bg-zinc-900 border-white/10 text-white text-sm"
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-white/70 mb-2 block">Mask-typ</label>
+              <label className="text-xs md:text-sm font-medium text-white/70 mb-2 block">Mask-typ</label>
               <Input
                 value={formData.mask_type}
                 onChange={(e) => setFormData(prev => ({ ...prev, mask_type: e.target.value }))}
                 placeholder="t.ex. SMD"
-                className="bg-zinc-900 border-white/10 text-white"
+                className="bg-zinc-900 border-white/10 text-white text-sm"
               />
             </div>
-          </>
+          </div>
         )}
 
         {template === 'power_supply' && (
-          <>
+          <div className="space-y-3 hidden md:flex md:flex-col">
             <div>
-              <label className="text-sm font-medium text-white/70 mb-2 block">Watt</label>
+              <label className="text-xs md:text-sm font-medium text-white/70 mb-2 block">Watt</label>
               <Input
                 value={formData.watt}
                 onChange={(e) => setFormData(prev => ({ ...prev, watt: e.target.value }))}
                 placeholder="t.ex. 500W"
-                className="bg-zinc-900 border-white/10 text-white"
+                className="bg-zinc-900 border-white/10 text-white text-sm"
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-white/70 mb-2 block">Volt</label>
+              <label className="text-xs md:text-sm font-medium text-white/70 mb-2 block">Volt</label>
               <Input
                 value={formData.volt}
                 onChange={(e) => setFormData(prev => ({ ...prev, volt: e.target.value }))}
                 placeholder="t.ex. 12V"
-                className="bg-zinc-900 border-white/10 text-white"
+                className="bg-zinc-900 border-white/10 text-white text-sm"
               />
             </div>
-          </>
+          </div>
         )}
 
         {template === 'cable' && (
-          <>
+          <div className="space-y-3 hidden md:flex md:flex-col">
             <div>
-              <label className="text-sm font-medium text-white/70 mb-2 block">Längd</label>
+              <label className="text-xs md:text-sm font-medium text-white/70 mb-2 block">Längd</label>
               <Input
                 value={formData.length}
                 onChange={(e) => setFormData(prev => ({ ...prev, length: e.target.value }))}
                 placeholder="t.ex. 5m"
-                className="bg-zinc-900 border-white/10 text-white"
+                className="bg-zinc-900 border-white/10 text-white text-sm"
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-white/70 mb-2 block">Kontakttyp</label>
+              <label className="text-xs md:text-sm font-medium text-white/70 mb-2 block">Kontakttyp</label>
               <Input
                 value={formData.connector_type}
                 onChange={(e) => setFormData(prev => ({ ...prev, connector_type: e.target.value }))}
                 placeholder="t.ex. RJ45"
-                className="bg-zinc-900 border-white/10 text-white"
+                className="bg-zinc-900 border-white/10 text-white text-sm"
               />
             </div>
-          </>
+          </div>
         )}
       </div>
 
