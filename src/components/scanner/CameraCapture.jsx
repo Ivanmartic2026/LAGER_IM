@@ -75,8 +75,10 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
   };
 
   return (
-    <div className="w-full">
-      {isProcessing && <AIProcessingScreen progress={progress} />}
+    <div className="w-full relative">
+      <AnimatePresence>
+        {isProcessing && <AIProcessingScreen progress={progress} />}
+      </AnimatePresence>
       
       <input
         type="file"

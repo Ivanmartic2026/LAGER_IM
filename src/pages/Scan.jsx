@@ -144,12 +144,15 @@ export default function ScanPage() {
 
     try {
       // Upload images first
-      setProgress(10);
-      const uploadPromises = fileArray.map(file => 
-        base44.integrations.Core.UploadFile({ file })
-      );
-      const uploadResults = await Promise.all(uploadPromises);
-      const urls = uploadResults.map(r => r.file_url);
+      setProgress(5);
+      const urls = [];
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i];
+        const uploadProgress = 5 + ((i / fileArray.length) * 25);
+        setProgress(uploadProgress);
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        urls.push(file_url);
+      }
       setImageUrls(urls);
       setProgress(30);
       

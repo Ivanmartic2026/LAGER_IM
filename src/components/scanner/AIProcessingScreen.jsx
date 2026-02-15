@@ -20,7 +20,12 @@ export default function AIProcessingScreen({ progress = 0 }) {
   }, [progress]);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center z-40">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center z-50"
+    >
       <div className="w-full max-w-md px-6">
         {/* Animated Header */}
         <motion.div
@@ -120,6 +125,6 @@ export default function AIProcessingScreen({ progress = 0 }) {
           }}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }
