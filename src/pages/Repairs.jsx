@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import PullToRefresh from "@/components/utils/PullToRefresh";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,7 +38,7 @@ export default function RepairsPage() {
 
   const { data: user } = useQuery({ queryKey: ["user"], queryFn: () => base44.auth.me() });
 
-  const { data: articles = [], isLoading } = useQuery({
+  const { data: articles = [], isLoading, refetch } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list('-updated_date'),
   });
@@ -239,8 +240,12 @@ export default function RepairsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
+    <PullToRefresh onRefresh={async () => {
+      await refetch();
+      toast.success('Uppdaterad!');
+    }}>
+      <div className="min-h-screen bg-black p-4 md:p-6">
+        <div className="max-w-6xl mx-auto">
         
         {/* Header */}
         <div className="mb-6">
@@ -540,7 +545,8 @@ export default function RepairsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
-    </div>
+    </PullToRefresh>
   );
 }

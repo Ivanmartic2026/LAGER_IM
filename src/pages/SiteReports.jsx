@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import PullToRefresh from "@/components/utils/PullToRefresh";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,7 +34,7 @@ export default function SiteReportsPage() {
     }
   }, []);
 
-  const { data: reports = [], isLoading } = useQuery({
+  const { data: reports = [], isLoading, refetch } = useQuery({
     queryKey: ['siteReports'],
     queryFn: () => base44.entities.SiteReport.list('-created_date')
   });
@@ -69,8 +70,12 @@ export default function SiteReportsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
+    <PullToRefresh onRefresh={async () => {
+      await refetch();
+      toast.success('Uppdaterad!');
+    }}>
+      <div className="min-h-screen bg-black p-4 md:p-6">
+        <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -192,7 +197,8 @@ export default function SiteReportsPage() {
             })}
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </PullToRefresh>
   );
 }

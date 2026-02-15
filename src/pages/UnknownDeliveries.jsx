@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import PullToRefresh from "@/components/utils/PullToRefresh";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -22,7 +23,7 @@ export default function UnknownDeliveriesPage() {
   
   const queryClient = useQueryClient();
 
-  const { data: unknownArticles = [], isLoading } = useQuery({
+  const { data: unknownArticles = [], isLoading, refetch } = useQuery({
     queryKey: ['unknown-deliveries'],
     queryFn: async () => {
       const articles = await base44.entities.Article.list('-created_date', 100);
@@ -93,8 +94,12 @@ export default function UnknownDeliveriesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-6">
-      <div className="max-w-5xl mx-auto">
+    <PullToRefresh onRefresh={async () => {
+      await refetch();
+      toast.success('Uppdaterad!');
+    }}>
+      <div className="min-h-screen bg-black p-4 md:p-6">
+        <div className="max-w-5xl mx-auto">
         
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

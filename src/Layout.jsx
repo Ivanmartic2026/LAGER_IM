@@ -27,6 +27,12 @@ function LayoutContent({ children, currentPageName }) {
   const [loadingUser, setLoadingUser] = useReactState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Independent navigation stacks for each tab
+  const [navigationStacks, setNavigationStacks] = useReactState(() => {
+    const stored = localStorage.getItem('nav_stacks');
+    return stored ? JSON.parse(stored) : {};
+  });
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -59,6 +65,45 @@ function LayoutContent({ children, currentPageName }) {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobile = isMobile();
+  
+  // Save navigation stacks when location changes
+  useEffect(() => {
+    const currentTab = visibleNavItems.find(item => 
+      location.pathname.toLowerCase().includes(`/${item.name.toLowerCase()}`)
+    );
+    
+    if (currentTab) {
+      const newStacks = { ...navigationStacks };
+      if (!newStacks[currentTab.name]) {
+        newStacks[currentTab.name] = [];
+      }
+      
+      // Only add if different from last entry
+      const lastPath = newStacks[currentTab.name][newStacks[currentTab.name].length - 1];
+      if (lastPath !== location.pathname) {
+        newStacks[currentTab.name].push(location.pathname);
+        // Keep only last 10 paths per tab
+        if (newStacks[currentTab.name].length > 10) {
+          newStacks[currentTab.name].shift();
+        }
+        setNavigationStacks(newStacks);
+        localStorage.setItem('nav_stacks', JSON.stringify(newStacks));
+      }
+    }
+  }, [location.pathname]);
+  
+  // Handle tab navigation with stack restoration
+  const handleTabClick = (tabName) => {
+    const stack = navigationStacks[tabName];
+    if (stack && stack.length > 0) {
+      // Restore last position in this tab
+      const lastPath = stack[stack.length - 1];
+      navigate(lastPath);
+    } else {
+      // Navigate to tab root
+      navigate(createPageUrl(tabName));
+    }
+  };
 
   // Check if we should show back button (deeper than root tabs)
   const rootPages = visibleNavItems.map(item => `/${item.name.toLowerCase()}`);
@@ -114,9 +159,9 @@ function LayoutContent({ children, currentPageName }) {
       <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4">
         <div className="flex items-center gap-2 min-w-max mx-auto">
           {visibleNavItems.map(item => (
-            <Link 
+            <button
               key={item.name}
-              to={createPageUrl(item.name)}
+              onClick={() => handleTabClick(item.name)}
               className="flex flex-col items-center gap-1"
             >
               <div className={cn(
@@ -135,9 +180,9 @@ function LayoutContent({ children, currentPageName }) {
               )}>
                 {item.label}
               </span>
-            </Link>
-          ))}
-        </div>
+              </button>
+              ))}
+              </div>
       </nav>
 
       {/* Mobile Header */}
@@ -180,12 +225,15 @@ function LayoutContent({ children, currentPageName }) {
       {mobileMenuOpen && (
        <div className="md:hidden fixed inset-0 z-40 bg-black/98 pt-16">
          <nav className="p-4 space-y-2">
-           {visibleNavItems.map(item => (
-             <Link 
-               key={item.name}
-               to={createPageUrl(item.name)}
-               onClick={() => setMobileMenuOpen(false)}
-               className={cn(
+             {visibleNavItems.map(item => (
+               <button
+                 key={item.name}
+                 onClick={() => {
+                   handleTabClick(item.name);
+                   setMobileMenuOpen(false);
+                 }}
+                 className={cn(
+                   "w-full text-left",
                  "flex items-center gap-4 p-4 rounded-xl",
                  currentPageName === item.name
                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/50"
@@ -194,9 +242,9 @@ function LayoutContent({ children, currentPageName }) {
              >
                <item.icon className="w-5 h-5" />
                <span className="font-medium tracking-tight">{item.label}</span>
-             </Link>
-           ))}
-         </nav>
+             </button>
+             ))}
+             </nav>
        </div>
       )}
 
@@ -204,9 +252,9 @@ function LayoutContent({ children, currentPageName }) {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4 pb-safe">
         <div className="flex items-center gap-1 min-w-max h-full">
           {visibleNavItems.map(item => (
-            <Link 
+            <button
               key={item.name}
-              to={createPageUrl(item.name)}
+              onClick={() => handleTabClick(item.name)}
               className={cn(
                 "flex flex-col items-center gap-1 px-3 py-2 rounded-xl",
                 currentPageName === item.name
@@ -216,10 +264,10 @@ function LayoutContent({ children, currentPageName }) {
             >
               <item.icon className="w-5 h-5" />
               <span className="text-xs font-medium whitespace-nowrap tracking-tight">{item.label}</span>
-            </Link>
-          ))}
-        </div>
-      </nav>
+            </button>
+            ))}
+            </div>
+            </nav>
 
       {/* Main Content */}
       <main className="pt-16 md:pt-20 pb-24 md:pb-24 min-h-screen will-change-auto">
