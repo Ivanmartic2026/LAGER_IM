@@ -26,6 +26,7 @@ export default function ReceivePurchaseOrderPage() {
   const [receivingItemId, setReceivingItemId] = useState(null);
   const [selectedReceivingRecords, setSelectedReceivingRecords] = useState([]);
   const [showReceivingModal, setShowReceivingModal] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   const queryClient = useQueryClient();
 
