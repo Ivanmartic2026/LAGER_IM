@@ -27,6 +27,9 @@ export default function UsersManagement() {
   const [expandedUser, setExpandedUser] = useState(null);
   const [editingUserId, setEditingUserId] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('user');
   const { language } = useLanguage();
   const queryClient = useQueryClient();
 
