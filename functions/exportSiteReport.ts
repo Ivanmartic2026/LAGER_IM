@@ -37,14 +37,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create PDF with UTF-8 support
+    // Create PDF
     const doc = new jsPDF({
-      putOnlyUsedFonts: true,
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
       compress: true
     });
-    
-    // Add Swedish font support
-    doc.setFont("helvetica");
     
     let y = 20;
 
