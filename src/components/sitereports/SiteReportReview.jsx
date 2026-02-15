@@ -85,7 +85,6 @@ export default function SiteReportReview({ report, onBack }) {
     onSuccess: () => {
       toast.success('Order uppdaterad');
       setEditingOrder(false);
-      window.location.reload();
     }
   });
 
