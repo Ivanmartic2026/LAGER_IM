@@ -15,8 +15,11 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter(f => {
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      if (!validTypes.includes(f.type)) {
-        toast.error(`${f.name} är inte ett stödd bildformat (JPEG, PNG, WebP)`);
+      const rawExtensions = ['.raw', '.cr2', '.nef', '.arw', '.dng', '.rw2', '.raf', '.x3f'];
+      const isRaw = rawExtensions.some(ext => f.name.toLowerCase().endsWith(ext));
+      
+      if (!validTypes.includes(f.type) && !isRaw) {
+        toast.error(`${f.name} är inte ett stödd bildformat (JPEG, PNG, WebP, RAW)`);
         return false;
       }
       return true;
