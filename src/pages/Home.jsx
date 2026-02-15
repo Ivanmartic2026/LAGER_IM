@@ -48,7 +48,8 @@ export default function HomePage() {
     queryFn: async () => {
       const reports = await base44.entities.SiteReport.list('-created_date', 10);
       return reports.filter(r => r.status === 'pending_review' || r.status === 'in_review');
-    }
+    },
+    staleTime: 30000,
   });
 
   const pendingOrders = orders.filter(o => 
