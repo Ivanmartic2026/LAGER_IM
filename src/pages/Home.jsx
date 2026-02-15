@@ -30,17 +30,25 @@ export default function HomePage() {
   const { data: articles = [] } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list('-updated_date', 50),
-    staleTime: 30000,
+    staleTime: 60000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: movements = [] } = useQuery({
     queryKey: ['movements'],
     queryFn: () => base44.entities.StockMovement.list('-created_date', 10),
+    staleTime: 60000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: orders = [] } = useQuery({
     queryKey: ['orders'],
     queryFn: () => base44.entities.Order.list('-created_date', 10),
+    staleTime: 60000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: siteReports = [] } = useQuery({
@@ -49,7 +57,9 @@ export default function HomePage() {
       const reports = await base44.entities.SiteReport.list('-created_date', 10);
       return reports.filter(r => r.status === 'pending_review' || r.status === 'in_review');
     },
-    staleTime: 30000,
+    staleTime: 60000,
+    gcTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const pendingOrders = orders.filter(o => 
