@@ -104,6 +104,31 @@ export default function ReceivePurchaseOrderPage() {
       return;
     }
 
+    // Check for existing batches of same article
+    const existingBatches = articles.filter(a => 
+      a.id === article.id && 
+      a.batch_number && 
+      a.batch_number !== code &&
+      a.stock_qty > 0
+    );
+
+    if (existingBatches.length > 0) {
+      const batchList = existingBatches.map(b => `${b.batch_number} (${b.stock_qty} st)`).join(', ');
+      toast.warning(`⚠️ Befintliga batcher i lager: ${batchList}`);
+    }
+
+    // Check for duplicate batch
+    const duplicateBatch = articles.find(a => 
+      a.id === article.id && 
+      a.batch_number === code && 
+      a.stock_qty > 0
+    );
+
+    if (duplicateBatch) {
+      toast.error(`Batch ${code} finns redan i lager (${duplicateBatch.stock_qty} st)`);
+      return;
+    }
+
     const remaining = item.quantity_ordered - (item.quantity_received || 0);
     await handleReceiveQuantity(item, {
       quantity: remaining,
