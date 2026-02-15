@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ProductionDocumentation from "@/components/production/ProductionDocumentation";
+import ProductionComments from "@/components/production/ProductionComments";
 
 export default function ProductionViewPage() {
   const urlParams = new URLSearchParams(window.location.search);
