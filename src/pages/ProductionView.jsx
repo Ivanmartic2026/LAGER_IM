@@ -106,6 +106,14 @@ export default function ProductionViewPage() {
     }
   });
 
+  const addCommentMutation = useMutation({
+    mutationFn: (data) => base44.entities.ProductionComment?.create(data) || Promise.resolve({}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['productionComments', orderId] });
+      toast.success('Kommentar skickad');
+    }
+  });
+
   const handleStartProduction = async () => {
     const user = await base44.auth.me();
     
