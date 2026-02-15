@@ -204,12 +204,12 @@ export default function SiteReportReview({ report, onBack }) {
           </div>
 
           {editingOrder ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Select
                 value={report.linked_order_id || ''}
                 onValueChange={(value) => updateOrderMutation.mutate(value || null)}
               >
-                <SelectTrigger className="bg-zinc-900 border-white/10 text-white">
+                <SelectTrigger className="bg-zinc-900 border-white/10 text-white text-sm">
                   <SelectValue placeholder="Välj order..." />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-[200px]">
@@ -225,7 +225,7 @@ export default function SiteReportReview({ report, onBack }) {
                 onClick={() => setEditingOrder(false)}
                 variant="ghost"
                 size="sm"
-                className="text-white/50 hover:text-white"
+                className="text-white/50 hover:text-white text-xs"
               >
                 Avbryt
               </Button>
@@ -234,7 +234,7 @@ export default function SiteReportReview({ report, onBack }) {
             <div>
               {report.linked_order_id ? (
                 <div>
-                  <div className="text-sm font-medium text-white mb-3">
+                  <div className="text-xs md:text-sm font-medium text-white mb-3 truncate">
                     {allOrders.find(o => o.id === report.linked_order_id)?.order_number || 
                      allOrders.find(o => o.id === report.linked_order_id)?.customer_name || 
                      'Order hittades inte'}
