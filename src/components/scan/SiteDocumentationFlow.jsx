@@ -267,19 +267,25 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
               onValueChange={(value) => setSiteData(prev => ({ ...prev, linked_order_id: value || null }))}
             >
               <SelectTrigger className="bg-zinc-900 border-white/10 text-white">
-                <SelectValue placeholder="Ingen order vald" />
+                <SelectValue placeholder={ordersLoading ? "Laddar..." : "Ingen order vald"} />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-[200px]">
                 <SelectItem value={null}>Ingen order</SelectItem>
                 {allOrders.map(order => (
                   <SelectItem key={order.id} value={order.id}>
-                    {order.order_number || order.customer_name}
+                    {order.order_number || order.customer_name} - {order.status}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {allOrders.length === 0 && (
+            {!ordersLoading && allOrders.length === 0 && (
               <p className="text-xs text-white/40 mt-1">Inga ordrar tillgängliga</p>
+            )}
+            {ordersLoading && (
+              <p className="text-xs text-white/40 mt-1 flex items-center gap-2">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Laddar ordrar...
+              </p>
             )}
           </div>
 
