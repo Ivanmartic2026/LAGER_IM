@@ -83,6 +83,9 @@ export default function PushManager() {
   const setupIOSInAppNotifications = async () => {
     // Listen for new notifications and show them in-app
     try {
+      const isAuthenticated = await base44.auth.isAuthenticated();
+      if (!isAuthenticated) return;
+
       const user = await base44.auth.me().catch(() => null);
       if (!user) return;
 
