@@ -654,6 +654,17 @@ export default function ProductionViewPage() {
                 </div>
               </div>
             )}
+
+            {/* Production Comments */}
+            <div className="mb-6">
+              <ProductionComments
+                comments={productionComments}
+                users={users}
+                currentUser={currentUser.data}
+                onAddComment={handleAddComment}
+                isLoading={addCommentMutation.isPending}
+              />
+            </div>
           </>
         )}
       </div>
