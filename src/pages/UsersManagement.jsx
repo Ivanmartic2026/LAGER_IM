@@ -350,6 +350,82 @@ export default function UsersManagement() {
              <p className="text-white/50">{language === 'sv' ? 'Inga användare hittade' : 'No users found'}</p>
            </div>
          )}
+        </div>
+        )}
+
+        {/* Registrations Tab */}
+        {activeTab === 'registrations' && (
+        <div className="space-y-4">
+         {registrationsLoading ? (
+           <div className="text-center py-12">
+             <Loader2 className="w-8 h-8 text-white animate-spin mx-auto" />
+           </div>
+         ) : (
+           <>
+             {registrations.map((reg, index) => (
+               <motion.div
+                 key={reg.id}
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: index * 0.05 }}
+               >
+                 <Card className="bg-white/5 border-white/10">
+                   <CardContent className="p-6">
+                     <div className="flex items-start justify-between">
+                       <div className="flex-1">
+                         <h3 className="text-lg font-semibold text-white">{reg.email}</h3>
+                         {reg.full_name && (
+                           <p className="text-sm text-white/70 mt-1">{reg.full_name}</p>
+                         )}
+                         <div className="flex flex-wrap gap-3 mt-3">
+                           <span className={cn(
+                             "text-xs px-3 py-1 rounded-full",
+                             reg.registration_method === 'admin_created' && 'bg-green-500/20 text-green-300',
+                             reg.registration_method === 'invite' && 'bg-blue-500/20 text-blue-300',
+                             reg.registration_method === 'self_register' && 'bg-purple-500/20 text-purple-300'
+                           )}>
+                             {language === 'sv' 
+                               ? reg.registration_method === 'admin_created' ? 'Admin skapad'
+                               : reg.registration_method === 'invite' ? 'Inbjuden'
+                               : 'Självregistrerad'
+                               : reg.registration_method === 'admin_created' ? 'Admin Created'
+                               : reg.registration_method === 'invite' ? 'Invited'
+                               : 'Self Registered'}
+                           </span>
+                           <span className={cn(
+                             "text-xs px-3 py-1 rounded-full",
+                             reg.status === 'completed' && 'bg-green-500/20 text-green-300',
+                             reg.status === 'verified' && 'bg-blue-500/20 text-blue-300',
+                             reg.status === 'pending' && 'bg-yellow-500/20 text-yellow-300'
+                           )}>
+                             {language === 'sv'
+                               ? reg.status === 'pending' ? 'Väntande'
+                               : reg.status === 'completed' ? 'Slutförd'
+                               : 'Verifierad'
+                               : reg.status === 'pending' ? 'Pending'
+                               : reg.status === 'completed' ? 'Completed'
+                               : 'Verified'}
+                           </span>
+                         </div>
+                       </div>
+                       <div className="text-right text-sm text-white/50">
+                         <p>{new Date(reg.created_date).toLocaleDateString(language === 'sv' ? 'sv-SE' : 'en-US')}</p>
+                         <p className="text-xs mt-1">{new Date(reg.created_date).toLocaleTimeString()}</p>
+                       </div>
+                     </div>
+                   </CardContent>
+                 </Card>
+               </motion.div>
+             ))}
+             {registrations.length === 0 && (
+               <div className="text-center py-12">
+                 <p className="text-white/50">{language === 'sv' ? 'Inga registreringar' : 'No registrations'}</p>
+               </div>
+             )}
+           </>
+         )}
+        </div>
+        )}
 
         {/* Invite Modal */}
         <AnimatePresence>
