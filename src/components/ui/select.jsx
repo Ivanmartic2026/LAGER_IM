@@ -64,7 +64,6 @@ const SelectContent = React.forwardRef(({ className, children, position = "poppe
     // Mobile: Use Drawer (Action Sheet style)
     return (
       <SelectPrimitive.Portal>
-        <div className="fixed inset-0 z-50 bg-black/40" />
         <SelectPrimitive.Content
           ref={ref}
           className={cn(
