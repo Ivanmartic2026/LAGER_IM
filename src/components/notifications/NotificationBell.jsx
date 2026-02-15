@@ -198,9 +198,9 @@ export default function NotificationBell() {
               </div>
 
               <div className="p-3 border-t border-slate-700">
-                <Link to={createPageUrl("NotificationSettings")} onClick={() => setOpen(false)}>
+                <Link to={createPageUrl("Notifications")} onClick={() => setOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full text-slate-400 hover:text-white">
-                    Inställningar
+                    Visa alla notifieringar
                   </Button>
                 </Link>
               </div>
