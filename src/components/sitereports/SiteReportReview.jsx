@@ -130,59 +130,55 @@ export default function SiteReportReview({ report, onBack }) {
   const confirmedImages = images.filter(img => img.match_status === 'confirmed');
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-6">
+    <div className="min-h-screen bg-black p-3 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-4 md:mb-6">
           <Button
             onClick={onBack}
             variant="ghost"
-            className="text-white/70 hover:text-white mb-4"
+            className="text-white/70 hover:text-white mb-3 md:mb-4 -ml-2 md:ml-0"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Tillbaka
           </Button>
 
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight mb-2">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4">
+            <div className="min-w-0">
+              <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-2 truncate">
                 {report.site_name}
               </h1>
-              <div className="space-y-1 text-sm text-white/60">
+              <div className="space-y-1 text-xs md:text-sm text-white/60">
                 {report.site_address && (
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    <span>{report.site_address}</span>
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{report.site_address}</span>
                   </div>
                 )}
-                <div>
+                <div className="truncate">
                   Tekniker: {report.technician_name || report.technician_email}
                 </div>
                 <div>
-                  Datum: {format(new Date(report.report_date), "d MMMM yyyy HH:mm", { locale: sv })}
+                  {format(new Date(report.report_date), "d MMM yyyy HH:mm", { locale: sv })}
                 </div>
-                {report.linked_order_id && (
-                  <div className="flex items-center gap-2 text-blue-400">
-                    <Package className="w-4 h-4" />
-                    <span>Kopplad till order</span>
-                  </div>
-                )}
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 md:gap-2">
               {matchedImages.length > 0 && (
-                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                  {matchedImages.length} matchningar redo
+                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs md:text-sm justify-center">
+                  {matchedImages.length} redo
                 </Badge>
               )}
               <Button
                 onClick={handleExportPDF}
                 variant="outline"
-                className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+                className="bg-white/5 border-white/10 text-white hover:bg-white/10 text-sm md:text-base"
+                size="sm"
               >
                 <FileText className="w-4 h-4 mr-2" />
-                Exportera PDF
+                <span className="hidden md:inline">Exportera PDF</span>
+                <span className="md:hidden">PDF</span>
               </Button>
             </div>
           </div>
