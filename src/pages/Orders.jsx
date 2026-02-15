@@ -21,6 +21,7 @@ import { sv } from "date-fns/locale";
 import OrderForm from "@/components/orders/OrderForm";
 import OrderDetailModal from "@/components/orders/OrderDetailModal";
 import InvoiceModal from "@/components/orders/InvoiceModal";
+import PullToRefresh from "@/components/utils/PullToRefresh";
 
 export default function OrdersPage() {
   const [viewMode, setViewMode] = useState("orders"); // orders, picking
@@ -39,7 +40,7 @@ export default function OrdersPage() {
   
   const queryClient = useQueryClient();
 
-  const { data: orders = [], isLoading } = useQuery({
+  const { data: orders = [], isLoading, refetch } = useQuery({
     queryKey: ['orders'],
     queryFn: () => base44.entities.Order.list('-created_date'),
   });
@@ -351,8 +352,12 @@ export default function OrdersPage() {
   });
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
+    <PullToRefresh onRefresh={async () => {
+      await refetch();
+      toast.success('Uppdaterad!');
+    }}>
+      <div className="min-h-screen bg-black p-4 md:p-6">
+        <div className="max-w-6xl mx-auto">
         
         {/* Header */}
         <div className="mb-6 relative z-[60]">
@@ -997,6 +1002,6 @@ export default function OrdersPage() {
         </AnimatePresence>
         </div>
         </div>
-        </PullToRefresh>
+    </PullToRefresh>
         );
         }

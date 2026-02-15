@@ -58,10 +58,8 @@ export default function InventoryPage() {
   const [selectedArticleIds, setSelectedArticleIds] = useState([]);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const fileInputRef = React.useRef(null);
-  
-  const queryClient = useQueryClient();
 
-  const { data: articles = [], isLoading, fromCache } = useOfflineQuery(
+  const { data: articles = [], isLoading, fromCache, refetch } = useOfflineQuery(
     'articles',
     () => base44.entities.Article.list('-created_date')
   );
@@ -499,8 +497,12 @@ export default function InventoryPage() {
         }
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
+    <PullToRefresh onRefresh={async () => {
+      await queryClient.invalidateQueries({ queryKey: ['articles'] });
+      toast.success('Uppdaterad!');
+    }}>
+      <div className="min-h-screen bg-black p-4 md:p-6">
+        <div className="max-w-6xl mx-auto">
         
         {/* Compact Header */}
         <div className="mb-6">
@@ -1109,6 +1111,7 @@ export default function InventoryPage() {
             </Dialog>
             </div>
             </div>
+      </PullToRefresh>
             );
             }
 
