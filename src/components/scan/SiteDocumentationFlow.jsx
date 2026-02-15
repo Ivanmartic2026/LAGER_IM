@@ -33,8 +33,12 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
     queryKey: ['allOrders'],
     queryFn: async () => {
       const orders = await base44.entities.Order.list('-created_date');
-      console.log('Loaded orders:', orders);
-      return orders;
+      // Filter out cancelled and delivered orders
+      const relevantOrders = orders.filter(o => 
+        o.status !== 'cancelled' && o.status !== 'delivered'
+      );
+      console.log('Loaded orders:', relevantOrders.length, 'of', orders.length);
+      return relevantOrders;
     }
   });
 
