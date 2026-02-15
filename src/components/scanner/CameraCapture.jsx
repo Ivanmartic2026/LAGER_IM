@@ -88,7 +88,7 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
         type="file"
         ref={cameraInputRef}
         onChange={handleFileChange}
-        accept="image/*"
+        accept="image/*,.raw,.cr2,.nef,.arw,.dng,.rw2,.raf,.x3f"
         capture="environment"
         multiple
         className="hidden"
@@ -97,7 +97,7 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept="image/*"
+        accept="image/*,.raw,.cr2,.nef,.arw,.dng,.rw2,.raf,.x3f"
         multiple
         className="hidden"
       />
