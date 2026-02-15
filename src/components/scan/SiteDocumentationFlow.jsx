@@ -126,6 +126,7 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
       const report = await base44.entities.SiteReport.create({
         site_name: siteData.site_name,
         site_address: siteData.site_address,
+        rm_service_id: siteData.rm_service_id,
         notes: siteData.notes,
         technician_name: user.full_name,
         technician_email: user.email,
