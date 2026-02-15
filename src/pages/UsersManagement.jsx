@@ -120,6 +120,43 @@ export default function UsersManagement() {
     inviteUserMutation.mutate({ email: inviteEmail, role: inviteRole });
   };
 
+  const createUserMutation = useMutation({
+    mutationFn: async ({ name, email, password, role }) => {
+      const response = await base44.functions.invoke('createUserWithPassword', { 
+        full_name: name, 
+        email, 
+        password, 
+        role 
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setCreateName('');
+      setCreateEmail('');
+      setCreatePassword('');
+      setCreateRole('user');
+      setShowCreateModal(false);
+      toast.success(language === 'sv' ? 'Användare skapad!' : 'User created!');
+    },
+    onError: (error) => {
+      toast.error(language === 'sv' ? 'Kunde inte skapa användare' : 'Failed to create user');
+    }
+  });
+
+  const handleCreateUser = () => {
+    if (!createName.trim() || !createEmail.trim() || !createPassword.trim()) {
+      toast.error(language === 'sv' ? 'Fyll i alla fält' : 'Fill in all fields');
+      return;
+    }
+    createUserMutation.mutate({ 
+      name: createName, 
+      email: createEmail, 
+      password: createPassword, 
+      role: createRole 
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
