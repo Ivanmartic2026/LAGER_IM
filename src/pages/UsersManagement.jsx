@@ -45,6 +45,12 @@ export default function UsersManagement() {
     initialData: [],
   });
 
+  const { data: registrations, isLoading: registrationsLoading } = useQuery({
+    queryKey: ['user_registrations'],
+    queryFn: () => base44.entities.UserRegistration.list('-created_date', 100),
+    initialData: [],
+  });
+
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, allowed_modules }) => {
       const response = await base44.functions.invoke('updateUserModules', { userId, allowed_modules });
