@@ -180,6 +180,29 @@ export default function ProductionViewPage() {
     }
   };
 
+  const handleImageDelete = async (imageType, index) => {
+    if (!productionRecord) return;
+    
+    const currentImages = productionRecord?.[imageType] || [];
+    const updatedImages = currentImages.filter((_, i) => i !== index);
+    
+    await updateProductionRecordMutation.mutateAsync({
+      id: productionRecord.id,
+      data: { [imageType]: updatedImages }
+    });
+    
+    toast.success('Bild borttagen');
+  };
+
+  const handleUpdateField = (field, value) => {
+    if (!productionRecord) return;
+    
+    updateProductionRecordMutation.mutate({
+      id: productionRecord.id,
+      data: { [field]: value }
+    });
+  };
+
   const handleChecklistChange = async (field) => {
     if (!productionRecord) return;
     
