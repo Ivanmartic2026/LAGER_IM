@@ -604,127 +604,21 @@ export default function ProductionViewPage() {
 
             {/* Production Documentation */}
             {productionRecord && (
-              <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
-                <h3 className="font-semibold text-white mb-4">Produktionsdokumentation</h3>
-                
-                {/* Checklist */}
-                <div className="mb-4 p-3 rounded-lg bg-white/5">
-                  <div className="text-sm font-medium text-white/70 mb-3">Checklista</div>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        checked={productionRecord.checklist?.assembled || false}
-                        onCheckedChange={() => handleChecklistChange('assembled')}
-                      />
-                      <span className="text-white">Monterad</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        checked={productionRecord.checklist?.tested || false}
-                        onCheckedChange={() => handleChecklistChange('tested')}
-                      />
-                      <span className="text-white">Testad</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        checked={productionRecord.checklist?.ready_for_installation || false}
-                        onCheckedChange={() => handleChecklistChange('ready_for_installation')}
-                      />
-                      <span className="text-white">Klar för installation</span>
-                    </label>
-                  </div>
+              <div className="mb-6 rounded-2xl overflow-hidden">
+                <div className="p-5 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/30 rounded-t-2xl">
+                  <h3 className="font-bold text-xl text-white flex items-center gap-2">
+                    📋 Produktionsdokumentation
+                  </h3>
                 </div>
-
-                {/* Notes */}
-                <div className="mb-4">
-                  <label className="text-sm font-medium text-white/70 mb-2 block">Kommentarer</label>
-                  <Textarea
-                    value={productionRecord.notes || ''}
-                    onChange={(e) => {
-                      updateProductionRecordMutation.mutate({
-                        id: productionRecord.id,
-                        data: { notes: e.target.value }
-                      });
-                    }}
-                    placeholder="Anteckningar från produktion..."
-                    className="bg-zinc-900 border-white/10 text-white min-h-[80px]"
+                <div className="bg-white/5 border border-white/10 border-t-0 rounded-b-2xl p-6">
+                  <ProductionDocumentation
+                    productionRecord={productionRecord}
+                    onChecklistChange={handleChecklistChange}
+                    onUpdateField={handleUpdateField}
+                    onImageUpload={handleImageUpload}
+                    onImageDelete={handleImageDelete}
+                    uploadingImages={uploadingImages}
                   />
-                </div>
-
-                {/* Deviations */}
-                <div className="mb-4">
-                  <label className="text-sm font-medium text-white/70 mb-2 block">Avvikelser</label>
-                  <Textarea
-                    value={productionRecord.deviations || ''}
-                    onChange={(e) => {
-                      updateProductionRecordMutation.mutate({
-                        id: productionRecord.id,
-                        data: { deviations: e.target.value }
-                      });
-                    }}
-                    placeholder="Avvikelser som upptäckts..."
-                    className="bg-zinc-900 border-white/10 text-white min-h-[60px]"
-                  />
-                </div>
-
-                {/* Assembly Images */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium text-white/70">Bilder på färdigmonterad enhet</label>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, 'assembly_images')}
-                      className="hidden"
-                      id="assembly-images"
-                      disabled={uploadingImages}
-                    />
-                    <label
-                      htmlFor="assembly-images"
-                      className="text-xs px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white cursor-pointer flex items-center gap-1"
-                    >
-                      <Camera className="w-3 h-3" />
-                      Ladda upp
-                    </label>
-                  </div>
-                  {productionRecord.assembly_images?.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2">
-                      {productionRecord.assembly_images.map((url, i) => (
-                        <img key={i} src={url} alt="Montering" className="w-full h-24 object-cover rounded" />
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Serial Number Images */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium text-white/70">Bilder på serienummeretikett</label>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, 'serial_number_images')}
-                      className="hidden"
-                      id="serial-images"
-                      disabled={uploadingImages}
-                    />
-                    <label
-                      htmlFor="serial-images"
-                      className="text-xs px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white cursor-pointer flex items-center gap-1"
-                    >
-                      <Camera className="w-3 h-3" />
-                      Ladda upp
-                    </label>
-                  </div>
-                  {productionRecord.serial_number_images?.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2">
-                      {productionRecord.serial_number_images.map((url, i) => (
-                        <img key={i} src={url} alt="Serienummer" className="w-full h-24 object-cover rounded" />
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             )}
