@@ -36,6 +36,13 @@ class OfflineStorage {
 
   // Get data with offline fallback
   async get(key, fetchFn) {
+    // iOS: Skip caching - fetch directly
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      const data = await fetchFn();
+      return { data, fromCache: false };
+    }
+
     const storageKey = STORAGE_KEYS[key.toUpperCase()];
     
     // Try to fetch fresh data if online
