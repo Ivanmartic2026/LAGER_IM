@@ -11,7 +11,7 @@ export default function SwipeNavigation({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
 
-  const handleSwipe = (event: any, info: PanInfo) => {
+  const handleSwipe = (event, info) => {
     const threshold = 50;
     
     if (info.offset.x > threshold && currentIndex > 0) {
@@ -29,14 +29,14 @@ export default function SwipeNavigation({
     }
   };
 
-  const goToIndex = (index: number) => {
+  const goToIndex = (index) => {
     setDirection(index > currentIndex ? 1 : -1);
     setCurrentIndex(index);
     onIndexChange?.(index);
   };
 
   const variants = {
-    enter: (direction: number) => ({
+    enter: (direction) => ({
       x: direction > 0 ? 300 : -300,
       opacity: 0
     }),
@@ -44,7 +44,7 @@ export default function SwipeNavigation({
       x: 0,
       opacity: 1
     },
-    exit: (direction: number) => ({
+    exit: (direction) => ({
       x: direction > 0 ? -300 : 300,
       opacity: 0
     })
