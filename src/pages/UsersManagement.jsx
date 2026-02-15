@@ -28,8 +28,14 @@ export default function UsersManagement() {
   const [editingUserId, setEditingUserId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('user');
+  const [createName, setCreateName] = useState('');
+  const [createEmail, setCreateEmail] = useState('');
+  const [createPassword, setCreatePassword] = useState('');
+  const [createRole, setCreateRole] = useState('user');
+  const [activeTab, setActiveTab] = useState('list');
   const { language } = useLanguage();
   const queryClient = useQueryClient();
 
