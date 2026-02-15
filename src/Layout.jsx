@@ -228,8 +228,8 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-       <div className="md:hidden fixed inset-0 z-40 bg-black/98" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
-         <nav className="p-4 space-y-2">
+       <div className="md:hidden fixed inset-0 z-40 bg-black/98 flex flex-col" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
+         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
              {visibleNavItems.map(item => (
                <button
                  key={item.name}
