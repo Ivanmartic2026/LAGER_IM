@@ -28,10 +28,11 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
   const [previewImage, setPreviewImage] = useState(null);
 
   // Fetch all orders (not just picked)
-  const { data: allOrders = [] } = useQuery({
+  const { data: allOrders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ['allOrders'],
     queryFn: async () => {
       const orders = await base44.entities.Order.list('-created_date');
+      console.log('Loaded orders:', orders);
       return orders;
     }
   });
