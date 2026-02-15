@@ -72,6 +72,7 @@ export default function SiteReportReview({ report, onBack }) {
     },
     onSuccess: () => {
       toast.success('Matchning bekräftad');
+      queryClient.invalidateQueries({ queryKey: ['siteReportImages', report.id] });
     }
   });
 
