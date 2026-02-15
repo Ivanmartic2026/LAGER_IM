@@ -120,20 +120,29 @@ export default function UsersManagement() {
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center">
-              <Users className="w-6 h-6 text-indigo-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white">{t('users_title', language)}</h1>
-              <p className="text-sm text-white/50">{t('users_manage_access', language)}</p>
-            </div>
-          </div>
-        </motion.div>
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           className="mb-8"
+         >
+           <div className="flex items-center justify-between mb-3">
+             <div className="flex items-center gap-3">
+               <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center">
+                 <Users className="w-6 h-6 text-indigo-400" />
+               </div>
+               <div>
+                 <h1 className="text-2xl md:text-3xl font-bold text-white">{t('users_title', language)}</h1>
+                 <p className="text-sm text-white/50">{t('users_manage_access', language)}</p>
+               </div>
+             </div>
+             <Button
+               onClick={() => setShowInviteModal(true)}
+               className="bg-indigo-600 hover:bg-indigo-500 text-white"
+             >
+               <Plus className="w-4 h-4 mr-2" />
+               {language === 'sv' ? 'Bjud in användare' : 'Invite User'}
+             </Button>
+           </div>
+         </motion.div>
 
         <div className="space-y-4">
           {users.map((user, index) => (
