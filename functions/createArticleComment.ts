@@ -23,17 +23,34 @@ Deno.serve(async (req) => {
       mentioned_users: mentionedUsers || []
     });
 
-    // Send email notifications to mentioned users
+    // Send email notifications + in-app notifications to mentioned users
     if (mentionedUsers && mentionedUsers.length > 0) {
+      const article = await base44.entities.Article.get(articleId);
+      
       for (const email of mentionedUsers) {
-        try {
-          await base44.integrations.Core.SendEmail({
-            to: email,
-            subject: `Du har blivit nämnd i en kommentar`,
-            body: `${user.full_name} har nämnt dig i en kommentar:\n\n"${content}"\n\nLogga in för att se mer.`
+        if (email !== user.email) {
+          // Create in-app notification
+          await base44.asServiceRole.entities.Notification.create({
+            user_email: email,
+            type: 'article_comment',
+            title: `${user.full_name} nämnde dig i en kommentar`,
+            message: `På artikel: ${article?.name || 'Okänd artikel'}`,
+            reference_type: 'article_comment',
+            reference_id: comment.id,
+            link: `/inventory?articleId=${articleId}`,
+            read: false
           });
-        } catch (emailError) {
-          console.error('Failed to send email to', email, emailError);
+          
+          // Send email
+          try {
+            await base44.integrations.Core.SendEmail({
+              to: email,
+              subject: `Du har blivit nämnd i en kommentar`,
+              body: `${user.full_name} har nämnt dig i en kommentar:\n\n"${content}"\n\nLogga in för att se mer.`
+            });
+          } catch (emailError) {
+            console.error('Failed to send email to', email, emailError);
+          }
         }
       }
     }
