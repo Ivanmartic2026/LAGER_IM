@@ -173,7 +173,7 @@ export default function UsersManagement() {
            animate={{ opacity: 1, y: 0 }}
            className="mb-8"
          >
-           <div className="flex items-center justify-between mb-3">
+           <div className="flex items-center justify-between mb-6">
              <div className="flex items-center gap-3">
                <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center">
                  <Users className="w-6 h-6 text-indigo-400" />
@@ -183,13 +183,48 @@ export default function UsersManagement() {
                  <p className="text-sm text-white/50">{t('users_manage_access', language)}</p>
                </div>
              </div>
-             <Button
-               onClick={() => setShowInviteModal(true)}
-               className="bg-indigo-600 hover:bg-indigo-500 text-white"
+             <div className="flex gap-3">
+               <Button
+                 onClick={() => setShowCreateModal(true)}
+                 className="bg-green-600 hover:bg-green-500 text-white"
+               >
+                 <Plus className="w-4 h-4 mr-2" />
+                 {language === 'sv' ? 'Skapa användare' : 'Create User'}
+               </Button>
+               <Button
+                 onClick={() => setShowInviteModal(true)}
+                 className="bg-indigo-600 hover:bg-indigo-500 text-white"
+               >
+                 <Plus className="w-4 h-4 mr-2" />
+                 {language === 'sv' ? 'Bjud in användare' : 'Invite User'}
+               </Button>
+             </div>
+           </div>
+
+           {/* Tabs */}
+           <div className="flex gap-2 mb-6 border-b border-white/10">
+             <button
+               onClick={() => setActiveTab('list')}
+               className={cn(
+                 "px-4 py-2 font-medium border-b-2 transition-colors",
+                 activeTab === 'list'
+                   ? "border-indigo-500 text-indigo-400"
+                   : "border-transparent text-white/50 hover:text-white"
+               )}
              >
-               <Plus className="w-4 h-4 mr-2" />
-               {language === 'sv' ? 'Bjud in användare' : 'Invite User'}
-             </Button>
+               {language === 'sv' ? 'Användare' : 'Users'} ({users.length})
+             </button>
+             <button
+               onClick={() => setActiveTab('registrations')}
+               className={cn(
+                 "px-4 py-2 font-medium border-b-2 transition-colors",
+                 activeTab === 'registrations'
+                   ? "border-indigo-500 text-indigo-400"
+                   : "border-transparent text-white/50 hover:text-white"
+               )}
+             >
+               {language === 'sv' ? 'Registreringar' : 'Registrations'} ({registrations.length})
+             </button>
            </div>
          </motion.div>
 
