@@ -442,17 +442,17 @@ export default function SiteReportReview({ report, onBack }) {
               {confirmedImages.map(image => {
                 const matchedArticle = articles.find(a => a.id === image.matched_article_id);
                 return (
-                  <div key={image.id} className="p-4 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center gap-4">
-                    <img src={image.image_url} alt="Site" className="w-16 h-16 rounded-lg object-cover" />
-                    <div className="flex-1">
-                      <div className="font-medium text-white">{matchedArticle?.name}</div>
-                      <div className="text-sm text-white/50">
-                        Status: {image.component_status === 'ok' ? 'OK' :
-                                 image.component_status === 'needs_replacement' ? 'Behöver bytas' :
-                                 image.component_status === 'needs_repair' ? 'Behöver repareras' : 'Dokumenterad'}
+                  <div key={image.id} className="p-3 md:p-4 rounded-lg md:rounded-xl bg-green-500/10 border border-green-500/30 flex items-center gap-3 md:gap-4">
+                    <LazyImage src={image.image_url} alt="Site" className="w-12 md:w-16 h-12 md:h-16 rounded object-cover flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm md:text-base text-white truncate">{matchedArticle?.name}</div>
+                      <div className="text-xs md:text-sm text-white/50 truncate">
+                        {image.component_status === 'ok' ? 'OK' :
+                         image.component_status === 'needs_replacement' ? 'Behöver bytas' :
+                         image.component_status === 'needs_repair' ? 'Behöver repareras' : 'Dokumenterad'}
                       </div>
                     </div>
-                    <CheckCircle2 className="w-5 h-5 text-green-400" />
+                    <CheckCircle2 className="w-4 md:w-5 h-4 md:h-5 text-green-400 flex-shrink-0" />
                   </div>
                 );
               })}
