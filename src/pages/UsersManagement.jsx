@@ -83,6 +83,31 @@ export default function UsersManagement() {
     }
   };
 
+  const inviteUserMutation = useMutation({
+    mutationFn: async ({ email, role }) => {
+      const response = await base44.users.inviteUser(email, role);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setInviteEmail('');
+      setInviteRole('user');
+      setShowInviteModal(false);
+      toast.success(language === 'sv' ? 'Användare inbjuden!' : 'User invited!');
+    },
+    onError: (error) => {
+      toast.error(language === 'sv' ? 'Kunde inte bjuda in användare' : 'Failed to invite user');
+    }
+  });
+
+  const handleInviteUser = () => {
+    if (!inviteEmail.trim()) {
+      toast.error(language === 'sv' ? 'Ange e-postadress' : 'Enter email address');
+      return;
+    }
+    inviteUserMutation.mutate({ email: inviteEmail, role: inviteRole });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
