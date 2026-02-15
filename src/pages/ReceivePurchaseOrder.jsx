@@ -335,15 +335,24 @@ export default function ReceivePurchaseOrderPage() {
           </div>
         </div>
 
-        {/* Scan Button */}
-        {pendingItems.length > 0 && (
-          <Button
-            onClick={() => setScanMode(!scanMode)}
-            className="w-full mb-6 bg-blue-600 hover:bg-blue-500 h-14 text-lg"
-          >
-            <Camera className="w-5 h-5 mr-2" />
-            {scanMode ? 'Stäng skanner' : 'Skanna streckkod'}
-          </Button>
+        {/* Scan/Camera Buttons */}
+         {pendingItems.length > 0 && (
+          <div className="flex gap-4 mb-6">
+            <Button
+              onClick={() => setScanMode(!scanMode)}
+              className="flex-1 bg-blue-600 hover:bg-blue-500 h-14 text-base"
+            >
+              <Camera className="w-5 h-5 mr-2" />
+              {scanMode ? 'Stäng skanner' : 'Skanna streckkod'}
+            </Button>
+            <Button
+              onClick={() => setShowCamera(true)}
+              className="flex-1 bg-emerald-600 hover:bg-emerald-500 h-14 text-base"
+            >
+              <Camera className="w-5 h-5 mr-2" />
+              Fotografera
+            </Button>
+          </div>
         )}
 
         {/* Scanner */}
