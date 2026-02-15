@@ -263,7 +263,7 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
             </label>
             <Select 
               value={siteData.linked_order_id || ''} 
-              onValueChange={(value) => setSiteData(prev => ({ ...prev, linked_order_id: value || null }))}
+              onValueChange={(value) => setSiteData(prev => ({ ...prev, linked_order_id: value === '' ? null : value }))}
             >
               <SelectTrigger className="bg-zinc-900 border-white/10 text-white">
                 <SelectValue placeholder={ordersLoading ? "Laddar..." : "Ingen order vald"} />
