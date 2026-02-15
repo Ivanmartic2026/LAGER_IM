@@ -71,6 +71,12 @@ export default function SiteReportsPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
   return (
     <PullToRefresh onRefresh={async () => {
       await refetch();
@@ -78,6 +84,13 @@ export default function SiteReportsPage() {
     }}>
       <div className="min-h-screen bg-black p-4 md:p-6">
         <div className="max-w-6xl mx-auto">
+        
+        {!selectedReport && user?.role === 'admin' && (
+          <div className="mb-6">
+            <BatchProcessingControl />
+          </div>
+        )}
+        
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
