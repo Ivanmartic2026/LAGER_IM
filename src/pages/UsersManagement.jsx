@@ -228,8 +228,10 @@ export default function UsersManagement() {
            </div>
          </motion.div>
 
+        {/* Users Tab */}
+        {activeTab === 'list' && (
         <div className="space-y-4">
-          {users.map((user, index) => (
+           {users.map((user, index) => (
             <motion.div
               key={user.id}
               initial={{ opacity: 0, y: 20 }}
