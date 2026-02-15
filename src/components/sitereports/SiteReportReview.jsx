@@ -18,8 +18,9 @@ import SwipeNavigation from "@/components/utils/SwipeNavigation";
 import { LazyImage } from "@/components/utils/MobileOptimized";
 
 export default function SiteReportReview({ report, onBack }) {
-  const [processing, setProcessing] = useState(false);
-  const [editingOrder, setEditingOrder] = useState(false);
+   const [processing, setProcessing] = useState(false);
+   const [editingOrder, setEditingOrder] = useState(false);
+   const queryClient = useQueryClient();
 
   const { data: images = [], isLoading: imagesLoading } = useQuery({
     queryKey: ['siteReportImages', report.id],
