@@ -53,6 +53,22 @@ export default function ProductionViewPage() {
     queryFn: () => base44.entities.Supplier.list()
   });
 
+  const { data: productionComments = [] } = useQuery({
+    queryKey: ['productionComments', orderId],
+    queryFn: () => base44.entities.ProductionComment?.filter({ order_id: orderId }) || [],
+    enabled: !!orderId
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list()
+  });
+
+  const currentUser = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
+  });
+
   const { data: productionFiles = [] } = useQuery({
     queryKey: ['productionFiles', orderId],
     queryFn: () => base44.entities.ProductionFile.filter({ order_id: orderId }),
