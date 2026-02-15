@@ -408,8 +408,8 @@ export default function SiteReportReview({ report, onBack }) {
 
         {/* Matched Images - Ready for Review */}
         {matchedImages.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-white mb-4">Redo för granskning</h2>
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Redo för granskning</h2>
             <div className="space-y-4">
               {matchedImages.map(image => {
                 const matchedArticle = articles.find(a => a.id === image.matched_article_id);
