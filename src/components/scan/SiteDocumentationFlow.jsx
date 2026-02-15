@@ -42,6 +42,18 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
     }
   });
 
+  // Fetch order items when an order is selected
+  const { data: selectedOrderItems = [] } = useQuery({
+    queryKey: ['orderItems', siteData.linked_order_id],
+    queryFn: async () => {
+      if (!siteData.linked_order_id) return [];
+      const items = await base44.entities.OrderItem.filter({ order_id: siteData.linked_order_id });
+      console.log('Loaded order items:', items.length);
+      return items;
+    },
+    enabled: !!siteData.linked_order_id
+  });
+
   // Get GPS position and address on mount
   useEffect(() => {
     if (navigator.geolocation) {
@@ -127,6 +139,15 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
       setUploadStatus('Skapar rapport...');
       setUploadProgress(10);
       
+      // Prepare parts_replaced from order items if order is linked
+      const partsReplaced = selectedOrderItems.map(item => ({
+        article_id: item.article_id,
+        article_name: item.article_name,
+        batch_number: item.article_batch_number,
+        quantity: item.quantity_ordered,
+        reason: 'Från order'
+      }));
+
       const report = await base44.entities.SiteReport.create({
         site_name: siteData.site_name,
         site_address: siteData.site_address,
@@ -138,7 +159,8 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
         status: 'pending_review',
         gps_latitude: siteData.gps_latitude,
         gps_longitude: siteData.gps_longitude,
-        linked_order_id: siteData.linked_order_id
+        linked_order_id: siteData.linked_order_id,
+        parts_replaced: partsReplaced.length > 0 ? partsReplaced : undefined
       });
 
       // Steg 2: Ladda upp bilder (10% -> 70%)
@@ -285,6 +307,22 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
                 <Loader2 className="w-3 h-3 animate-spin" />
                 Laddar ordrar...
               </p>
+            )}
+            {siteData.linked_order_id && selectedOrderItems.length > 0 && (
+              <div className="mt-2 p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+                <div className="flex items-center gap-2 text-cyan-400 text-sm font-medium mb-2">
+                  <Package className="w-4 h-4" />
+                  Artiklar från order ({selectedOrderItems.length})
+                </div>
+                <div className="space-y-1 text-xs text-white/60">
+                  {selectedOrderItems.slice(0, 3).map((item, idx) => (
+                    <div key={idx}>• {item.article_name} ({item.quantity_ordered} st)</div>
+                  ))}
+                  {selectedOrderItems.length > 3 && (
+                    <div className="text-white/40">... och {selectedOrderItems.length - 3} till</div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
 
