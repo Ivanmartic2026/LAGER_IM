@@ -997,5 +997,6 @@ export default function OrdersPage() {
         </AnimatePresence>
         </div>
         </div>
+        </PullToRefresh>
         );
         }

@@ -14,6 +14,8 @@ import { LanguageProvider } from "@/components/language/LanguageProvider";
 import LanguageToggle from "@/components/language/LanguageToggle";
 import { useLanguage } from "@/components/language/LanguageProvider";
 import { t } from "@/components/language/translations";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // Detect if mobile for performance optimization
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
@@ -22,6 +24,8 @@ function LayoutContent({ children, currentPageName }) {
   const { language } = useLanguage();
   const [userModules, setUserModules] = useReactState([]);
   const [loadingUser, setLoadingUser] = useReactState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -54,6 +58,10 @@ function LayoutContent({ children, currentPageName }) {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobile = isMobile();
+
+  // Check if we should show back button (deeper than root tabs)
+  const rootPages = visibleNavItems.map(item => `/${item.name.toLowerCase()}`);
+  const isDeepPage = !rootPages.includes(location.pathname.toLowerCase()) && location.pathname !== '/';
 
   // Register manifest for PWA
   useEffect(() => {
@@ -134,12 +142,23 @@ function LayoutContent({ children, currentPageName }) {
       {/* Mobile Header */}
       <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/5 backdrop-blur-2xl border-b border-white/10 shadow-sm z-50 flex items-center justify-between px-4">
        <div className="flex items-center gap-3">
-         <img 
-           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
-           alt="IMvision"
-           className="h-7 object-contain"
-           loading="lazy"
-         />
+         {isDeepPage ? (
+           <Button
+             variant="ghost"
+             size="icon"
+             onClick={() => navigate(-1)}
+             className="text-white/70 hover:text-white -ml-2"
+           >
+             <ArrowLeft className="w-5 h-5" />
+           </Button>
+         ) : (
+           <img 
+             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
+             alt="IMvision"
+             className="h-7 object-contain"
+             loading="lazy"
+           />
+         )}
        </div>
 
         <div className="flex items-center gap-2">

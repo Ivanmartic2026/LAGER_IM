@@ -394,6 +394,7 @@ export default function OrderForm({ order, onClose }) {
               <Input
                 type="number"
                 min="1"
+                inputMode="numeric"
                 value={quantity}
                 onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
                 placeholder="Antal"
@@ -431,6 +432,7 @@ export default function OrderForm({ order, onClose }) {
                       <Input
                         type="number"
                         min="1"
+                        inputMode="numeric"
                         value={item.quantity_ordered}
                         onChange={(e) => {
                           const newItems = [...orderItems];

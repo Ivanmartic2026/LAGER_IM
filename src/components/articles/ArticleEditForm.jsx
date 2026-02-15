@@ -282,6 +282,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   <Input
                     type="number"
                     step="0.01"
+                    inputMode="decimal"
                     value={formData.unit_cost}
                     onChange={(e) => handleChange('unit_cost', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-white"
@@ -360,6 +361,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   <Input
                     type="number"
                     step="0.1"
+                    inputMode="decimal"
                     value={formData.dimensions_width_mm}
                     onChange={(e) => handleChange('dimensions_width_mm', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-white"
@@ -370,6 +372,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   <Input
                     type="number"
                     step="0.1"
+                    inputMode="decimal"
                     value={formData.dimensions_height_mm}
                     onChange={(e) => handleChange('dimensions_height_mm', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-white"
@@ -380,6 +383,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   <Input
                     type="number"
                     step="0.1"
+                    inputMode="decimal"
                     value={formData.dimensions_depth_mm}
                     onChange={(e) => handleChange('dimensions_depth_mm', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-white"
@@ -390,6 +394,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   <Input
                     type="number"
                     step="0.1"
+                    inputMode="decimal"
                     value={formData.weight_g}
                     onChange={(e) => handleChange('weight_g', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-white"
@@ -573,6 +578,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   <Label className="text-slate-300">Min. lagernivå</Label>
                   <Input
                     type="number"
+                    inputMode="numeric"
                     value={formData.min_stock_level}
                     onChange={(e) => handleChange('min_stock_level', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-white"
@@ -590,6 +596,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   <Input
                     type="number"
                     step="0.01"
+                    inputMode="decimal"
                     value={formData.pixel_pitch_mm}
                     onChange={(e) => handleChange('pixel_pitch_mm', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-white"
@@ -638,6 +645,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   <Label className="text-slate-300">Ljusstyrka (nits)</Label>
                   <Input
                     type="number"
+                    inputMode="numeric"
                     value={formData.brightness_nits}
                     onChange={(e) => handleChange('brightness_nits', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-white"
