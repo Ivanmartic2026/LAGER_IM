@@ -154,9 +154,16 @@ export default function PushManager() {
     }
   };
 
-  const setupAppBadge = () => {
+  const setupAppBadge = async () => {
     if (!('setAppBadge' in navigator)) {
       console.warn('App badge API not supported');
+      return;
+    }
+
+    try {
+      const isAuthenticated = await base44.auth.isAuthenticated();
+      if (!isAuthenticated) return;
+    } catch {
       return;
     }
 
