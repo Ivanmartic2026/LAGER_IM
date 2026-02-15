@@ -272,10 +272,7 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
                 <SelectItem value={null}>Ingen order</SelectItem>
                 {allOrders.map(order => (
                   <SelectItem key={order.id} value={order.id}>
-                    <div className="flex items-center gap-2">
-                      <Package className="w-4 h-4" />
-                      <span>{order.order_number || order.customer_name}</span>
-                    </div>
+                    {order.order_number || order.customer_name}
                   </SelectItem>
                 ))}
               </SelectContent>
