@@ -71,7 +71,6 @@ export default function SiteReportReview({ report, onBack }) {
     },
     onSuccess: () => {
       toast.success('Matchning bekräftad');
-      window.location.reload();
     }
   });
 
