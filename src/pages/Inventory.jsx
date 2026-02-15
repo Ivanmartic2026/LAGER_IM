@@ -58,6 +58,8 @@ export default function InventoryPage() {
   const [selectedArticleIds, setSelectedArticleIds] = useState([]);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const fileInputRef = React.useRef(null);
+  
+  const queryClient = useQueryClient();
 
   const { data: articles = [], isLoading, fromCache, refetch } = useOfflineQuery(
     'articles',
@@ -491,10 +493,9 @@ export default function InventoryPage() {
             />
           )}
         </div>
-        </div>
-        </PullToRefresh>
-        );
-        }
+      </div>
+    );
+  }
 
   return (
     <PullToRefresh onRefresh={async () => {
@@ -1108,12 +1109,12 @@ export default function InventoryPage() {
                 isSaving={bulkUpdateMutation.isPending}
               />
             </DialogContent>
-            </Dialog>
-            </div>
-            </div>
-      </PullToRefresh>
-            );
-            }
+        </Dialog>
+      </div>
+    </div>
+    </PullToRefresh>
+  );
+}
 
             function BulkEditForm({ articleCount, warehouses, onSave, onCancel, isSaving }) {
             const [formData, setFormData] = useState({

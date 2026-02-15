@@ -1000,8 +1000,8 @@ export default function OrdersPage() {
             />
           )}
         </AnimatePresence>
-        </div>
-        </div>
+      </div>
+    </div>
     </PullToRefresh>
-        );
-        }
+  );
+}
