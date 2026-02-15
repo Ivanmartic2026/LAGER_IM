@@ -213,29 +213,23 @@ Deno.serve(async (req) => {
             if (!imageResponse.ok) {
               throw new Error(`Failed to fetch image: ${imageResponse.status}`);
             }
-            
+
             const imageArrayBuffer = await imageResponse.arrayBuffer();
             const uint8Array = new Uint8Array(imageArrayBuffer);
-            
+
             // Convert to base64
-            let binary = '';
-            for (let i = 0; i < uint8Array.length; i++) {
-              binary += String.fromCharCode(uint8Array[i]);
-            }
-            const imageBase64 = btoa(binary);
-            
-            // Determine image format from URL or content type
-            const contentType = imageResponse.headers.get('content-type') || '';
-            let imageFormat = 'JPEG';
-            if (contentType.includes('png') || image.image_url.toLowerCase().includes('.png')) {
-              imageFormat = 'PNG';
-            }
-            
-            // Add image to PDF
+            const imageBase64 = btoa(String.fromCharCode(...uint8Array));
+
+            // Determine image format
+            const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+            let imageFormat = contentType.includes('png') ? 'PNG' : 'JPEG';
+
+            // Add image to PDF - use direct base64 without data: prefix
             const imgWidth = 80;
             const imgHeight = 60;
+
             doc.addImage(
-              `data:${contentType || 'image/jpeg'};base64,${imageBase64}`, 
+              imageBase64, 
               imageFormat, 
               25, 
               y, 
@@ -246,7 +240,7 @@ Deno.serve(async (req) => {
           } catch (imgError) {
             console.error('Error adding image:', imgError);
             doc.setFontSize(8);
-            doc.text(`(Bild kunde inte laddas: ${imgError.message})`, 25, y);
+            doc.text(`(Bild kunde inte laddas)`, 25, y);
             y += 5;
           }
         }
