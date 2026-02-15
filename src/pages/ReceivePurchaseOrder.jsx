@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { sv } from "date-fns/locale";
 import { 
   ArrowLeft, Package, CheckCircle2, Camera,
   AlertCircle, Download, Truck, FileText, Eye, X
@@ -14,6 +16,7 @@ import { createPageUrl } from "@/utils";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import ReceivingItemCard from "@/components/receiving/ReceivingItemCard";
 import ReceivingRecordDetailModal from "@/components/receiving/ReceivingRecordDetailModal";
+import ReceivingCamera from "@/components/receiving/ReceivingCamera";
 
 export default function ReceivePurchaseOrderPage() {
   const urlParams = new URLSearchParams(window.location.search);
