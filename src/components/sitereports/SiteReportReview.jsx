@@ -456,9 +456,9 @@ export default function SiteReportReview({ report, onBack }) {
         )}
 
         {imagesLoading && (
-          <div className="text-center py-16">
-            <Loader2 className="w-8 h-8 text-white/30 animate-spin mx-auto mb-4" />
-            <p className="text-white/50">Laddar bilder...</p>
+          <div className="text-center py-8 md:py-16">
+            <Loader2 className="w-6 md:w-8 h-6 md:h-8 text-white/30 animate-spin mx-auto mb-4" />
+            <p className="text-xs md:text-base text-white/50">Laddar bilder...</p>
           </div>
         )}
       </div>
