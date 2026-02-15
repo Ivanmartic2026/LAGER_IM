@@ -427,9 +427,134 @@ export default function UsersManagement() {
         </div>
         )}
 
+        {/* Create User Modal */}
+         <AnimatePresence>
+           {showCreateModal && (
+             <motion.div
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+               onClick={() => setShowCreateModal(false)}
+             >
+               <motion.div
+                 initial={{ scale: 0.95, opacity: 0 }}
+                 animate={{ scale: 1, opacity: 1 }}
+                 exit={{ scale: 0.95, opacity: 0 }}
+                 onClick={(e) => e.stopPropagation()}
+                 className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6"
+               >
+                 <div className="flex items-center justify-between mb-6">
+                   <h2 className="text-2xl font-bold text-white">
+                     {language === 'sv' ? 'Skapa användare' : 'Create User'}
+                   </h2>
+                   <Button
+                     variant="ghost"
+                     size="icon"
+                     onClick={() => setShowCreateModal(false)}
+                     className="text-slate-400 hover:text-white"
+                   >
+                     <X className="w-5 h-5" />
+                   </Button>
+                 </div>
+
+                 <div className="space-y-4">
+                   <div>
+                     <label className="block text-sm font-medium text-white mb-2">
+                       {language === 'sv' ? 'Namn' : 'Full Name'}
+                     </label>
+                     <Input
+                       type="text"
+                       value={createName}
+                       onChange={(e) => setCreateName(e.target.value)}
+                       placeholder={language === 'sv' ? 'Namn' : 'Full name'}
+                       className="bg-slate-800 border-slate-700 text-white"
+                     />
+                   </div>
+
+                   <div>
+                     <label className="block text-sm font-medium text-white mb-2">
+                       {language === 'sv' ? 'E-postadress' : 'Email Address'}
+                     </label>
+                     <Input
+                       type="email"
+                       value={createEmail}
+                       onChange={(e) => setCreateEmail(e.target.value)}
+                       placeholder="user@example.com"
+                       className="bg-slate-800 border-slate-700 text-white"
+                     />
+                   </div>
+
+                   <div>
+                     <label className="block text-sm font-medium text-white mb-2">
+                       {language === 'sv' ? 'Lösenord' : 'Password'}
+                     </label>
+                     <Input
+                       type="password"
+                       value={createPassword}
+                       onChange={(e) => setCreatePassword(e.target.value)}
+                       placeholder={language === 'sv' ? 'Lösenord' : 'Password'}
+                       className="bg-slate-800 border-slate-700 text-white"
+                     />
+                   </div>
+
+                   <div>
+                     <label className="block text-sm font-medium text-white mb-2">
+                       {language === 'sv' ? 'Roll' : 'Role'}
+                     </label>
+                     <select
+                       value={createRole}
+                       onChange={(e) => setCreateRole(e.target.value)}
+                       className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+                     >
+                       <option value="user">{language === 'sv' ? 'Användare' : 'User'}</option>
+                       <option value="admin">{language === 'sv' ? 'Admin' : 'Admin'}</option>
+                     </select>
+                   </div>
+
+                   <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3">
+                     <p className="text-sm text-slate-300">
+                       {language === 'sv' 
+                         ? 'Användaren skapas omedelbar med det angivna lösenordet.'
+                         : 'The user will be created immediately with the provided password.'}
+                     </p>
+                   </div>
+                 </div>
+
+                 <div className="flex gap-3 mt-6">
+                   <Button
+                     onClick={() => setShowCreateModal(false)}
+                     variant="outline"
+                     className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                   >
+                     {language === 'sv' ? 'Avbryt' : 'Cancel'}
+                   </Button>
+                   <Button
+                     onClick={handleCreateUser}
+                     disabled={createUserMutation.isPending || !createName.trim() || !createEmail.trim() || !createPassword.trim()}
+                     className="flex-1 bg-green-600 hover:bg-green-500"
+                   >
+                     {createUserMutation.isPending ? (
+                       <>
+                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                         {language === 'sv' ? 'Skapar...' : 'Creating...'}
+                       </>
+                     ) : (
+                       <>
+                         <Plus className="w-4 h-4 mr-2" />
+                         {language === 'sv' ? 'Skapa' : 'Create'}
+                       </>
+                     )}
+                   </Button>
+                 </div>
+               </motion.div>
+             </motion.div>
+           )}
+         </AnimatePresence>
+
         {/* Invite Modal */}
-        <AnimatePresence>
-          {showInviteModal && (
+         <AnimatePresence>
+           {showInviteModal && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
