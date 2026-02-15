@@ -44,6 +44,8 @@ export default function SiteReportReview({ report, onBack }) {
     enabled: !!report.linked_order_id
   });
 
+  const { queryClient } = useQuery({ queryKey: ['temp'] }).meta || {};
+
   const runMatchingMutation = useMutation({
     mutationFn: async () => {
       const result = await base44.functions.invoke('matchSiteImages', {
@@ -53,7 +55,6 @@ export default function SiteReportReview({ report, onBack }) {
     },
     onSuccess: (data) => {
       toast.success(`Matchade ${data.matches?.length || 0} bilder`);
-      window.location.reload();
     },
     onError: (error) => {
       toast.error('Matchning misslyckades: ' + error.message);
