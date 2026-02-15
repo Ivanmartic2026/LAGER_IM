@@ -353,6 +353,7 @@ export default function UsersManagement() {
         </div>
         )}
 
+
         {/* Registrations Tab */}
         {activeTab === 'registrations' && (
         <div className="space-y-4">
