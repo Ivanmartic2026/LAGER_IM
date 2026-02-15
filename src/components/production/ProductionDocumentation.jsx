@@ -167,7 +167,7 @@ export default function ProductionDocumentation({
                   <label
                     htmlFor={`images-${type}`}
                     className={cn(
-                      "text-sm px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white cursor-pointer flex items-center gap-2 transition-colors",
+                      "text-sm px-4 py-2 rounded-full border-2 border-white/30 hover:border-white/50 text-white cursor-pointer flex items-center gap-2 transition-all hover:bg-white/5",
                       uploadingImages && "opacity-50 cursor-not-allowed"
                     )}
                   >
