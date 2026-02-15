@@ -297,10 +297,10 @@ export default function SiteReportReview({ report, onBack }) {
 
         {/* All Images Gallery - Swipeable on mobile */}
         {images.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Camera className="w-5 h-5" />
-              Alla bilder från site ({images.length})
+          <div className="mb-4 md:mb-6">
+            <h2 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4 flex items-center gap-2">
+              <Camera className="w-4 md:w-5 h-4 md:h-5" />
+              <span>Alla bilder ({images.length})</span>
             </h2>
             
             {/* Mobile: Swipeable view */}
