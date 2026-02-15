@@ -14,6 +14,8 @@ import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import SwipeNavigation from "@/components/utils/SwipeNavigation";
+import { LazyImage } from "@/components/utils/MobileOptimized";
 
 export default function SiteReportReview({ report, onBack }) {
   const [processing, setProcessing] = useState(false);
@@ -296,21 +298,61 @@ export default function SiteReportReview({ report, onBack }) {
           </div>
         </div>
 
-        {/* All Images Gallery */}
+        {/* All Images Gallery - Swipeable on mobile */}
         {images.length > 0 && (
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
               <Camera className="w-5 h-5" />
               Alla bilder från site ({images.length})
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            
+            {/* Mobile: Swipeable view */}
+            <div className="md:hidden">
+              <SwipeNavigation
+                items={images}
+                renderItem={(image) => (
+                  <div className="relative">
+                    <LazyImage 
+                      src={image.image_url} 
+                      alt="Site" 
+                      className="w-full h-80 rounded-2xl object-cover"
+                    />
+                    <div className="absolute top-4 right-4 flex gap-2">
+                      <button
+                        onClick={() => window.open(image.image_url, '_blank')}
+                        className="p-3 rounded-xl bg-black/50 backdrop-blur hover:bg-black/70 transition-colors"
+                      >
+                        <ExternalLink className="w-5 h-5 text-white" />
+                      </button>
+                      <a
+                        href={image.image_url}
+                        download={`site-bild-${image.id}.jpg`}
+                        className="p-3 rounded-xl bg-black/50 backdrop-blur hover:bg-black/70 transition-colors"
+                      >
+                        <Download className="w-5 h-5 text-white" />
+                      </a>
+                    </div>
+                    {image.match_status === 'confirmed' && (
+                      <div className="absolute top-4 left-4">
+                        <div className="px-3 py-1.5 rounded-full bg-green-500/20 backdrop-blur border border-green-500/30 flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-green-400" />
+                          <span className="text-sm font-medium text-green-400">Bekräftad</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              />
+            </div>
+            
+            {/* Desktop: Grid view */}
+            <div className="hidden md:grid grid-cols-4 gap-3">
               {images.map(image => (
                 <div key={image.id} className="relative group">
-                  <img 
+                  <LazyImage 
                     src={image.image_url} 
                     alt="Site" 
-                    className="w-full h-32 rounded-lg object-cover bg-slate-900 cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => window.open(image.image_url, '_blank')}
+                    className="w-full h-32 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity"
                   />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
                     <button
@@ -319,7 +361,6 @@ export default function SiteReportReview({ report, onBack }) {
                         window.open(image.image_url, '_blank');
                       }}
                       className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                      title="Öppna i ny flik"
                     >
                       <ExternalLink className="w-5 h-5 text-white" />
                     </button>
@@ -328,7 +369,6 @@ export default function SiteReportReview({ report, onBack }) {
                       download={`site-bild-${image.id}.jpg`}
                       onClick={(e) => e.stopPropagation()}
                       className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                      title="Ladda ner"
                     >
                       <Download className="w-5 h-5 text-white" />
                     </a>

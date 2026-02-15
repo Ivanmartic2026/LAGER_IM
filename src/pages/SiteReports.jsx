@@ -18,12 +18,15 @@ import SiteReportReview from "@/components/sitereports/SiteReportReview";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ListSkeleton } from "@/components/ui/list-skeleton";
+import SwipeableCard from "@/components/utils/SwipeableCard";
+import { useIsMobile } from "@/components/utils/MobileOptimized";
 
 export default function SiteReportsPage() {
   const [selectedReport, setSelectedReport] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const savedReportId = localStorage.getItem('selectedReportId');
@@ -148,19 +151,15 @@ export default function SiteReportsPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredReports.map(report => {
+            {filteredReports.map((report, index) => {
               const reportDate = format(new Date(report.report_date), "d MMM yyyy HH:mm", { locale: sv });
               
-              return (
-                <div
-                  key={report.id}
-                  onClick={() => setSelectedReport(report)}
-                  className="p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 cursor-pointer transition-all group"
-                >
+              const ReportCard = (
+                <div className="p-5 md:p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all group">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-white text-lg tracking-tight">
+                      <div className="flex items-center gap-3 mb-3 md:mb-2">
+                        <h3 className="font-semibold text-white text-xl md:text-lg tracking-tight">
                           {report.site_name}
                         </h3>
                         <Badge className={statusColors[report.status]}>
@@ -170,25 +169,25 @@ export default function SiteReportsPage() {
                         </Badge>
                       </div>
 
-                      <div className="space-y-1 text-sm text-white/60">
+                      <div className="space-y-2 md:space-y-1 text-base md:text-sm text-white/60">
                         {report.site_address && (
                           <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
+                            <MapPin className="w-5 h-5 md:w-4 md:h-4" />
                             <span>{report.site_address}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-2">
-                          <User className="w-4 h-4" />
+                          <User className="w-5 h-5 md:w-4 md:h-4" />
                           <span>{report.technician_name || report.technician_email}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
+                          <Calendar className="w-5 h-5 md:w-4 md:h-4" />
                           <span>{reportDate}</span>
                         </div>
                       </div>
 
                       {report.notes && (
-                        <p className="mt-2 text-sm text-white/50 line-clamp-2">
+                        <p className="mt-3 md:mt-2 text-base md:text-sm text-white/50 line-clamp-2">
                           {report.notes}
                         </p>
                       )}
@@ -196,13 +195,40 @@ export default function SiteReportsPage() {
 
                     <div className="flex items-center gap-2">
                       {report.status === 'completed' && (
-                        <CheckCircle2 className="w-5 h-5 text-green-400" />
+                        <CheckCircle2 className="w-6 h-6 md:w-5 md:h-5 text-green-400" />
                       )}
                       {report.status === 'pending_review' && (
-                        <Wrench className="w-5 h-5 text-amber-400" />
+                        <Wrench className="w-6 h-6 md:w-5 md:h-5 text-amber-400" />
                       )}
                     </div>
                   </div>
+                </div>
+              );
+              
+              return isMobile ? (
+                <SwipeableCard
+                  key={report.id}
+                  onTap={() => setSelectedReport(report)}
+                  onSwipeLeft={() => {
+                    if (index < filteredReports.length - 1) {
+                      setSelectedReport(filteredReports[index + 1]);
+                    }
+                  }}
+                  onSwipeRight={() => {
+                    if (index > 0) {
+                      setSelectedReport(filteredReports[index - 1]);
+                    }
+                  }}
+                >
+                  {ReportCard}
+                </SwipeableCard>
+              ) : (
+                <div 
+                  key={report.id}
+                  onClick={() => setSelectedReport(report)}
+                  className="cursor-pointer"
+                >
+                  {ReportCard}
                 </div>
               );
             })}

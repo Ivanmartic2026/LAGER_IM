@@ -57,6 +57,7 @@ import Inventory from './pages/Inventory';
 import InventoryValue from './pages/InventoryValue';
 import Movements from './pages/Movements';
 import NotificationSettings from './pages/NotificationSettings';
+import Notifications from './pages/Notifications';
 import Orders from './pages/Orders';
 import PWASetup from './pages/PWASetup';
 import PickOrder from './pages/PickOrder';
@@ -80,7 +81,6 @@ import UnknownDeliveries from './pages/UnknownDeliveries';
 import UsersManagement from './pages/UsersManagement';
 import WarehouseDashboard from './pages/WarehouseDashboard';
 import Warehouses from './pages/Warehouses';
-import Notifications from './pages/Notifications';
 import __Layout from './Layout.jsx';
 
 
@@ -95,6 +95,7 @@ export const PAGES = {
     "InventoryValue": InventoryValue,
     "Movements": Movements,
     "NotificationSettings": NotificationSettings,
+    "Notifications": Notifications,
     "Orders": Orders,
     "PWASetup": PWASetup,
     "PickOrder": PickOrder,
@@ -118,7 +119,6 @@ export const PAGES = {
     "UsersManagement": UsersManagement,
     "WarehouseDashboard": WarehouseDashboard,
     "Warehouses": Warehouses,
-    "Notifications": Notifications,
 }
 
 export const pagesConfig = {
