@@ -187,7 +187,7 @@ function LayoutContent({ children, currentPageName }) {
       </nav>
 
       {/* Mobile Header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/5 backdrop-blur-2xl border-b border-white/10 shadow-sm z-50 flex items-center justify-between px-4">
+      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/5 backdrop-blur-2xl border-b border-white/10 shadow-sm z-50 flex items-center justify-between px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
        <div className="flex items-center gap-3">
          {isDeepPage ? (
            <Button
@@ -224,7 +224,7 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-       <div className="md:hidden fixed inset-0 z-40 bg-black/98 pt-16">
+       <div className="md:hidden fixed inset-0 z-40 bg-black/98" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
          <nav className="p-4 space-y-2">
              {visibleNavItems.map(item => (
                <button
@@ -271,7 +271,7 @@ function LayoutContent({ children, currentPageName }) {
             </nav>
 
       {/* Main Content */}
-      <main className="pt-16 md:pt-20 pb-24 md:pb-24 min-h-screen will-change-auto">
+      <main className="md:pt-20 pb-24 md:pb-24 min-h-screen will-change-auto" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
         <ErrorBoundary>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
