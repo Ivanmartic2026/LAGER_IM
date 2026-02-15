@@ -16,6 +16,7 @@ import { useLanguage } from "@/components/language/LanguageProvider";
 import { t } from "@/components/language/translations";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 
 // Detect if mobile for performance optimization
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
@@ -222,7 +223,21 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Main Content */}
       <main className="pt-16 md:pt-20 pb-24 md:pb-24 min-h-screen will-change-auto">
-        {children}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location.pathname}
+            initial={{ x: 300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -300, opacity: 0 }}
+            transition={{ 
+              type: "tween", 
+              duration: 0.2,
+              ease: "easeInOut"
+            }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

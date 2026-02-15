@@ -40,13 +40,25 @@ export default function InventoryPage() {
   const urlParams = new URLSearchParams(window.location.search);
   const initialStatus = urlParams.get('status') || 'all';
   
-  const [searchQuery, setSearchQuery] = useState("");
+  // Restore state from localStorage
+  const getStoredState = () => {
+    try {
+      const stored = localStorage.getItem('inventory_state');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  const storedState = getStoredState();
+  
+  const [searchQuery, setSearchQuery] = useState(storedState.searchQuery || "");
   const [selectedArticle, setSelectedArticle] = useState(null);
-  const [viewMode, setViewMode] = useState("grid");
-  const [statusFilter, setStatusFilter] = useState(initialStatus);
-  const [warehouseFilter, setWarehouseFilter] = useState("all");
-  const [storageTypeFilter, setStorageTypeFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [viewMode, setViewMode] = useState(storedState.viewMode || "grid");
+  const [statusFilter, setStatusFilter] = useState(storedState.statusFilter || initialStatus);
+  const [warehouseFilter, setWarehouseFilter] = useState(storedState.warehouseFilter || "all");
+  const [storageTypeFilter, setStorageTypeFilter] = useState(storedState.storageTypeFilter || "all");
+  const [categoryFilter, setCategoryFilter] = useState(storedState.categoryFilter || "all");
   const [adjustmentModal, setAdjustmentModal] = useState({ open: false, type: null });
   const [editingArticle, setEditingArticle] = useState(null);
   const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
@@ -440,6 +452,19 @@ export default function InventoryPage() {
     outOfStock: articles.filter(a => a.status === "out_of_stock").length,
     onRepair: articles.filter(a => a.status === "on_repair").length
   };
+
+  // Save state to localStorage when filters change
+  React.useEffect(() => {
+    const state = {
+      searchQuery,
+      viewMode,
+      statusFilter,
+      warehouseFilter,
+      storageTypeFilter,
+      categoryFilter
+    };
+    localStorage.setItem('inventory_state', JSON.stringify(state));
+  }, [searchQuery, viewMode, statusFilter, warehouseFilter, storageTypeFilter, categoryFilter]);
 
   // Check URL for article selection and edit mode
   React.useEffect(() => {

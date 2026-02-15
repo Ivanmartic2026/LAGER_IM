@@ -12,6 +12,13 @@ body {
   overscroll-behavior: none;
 }
 
+/* Allow text selection in content areas */
+.select-text,
+.select-text * {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
 /* iOS specific */
 body.ios {
   position: fixed;

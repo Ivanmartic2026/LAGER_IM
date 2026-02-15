@@ -24,11 +24,23 @@ import InvoiceModal from "@/components/orders/InvoiceModal";
 import PullToRefresh from "@/components/utils/PullToRefresh";
 
 export default function OrdersPage() {
-  const [viewMode, setViewMode] = useState("orders"); // orders, picking
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [invoiceFilter, setInvoiceFilter] = useState("all"); // all, invoiced, not_invoiced
-  const [sortBy, setSortBy] = useState("date_desc"); // date_desc, date_asc, customer_asc
+  // Restore state from localStorage
+  const getStoredState = () => {
+    try {
+      const stored = localStorage.getItem('orders_state');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  const storedState = getStoredState();
+
+  const [viewMode, setViewMode] = useState(storedState.viewMode || "orders");
+  const [searchQuery, setSearchQuery] = useState(storedState.searchQuery || "");
+  const [statusFilter, setStatusFilter] = useState(storedState.statusFilter || "all");
+  const [invoiceFilter, setInvoiceFilter] = useState(storedState.invoiceFilter || "all");
+  const [sortBy, setSortBy] = useState(storedState.sortBy || "date_desc");
   const [showForm, setShowForm] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -350,6 +362,19 @@ export default function OrdersPage() {
     
     return matchesSearch && matchesWarehouse;
   });
+
+  // Save state to localStorage when filters change
+  React.useEffect(() => {
+    const state = {
+      viewMode,
+      searchQuery,
+      statusFilter,
+      invoiceFilter,
+      sortBy,
+      warehouseFilter
+    };
+    localStorage.setItem('orders_state', JSON.stringify(state));
+  }, [viewMode, searchQuery, statusFilter, invoiceFilter, sortBy, warehouseFilter]);
 
   return (
     <PullToRefresh onRefresh={async () => {
