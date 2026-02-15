@@ -450,8 +450,30 @@ export default function ReceivePurchaseOrderPage() {
           </motion.div>
         )}
 
+        {/* Receiving Camera */}
+        <AnimatePresence>
+          {showCamera && (
+            <ReceivingCamera
+              onCapture={(file) => {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                  try {
+                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                    toast.success('Bild uppladdad!');
+                    setShowCamera(false);
+                  } catch (error) {
+                    toast.error('Kunde inte ladda upp bild');
+                  }
+                };
+                reader.readAsArrayBuffer(file);
+              }}
+              onClose={() => setShowCamera(false)}
+            />
+          )}
+        </AnimatePresence>
+
         {/* Receiving Records Modal */}
-        {showReceivingModal && selectedReceivingRecords.length > 0 && (
+         {showReceivingModal && selectedReceivingRecords.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
