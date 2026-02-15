@@ -657,12 +657,14 @@ export default function ScanPage() {
             <div />
           )}
 
-          <Link to={createPageUrl("Inventory")}>
-            <Button variant="ghost" className="text-slate-400 hover:text-white">
-              <Package className="w-4 h-4 mr-2" />
-              Lager
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            className="text-slate-400 hover:text-white"
+            onClick={() => window.location.href = createPageUrl("Inventory")}
+          >
+            <Package className="w-4 h-4 mr-2" />
+            Lager
+          </Button>
         </div>
 
         {/* Step: Mode Selection */}
