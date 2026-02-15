@@ -15,6 +15,7 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
   const [siteData, setSiteData] = useState({
     site_name: '',
     site_address: '',
+    rm_service_id: '',
     notes: '',
     gps_latitude: null,
     gps_longitude: null,
@@ -235,6 +236,18 @@ export default function SiteDocumentationFlow({ onComplete, onCancel }) {
               value={siteData.site_address}
               onChange={(e) => setSiteData(prev => ({ ...prev, site_address: e.target.value }))}
               placeholder="Gatuadress"
+              className="bg-zinc-900 border-white/10 text-white"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-white/70 mb-2 block">
+              RM Install/Service ID
+            </label>
+            <Input
+              value={siteData.rm_service_id}
+              onChange={(e) => setSiteData(prev => ({ ...prev, rm_service_id: e.target.value }))}
+              placeholder="t.ex. RM-2024-001"
               className="bg-zinc-900 border-white/10 text-white"
             />
           </div>
