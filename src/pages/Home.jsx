@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Camera, Package, TrendingUp, TrendingDown, 
   AlertTriangle, Clock, ArrowRight, Zap, MapPin,
-  Search, X, Hash, Factory, Printer, ClipboardList, BookOpen
+  Search, X, Hash, Factory, Printer, ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
