@@ -1042,14 +1042,13 @@ export default function ScanPage() {
                       </div>
                     )}
                   </div>
-                  <Link to={`${createPageUrl("Inventory")}?articleId=${selectedArticle.id}`}>
-                    <Button
-                      variant="outline"
-                      className="w-full mt-4 bg-slate-700 border-slate-600 hover:bg-slate-600 text-white"
-                    >
-                      Visa detaljer
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4 bg-slate-700 border-slate-600 hover:bg-slate-600 text-white"
+                    onClick={() => window.location.href = `${createPageUrl("Inventory")}?articleId=${selectedArticle.id}`}
+                  >
+                    Visa detaljer
+                  </Button>
                 </div>
               )}
 
@@ -1061,15 +1060,14 @@ export default function ScanPage() {
                   <Camera className="w-4 h-4 mr-2" />
                   Skanna ny artikel
                 </Button>
-                <Link to={createPageUrl("Inventory")}>
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-                  >
-                    <Package className="w-4 h-4 mr-2" />
-                    Visa lager
-                  </Button>
-                </Link>
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                  onClick={() => window.location.href = createPageUrl("Inventory")}
+                >
+                  <Package className="w-4 h-4 mr-2" />
+                  Visa lager
+                </Button>
               </div>
             </motion.div>
           )}
