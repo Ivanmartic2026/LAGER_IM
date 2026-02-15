@@ -495,75 +495,75 @@ function ImageMatchCard({ image, article, onConfirm }) {
   const template = getFormTemplate();
 
   return (
-    <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
-        {/* Site Image */}
-        <div>
-          <div className="text-sm font-medium text-white/70 mb-2 flex items-center justify-between">
-            <span>Bild från site</span>
-            <div className="flex gap-2">
+    <div className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+    <div className="flex md:flex-row flex-col gap-4 md:gap-6 mb-6">
+      {/* Site Image */}
+      <div className="flex-1 min-w-0">
+        <div className="text-xs md:text-sm font-medium text-white/70 mb-2 flex items-center justify-between gap-2">
+          <span>Från site</span>
+          <div className="flex gap-1">
+            <button
+              onClick={() => window.open(image.image_url, '_blank')}
+              className="p-1 hover:bg-white/10 rounded text-blue-400 hover:text-blue-300"
+              title="Öppna"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </button>
+            <a
+              href={image.image_url}
+              download={`site-bild-${image.id}.jpg`}
+              className="p-1 hover:bg-white/10 rounded text-blue-400 hover:text-blue-300"
+              title="Ladda ner"
+            >
+              <Download className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+        <LazyImage 
+          src={image.image_url} 
+          alt="Site" 
+          className="w-full h-40 md:h-64 rounded-lg md:rounded-xl object-cover bg-slate-900 cursor-pointer"
+          onClick={() => window.open(image.image_url, '_blank')}
+        />
+      </div>
+
+      {/* Matched Article Image */}
+      <div className="flex-1 min-w-0">
+        <div className="text-xs md:text-sm font-medium text-white/70 mb-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="truncate">Artikel</span>
+            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 whitespace-nowrap text-xs">
+              {Math.round(image.match_confidence * 100)}%
+            </Badge>
+          </div>
+          {(article?.image_urls?.[0] || article?.image_url) && (
+            <div className="flex gap-1">
               <button
-                onClick={() => window.open(image.image_url, '_blank')}
-                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                onClick={() => window.open(article?.image_urls?.[0] || article?.image_url, '_blank')}
+                className="p-1 hover:bg-white/10 rounded text-blue-400 hover:text-blue-300"
+                title="Öppna"
               >
-                <ExternalLink className="w-3 h-3" />
-                Öppna
+                <ExternalLink className="w-4 h-4" />
               </button>
               <a
-                href={image.image_url}
-                download={`site-bild-${image.id}.jpg`}
-                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                href={article?.image_urls?.[0] || article?.image_url}
+                download={`artikel-${article?.sku || article?.id}.jpg`}
+                className="p-1 hover:bg-white/10 rounded text-blue-400 hover:text-blue-300"
+                title="Ladda ner"
               >
-                <Download className="w-3 h-3" />
-                Ladda ner
+                <Download className="w-4 h-4" />
               </a>
             </div>
-          </div>
-          <img 
-            src={image.image_url} 
-            alt="Site" 
-            className="w-full h-64 rounded-xl object-cover bg-slate-900 cursor-pointer"
-            onClick={() => window.open(image.image_url, '_blank')}
-          />
+          )}
         </div>
-
-        {/* Matched Article Image */}
-        <div>
-          <div className="text-sm font-medium text-white/70 mb-2 flex items-center justify-between">
-            <div>
-              Matchad artikel
-              <Badge className="ml-2 bg-blue-500/20 text-blue-400 border-blue-500/30">
-                {Math.round(image.match_confidence * 100)}% säkerhet
-              </Badge>
-            </div>
-            {(article?.image_urls?.[0] || article?.image_url) && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => window.open(article?.image_urls?.[0] || article?.image_url, '_blank')}
-                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  Öppna
-                </button>
-                <a
-                  href={article?.image_urls?.[0] || article?.image_url}
-                  download={`artikel-${article?.sku || article?.id}.jpg`}
-                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                >
-                  <Download className="w-3 h-3" />
-                  Ladda ner
-                </a>
-              </div>
-            )}
-          </div>
-          <img 
-            src={article?.image_urls?.[0] || article?.image_url} 
-            alt={article?.name}
-            className="w-full h-64 rounded-xl object-cover bg-slate-900 cursor-pointer"
-            onClick={() => window.open(article?.image_urls?.[0] || article?.image_url, '_blank')}
-          />
-        </div>
+        <LazyImage 
+          src={article?.image_urls?.[0] || article?.image_url} 
+          alt={article?.name}
+          className="w-full h-40 md:h-64 rounded-lg md:rounded-xl object-cover bg-slate-900 cursor-pointer"
+          onClick={() => window.open(article?.image_urls?.[0] || article?.image_url, '_blank')}
+        />
       </div>
+    </div>
 
       {/* Article Info */}
       <div className="mb-6 p-4 rounded-xl bg-white/5">
