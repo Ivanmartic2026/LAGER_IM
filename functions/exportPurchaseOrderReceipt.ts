@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
 Deno.serve(async (req) => {
@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
-      putOnlyUsedFonts: true
+      compress: true
     });
 
     const pageWidth = 210;
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
     const poNumber = po.po_number || `PO #${po.id.slice(0, 8)}`;
-    doc.text(decodeURIComponent(escape(poNumber)), margin, 35);
+    doc.text(poNumber, margin, 35);
 
     doc.setTextColor(0, 0, 0);
 
@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(51, 65, 85);
-    doc.text(decodeURIComponent(escape('Orderinformation')), margin + 3, y + 7);
+    doc.text('Orderinformation', margin + 3, y + 7);
     
     y += 15;
     doc.setFontSize(11);
@@ -75,11 +75,9 @@ Deno.serve(async (req) => {
     const addField = (label, value) => {
       if (value !== null && value !== undefined && value !== '') {
         doc.setFont('helvetica', 'bold');
-        const encodedLabel = decodeURIComponent(escape(`${label}:`));
-        doc.text(encodedLabel, margin + 5, y);
+        doc.text(`${label}:`, margin + 5, y);
         doc.setFont('helvetica', 'normal');
-        const encodedValue = decodeURIComponent(escape(String(value)));
-        doc.text(encodedValue, margin + 60, y);
+        doc.text(String(value), margin + 60, y);
         y += 8;
       }
     };
@@ -101,7 +99,7 @@ Deno.serve(async (req) => {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(51, 65, 85);
-    doc.text(decodeURIComponent(escape('Mottagna artiklar')), margin + 3, y + 7);
+    doc.text('Mottagna artiklar', margin + 3, y + 7);
     
     y += 15;
 
@@ -131,7 +129,7 @@ Deno.serve(async (req) => {
         y = 20;
       }
 
-      const name = decodeURIComponent(escape(item.article_name || ''));
+      const name = item.article_name || '';
       const nameLines = doc.splitTextToSize(name, 60);
       
       doc.text(nameLines[0], margin + 3, y);
@@ -182,22 +180,21 @@ Deno.serve(async (req) => {
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(51, 65, 85);
-      doc.text(decodeURIComponent(escape('Anteckningar')), margin + 3, y + 7);
-      
+      doc.text('Anteckningar', margin + 3, y + 7);
+
       y += 15;
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
-      
-      const encodedNotes = decodeURIComponent(escape(po.notes));
-      const notesLines = doc.splitTextToSize(encodedNotes, contentWidth - 10);
+
+      const notesLines = doc.splitTextToSize(po.notes, contentWidth - 10);
       doc.text(notesLines, margin + 5, y);
     }
 
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    const footerLeft = decodeURIComponent(escape(`Genererad: ${new Date().toLocaleString('sv-SE')}`));
+    const footerLeft = `Genererad: ${new Date().toLocaleString('sv-SE')}`;
     doc.text(footerLeft, margin, 285);
 
     // Generate PDF
