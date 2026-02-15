@@ -26,6 +26,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import RepairLabel from "@/components/labels/RepairLabel";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 
 export default function RepairsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -286,11 +287,7 @@ export default function RepairsPage() {
 
         {/* Repair Cards */}
         {isLoading ? (
-          <div className="grid gap-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-40 rounded-2xl bg-white/5 animate-pulse" />
-            ))}
-          </div>
+          <ListSkeleton count={3} />
         ) : filteredRepairs.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center mx-auto mb-4">

@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import SiteReportReview from "@/components/sitereports/SiteReportReview";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 
 export default function SiteReportsPage() {
   const [selectedReport, setSelectedReport] = useState(null);
@@ -116,11 +117,7 @@ export default function SiteReportsPage() {
         </div>
 
         {isLoading ? (
-          <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-24 rounded-2xl bg-white/5 animate-pulse" />
-            ))}
-          </div>
+          <ListSkeleton count={5} />
         ) : filteredReports.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">

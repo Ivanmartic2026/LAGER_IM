@@ -16,6 +16,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import { ListSkeleton } from "@/components/ui/list-skeleton";
 
 export default function UnknownDeliveriesPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -156,11 +157,7 @@ export default function UnknownDeliveriesPage() {
 
         {/* Articles List */}
         {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 rounded-xl bg-white/5 animate-pulse" />
-            ))}
-          </div>
+          <ListSkeleton count={4} />
         ) : filteredArticles.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
