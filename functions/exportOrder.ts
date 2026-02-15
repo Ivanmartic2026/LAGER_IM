@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
-      putOnlyUsedFonts: true
+      compress: true
     });
 
     const pageWidth = 210;
