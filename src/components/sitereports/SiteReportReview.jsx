@@ -242,28 +242,25 @@ export default function SiteReportReview({ report, onBack }) {
                   
                   {orderItems.length > 0 && (
                     <div className="space-y-2">
-                      <div className="text-xs font-medium text-white/50 mb-2">Artiklar kopplade till Site:</div>
+                      <div className="text-xs font-medium text-white/50 mb-2 hidden md:block">Artiklar:</div>
                       {orderItems.map(item => {
                         const article = articles.find(a => a.id === item.article_id);
                         return (
                           <Link
                             key={item.id}
                             to={createPageUrl(`Inventory?articleId=${item.article_id}`)}
-                            className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
+                            className="flex items-center justify-between p-2 rounded text-xs md:text-sm rounded-lg bg-white/5 hover:bg-white/10 transition-colors group gap-2"
                           >
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm text-white truncate">{item.article_name}</div>
-                              <div className="text-xs text-white/40">
-                                {article?.sku && <span>Artikelnr: {article.sku}</span>}
+                              <div className="text-white truncate">{item.article_name}</div>
+                              <div className="text-white/40 hidden md:block">
+                                {article?.sku && <span>{article.sku}</span>}
                                 {article?.sku && item.article_batch_number && <span> • </span>}
-                                {item.article_batch_number && <span>Batch: {item.article_batch_number}</span>}
+                                {item.article_batch_number && <span>{item.article_batch_number}</span>}
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 ml-2">
-                              <div className="text-sm font-medium text-white/70">
-                                {item.quantity_ordered} st
-                              </div>
-                              <ExternalLink className="w-4 h-4 text-white/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="text-white/70 font-medium flex-shrink-0">
+                              {item.quantity_ordered} st
                             </div>
                           </Link>
                         );
