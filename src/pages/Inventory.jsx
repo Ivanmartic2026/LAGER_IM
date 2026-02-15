@@ -29,6 +29,7 @@ import QuickInventory from "@/components/inventory/QuickInventory";
 import PickListGenerator from "@/components/inventory/PickListGenerator";
 import ImportPreview from "@/components/inventory/ImportPreview";
 import ColumnMapper from "@/components/inventory/ColumnMapper";
+import PullToRefresh from "@/components/utils/PullToRefresh";
 import {
   Dialog,
   DialogContent,
