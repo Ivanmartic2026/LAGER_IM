@@ -144,12 +144,14 @@ function LayoutContent({ children, currentPageName }) {
       <OfflineIndicator />
       {/* Logo and Notifications - Top */}
       <div className="hidden md:flex fixed top-6 left-6 right-6 z-50 items-center justify-between">
-        <img 
-          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
-          alt="IMvision"
-          className="h-8 object-contain"
-          loading="lazy"
-        />
+        <button onClick={() => navigate(createPageUrl("Home"))}>
+          <img 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
+            alt="IMvision"
+            className="h-8 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            loading="lazy"
+          />
+        </button>
         <div className="flex items-center gap-2">
           <LanguageToggle />
           <NotificationBell />
@@ -199,12 +201,14 @@ function LayoutContent({ children, currentPageName }) {
              <ArrowLeft className="w-5 h-5" />
            </Button>
          ) : (
-           <img 
-             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
-             alt="IMvision"
-             className="h-7 object-contain"
-             loading="lazy"
-           />
+           <button onClick={() => navigate(createPageUrl("Home"))}>
+             <img 
+               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" 
+               alt="IMvision"
+               className="h-7 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+               loading="lazy"
+             />
+           </button>
          )}
        </div>
 
