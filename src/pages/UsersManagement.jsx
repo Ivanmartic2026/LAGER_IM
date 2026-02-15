@@ -260,11 +260,110 @@ export default function UsersManagement() {
         </div>
 
         {users.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-white/50">{language === 'sv' ? 'Inga användare hittade' : 'No users found'}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+           <div className="text-center py-12">
+             <p className="text-white/50">{language === 'sv' ? 'Inga användare hittade' : 'No users found'}</p>
+           </div>
+         )}
+
+        {/* Invite Modal */}
+        <AnimatePresence>
+          {showInviteModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowInviteModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-white">
+                    {language === 'sv' ? 'Bjud in användare' : 'Invite User'}
+                  </h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowInviteModal(false)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-2">
+                      {language === 'sv' ? 'E-postadress' : 'Email Address'}
+                    </label>
+                    <Input
+                      type="email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      placeholder="user@example.com"
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-2">
+                      {language === 'sv' ? 'Roll' : 'Role'}
+                    </label>
+                    <select
+                      value={inviteRole}
+                      onChange={(e) => setInviteRole(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+                    >
+                      <option value="user">{language === 'sv' ? 'Användare' : 'User'}</option>
+                      <option value="admin">{language === 'sv' ? 'Admin' : 'Admin'}</option>
+                    </select>
+                  </div>
+
+                  <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3">
+                    <p className="text-sm text-slate-300">
+                      {language === 'sv' 
+                        ? 'Användaren kommer att få en inbjudningslänk på denna e-postadress.'
+                        : 'The user will receive an invitation link at this email address.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    onClick={() => setShowInviteModal(false)}
+                    variant="outline"
+                    className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                  >
+                    {language === 'sv' ? 'Avbryt' : 'Cancel'}
+                  </Button>
+                  <Button
+                    onClick={handleInviteUser}
+                    disabled={inviteUserMutation.isPending || !inviteEmail.trim()}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-500"
+                  >
+                    {inviteUserMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {language === 'sv' ? 'Bjuder in...' : 'Inviting...'}
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 mr-2" />
+                        {language === 'sv' ? 'Bjud in' : 'Invite'}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        </div>
+        </div>
+        );
+        }
