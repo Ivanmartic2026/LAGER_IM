@@ -238,14 +238,14 @@ export default function HomePage() {
             </motion.div>
           </Link>
 
-          <Link to={createPageUrl("OnsiteDocumentation")}>
+          <Link to={createPageUrl("Scan") + "?mode=site_documentation"}>
             <motion.div 
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
               className="p-6 rounded-2xl bg-gradient-to-br from-purple-600/20 to-purple-700/10 backdrop-blur-sm border border-purple-500/30 hover:border-purple-500/50 hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-300 cursor-pointer group"
             >
-              <BookOpen className="w-8 h-8 text-purple-400 mb-3 group-hover:scale-110 transition-transform duration-300" />
+              <MapPin className="w-8 h-8 text-purple-400 mb-3 group-hover:scale-110 transition-transform duration-300" />
               <h3 className="font-semibold text-white text-lg mb-1">On Site-dokumentation</h3>
-              <p className="text-sm text-slate-400">Snabbguide för fältarbete</p>
+              <p className="text-sm text-slate-400">Dokumentera fältbesök</p>
             </motion.div>
           </Link>
 
