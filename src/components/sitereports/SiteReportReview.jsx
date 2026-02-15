@@ -672,17 +672,17 @@ function ImageMatchCard({ image, article, onConfirm }) {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
+      <div className="flex gap-2 md:gap-3">
         <Button
           onClick={() => onConfirm(formData)}
-          className="flex-1 bg-green-600 hover:bg-green-500"
+          className="flex-1 bg-green-600 hover:bg-green-500 text-sm md:text-base"
         >
           <CheckCircle2 className="w-4 h-4 mr-2" />
-          Bekräfta matchning
+          Bekräfta
         </Button>
         <Button
           variant="outline"
-          className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+          className="flex-1 bg-white/5 border-white/10 text-white hover:bg-white/10 text-sm md:text-base"
         >
           <XCircle className="w-4 h-4 mr-2" />
           Avvisa
