@@ -185,20 +185,20 @@ export default function SiteReportReview({ report, onBack }) {
         </div>
 
         {/* Linked Order Section */}
-        <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Kopplad order
+        <div className="mb-4 md:mb-6 p-3 md:p-5 rounded-lg md:rounded-2xl bg-white/5 border border-white/10">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <h3 className="font-semibold text-sm md:text-base text-white flex items-center gap-2">
+              <Package className="w-4 md:w-5 h-4 md:h-5" />
+              <span>Order</span>
             </h3>
             {!editingOrder && (
               <Button
                 onClick={() => setEditingOrder(true)}
                 variant="outline"
                 size="sm"
-                className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+                className="bg-white/5 border-white/10 text-white hover:bg-white/10 text-xs md:text-sm"
               >
-                {report.linked_order_id ? 'Ändra' : 'Koppla order'}
+                {report.linked_order_id ? 'Ändra' : 'Koppla'}
               </Button>
             )}
           </div>
