@@ -269,7 +269,7 @@ export default function SiteReportReview({ report, onBack }) {
                   )}
                 </div>
               ) : (
-                <div className="text-sm text-white/60">Ingen order kopplad</div>
+                <div className="text-xs md:text-sm text-white/60">Ingen order kopplad</div>
               )}
             </div>
           )}
