@@ -566,13 +566,13 @@ function ImageMatchCard({ image, article, onConfirm }) {
     </div>
 
       {/* Article Info */}
-      <div className="mb-6 p-4 rounded-xl bg-white/5">
-        <div className="flex items-start gap-3">
-          <Package className="w-5 h-5 text-blue-400 mt-0.5" />
-          <div>
-            <div className="font-semibold text-white">{article?.name}</div>
+      <div className="mb-6 p-3 md:p-4 rounded-lg md:rounded-xl bg-white/5">
+        <div className="flex items-start gap-2 md:gap-3">
+          <Package className="w-4 md:w-5 h-4 md:h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+          <div className="min-w-0">
+            <div className="font-semibold text-sm md:text-base text-white truncate">{article?.name}</div>
             {article?.batch_number && (
-              <div className="text-sm text-white/50">Batch: {article.batch_number}</div>
+              <div className="text-xs md:text-sm text-white/50">Batch: {article.batch_number}</div>
             )}
           </div>
         </div>
