@@ -17,6 +17,7 @@ import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import ProductionDocumentation from "@/components/production/ProductionDocumentation";
 
 export default function ProductionViewPage() {
   const urlParams = new URLSearchParams(window.location.search);
