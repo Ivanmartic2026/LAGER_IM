@@ -1,35 +1,82 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Custom hook for lazy loading images
- * Improves performance by deferring image loading until visible
+ * Hook för lazy loading av bilder med Intersection Observer
+ * Optimerar sidladdning genom att bara ladda synliga bilder
  */
 export function useImageLazyLoad() {
-  const imageRef = useRef(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const imgRef = useRef(null);
 
   useEffect(() => {
-    if (!imageRef.current) return;
+    if (!imgRef.current) return;
 
     const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            if (img.dataset.src && !img.src) {
-              img.src = img.dataset.src;
-              setIsLoaded(true);
-              observer.unobserve(img);
-            }
-          }
-        });
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
       },
-      { rootMargin: '50px' }
+      {
+        rootMargin: '50px', // Ladda bilder 50px innan de syns
+      }
     );
 
-    observer.observe(imageRef.current);
-    return () => observer.disconnect();
+    observer.observe(imgRef.current);
+
+    return () => {
+      if (imgRef.current) {
+        observer.disconnect();
+      }
+    };
   }, []);
 
-  return { imageRef, isLoaded };
+  return { imgRef, isVisible };
+}
+
+/**
+ * Hook för att preloada viktiga resurser
+ */
+export function usePreloadImages(urls) {
+  useEffect(() => {
+    if (!urls || urls.length === 0) return;
+
+    urls.forEach(url => {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = url;
+      document.head.appendChild(link);
+    });
+  }, [urls]);
+}
+
+/**
+ * Hook för att detektera långsam nätverksanslutning
+ */
+export function useSlowConnection() {
+  const [isSlowConnection, setIsSlowConnection] = useState(false);
+
+  useEffect(() => {
+    // Check if Network Information API is available
+    if ('connection' in navigator) {
+      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      
+      const checkConnection = () => {
+        // effectiveType can be: 'slow-2g', '2g', '3g', or '4g'
+        const slowTypes = ['slow-2g', '2g', '3g'];
+        setIsSlowConnection(slowTypes.includes(connection.effectiveType));
+      };
+
+      checkConnection();
+      connection.addEventListener('change', checkConnection);
+
+      return () => {
+        connection.removeEventListener('change', checkConnection);
+      };
+    }
+  }, []);
+
+  return isSlowConnection;
 }

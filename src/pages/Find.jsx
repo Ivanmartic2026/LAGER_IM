@@ -175,13 +175,13 @@ Returnera informationen i JSON-format.`,
             onClick={() => setMode("search")}
             variant={mode === "search" ? "default" : "outline"}
             className={cn(
-              "flex-1",
+              "flex-1 min-h-[52px] text-base md:text-sm",
               mode === "search" 
                 ? "bg-emerald-600 hover:bg-emerald-500 text-white" 
                 : "bg-slate-800 border-slate-600 hover:bg-slate-700 text-slate-300"
             )}
           >
-            <Search className="w-4 h-4 mr-2" />
+            <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
             Sök
           </Button>
           <Button
@@ -192,13 +192,13 @@ Returnera informationen i JSON-format.`,
             }}
             variant={mode === "scan" ? "default" : "outline"}
             className={cn(
-              "flex-1",
+              "flex-1 min-h-[52px] text-base md:text-sm",
               mode === "scan" 
                 ? "bg-emerald-600 hover:bg-emerald-500 text-white" 
                 : "bg-slate-800 border-slate-600 hover:bg-slate-700 text-slate-300"
             )}
           >
-            <Camera className="w-4 h-4 mr-2" />
+            <Camera className="w-5 h-5 md:w-4 md:h-4 mr-2" />
             Skanna
           </Button>
         </motion.div>
@@ -212,21 +212,21 @@ Returnera informationen i JSON-format.`,
             className="relative mb-6"
           >
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 md:w-5 md:h-5 text-slate-400" />
             <Input
               ref={searchInputRef}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Sök artikel, batchnummer eller hyllplats..."
-              className="pl-12 pr-12 h-14 bg-slate-800/50 border-slate-700 text-white text-lg placeholder:text-slate-500 focus:border-emerald-500"
+              className="pl-14 md:pl-12 pr-14 md:pr-12 h-16 md:h-14 bg-slate-800/50 border-slate-700 text-white text-xl md:text-lg placeholder:text-slate-500 focus:border-emerald-500"
               autoFocus
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6 md:w-5 md:h-5" />
               </button>
             )}
           </div>
@@ -339,7 +339,7 @@ Returnera informationen i JSON-format.`,
                   <Button
                     onClick={handleClear}
                     variant="outline"
-                    className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                    className="flex-1 min-h-[52px] bg-slate-800 border-slate-600 hover:bg-slate-700 text-white text-base md:text-sm"
                   >
                     Avbryt
                   </Button>
@@ -347,8 +347,8 @@ Returnera informationen i JSON-format.`,
                     to={createPageUrl("Scan")}
                     className="flex-1"
                   >
-                    <Button className="w-full bg-emerald-600 hover:bg-emerald-500">
-                      <Plus className="w-4 h-4 mr-2" />
+                    <Button className="w-full min-h-[52px] bg-emerald-600 hover:bg-emerald-500 text-base md:text-sm">
+                      <Plus className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                       Lägg till artikel
                     </Button>
                   </Link>
@@ -533,16 +533,16 @@ Returnera informationen i JSON-format.`,
                 <Button
                   onClick={() => setShowPrintModal(true)}
                   variant="outline"
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600"
+                  className="flex-1 min-h-[52px] bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-base md:text-sm"
                 >
-                  <Printer className="w-4 h-4 mr-2" />
+                  <Printer className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   Skriv ut etikett
                 </Button>
                 <Button
                   onClick={handleClear}
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600"
+                  className="flex-1 min-h-[52px] bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-base md:text-sm"
                 >
-                  <Search className="w-4 h-4 mr-2" />
+                  <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   {mode === "scan" ? "Skanna igen" : "Sök igen"}
                 </Button>
               </div>

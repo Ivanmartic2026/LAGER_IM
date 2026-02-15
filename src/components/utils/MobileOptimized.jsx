@@ -21,7 +21,7 @@ export function useIsMobile() {
 }
 
 /**
- * Lazy image loading med placeholder
+ * Lazy image loading med placeholder och intersection observer
  */
 export function LazyImage({ 
   src, 
@@ -31,20 +31,46 @@ export function LazyImage({
 }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const [inView, setInView] = useState(false);
+  const imgRef = React.useRef(null);
+
+  useEffect(() => {
+    if (!imgRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '100px' }
+    );
+
+    observer.observe(imgRef.current);
+
+    return () => {
+      if (imgRef.current) {
+        observer.disconnect();
+      }
+    };
+  }, []);
 
   return (
-    <div className={`relative ${className}`}>
+    <div ref={imgRef} className={`relative ${className}`}>
       {!loaded && !error && (
         <div className={`absolute inset-0 ${placeholderClassName}`} />
       )}
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        className={`${className} transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-        onLoad={() => setLoaded(true)}
-        onError={() => setError(true)}
-      />
+      {inView && (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          className={`${className} transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+        />
+      )}
     </div>
   );
 }

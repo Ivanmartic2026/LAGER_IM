@@ -154,6 +154,24 @@ input, button, a {
   perspective: 1000;
 }
 
+/* Image optimization for slow connections */
+@media (prefers-reduced-data: reduce) {
+  img {
+    content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect fill="%23ccc" width="400" height="300"/></svg>');
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Loading state animation (lighter weight) */
 @keyframes pulse-light {
   0%, 100% {
