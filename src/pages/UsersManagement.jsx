@@ -384,16 +384,21 @@ export default function UsersManagement() {
                       <p className="text-sm font-semibold text-white/70 mb-6">{t('users_select_modules', language)}</p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {AVAILABLE_MODULES.map(module => (
-                          <label key={module.id} className="flex items-center gap-4 p-4 rounded-lg bg-white/5 hover:bg-white/10 hover:border hover:border-white/20 transition-all cursor-pointer border border-white/10">
+                          <label 
+                            key={module.id} 
+                            className="flex items-center gap-4 p-4 rounded-lg bg-white/5 hover:bg-white/10 hover:border hover:border-white/20 transition-all cursor-pointer border border-white/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleModuleToggle(user.id, module.id, user.allowed_modules || []);
+                            }}
+                          >
                             <Checkbox
                               checked={user.allowed_modules?.includes(module.id) || false}
-                              onCheckedChange={() => handleModuleToggle(
-                                user.id,
-                                module.id,
-                                user.allowed_modules || []
-                              )}
+                              onCheckedChange={(checked) => {
+                                handleModuleToggle(user.id, module.id, user.allowed_modules || []);
+                              }}
                               disabled={updateUserMutation.isPending}
-                              className="w-6 h-6"
+                              className="w-6 h-6 pointer-events-none"
                             />
                             <span className="text-white/80 font-medium">{t(module.labelKey, language)}</span>
                           </label>
