@@ -115,7 +115,7 @@ export default function HomePage() {
     ).slice(0, 10);
     
     setSearchResults(results);
-  }, [searchQuery, articles]);
+  }, [searchQuery, articles.length]);
 
   const handleSelectArticle = (article) => {
     setSelectedArticle(article);
