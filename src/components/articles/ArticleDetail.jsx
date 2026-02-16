@@ -1150,15 +1150,13 @@ export default function ArticleDetail({
             ) : (
               <div className="space-y-3">
                 {[article].map((repairArticle) => (
-                  <div
+                   <Link
                     key={repairArticle.id}
-                    className="p-4 rounded-xl bg-slate-900/50 border border-orange-500/30 hover:border-orange-500/50 transition-colors cursor-pointer"
-                    onClick={() => {
-                      if (repairArticle.id !== article.id) {
-                        window.location.href = `#/Inventory?articleId=${repairArticle.id}`;
-                      }
-                    }}
+                    to={`${createPageUrl("Repairs")}?articleId=${repairArticle.id}`}
+                    className="block"
                   >
+                    <div className="p-4 rounded-xl bg-slate-900/50 border border-orange-500/30 hover:border-orange-500/50 transition-colors cursor-pointer"
+                    >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
