@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Package, Search, Factory, CheckCircle2, 
-  Clock, FileText, ArrowRight
+  Clock, FileText, ArrowRight, Zap, Play, Trophy
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
