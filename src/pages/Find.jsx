@@ -94,7 +94,43 @@ export default function FindPage() {
     setExtractedData({});
     setCapturedImages([]);
     setStatusFilter("all");
+    setShowReviewForm(false);
     searchInputRef.current?.focus();
+  };
+
+  const handleSaveArticle = async (data) => {
+    try {
+      // Search for article first
+      let found = null;
+      
+      if (data.batch_number) {
+        const byBatch = await base44.entities.Article.filter({ 
+          batch_number: data.batch_number 
+        });
+        if (byBatch.length > 0) found = byBatch[0];
+      }
+      
+      if (!found && data.name) {
+        const byName = articles.filter(a => 
+          a.name?.toLowerCase() === data.name?.toLowerCase()
+        );
+        if (byName.length > 0) found = byName[0];
+      }
+
+      if (found) {
+        setSelectedArticle(found);
+        setScanResult("found");
+        setShowReviewForm(false);
+        toast.success("Artikel hittad i lagret!");
+      } else {
+        setScanResult("not_found");
+        setShowReviewForm(false);
+        toast.info("Artikeln finns inte i lagret");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Kunde inte söka efter artikel");
+    }
   };
 
   const handleImageCaptured = async (file) => {
