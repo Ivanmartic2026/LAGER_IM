@@ -654,6 +654,44 @@ Returnera informationen i JSON-format.`,
                 </div>
               )}
 
+              {/* On Site Reports Section */}
+              {selectedArticle.id && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-6 rounded-2xl bg-blue-500/10 border border-blue-500/30"
+                >
+                  <button
+                    onClick={() => setShowOnSiteReports(!showOnSiteReports)}
+                    className="w-full flex items-center justify-between"
+                  >
+                    <h3 className="font-semibold text-white text-lg flex items-center gap-2">
+                      <Camera className="w-5 h-5 text-blue-400" />
+                      On Site Rapport
+                    </h3>
+                    <ArrowRight className={cn("w-5 h-5 text-blue-400 transition-transform", showOnSiteReports && "rotate-90")} />
+                  </button>
+
+                  {showOnSiteReports && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-4 pt-4 border-t border-blue-500/30"
+                    >
+                      <Link 
+                        to={`${createPageUrl("SiteReports")}?articleId=${selectedArticle.id}`}
+                        className="flex items-center gap-2 p-4 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-blue-300 transition-colors"
+                      >
+                        <Camera className="w-4 h-4" />
+                        <span>Visa On Site Rapporter för denna artikel</span>
+                        <ArrowRight className="w-4 h-4 ml-auto" />
+                      </Link>
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
+
               {/* Action Buttons */}
               <div className="flex gap-3">
                 <Button
