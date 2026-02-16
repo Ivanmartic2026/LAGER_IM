@@ -468,13 +468,10 @@ Returnera informationen i JSON-format.`,
                   initial={{ scale: 0.9 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 200 }}
-                  className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-emerald-700 p-8 md:p-12 text-center"
+                  className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-8 md:p-12 text-center"
                 >
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-400/20 rounded-full blur-2xl" />
-                  
                   <div className="relative z-10">
-                    <div className="flex items-center justify-center gap-2 text-emerald-200 text-sm mb-4">
+                    <div className="flex items-center justify-center gap-2 text-white/50 text-sm mb-4">
                       <MapPin className="w-5 h-5" />
                       <span>Hyllplats</span>
                     </div>
@@ -484,7 +481,7 @@ Returnera informationen i JSON-format.`,
                     </div>
                     
                     {selectedArticle.warehouse && (
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 text-white text-sm">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white text-sm">
                         <Package className="w-4 h-4" />
                         {selectedArticle.warehouse}
                       </div>
