@@ -343,7 +343,7 @@ Returnera informationen i JSON-format.`,
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.03 }}
                       onClick={() => handleSelectArticle(article)}
-                      className="w-full p-4 text-left hover:bg-slate-700/50 transition-colors border-b border-slate-700/50 last:border-0"
+                      className="w-full p-4 text-left hover:bg-white/10 transition-all duration-200 border-b border-slate-700/30 last:border-0"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
