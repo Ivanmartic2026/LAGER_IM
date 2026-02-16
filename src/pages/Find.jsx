@@ -772,22 +772,22 @@ Returnera informationen i JSON-format.`,
               )}
 
               {/* Action Buttons */}
-              <div className="flex gap-3">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex gap-3">
                 <Button
                   onClick={() => setShowPrintModal(true)}
-                  className="flex-1 h-[52px] bg-white/10 border border-white/20 hover:bg-white/15 text-white text-base md:text-sm backdrop-blur-xl transition-all duration-300"
+                  className="flex-1 h-[52px] bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/15 text-white text-base md:text-sm transition-all duration-300 font-semibold"
                 >
                   <Printer className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   Skriv ut etikett
                 </Button>
                 <Button
                   onClick={handleClear}
-                  className="flex-1 h-[52px] bg-white/10 border border-white/20 hover:bg-white/15 text-white text-base md:text-sm backdrop-blur-xl transition-all duration-300"
+                  className="flex-1 h-[52px] bg-emerald-500/20 backdrop-blur-xl border border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-200 text-base md:text-sm transition-all duration-300 font-semibold"
                 >
                   <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   {mode === "scan" ? "Skanna igen" : "Sök igen"}
                 </Button>
-              </div>
+              </motion.div>
             </motion.div>
           ) : !searchQuery && mode === "search" && !scanResult && (
             <motion.div
