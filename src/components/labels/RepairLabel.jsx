@@ -4,6 +4,30 @@ import { sv } from 'date-fns/locale';
 
 // Repair label component with all details
 export default function RepairLabel({ article, repairNotes, repairDate, quantity }) {
+  // Calculate total volume and weight for shipment
+  const calculateShipment = () => {
+    const width = article.dimensions_width_mm || 0;
+    const height = article.dimensions_height_mm || 0;
+    const depth = article.dimensions_depth_mm || 0;
+    const weight = article.weight_g || 0;
+    
+    // Volume in mm³ → cm³ → liters
+    const volumeMm3 = width * height * depth;
+    const volumeL = (volumeMm3 / 1000000).toFixed(2);
+    
+    // Total weight in grams → kg
+    const totalWeightG = weight * quantity;
+    const totalWeightKg = (totalWeightG / 1000).toFixed(2);
+    
+    return {
+      volumeL,
+      totalWeightKg,
+      hasData: width > 0 && height > 0 && depth > 0
+    };
+  };
+  
+  const shipment = calculateShipment();
+
   return (
     <div className="w-[100mm] min-h-[70mm] bg-white border-4 border-red-600 p-4 text-black">
       {/* Logo */}
