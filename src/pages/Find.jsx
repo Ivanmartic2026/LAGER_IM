@@ -329,10 +329,11 @@ Returnera informationen i JSON-format.`,
           <AnimatePresence>
             {searchResults.length > 0 && !selectedArticle && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: -15, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden"
+                transition={{ duration: 0.2 }}
+                className="absolute z-50 w-full mt-3 bg-slate-800/90 backdrop-blur-xl border border-slate-700/60 rounded-xl shadow-2xl shadow-black/50 overflow-hidden"
               >
                 <div className="max-h-[400px] overflow-y-auto">
                   {searchResults.map((article, index) => (
