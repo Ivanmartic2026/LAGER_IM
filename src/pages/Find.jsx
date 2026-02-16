@@ -808,31 +808,31 @@ Returnera informationen i JSON-format.`,
               </p>
 
               {/* Quick tips */}
-              <div className="mt-8 grid gap-3 max-w-md mx-auto">
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-800/30 border border-slate-700/30 text-left">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-4 h-4 text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white mb-1">Snabbsök</p>
-                    <p className="text-xs text-slate-400">
-                      Skriv del av artikelnamn eller batch för direktresultat
-                    </p>
-                  </div>
-                </div>
+               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-8 grid gap-3 max-w-md mx-auto">
+                 <motion.div whileHover={{ scale: 1.02 }} className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/30 text-left shadow-lg shadow-blue-500/5">
+                   <div className="w-8 h-8 rounded-lg bg-blue-500/30 flex items-center justify-center flex-shrink-0">
+                     <Sparkles className="w-4 h-4 text-blue-300" />
+                   </div>
+                   <div>
+                     <p className="text-sm font-medium text-white mb-1">Snabbsök</p>
+                     <p className="text-xs text-slate-300">
+                       Skriv del av artikelnamn eller batch för direktresultat
+                     </p>
+                   </div>
+                 </motion.div>
 
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-800/30 border border-slate-700/30 text-left">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white mb-1">Hitta hyllplats</p>
-                    <p className="text-xs text-slate-400">
-                      Se stor och tydlig hyllplats när du hittat rätt artikel
-                    </p>
-                  </div>
-                </div>
-              </div>
+                 <motion.div whileHover={{ scale: 1.02 }} className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 backdrop-blur-xl border border-emerald-500/30 text-left shadow-lg shadow-emerald-500/5">
+                   <div className="w-8 h-8 rounded-lg bg-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                     <MapPin className="w-4 h-4 text-emerald-300" />
+                   </div>
+                   <div>
+                     <p className="text-sm font-medium text-white mb-1">Hitta hyllplats</p>
+                     <p className="text-xs text-slate-300">
+                       Se stor och tydlig hyllplats när du hittat rätt artikel
+                     </p>
+                   </div>
+                 </motion.div>
+               </motion.div>
             </motion.div>
           )}
           </AnimatePresence>
