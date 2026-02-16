@@ -274,6 +274,40 @@ export default function ProductionDocumentation({
           );
         })}
       </div>
+
+      {/* Fullscreen Image Modal */}
+      <AnimatePresence>
+        {fullscreenImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
+            onClick={() => setFullscreenImage(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-6xl w-full h-full flex items-center justify-center"
+            >
+              <img
+                src={fullscreenImage}
+                alt="Fullscreen"
+                className="max-w-full max-h-full object-contain"
+              />
+              <button
+                onClick={() => setFullscreenImage(null)}
+                className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-colors"
+                title="Stäng"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
