@@ -613,10 +613,10 @@ Returnera informationen i JSON-format.`,
 
               {/* Article Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="p-5 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/20 shadow-lg shadow-blue-500/5">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                      <Package className="w-5 h-5 text-blue-400" />
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/30 flex items-center justify-center">
+                      <Package className="w-5 h-5 text-blue-300" />
                     </div>
                     <h3 className="font-semibold text-white">Artikel</h3>
                   </div>
