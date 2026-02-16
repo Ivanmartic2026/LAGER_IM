@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { jsPDF } from 'npm:jspdf@2.5.2';
 
 Deno.serve(async (req) => {
   try {
@@ -37,226 +36,259 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create PDF
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-      compress: true
-    });
-    
-    let y = 20;
-
-    // Title
-    doc.setFontSize(20);
-    doc.text('Site-Rapport', 20, y);
-    y += 15;
-
-    // Report info
-    doc.setFontSize(12);
-    const sanitize = (text) => {
-      if (!text) return '';
-      // Replace Swedish characters for PDF compatibility
-      return text
-        .replace(/å/g, 'a').replace(/Å/g, 'A')
-        .replace(/ä/g, 'a').replace(/Ä/g, 'A')
-        .replace(/ö/g, 'o').replace(/Ö/g, 'O');
-    };
-    
-    doc.text(`Plats: ${sanitize(report.site_name)}`, 20, y);
-    y += 8;
-    
-    if (report.site_address) {
-      doc.setFontSize(10);
-      doc.text(`Adress: ${sanitize(report.site_address)}`, 20, y);
-      y += 6;
-    }
-    
-    doc.text(`Tekniker: ${sanitize(report.technician_name || report.technician_email)}`, 20, y);
-    y += 6;
-    doc.text(`Datum: ${new Date(report.report_date).toLocaleDateString('sv-SE')}`, 20, y);
-    y += 6;
-    
-    if (linkedOrder) {
-      doc.text(`Kopplad till order: ${sanitize(linkedOrder.order_number || linkedOrder.customer_name)}`, 20, y);
-      y += 6;
-      if (linkedOrder.customer_name && linkedOrder.order_number) {
-        doc.text(`Kund: ${sanitize(linkedOrder.customer_name)}`, 20, y);
-        y += 6;
-      }
-    }
-    
-    y += 4;
-
-    if (report.notes) {
-      doc.setFontSize(10);
-      doc.text('Anteckningar:', 20, y);
-      y += 6;
-      const notesLines = doc.splitTextToSize(sanitize(report.notes), 170);
-      doc.text(notesLines, 20, y);
-      y += (notesLines.length * 6) + 4;
-    }
-
-    // GPS coordinates
-    if (report.gps_latitude && report.gps_longitude) {
-      y += 5;
-      doc.text(`GPS: ${report.gps_latitude.toFixed(6)}, ${report.gps_longitude.toFixed(6)}`, 20, y);
-      y += 10;
-    }
-
-    // Order items if linked
-    if (linkedOrder && orderItems.length > 0) {
-      y += 5;
-      doc.setFontSize(14);
-      doc.text('Artiklar från order', 20, y);
-      y += 8;
-      
-      doc.setFontSize(9);
-      orderItems.forEach(item => {
-        if (y > 270) {
-          doc.addPage();
-          y = 20;
-        }
-        
-        doc.setFont(undefined, 'bold');
-        doc.text(sanitize(item.article_name || 'Okand artikel'), 25, y);
-        y += 5;
-        
-        doc.setFont(undefined, 'normal');
-        if (item.article_batch_number) {
-          doc.text(`Batch: ${sanitize(item.article_batch_number)}`, 30, y);
-          y += 5;
-        }
-        
-        doc.text(`Antal: ${item.quantity_ordered} st`, 30, y);
-        y += 5;
-        
-        if (item.shelf_address) {
-          doc.text(`Plats: ${item.shelf_address}`, 30, y);
-          y += 5;
-        }
-        
-        y += 2;
-      });
-      
-      y += 5;
-    }
-
-    // Statistics
-    y += 5;
-    doc.setFontSize(14);
-    doc.text('Sammanfattning', 20, y);
-    y += 8;
-    
-    doc.setFontSize(10);
     const confirmed = images.filter(i => i.match_status === 'confirmed');
     const needsReplacement = confirmed.filter(i => i.component_status === 'needs_replacement');
     const needsRepair = confirmed.filter(i => i.component_status === 'needs_repair');
-    
-    doc.text(`Totalt bilder: ${images.length}`, 20, y);
-    y += 6;
-    doc.text(`Bekraftade matchningar: ${confirmed.length}`, 20, y);
-    y += 6;
-    doc.text(`Behover bytas: ${needsReplacement.length}`, 20, y);
-    y += 6;
-    doc.text(`Behover repareras: ${needsRepair.length}`, 20, y);
-    y += 12;
 
-    // Confirmed components with images
-    if (confirmed.length > 0) {
-      doc.setFontSize(14);
-      doc.text('Dokumenterade komponenter', 20, y);
-      y += 8;
-
-      for (const image of confirmed) {
-        if (y > 200) {
-          doc.addPage();
-          y = 20;
-        }
-
-        const article = allArticles.find(a => a.id === image.matched_article_id);
-        if (article) {
-          doc.setFontSize(9);
-          doc.setFont(undefined, 'bold');
-          doc.text(sanitize(article.name), 20, y);
-          y += 5;
-          
-          doc.setFont(undefined, 'normal');
-          
-          if (article.batch_number) {
-            doc.text(`Batch: ${sanitize(article.batch_number)}`, 25, y);
-            y += 5;
+    // Create HTML content for rendering
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { 
+            font-family: Arial, sans-serif; 
+            background: white; 
+            padding: 40px; 
+            max-width: 800px;
+            margin: 0 auto;
           }
-          
-          const statusText = image.component_status === 'ok' ? 'OK - Fungerar' :
-                           image.component_status === 'needs_replacement' ? 'Behover bytas ut' :
-                           image.component_status === 'needs_repair' ? 'Behover repareras' : 'Dokumenterad';
-          doc.text(`Status: ${statusText}`, 25, y);
-          y += 5;
-
-          // Form data details
-          if (image.form_data) {
-            Object.keys(image.form_data).forEach(key => {
-              if (key !== 'component_status' && image.form_data[key]) {
-                doc.text(`${sanitize(key)}: ${sanitize(String(image.form_data[key]))}`, 25, y);
-                y += 5;
-              }
-            });
+          .header { 
+            margin-bottom: 30px; 
+            border-bottom: 3px solid #10b981;
+            padding-bottom: 20px;
           }
-          
-          y += 5;
-
-          // Add image from site
-          try {
-            const imageResponse = await fetch(image.image_url);
-            if (!imageResponse.ok) {
-              throw new Error(`Failed to fetch image: ${imageResponse.status}`);
-            }
-
-            const imageArrayBuffer = await imageResponse.arrayBuffer();
-            const uint8Array = new Uint8Array(imageArrayBuffer);
-
-            // Convert to base64
-            const imageBase64 = btoa(String.fromCharCode(...uint8Array));
-
-            // Determine image format
-            const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
-            let imageFormat = contentType.includes('png') ? 'PNG' : 'JPEG';
-
-            // Add image to PDF - use direct base64 without data: prefix
-            const imgWidth = 80;
-            const imgHeight = 60;
-
-            doc.addImage(
-              imageBase64, 
-              imageFormat, 
-              25, 
-              y, 
-              imgWidth, 
-              imgHeight
-            );
-            y += imgHeight + 10;
-          } catch (imgError) {
-            console.error('Error adding image:', imgError);
-            doc.setFontSize(8);
-            doc.text(`(Bild kunde inte laddas)`, 25, y);
-            y += 5;
+          h1 { 
+            color: #1f2937; 
+            font-size: 32px; 
+            margin-bottom: 20px;
+            font-weight: bold;
           }
-        }
-      }
-    }
+          .info-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
+            margin-bottom: 20px;
+            font-size: 14px;
+          }
+          .info-item { 
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 8px;
+          }
+          .label { 
+            color: #6b7280; 
+            font-size: 12px; 
+            margin-bottom: 4px;
+          }
+          .value { 
+            color: #111827; 
+            font-weight: 600;
+          }
+          .section { 
+            margin: 30px 0; 
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+          }
+          .section-title { 
+            font-size: 20px; 
+            font-weight: bold; 
+            color: #1f2937; 
+            margin-bottom: 15px;
+          }
+          .stats { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 12px; 
+            margin-bottom: 30px;
+          }
+          .stat-box { 
+            background: #10b981; 
+            color: white; 
+            padding: 16px; 
+            border-radius: 12px; 
+            text-align: center;
+          }
+          .stat-box.warning { background: #f59e0b; }
+          .stat-box.error { background: #ef4444; }
+          .stat-number { 
+            font-size: 28px; 
+            font-weight: bold; 
+            margin-bottom: 4px;
+          }
+          .stat-label { 
+            font-size: 12px; 
+            opacity: 0.9;
+          }
+          .component { 
+            margin: 20px 0; 
+            padding: 20px; 
+            background: white; 
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+          }
+          .component.warning { border-color: #f59e0b; background: #fffbeb; }
+          .component.error { border-color: #ef4444; background: #fef2f2; }
+          .component-header { 
+            font-weight: bold; 
+            font-size: 16px; 
+            color: #1f2937; 
+            margin-bottom: 12px;
+          }
+          .component-details { 
+            font-size: 13px; 
+            color: #4b5563; 
+            margin-bottom: 16px;
+            line-height: 1.6;
+          }
+          .component-image { 
+            width: 100%; 
+            max-width: 600px;
+            height: auto;
+            border-radius: 8px; 
+            margin-top: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 8px 0;
+          }
+          .status-ok { background: #d1fae5; color: #065f46; }
+          .status-replacement { background: #fee2e2; color: #991b1b; }
+          .status-repair { background: #fef3c7; color: #92400e; }
+          .notes { 
+            background: #f3f4f6; 
+            padding: 16px; 
+            border-radius: 8px; 
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #374151;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Site-Rapport</h1>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="label">Plats</div>
+              <div class="value">${report.site_name}</div>
+            </div>
+            ${report.site_address ? `
+            <div class="info-item">
+              <div class="label">Adress</div>
+              <div class="value">${report.site_address}</div>
+            </div>` : ''}
+            <div class="info-item">
+              <div class="label">Tekniker</div>
+              <div class="value">${report.technician_name || report.technician_email}</div>
+            </div>
+            <div class="info-item">
+              <div class="label">Datum</div>
+              <div class="value">${new Date(report.report_date).toLocaleDateString('sv-SE')}</div>
+            </div>
+            ${linkedOrder ? `
+            <div class="info-item">
+              <div class="label">Kopplad order</div>
+              <div class="value">${linkedOrder.order_number || linkedOrder.customer_name}</div>
+            </div>` : ''}
+            ${report.gps_latitude && report.gps_longitude ? `
+            <div class="info-item">
+              <div class="label">GPS-koordinater</div>
+              <div class="value">${report.gps_latitude.toFixed(6)}, ${report.gps_longitude.toFixed(6)}</div>
+            </div>` : ''}
+          </div>
+        </div>
 
-    const pdfBytes = doc.output('arraybuffer');
+        ${report.notes ? `
+        <div class="notes">
+          <strong>Anteckningar:</strong><br><br>
+          ${report.notes.replace(/\n/g, '<br>')}
+        </div>` : ''}
 
-    return new Response(pdfBytes, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=site-rapport-${report.site_name}-${new Date(report.report_date).toISOString().split('T')[0]}.pdf`
-      }
+        <div class="stats">
+          <div class="stat-box">
+            <div class="stat-number">${images.length}</div>
+            <div class="stat-label">Totalt bilder</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">${confirmed.length}</div>
+            <div class="stat-label">Bekräftade</div>
+          </div>
+          <div class="stat-box warning">
+            <div class="stat-number">${needsRepair.length}</div>
+            <div class="stat-label">Behöver repareras</div>
+          </div>
+          <div class="stat-box error">
+            <div class="stat-number">${needsReplacement.length}</div>
+            <div class="stat-label">Behöver bytas</div>
+          </div>
+        </div>
+
+        ${linkedOrder && orderItems.length > 0 ? `
+        <div class="section">
+          <div class="section-title">Artiklar från order</div>
+          ${orderItems.map(item => `
+            <div style="margin: 12px 0; padding: 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
+              <strong>${item.article_name || 'Okänd artikel'}</strong><br>
+              ${item.article_batch_number ? `Batch: ${item.article_batch_number}<br>` : ''}
+              Antal: ${item.quantity_ordered} st
+              ${item.shelf_address ? `<br>Plats: ${item.shelf_address}` : ''}
+            </div>
+          `).join('')}
+        </div>` : ''}
+
+        ${confirmed.length > 0 ? `
+        <div class="section">
+          <div class="section-title">Dokumenterade komponenter</div>
+          ${confirmed.map(image => {
+            const article = allArticles.find(a => a.id === image.matched_article_id);
+            if (!article) return '';
+            
+            const statusClass = image.component_status === 'ok' ? 'status-ok' : 
+                               image.component_status === 'needs_replacement' ? 'status-replacement' : 
+                               'status-repair';
+            const statusText = image.component_status === 'ok' ? 'OK - Fungerar' :
+                             image.component_status === 'needs_replacement' ? 'Behöver bytas ut' :
+                             image.component_status === 'needs_repair' ? 'Behöver repareras' : 'Dokumenterad';
+            
+            const componentClass = image.component_status === 'needs_replacement' ? 'error' :
+                                  image.component_status === 'needs_repair' ? 'warning' : '';
+            
+            return `
+              <div class="component ${componentClass}">
+                <div class="component-header">${article.name}</div>
+                <div class="component-details">
+                  ${article.batch_number ? `<strong>Batch:</strong> ${article.batch_number}<br>` : ''}
+                  <span class="status-badge ${statusClass}">${statusText}</span>
+                  ${image.form_data ? Object.keys(image.form_data)
+                    .filter(key => key !== 'component_status' && image.form_data[key])
+                    .map(key => `<br><strong>${key}:</strong> ${image.form_data[key]}`)
+                    .join('') : ''}
+                </div>
+                <img src="${image.image_url}" class="component-image" alt="Komponent" />
+              </div>
+            `;
+          }).join('')}
+        </div>` : ''}
+      </body>
+      </html>
+    `;
+
+    return Response.json({ 
+      html: htmlContent,
+      filename: `site-rapport-${report.site_name}-${new Date(report.report_date).toISOString().split('T')[0]}`
     });
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    console.error('Error generating report:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
