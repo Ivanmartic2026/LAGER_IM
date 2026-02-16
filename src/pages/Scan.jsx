@@ -22,13 +22,6 @@ import { Link } from "react-router-dom";
 
 const MODE_OPTIONS = [
   {
-    id: "barcode",
-    title: "Skanna Streckkod",
-    description: "Snabbsök artikel med streckkod eller QR-kod",
-    icon: ScanIcon,
-    color: "from-purple-500 to-purple-600"
-  },
-  {
     id: "inbound",
     title: "Inleverans",
     description: "Registrera ny artikel eller lägg till lager",
