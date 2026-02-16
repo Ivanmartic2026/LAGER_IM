@@ -73,6 +73,13 @@ export default function RepairLabel({ article, repairNotes, repairDate, quantity
           </div>
         )}
 
+        {article.supplier_id && (
+          <div className="bg-blue-50 p-2 rounded border border-blue-200">
+            <div className="text-[10px] text-gray-600 uppercase font-semibold mb-1">Leverantörens adress</div>
+            <div className="text-[11px] font-semibold">{article.supplier_name}</div>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-2">
           {article.manufacturer && (
             <div>
