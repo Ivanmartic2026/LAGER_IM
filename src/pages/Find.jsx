@@ -369,10 +369,10 @@ Returnera informationen i JSON-format.`,
                 </div>
               </motion.div>
             )}
-          </AnimatePresence>
-          </div>
-        ) : (
-          <div>
+            </AnimatePresence>
+            </div>
+            ) : (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
             <CameraCapture
               onImageCaptured={handleImageCaptured}
               isProcessing={isProcessing}
