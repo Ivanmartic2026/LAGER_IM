@@ -297,14 +297,29 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Floating Camera Button */}
       <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.15, boxShadow: "0 0 40px rgb(59, 130, 246)" }}
+        whileTap={{ scale: 0.9 }}
+        animate={{ 
+          boxShadow: [
+            "0 0 20px rgb(59, 130, 246)",
+            "0 0 30px rgb(59, 130, 246)",
+            "0 0 20px rgb(59, 130, 246)"
+          ]
+        }}
+        transition={{ 
+          boxShadow: { duration: 3, repeat: Infinity },
+        }}
         onClick={() => navigate(createPageUrl("Scan"))}
-        className="fixed bottom-28 md:bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/50 flex items-center justify-center hover:shadow-blue-500/70 transition-shadow z-40"
+        className="fixed bottom-28 md:bottom-24 right-6 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 via-blue-500 to-cyan-500 text-white shadow-2xl flex items-center justify-center backdrop-blur-xl border border-blue-400/50 hover:border-blue-300 transition-colors z-40"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         title="Öppna kamera"
       >
-        <Camera className="w-6 h-6" />
+        <motion.div
+          animate={{ y: [0, -2, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <Camera className="w-7 h-7" />
+        </motion.div>
       </motion.button>
     </div>
   );
