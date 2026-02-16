@@ -48,6 +48,7 @@ export default function OrdersPage() {
   const [invoiceModalOrder, setInvoiceModalOrder] = useState(null);
   const [warehouseFilter, setWarehouseFilter] = useState("all");
   const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const fileInputRef = React.useRef(null);
   
   const queryClient = useQueryClient();
