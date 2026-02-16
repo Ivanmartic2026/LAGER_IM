@@ -1139,17 +1139,17 @@ export default function ArticleDetail({
           <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
             <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
               <Wrench className="w-5 h-5 text-orange-400" />
-              Artiklar på reparation
+              Reparationsstatus
             </h3>
 
-            {articlesOnRepair.length === 0 ? (
+            {article.status !== 'on_repair' || !article.repair_notes ? (
               <div className="text-center py-8">
                 <Wrench className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-400">Inga artiklar på reparation</p>
+                <p className="text-slate-400">Denna artikel är inte på reparation</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {articlesOnRepair.map((repairArticle) => (
+                {[article].map((repairArticle) => (
                   <div
                     key={repairArticle.id}
                     className="p-4 rounded-xl bg-slate-900/50 border border-orange-500/30 hover:border-orange-500/50 transition-colors cursor-pointer"
