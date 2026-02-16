@@ -73,6 +73,7 @@ import SiteReportSettings from './pages/SiteReportSettings';
 import SiteReports from './pages/SiteReports';
 import StockForecast from './pages/StockForecast';
 import SupplierDocumentUpload from './pages/SupplierDocumentUpload';
+import SupplierDocumentationOverview from './pages/SupplierDocumentationOverview';
 import SupplierLogin from './pages/SupplierLogin';
 import SupplierPOView from './pages/SupplierPOView';
 import SupplierPortal from './pages/SupplierPortal';
@@ -82,7 +83,6 @@ import UnknownDeliveries from './pages/UnknownDeliveries';
 import UsersManagement from './pages/UsersManagement';
 import WarehouseDashboard from './pages/WarehouseDashboard';
 import Warehouses from './pages/Warehouses';
-import SupplierDocumentationOverview from './pages/SupplierDocumentationOverview';
 import __Layout from './Layout.jsx';
 
 
@@ -113,6 +113,7 @@ export const PAGES = {
     "SiteReports": SiteReports,
     "StockForecast": StockForecast,
     "SupplierDocumentUpload": SupplierDocumentUpload,
+    "SupplierDocumentationOverview": SupplierDocumentationOverview,
     "SupplierLogin": SupplierLogin,
     "SupplierPOView": SupplierPOView,
     "SupplierPortal": SupplierPortal,
@@ -122,7 +123,6 @@ export const PAGES = {
     "UsersManagement": UsersManagement,
     "WarehouseDashboard": WarehouseDashboard,
     "Warehouses": Warehouses,
-    "SupplierDocumentationOverview": SupplierDocumentationOverview,
 }
 
 export const pagesConfig = {

@@ -21,12 +21,16 @@ export default function ProductionPage() {
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['production-orders'],
-    queryFn: () => base44.entities.Order.list('-created_date')
+    queryFn: () => base44.entities.Order.list('-created_date'),
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: productionRecords = [] } = useQuery({
     queryKey: ['production-records'],
-    queryFn: () => base44.entities.ProductionRecord.list('-created_date')
+    queryFn: () => base44.entities.ProductionRecord.list('-created_date'),
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const productionOrders = orders.filter(o => 
