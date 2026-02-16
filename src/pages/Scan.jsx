@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import CameraCapture from "@/components/scanner/CameraCapture";
 import ReviewForm from "@/components/scanner/ReviewForm";
 import AutoAnalysisReview from "@/components/scanner/AutoAnalysisReview";
+import QuickConfirmReview from "@/components/scanner/QuickConfirmReview";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import UnknownDeliveryForm from "@/components/scanner/UnknownDeliveryForm";
 import SiteDocumentationFlow from "@/components/scan/SiteDocumentationFlow";
@@ -87,6 +88,21 @@ export default function ScanPage() {
   const [repairQuantity, setRepairQuantity] = useState(1);
   const [repairNotes, setRepairNotes] = useState("");
   const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
+
+  const calculateBatchMatch = (extracted, existing) => {
+    const extractedStr = extracted.toString().toUpperCase();
+    const existingStr = existing.toString().toUpperCase();
+    
+    if (extractedStr === existingStr) return 100;
+    if (extractedStr.includes(existingStr) || existingStr.includes(extractedStr)) return 95;
+    
+    let matches = 0;
+    const maxLen = Math.max(extractedStr.length, existingStr.length);
+    for (let i = 0; i < Math.min(extractedStr.length, existingStr.length); i++) {
+      if (extractedStr[i] === existingStr[i]) matches++;
+    }
+    return Math.round((matches / maxLen) * 100);
+  };
 
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
@@ -446,6 +462,28 @@ export default function ScanPage() {
         // For repair mode, try to find matching article
         setStep("repair_match");
       } else {
+        // Check if we should skip to quick confirm
+        const allFieldsHighConfidence = Object.keys(confs).every(field => {
+          const conf = confs[field] || 0;
+          return conf >= 0.9;
+        });
+
+        if (allFieldsHighConfidence && uniqueMatches.length > 0) {
+          const topMatch = uniqueMatches[0];
+          const batchMatchPercentage = data.batch_number && topMatch.article.batch_number
+            ? calculateBatchMatch(data.batch_number, topMatch.article.batch_number)
+            : 0;
+
+          if (batchMatchPercentage >= 95) {
+            setSelectedArticle(topMatch.article);
+            setExtractedData({ ...data, image_urls: urls });
+            setConfidences(confs);
+            setProgress(100);
+            setStep("quick_confirm");
+            return;
+          }
+        }
+
         // Show auto review with extracted data
         setStep("auto_review");
       }
@@ -915,6 +953,64 @@ export default function ScanPage() {
               </div>
             </motion.div>
           )}
+
+          {/* Step: Quick Confirm */}
+           {step === "quick_confirm" && (
+             <motion.div
+               key="quick_confirm"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+               className="space-y-6"
+             >
+               <QuickConfirmReview
+                 article={selectedArticle}
+                 mode={mode}
+                 onConfirm={async (quantity) => {
+                   setIsSaving(true);
+                   try {
+                     let article = selectedArticle;
+                     let previousQty = article.stock_qty || 0;
+
+                     if (mode === "inbound") {
+                       await base44.entities.Article.update(article.id, {
+                         stock_qty: previousQty + quantity
+                       });
+                       article.stock_qty = previousQty + quantity;
+                     } else if (mode === "inventory") {
+                       const newQty = previousQty + quantity;
+                       await base44.entities.Article.update(article.id, {
+                         stock_qty: newQty
+                       });
+                       article.stock_qty = newQty;
+                     }
+
+                     await base44.entities.StockMovement.create({
+                       article_id: article.id,
+                       movement_type: mode,
+                       quantity: quantity,
+                       previous_qty: previousQty,
+                       new_qty: article.stock_qty,
+                       reason: mode === "inbound" 
+                         ? "Inleverans via snabb-scanning" 
+                         : "Inventering via snabb-scanning"
+                     });
+
+                     setSavedArticle(article);
+                     setStep("success");
+                     toast.success("Artikel sparad!");
+                   } catch (error) {
+                     console.error("Error saving:", error);
+                     toast.error("Kunde inte spara. Försök igen.");
+                   } finally {
+                     setIsSaving(false);
+                   }
+                 }}
+                 onCancel={() => setStep("auto_review")}
+                 isLoading={isSaving}
+               />
+             </motion.div>
+           )}
 
           {/* Step: Auto Review */}
            {step === "auto_review" && (
