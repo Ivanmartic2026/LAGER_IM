@@ -293,8 +293,8 @@ Returnera informationen i JSON-format.`,
                 );
               })}
             </div>
-          </motion.div>
-        )}
+            </motion.div>
+            )}
 
         {/* Search or Scan Mode */}
          <motion.div 
@@ -597,8 +597,8 @@ Returnera informationen i JSON-format.`,
                         {selectedArticle.warehouse}
                       </div>
                     )}
-                  </div>
-                </motion.div>
+                    </div>
+                    </motion.div>
               ) : (
                 <div className="p-8 rounded-2xl bg-gradient-to-br from-amber-500/15 to-orange-500/5 backdrop-blur-xl border border-amber-500/40 text-center shadow-lg shadow-amber-500/10">
                   <MapPin className="w-12 h-12 text-amber-300 mx-auto mb-3" />
