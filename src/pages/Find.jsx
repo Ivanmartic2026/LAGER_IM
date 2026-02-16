@@ -346,7 +346,7 @@ Returnera informationen i JSON-format.`,
                   <Button
                     onClick={handleProcessImages}
                     disabled={isProcessing}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white"
+                    className="bg-emerald-500/30 border border-emerald-500/60 text-emerald-300 hover:bg-emerald-500/40 backdrop-blur-xl transition-all duration-300"
                   >
                     {isProcessing ? (
                       <>
