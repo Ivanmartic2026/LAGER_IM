@@ -12,7 +12,7 @@ import CameraCapture from "@/components/scanner/CameraCapture";
 import ReviewForm from "@/components/scanner/ReviewForm";
 import AutoAnalysisReview from "@/components/scanner/AutoAnalysisReview";
 import QuickConfirmReview from "@/components/scanner/QuickConfirmReview";
-import DetailedImageAnalysis from "@/components/scanner/DetailedImageAnalysis";
+
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import UnknownDeliveryForm from "@/components/scanner/UnknownDeliveryForm";
 import SiteDocumentationFlow from "@/components/scan/SiteDocumentationFlow";
@@ -82,8 +82,7 @@ export default function ScanPage() {
   const [repairQuantity, setRepairQuantity] = useState(1);
   const [repairNotes, setRepairNotes] = useState("");
   const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
-  const [analysisGroups, setAnalysisGroups] = useState(null);
-  const [analysisStartTime, setAnalysisStartTime] = useState(null);
+
 
   const calculateBatchMatch = (extracted, existing) => {
     const extractedStr = extracted.toString().toUpperCase();
@@ -249,12 +248,7 @@ Returnera som strukturerad JSON med denna format:
           }
         });
 
-        setAnalysisGroups(detailedAnalysis.analysisGroups);
-                        setImageUrls(urls);
-                        setAnalysisStartTime(Date.now());
-                        setProgress(40);
-                        setStep("detailed_analysis");
-                        return;
+        // Skip detailed analysis and go to auto-review instead
       } catch (analysisError) {
         console.log("Detailed analysis failed, continuing with auto extract:", analysisError);
       }
@@ -1085,148 +1079,7 @@ Returnera som strukturerad JSON med denna format:
              </motion.div>
            )}
 
-          {/* Step: Detailed Analysis */}
-           {step === "detailed_analysis" && (
-             <motion.div
-               key="detailed_analysis"
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -20 }}
-               className="space-y-6"
-             >
-               <DetailedImageAnalysis
-                 imageUrl={imageUrls[0]}
-                 analysisGroups={analysisGroups}
-                 onProceed={async (selectedValues) => {
-                   // Konvertera valde värden till extraherad data
-                   setIsProcessing(true);
-                   setProgress(50);
 
-                   try {
-                     // Spara alla identifierade värden för spårning
-                     const allIdentifiedValues = [];
-                     const selectedValuesMap = {};
-                     
-                     Object.entries(selectedValues).forEach(([key, value]) => {
-                       const [groupIdx, itemIdx] = key.split('_');
-                       const group = analysisGroups[parseInt(groupIdx)];
-                       allIdentifiedValues.push({
-                         location: group.location,
-                         text: value.text,
-                         selected: true,
-                         selected_category: value.category
-                       });
-                       selectedValuesMap[value.category] = value.text;
-                     });
-
-                     // Lägg till icke-valda värden för fullständig logg
-                     analysisGroups.forEach((group, groupIdx) => {
-                       if (group.values) {
-                         group.values.forEach((item, itemIdx) => {
-                           const valueKey = `${groupIdx}_${itemIdx}`;
-                           if (!selectedValues[valueKey]) {
-                             allIdentifiedValues.push({
-                               location: group.location,
-                               text: item.text,
-                               selected: false,
-                               selected_category: null
-                             });
-                           }
-                         });
-                       }
-                     });
-
-                     // Använd de valda värdena tillsammans med AI-matching
-                     const allText = Object.values(selectedValuesMap)
-                       .filter(t => t)
-                       .join(' ');
-
-                     // Gör en ny AI-analys baserat på användarens val
-                     const schema = {
-                       type: "object",
-                       properties: {
-                         batch_number: { type: "string" },
-                         batch_number_confidence: { type: "number" },
-                         name: { type: "string" },
-                         name_confidence: { type: "number" },
-                         manufacturer: { type: "string" },
-                         manufacturer_confidence: { type: "number" },
-                         manufacturing_date: { type: "string" },
-                         manufacturing_date_confidence: { type: "number" },
-                         pixel_pitch_mm: { type: "number" },
-                         pixel_pitch_mm_confidence: { type: "number" },
-                         category: { type: "string" },
-                         category_confidence: { type: "number" },
-                         warehouse: { type: "string" },
-                         warehouse_confidence: { type: "number" }
-                       }
-                     };
-
-                     const extractionResult = await base44.integrations.Core.InvokeLLM({
-                       prompt: `Baserat på följande texter från kortet, extrahera och klassificera värdena:
-
-                     TEXTER FRÅN KORTET:
-                     ${allText}
-
-                     Identifiera:
-                     - Batchnummer
-                     - Artikelnamn
-                     - Tillverkare
-                     - Tillverkningsdatum
-                     - Pixel pitch (mm) för LED-moduler
-                     - Kategori (LED Module, Cabinet, Power Supply, etc)
-                     - Lagerställe
-
-                     För varje fält ge confidence (0-1) baserat på hur säker du är.`,
-                       file_urls: imageUrls,
-                       response_json_schema: schema
-                     });
-
-                     setProgress(80);
-
-                     // Separera data och confidence
-                     const data = {};
-                     const confs = {};
-                     Object.keys(extractionResult).forEach(key => {
-                       if (key.endsWith('_confidence')) {
-                         const fieldName = key.replace('_confidence', '');
-                         confs[fieldName] = extractionResult[key] || 0.9;
-                       } else {
-                         data[key] = extractionResult[key];
-                       }
-                     });
-
-                     // Spara analyslogen för framtida sökning/spårning
-                     try {
-                       await base44.entities.ExtractedValueLog.create({
-                         image_urls: urls,
-                         all_extracted_values: allIdentifiedValues,
-                         selected_values: selectedValuesMap,
-                         final_extracted_data: data,
-                         ai_confidence_scores: confs,
-                         processing_duration_ms: Date.now() - analysisStartTime
-                       });
-                     } catch (logError) {
-                       console.error("Failed to save analysis log:", logError);
-                       // Fortsätt även om logg-sparning misslyckades
-                     }
-
-                     setExtractedData({ ...data, image_urls: urls });
-                     setConfidences(confs);
-                     setProgress(100);
-                     setStep("auto_review");
-                   } catch (error) {
-                     console.error("Error processing analysis:", error);
-                     toast.error("Kunde inte analysera valen");
-                     setIsProcessing(false);
-                     setProgress(0);
-                     setStep("detailed_analysis");
-                   }
-                 }}
-                 isLoading={isProcessing}
-               />
-             </motion.div>
-           )}
 
           {/* Step: Auto Review */}
            {step === "auto_review" && (
