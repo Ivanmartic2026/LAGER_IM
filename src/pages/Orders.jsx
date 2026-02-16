@@ -502,17 +502,7 @@ export default function OrdersPage() {
             />
           </div>
 
-          {/* Mobile Filter Toggle */}
-          <div className="md:hidden flex gap-2">
-            <Button
-              onClick={() => setShowFilters(!showFilters)}
-              variant="outline"
-              className="flex-1 bg-white/5 border-white/10 hover:bg-white/10"
-            >
-              <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-              Filter
-            </Button>
-          </div>
+
 
           {/* Desktop Filters - Hidden */}
 
