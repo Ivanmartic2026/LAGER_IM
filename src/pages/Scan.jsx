@@ -1226,6 +1226,7 @@ Returnera som strukturerad JSON med denna format:
                      console.error("Error processing analysis:", error);
                      toast.error("Kunde inte analysera valen");
                      setIsProcessing(false);
+                     setProgress(0);
                      setStep("detailed_analysis");
                    }
                  }}
