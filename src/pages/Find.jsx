@@ -579,7 +579,7 @@ Returnera informationen i JSON-format.`,
                   initial={{ scale: 0.9 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 200 }}
-                  className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-8 md:p-12 text-center"
+                  className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 p-8 md:p-12 text-center shadow-lg shadow-emerald-500/5"
                 >
                   <div className="relative z-10">
                     <div className="flex items-center justify-center gap-2 text-white/50 text-sm mb-4">
