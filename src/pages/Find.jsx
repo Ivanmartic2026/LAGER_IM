@@ -657,15 +657,14 @@ Returnera informationen i JSON-format.`,
               <div className="flex gap-3">
                 <Button
                   onClick={() => setShowPrintModal(true)}
-                  variant="outline"
-                  className="flex-1 h-[52px] bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-base md:text-sm"
+                  className="flex-1 h-[52px] bg-white/10 border border-white/20 hover:bg-white/15 text-white text-base md:text-sm backdrop-blur-xl transition-all duration-300"
                 >
                   <Printer className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   Skriv ut etikett
                 </Button>
                 <Button
                   onClick={handleClear}
-                  className="flex-1 h-[52px] bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-base md:text-sm"
+                  className="flex-1 h-[52px] bg-white/10 border border-white/20 hover:bg-white/15 text-white text-base md:text-sm backdrop-blur-xl transition-all duration-300"
                 >
                   <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   {mode === "scan" ? "Skanna igen" : "Sök igen"}
