@@ -514,60 +514,116 @@ export default function OrdersPage() {
             </Button>
           </div>
 
-          {/* Desktop Filters - Always Visible */}
-          <div className={cn(
-            "hidden md:flex gap-3 flex-wrap",
-            "space-y-0"
-          )}>
+          {/* Desktop Filters - Card Layout */}
+          <div className="hidden md:block space-y-3">
             {viewMode === "orders" ? (
               <>
-                <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-                  <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
-                    <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
-                    <TabsTrigger value="ready_to_pick" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Redo</TabsTrigger>
-                    <TabsTrigger value="picking" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockar</TabsTrigger>
-                    <TabsTrigger value="picked" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockad</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                {/* Status Filter */}
+                <div>
+                  <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Status</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {['all', 'ready_to_pick', 'picking', 'picked'].map((status) => {
+                      const labels = { all: 'Alla', ready_to_pick: 'Redo', picking: 'Plockar', picked: 'Plockad' };
+                      return (
+                        <motion.button
+                          key={status}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setStatusFilter(status)}
+                          className={cn(
+                            "p-3 rounded-lg transition-all duration-300 text-sm font-medium",
+                            statusFilter === status
+                              ? "bg-blue-500/30 border border-blue-500/60 text-blue-300"
+                              : "bg-white/5 border border-white/10 hover:bg-white/10 text-white/70"
+                          )}
+                        >
+                          {labels[status]}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                <Tabs value={invoiceFilter} onValueChange={setInvoiceFilter}>
-                  <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
-                    <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
-                    <TabsTrigger value="not_invoiced" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Ej fakturerad</TabsTrigger>
-                    <TabsTrigger value="invoiced" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Fakturerad</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                {/* Invoice Filter */}
+                <div>
+                  <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Fakturering</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['all', 'not_invoiced', 'invoiced'].map((invoice) => {
+                      const labels = { all: 'Alla', not_invoiced: 'Ej fakturerad', invoiced: 'Fakturerad' };
+                      return (
+                        <motion.button
+                          key={invoice}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setInvoiceFilter(invoice)}
+                          className={cn(
+                            "p-3 rounded-lg transition-all duration-300 text-sm font-medium",
+                            invoiceFilter === invoice
+                              ? "bg-green-500/30 border border-green-500/60 text-green-300"
+                              : "bg-white/5 border border-white/10 hover:bg-white/10 text-white/70"
+                          )}
+                        >
+                          {labels[invoice]}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                <Tabs value={sortBy} onValueChange={setSortBy}>
-                   <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
-                     <TabsTrigger value="date_desc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
-                       <ArrowUpDown className="w-4 h-4 mr-2" />
-                       Senaste
-                     </TabsTrigger>
-                     <TabsTrigger value="oldest" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Äldsta först</TabsTrigger>
-                     <TabsTrigger value="date_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Datum ASC</TabsTrigger>
-                     <TabsTrigger value="customer_asc" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Kund A-Ö</TabsTrigger>
-                     <TabsTrigger value="delivery_date" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Leveransdatum</TabsTrigger>
-                   </TabsList>
-                 </Tabs>
+                {/* Sort Filter */}
+                <div>
+                  <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Sortering</p>
+                  <div className="grid grid-cols-5 gap-2">
+                    {[
+                      { value: 'date_desc', label: 'Senaste' },
+                      { value: 'oldest', label: 'Äldsta först' },
+                      { value: 'date_asc', label: 'Datum ASC' },
+                      { value: 'customer_asc', label: 'Kund A-Ö' },
+                      { value: 'delivery_date', label: 'Leverans' }
+                    ].map((sort) => (
+                      <motion.button
+                        key={sort.value}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setSortBy(sort.value)}
+                        className={cn(
+                          "p-3 rounded-lg transition-all duration-300 text-sm font-medium",
+                          sortBy === sort.value
+                            ? "bg-amber-500/30 border border-amber-500/60 text-amber-300"
+                            : "bg-white/5 border border-white/10 hover:bg-white/10 text-white/70"
+                        )}
+                      >
+                        {sort.label}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
               </>
             ) : (
-              <Tabs value={warehouseFilter} onValueChange={setWarehouseFilter}>
-                <TabsList className="h-10 bg-white/5 border border-white/10 backdrop-blur-xl">
-                  <TabsTrigger value="all" className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
-                    Alla lager
-                  </TabsTrigger>
-                  {warehouses.map(wh => (
-                    <TabsTrigger 
-                      key={wh.id} 
-                      value={wh.name}
-                      className="text-sm h-8 px-4 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10"
-                    >
-                      {wh.code || wh.name}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
+              <div>
+                <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Lagerställe</p>
+                <div className="grid grid-cols-auto gap-2">
+                  {['all', ...warehouses.map(wh => wh.name)].map((warehouse) => {
+                    const label = warehouse === 'all' ? 'Alla lager' : warehouses.find(wh => wh.name === warehouse)?.code || warehouse;
+                    return (
+                      <motion.button
+                        key={warehouse}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setWarehouseFilter(warehouse)}
+                        className={cn(
+                          "px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium whitespace-nowrap",
+                          warehouseFilter === warehouse
+                            ? "bg-purple-500/30 border border-purple-500/60 text-purple-300"
+                            : "bg-white/5 border border-white/10 hover:bg-white/10 text-white/70"
+                        )}
+                      >
+                        {label}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
             )}
           </div>
 
