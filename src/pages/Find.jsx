@@ -402,8 +402,45 @@ Returnera informationen i JSON-format.`,
         )}
         </div>
 
+        {/* Review Form Modal */}
+        <AnimatePresence>
+          {showReviewForm && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 30 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto p-4 flex items-start justify-center pt-12"
+            >
+              <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl">
+                <div className="flex items-center justify-between p-6 border-b border-slate-700">
+                  <h2 className="text-xl font-bold text-white">Granska extraherad data</h2>
+                  <button
+                    onClick={() => setShowReviewForm(false)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+                  <ReviewForm
+                    extractedData={extractedData}
+                    onFieldChange={(field, value) => {
+                      setExtractedData(prev => ({ ...prev, [field]: value }));
+                    }}
+                    onSave={handleSaveArticle}
+                    onCancel={() => setShowReviewForm(false)}
+                    isSaving={false}
+                    mode="inbound"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Scan Result - Not Found */}
-        <AnimatePresence mode="wait">
+         <AnimatePresence mode="wait">
           {scanResult === "not_found" && (
             <motion.div
               key="not-found"
