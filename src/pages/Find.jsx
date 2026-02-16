@@ -729,10 +729,10 @@ Returnera informationen i JSON-format.`,
                       </div>
                     )}
                   </div>
-                </div>
-              )}
+                  </motion.div>
+                  )}
 
-              {/* On Site Reports Section */}
+                  {/* On Site Reports Section */}
               {selectedArticle.id && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
