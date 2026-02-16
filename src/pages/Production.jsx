@@ -56,32 +56,74 @@ export default function ProductionPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-white tracking-tight">Produktion</h1>
-              <div className="flex items-center gap-3 text-sm">
-                <Badge 
-                  variant="outline" 
-                  className="bg-amber-500/10 text-amber-400 border-amber-500/30 cursor-pointer hover:bg-amber-500/20 transition-colors"
-                  onClick={() => setStatusFilter('picked')}
-                >
-                  {stats.picked} redo
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className="bg-blue-500/10 text-blue-400 border-blue-500/30 cursor-pointer hover:bg-blue-500/20 transition-colors"
-                  onClick={() => setStatusFilter('in_production')}
-                >
-                  {stats.inProduction} pågående
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className="bg-green-500/10 text-green-400 border-green-500/30 cursor-pointer hover:bg-green-500/20 transition-colors"
-                  onClick={() => setStatusFilter('production_completed')}
-                >
-                  {stats.completed} klara
-                </Badge>
-              </div>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-white tracking-tight mb-4">Produktion</h1>
+            
+            {/* Status Filter Buttons */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={statusFilter === 'all' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('all')}
+                className={cn(
+                  "h-auto py-3 px-4 rounded-xl transition-all",
+                  statusFilter === 'all'
+                    ? "bg-white text-black hover:bg-white/90"
+                    : "bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                )}
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-2xl font-bold">{productionOrders.length}</span>
+                  <span className="text-xs font-medium">Alla</span>
+                </div>
+              </Button>
+
+              <Button
+                variant={statusFilter === 'picked' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('picked')}
+                className={cn(
+                  "h-auto py-3 px-4 rounded-xl transition-all",
+                  statusFilter === 'picked'
+                    ? "bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/30"
+                    : "bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 text-amber-300"
+                )}
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-2xl font-bold">{stats.picked}</span>
+                  <span className="text-xs font-medium">Redo</span>
+                </div>
+              </Button>
+
+              <Button
+                variant={statusFilter === 'in_production' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('in_production')}
+                className={cn(
+                  "h-auto py-3 px-4 rounded-xl transition-all",
+                  statusFilter === 'in_production'
+                    ? "bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/30"
+                    : "bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20 text-blue-300"
+                )}
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-2xl font-bold">{stats.inProduction}</span>
+                  <span className="text-xs font-medium">Pågående</span>
+                </div>
+              </Button>
+
+              <Button
+                variant={statusFilter === 'production_completed' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('production_completed')}
+                className={cn(
+                  "h-auto py-3 px-4 rounded-xl transition-all",
+                  statusFilter === 'production_completed'
+                    ? "bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/30"
+                    : "bg-green-500/10 border-green-500/30 hover:bg-green-500/20 text-green-300"
+                )}
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-2xl font-bold">{stats.completed}</span>
+                  <span className="text-xs font-medium">Klara</span>
+                </div>
+              </Button>
             </div>
           </div>
 
@@ -124,17 +166,17 @@ export default function ProductionPage() {
               const statusConfig = {
                 picked: { 
                   label: 'Redo för produktion', 
-                  color: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+                  color: 'bg-amber-500 text-white shadow-lg shadow-amber-500/30',
                   icon: Clock
                 },
                 in_production: { 
                   label: 'Under produktion', 
-                  color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+                  color: 'bg-blue-500 text-white shadow-lg shadow-blue-500/30',
                   icon: Factory
                 },
                 production_completed: { 
                   label: 'Produktion klar', 
-                  color: 'bg-green-500/20 text-green-400 border-green-500/30',
+                  color: 'bg-green-500 text-white shadow-lg shadow-green-500/30',
                   icon: CheckCircle2
                 }
               }[order.status] || {};
@@ -156,8 +198,8 @@ export default function ProductionPage() {
                           <h3 className="text-base font-semibold text-white truncate">
                             {order.order_number || `Order #${order.id.slice(0, 8)}`}
                           </h3>
-                          <Badge className={cn("border", statusConfig.color)}>
-                            {Icon && <Icon className="w-3 h-3 mr-1" />}
+                          <Badge className={cn("px-3 py-1 rounded-full font-medium", statusConfig.color)}>
+                            {Icon && <Icon className="w-3.5 h-3.5 mr-1.5" />}
                             {statusConfig.label}
                           </Badge>
                         </div>
