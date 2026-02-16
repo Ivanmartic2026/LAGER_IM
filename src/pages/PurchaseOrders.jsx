@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { 
   Search, Plus, ShoppingCart, Download, Calendar,
-  Truck, Package, User, Printer, Mail, Eye, X, CheckCircle2, AlertCircle
+  Truck, Package, User, Printer, Mail, Eye, X, CheckCircle2, AlertCircle, Link2, Copy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -411,6 +411,20 @@ export default function PurchaseOrdersPage() {
                             <span className="hidden md:inline">Följesedel</span>
                           </Button>
                         )}
+                        
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-purple-600/20 border-purple-500/30 text-purple-400 hover:bg-purple-600/30"
+                          onClick={() => {
+                            const portalUrl = `${window.location.origin}${createPageUrl('SupplierPOView')}?po=${po.id}&token=${po.supplier_portal_token || 'MISSING_TOKEN'}`;
+                            navigator.clipboard.writeText(portalUrl);
+                            toast.success('Leverantörslänk kopierad! Dela denna med leverantören.');
+                          }}
+                        >
+                          <Link2 className="w-4 h-4 md:mr-2" />
+                          <span className="hidden md:inline">Leverantörslänk</span>
+                        </Button>
                         
                         <Button
                           size="sm"
