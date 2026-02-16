@@ -220,36 +220,45 @@ Returnera informationen i JSON-format.`,
         </motion.div>
 
         {/* Mode Toggle */}
-        <div className="flex gap-2 mb-6">
-          <Button
-            onClick={() => setMode("search")}
-            className={cn(
-              "flex-1 h-[52px] text-base md:text-sm backdrop-blur-xl transition-all duration-300",
-              mode === "search" 
-                ? "bg-emerald-500/30 border border-emerald-500/60 text-emerald-300 hover:bg-emerald-500/40" 
-                : "bg-white/10 border border-white/20 text-white hover:bg-white/15"
-            )}
-          >
-            <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-            Sök
-          </Button>
-          <Button
-            onClick={() => {
-              setMode("scan");
-              setSelectedArticle(null);
-              setScanResult(null);
-            }}
-            className={cn(
-              "flex-1 h-[52px] text-base md:text-sm backdrop-blur-xl transition-all duration-300",
-              mode === "scan" 
-                ? "bg-emerald-500/30 border border-emerald-500/60 text-emerald-300 hover:bg-emerald-500/40" 
-                : "bg-white/10 border border-white/20 text-white hover:bg-white/15"
-            )}
-          >
-            <Camera className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-            Skanna
-          </Button>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="flex gap-3 mb-8"
+        >
+          <motion.div className="flex-1">
+            <Button
+              onClick={() => setMode("search")}
+              className={cn(
+                "w-full h-[52px] text-base md:text-sm font-semibold backdrop-blur-xl transition-all duration-300 border",
+                mode === "search" 
+                  ? "bg-gradient-to-br from-emerald-500/40 to-emerald-600/20 border-emerald-500/60 text-emerald-200 hover:from-emerald-500/50 hover:to-emerald-600/30 shadow-lg shadow-emerald-500/20" 
+                  : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20"
+              )}
+            >
+              <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+              Sök
+            </Button>
+          </motion.div>
+          <motion.div className="flex-1">
+            <Button
+              onClick={() => {
+                setMode("scan");
+                setSelectedArticle(null);
+                setScanResult(null);
+              }}
+              className={cn(
+                "w-full h-[52px] text-base md:text-sm font-semibold backdrop-blur-xl transition-all duration-300 border",
+                mode === "scan" 
+                  ? "bg-gradient-to-br from-emerald-500/40 to-emerald-600/20 border-emerald-500/60 text-emerald-200 hover:from-emerald-500/50 hover:to-emerald-600/30 shadow-lg shadow-emerald-500/20" 
+                  : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20"
+              )}
+            >
+              <Camera className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+              Skanna
+            </Button>
+          </motion.div>
+        </motion.div>
 
         {/* Status Filter */}
         {mode === "search" && (
