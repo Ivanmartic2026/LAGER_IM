@@ -12,6 +12,7 @@ import CameraCapture from "@/components/scanner/CameraCapture";
 import ReviewForm from "@/components/scanner/ReviewForm";
 import AutoAnalysisReview from "@/components/scanner/AutoAnalysisReview";
 import QuickConfirmReview from "@/components/scanner/QuickConfirmReview";
+import DetailedImageAnalysis from "@/components/scanner/DetailedImageAnalysis";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import UnknownDeliveryForm from "@/components/scanner/UnknownDeliveryForm";
 import SiteDocumentationFlow from "@/components/scan/SiteDocumentationFlow";
@@ -88,6 +89,7 @@ export default function ScanPage() {
   const [repairQuantity, setRepairQuantity] = useState(1);
   const [repairNotes, setRepairNotes] = useState("");
   const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
+  const [analysisGroups, setAnalysisGroups] = useState(null);
 
   const calculateBatchMatch = (extracted, existing) => {
     const extractedStr = extracted.toString().toUpperCase();
@@ -185,6 +187,82 @@ export default function ScanPage() {
       }
       setImageUrls(urls);
       setProgress(30);
+      
+      // First, do detailed image analysis for better accuracy
+      setProgress(35);
+      
+      const detailedAnalysisPrompt = `ANALYSERA DENNA BILD MYCKET GRUNDLIGT OCH IDENTIFIERA ALLA TEXTER OCH OMRÅDEN:
+
+Gå igenom bilden systematiskt och identifiera varje område med texter eller märkningar. 
+För varje område, lista ALLA texter du kan se, exakt som de visas.
+
+Organisera dina fynd i tydliga grupper baserat på FYSISK PLATS på bilden:
+1. "Mitten av kortet" - all text i mitten
+2. "Övre vänster hörn" - text här
+3. "Övre höger hörn" - text här
+4. "Nedre vänster hörn" - text här
+5. "Nedre höger hörn" - text här
+6. "Etiketter/Labels" - separata etiketter
+7. "Andra märkningar" - strömkontakter, komponenter etc
+
+För VARJE textsnutt, ange:
+- Exakt text (kopiera ordet för ord)
+- Vad det verkar vara (batch, SKU, tillverkare, datum, etc)
+- Närliggande kontext
+
+Returnera som strukturerad JSON med denna format:
+{
+  "analysisGroups": [
+    {
+      "location": "Område namn",
+      "description": "Beskrivning av området",
+      "values": [
+        {"text": "EXAKT TEXT", "context": "Vad det är"},
+        ...
+      ]
+    }
+  ]
+}`;
+
+      try {
+        const detailedAnalysis = await base44.integrations.Core.InvokeLLM({
+          prompt: detailedAnalysisPrompt,
+          file_urls: urls,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              analysisGroups: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    location: { type: "string" },
+                    description: { type: "string" },
+                    values: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          text: { type: "string" },
+                          context: { type: "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        setAnalysisGroups(detailedAnalysis.analysisGroups);
+        setImageUrls(urls);
+        setProgress(40);
+        setStep("detailed_analysis");
+        return;
+      } catch (analysisError) {
+        console.log("Detailed analysis failed, continuing with auto extract:", analysisError);
+      }
       
       // Extract data using AI from all images
       setProgress(40);
@@ -1008,6 +1086,101 @@ export default function ScanPage() {
                  }}
                  onCancel={() => setStep("auto_review")}
                  isLoading={isSaving}
+               />
+             </motion.div>
+           )}
+
+          {/* Step: Detailed Analysis */}
+           {step === "detailed_analysis" && (
+             <motion.div
+               key="detailed_analysis"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+               className="space-y-6"
+             >
+               <DetailedImageAnalysis
+                 imageUrl={imageUrls[0]}
+                 analysisGroups={analysisGroups}
+                 onProceed={async (selectedValues) => {
+                   // Konvertera valde värden till extraherad data
+                   setIsProcessing(true);
+                   setProgress(50);
+
+                   try {
+                     // Använd de valda värdena tillsammans med AI-matching
+                     const allText = analysisGroups
+                       .map((g, idx) => selectedValues[idx] || '')
+                       .filter(t => t)
+                       .join(' ');
+
+                     // Gör en ny AI-analys baserat på användarens val
+                     const schema = {
+                       type: "object",
+                       properties: {
+                         batch_number: { type: "string" },
+                         batch_number_confidence: { type: "number" },
+                         name: { type: "string" },
+                         name_confidence: { type: "number" },
+                         manufacturer: { type: "string" },
+                         manufacturer_confidence: { type: "number" },
+                         manufacturing_date: { type: "string" },
+                         manufacturing_date_confidence: { type: "number" },
+                         pixel_pitch_mm: { type: "number" },
+                         pixel_pitch_mm_confidence: { type: "number" },
+                         category: { type: "string" },
+                         category_confidence: { type: "number" },
+                         warehouse: { type: "string" },
+                         warehouse_confidence: { type: "number" }
+                       }
+                     };
+
+                     const extractionResult = await base44.integrations.Core.InvokeLLM({
+                       prompt: `Baserat på följande texter från kortet, extrahera och klassificera värdena:
+
+TEXTER FRÅN KORTET:
+${allText}
+
+Identifiera:
+- Batchnummer
+- Artikelnamn
+- Tillverkare
+- Tillverkningsdatum
+- Pixel pitch (mm) för LED-moduler
+- Kategori (LED Module, Cabinet, Power Supply, etc)
+- Lagerställe
+
+För varje fält ge confidence (0-1) baserat på hur säker du är.`,
+                       file_urls: urls,
+                       response_json_schema: schema
+                     });
+
+                     setProgress(80);
+
+                     // Separera data och confidence
+                     const data = {};
+                     const confs = {};
+                     Object.keys(extractionResult).forEach(key => {
+                       if (key.endsWith('_confidence')) {
+                         const fieldName = key.replace('_confidence', '');
+                         confs[fieldName] = extractionResult[key] || 0.9;
+                       } else {
+                         data[key] = extractionResult[key];
+                       }
+                     });
+
+                     setExtractedData({ ...data, image_urls: urls });
+                     setConfidences(confs);
+                     setProgress(100);
+                     setStep("auto_review");
+                   } catch (error) {
+                     console.error("Error processing analysis:", error);
+                     toast.error("Kunde inte analysera valen");
+                     setIsProcessing(false);
+                     setStep("detailed_analysis");
+                   }
+                 }}
+                 isLoading={isProcessing}
                />
              </motion.div>
            )}
