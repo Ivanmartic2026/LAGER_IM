@@ -24,6 +24,8 @@ export default function ProductionPage() {
     queryFn: () => base44.entities.Order.list('-created_date'),
     staleTime: 60000,
     refetchOnWindowFocus: false,
+    retry: 2,
+    networkMode: 'always'
   });
 
   const { data: productionRecords = [] } = useQuery({
@@ -31,6 +33,8 @@ export default function ProductionPage() {
     queryFn: () => base44.entities.ProductionRecord.list('-created_date'),
     staleTime: 60000,
     refetchOnWindowFocus: false,
+    retry: 1,
+    networkMode: 'always'
   });
 
   const productionOrders = orders.filter(o => 
