@@ -189,17 +189,12 @@ Returnera informationen i JSON-format.`,
         </motion.div>
 
         {/* Mode Toggle */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="flex gap-2 mb-6"
-        >
+        <div className="flex gap-2 mb-6">
           <Button
             onClick={() => setMode("search")}
             variant={mode === "search" ? "default" : "outline"}
             className={cn(
-              "flex-1 min-h-[52px] text-base md:text-sm",
+              "flex-1 h-[52px] text-base md:text-sm",
               mode === "search" 
                 ? "bg-emerald-600 hover:bg-emerald-500 text-white" 
                 : "bg-slate-800 border-slate-600 hover:bg-slate-700 text-slate-300"
@@ -216,7 +211,7 @@ Returnera informationen i JSON-format.`,
             }}
             variant={mode === "scan" ? "default" : "outline"}
             className={cn(
-              "flex-1 min-h-[52px] text-base md:text-sm",
+              "flex-1 h-[52px] text-base md:text-sm",
               mode === "scan" 
                 ? "bg-emerald-600 hover:bg-emerald-500 text-white" 
                 : "bg-slate-800 border-slate-600 hover:bg-slate-700 text-slate-300"
@@ -225,16 +220,12 @@ Returnera informationen i JSON-format.`,
             <Camera className="w-5 h-5 md:w-4 md:h-4 mr-2" />
             Skanna
           </Button>
-        </motion.div>
+        </div>
 
         {/* Search or Scan Mode */}
+        <div className="mb-6 min-h-[64px] md:min-h-[56px]">
         {mode === "search" ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="relative mb-6"
-          >
+          <div className="relative">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 md:w-5 md:h-5 text-slate-400" />
             <Input
@@ -299,14 +290,9 @@ Returnera informationen i JSON-format.`,
               </motion.div>
             )}
           </AnimatePresence>
-          </motion.div>
+          </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-6"
-          >
+          <div>
             <CameraCapture
               onImageCaptured={handleImageCaptured}
               isProcessing={isProcessing}
@@ -360,8 +346,9 @@ Returnera informationen i JSON-format.`,
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
+        </div>
 
         {/* Scan Result - Not Found */}
         <AnimatePresence mode="wait">
@@ -443,7 +430,7 @@ Returnera informationen i JSON-format.`,
                   <Button
                     onClick={handleClear}
                     variant="outline"
-                    className="flex-1 min-h-[52px] bg-slate-800 border-slate-600 hover:bg-slate-700 text-white text-base md:text-sm"
+                    className="flex-1 h-[52px] bg-slate-800 border-slate-600 hover:bg-slate-700 text-white text-base md:text-sm"
                   >
                     Avbryt
                   </Button>
@@ -451,7 +438,7 @@ Returnera informationen i JSON-format.`,
                     to={createPageUrl("Scan")}
                     className="flex-1"
                   >
-                    <Button className="w-full min-h-[52px] bg-emerald-600 hover:bg-emerald-500 text-base md:text-sm">
+                    <Button className="w-full h-[52px] bg-emerald-600 hover:bg-emerald-500 text-base md:text-sm">
                       <Plus className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                       Lägg till artikel
                     </Button>
@@ -637,14 +624,14 @@ Returnera informationen i JSON-format.`,
                 <Button
                   onClick={() => setShowPrintModal(true)}
                   variant="outline"
-                  className="flex-1 min-h-[52px] bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-base md:text-sm"
+                  className="flex-1 h-[52px] bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-base md:text-sm"
                 >
                   <Printer className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   Skriv ut etikett
                 </Button>
                 <Button
                   onClick={handleClear}
-                  className="flex-1 min-h-[52px] bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-base md:text-sm"
+                  className="flex-1 h-[52px] bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-base md:text-sm"
                 >
                   <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   {mode === "scan" ? "Skanna igen" : "Sök igen"}
