@@ -194,7 +194,8 @@ export default function ProductionDocumentation({
                         <img
                           src={currentImage}
                           alt={`${label} ${currentIdx + 1}`}
-                          className="w-full max-h-96 object-cover"
+                          className="w-full max-h-96 object-cover cursor-pointer"
+                          onClick={() => setFullscreenImage(currentImage)}
                         />
                         
                         {/* Image Counter */}
