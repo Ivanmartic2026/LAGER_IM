@@ -297,17 +297,22 @@ Returnera informationen i JSON-format.`,
         )}
 
         {/* Search or Scan Mode */}
-         <div className="mb-6 min-h-[64px] md:min-h-[56px]">
+         <motion.div 
+           initial={{ opacity: 0, y: 15 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.2 }}
+           className="mb-8 min-h-[64px] md:min-h-[56px]"
+         >
          {mode === "search" ? (
           <div className="relative">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 md:w-5 md:h-5 text-slate-400" />
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400/60 group-focus-within:text-emerald-400 transition-colors" />
             <Input
               ref={searchInputRef}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Sök artikel, batchnummer eller hyllplats..."
-              className="pl-14 md:pl-12 pr-14 md:pr-12 h-16 md:h-14 bg-slate-800/50 border-slate-700 text-white text-xl md:text-lg placeholder:text-slate-500 focus:border-emerald-500"
+              className="pl-14 md:pl-12 pr-14 md:pr-12 h-16 md:h-14 bg-white/5 backdrop-blur-xl border border-white/20 text-white text-lg md:text-base placeholder:text-white/40 focus:border-emerald-500/60 focus:bg-white/10 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 rounded-xl transition-all duration-300"
               autoFocus
             />
             {searchQuery && (
