@@ -477,8 +477,8 @@ Returnera informationen i JSON-format.`,
               exit={{ opacity: 0, scale: 0.95 }}
               className="space-y-6"
             >
-              <div className="p-8 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center">
-                <Package className="w-16 h-16 text-amber-400 mx-auto mb-4" />
+              <div className="p-8 rounded-2xl bg-gradient-to-br from-amber-500/15 to-orange-500/5 backdrop-blur-xl border border-amber-500/40 text-center shadow-lg shadow-amber-500/10">
+                <Package className="w-16 h-16 text-amber-300 mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-white mb-2">
                   Artikeln finns inte i lagret
                 </h3>
