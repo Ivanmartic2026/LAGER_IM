@@ -571,8 +571,8 @@ export default function OrdersPage() {
                 </div>
 
                 {/* Sort Filter */}
-                <div>
-                  <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Sortering</p>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-3">Sortering</p>
                   <div className="grid grid-cols-5 gap-2">
                     {[
                       { value: 'date_desc', label: 'Senaste' },
