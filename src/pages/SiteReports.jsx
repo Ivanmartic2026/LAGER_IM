@@ -25,24 +25,29 @@ export default function SiteReportsPage() {
   const [selectedReport, setSelectedReport] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
 
+  const { data: reports = [], isLoading, refetch } = useQuery({
+    queryKey: ['siteReports'],
+    queryFn: () => base44.entities.SiteReport.list('-created_date')
+  });
+
   useEffect(() => {
     const savedReportId = localStorage.getItem('selectedReportId');
-    if (savedReportId) {
+    if (savedReportId && reports.length > 0) {
       const report = reports.find(r => r.id === savedReportId);
       if (report) {
         setSelectedReport(report);
         localStorage.removeItem('selectedReportId');
       }
     }
+  }, [reports.length]);
+  
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
   }, []);
-
-  const { data: reports = [], isLoading, refetch } = useQuery({
-    queryKey: ['siteReports'],
-    queryFn: () => base44.entities.SiteReport.list('-created_date')
-  });
 
   const statusColors = {
     pending_review: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
@@ -65,7 +70,7 @@ export default function SiteReportsPage() {
 
   const filteredReports = reports.filter(report => {
     const matchesSearch = 
-      report.site_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.site_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.site_address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.technician_name?.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -73,12 +78,6 @@ export default function SiteReportsPage() {
     
     return matchesSearch && matchesStatus;
   });
-
-  const [user, setUser] = useState(null);
-  
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
 
   return (
     <PullToRefresh onRefresh={async () => {
