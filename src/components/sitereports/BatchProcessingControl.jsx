@@ -17,6 +17,7 @@ export default function BatchProcessingControl() {
   const [autoConfirmThreshold, setAutoConfirmThreshold] = useState(0.85);
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(null);
+  const [processingProgress, setProcessingProgress] = useState(0);
   const queryClient = useQueryClient();
 
   const { data: pendingReports = [] } = useQuery({
@@ -87,10 +88,28 @@ export default function BatchProcessingControl() {
 
     setProcessing(true);
     setProgress(null);
+    setProcessingProgress(0);
+    
+    // Simulera progress under bearbetning
+    const progressInterval = setInterval(() => {
+      setProcessingProgress(prev => {
+        if (prev >= 95) {
+          clearInterval(progressInterval);
+          return 95; // Stannar på 95% tills backend svarar
+        }
+        return prev + 5;
+      });
+    }, 200);
+    
     try {
       await batchProcessMutation.mutateAsync(selectedReports);
+      setProcessingProgress(100);
     } finally {
-      setProcessing(false);
+      clearInterval(progressInterval);
+      setTimeout(() => {
+        setProcessing(false);
+        setProcessingProgress(0);
+      }, 500);
     }
   };
 
@@ -248,23 +267,36 @@ export default function BatchProcessingControl() {
       </div>
 
       {/* Action Button */}
-      <Button
-        onClick={handleStartBatch}
-        disabled={selectedReports.length === 0 || processing}
-        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white h-12 text-base"
-      >
-        {processing ? (
-          <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Bearbetar {selectedPendingImages} bilder...
-          </>
-        ) : (
-          <>
-            <Play className="w-5 h-5 mr-2" />
-            Starta batch-bearbetning ({selectedPendingImages} bilder)
-          </>
+      <div className="space-y-3">
+        <Button
+          onClick={handleStartBatch}
+          disabled={selectedReports.length === 0 || processing}
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white h-12 text-base"
+        >
+          {processing ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Bearbetar {selectedPendingImages} bilder...
+            </>
+          ) : (
+            <>
+              <Play className="w-5 h-5 mr-2" />
+              Starta batch-bearbetning ({selectedPendingImages} bilder)
+            </>
+          )}
+        </Button>
+
+        {/* Progress Bar */}
+        {processing && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/70">Bearbetning pågår...</span>
+              <span className="text-white font-semibold">{processingProgress}%</span>
+            </div>
+            <Progress value={processingProgress} className="h-2" />
+          </div>
         )}
-      </Button>
+      </div>
     </div>
   );
 }
