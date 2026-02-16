@@ -159,8 +159,13 @@ export default function FindPage() {
       setShowReviewForm(true);
       setAnalysisProgress(20);
 
+      // Timeout after 15 seconds - user can save with existing data
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Analysis timeout')), 15000)
+      );
+
       // Extract data using AI with all captured images in background
-      const result = await base44.integrations.Core.InvokeLLM({
+      const llmPromise = base44.integrations.Core.InvokeLLM({
         prompt: `Analysera dessa ${capturedImages.length} bilder av samma artikel/etikett och extrahera följande information:
         - Batchnummer/artikelnummer
         - Artikelnamn
@@ -184,8 +189,15 @@ export default function FindPage() {
         }
       });
 
-      setAnalysisProgress(100);
-      setExtractedData({ ...result, image_urls: capturedImages });
+      try {
+        const result = await Promise.race([llmPromise, timeoutPromise]);
+        setAnalysisProgress(100);
+        setExtractedData({ ...result, image_urls: capturedImages });
+      } catch (timeoutError) {
+        // Timeout or error - allow user to save with manual input
+        setAnalysisProgress(100);
+        toast.info("Analysen tog längre tid - du kan spara med befintlig data");
+      }
 
     } catch (error) {
       console.error("Error processing images:", error);
