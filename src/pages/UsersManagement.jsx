@@ -130,17 +130,33 @@ export default function UsersManagement() {
       });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      setCreateName('');
-      setCreateEmail('');
-      setCreatePassword('');
-      setCreateRole('user');
-      setShowCreateModal(false);
-      toast.success(language === 'sv' ? 'Användare skapad!' : 'User created!');
+      queryClient.invalidateQueries({ queryKey: ['user_registrations'] });
+      
+      // Show success message with created user details
+      toast.success(
+        language === 'sv' 
+          ? `Användare skapad! ${createName} (${createEmail}) har lagts till som ${createRole === 'admin' ? 'admin' : 'användare'}.`
+          : `User created! ${createName} (${createEmail}) has been added as ${createRole === 'admin' ? 'admin' : 'user'}.`,
+        { duration: 5000 }
+      );
+      
+      // Clear form and close modal after delay
+      setTimeout(() => {
+        setCreateName('');
+        setCreateEmail('');
+        setCreatePassword('');
+        setCreateRole('user');
+        setShowCreateModal(false);
+      }, 1500);
     },
     onError: (error) => {
-      toast.error(language === 'sv' ? 'Kunde inte skapa användare' : 'Failed to create user');
+      toast.error(
+        language === 'sv' 
+          ? `Kunde inte skapa användare: ${error.message || 'Okänt fel'}`
+          : `Failed to create user: ${error.message || 'Unknown error'}`
+      );
     }
   });
 
