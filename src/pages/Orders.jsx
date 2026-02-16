@@ -600,8 +600,8 @@ export default function OrdersPage() {
                 </div>
               </>
             ) : (
-              <div>
-                <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Lagerställe</p>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-3">Lagerställe</p>
                 <div className="grid grid-cols-auto gap-2">
                   {['all', ...warehouses.map(wh => wh.name)].map((warehouse) => {
                     const label = warehouse === 'all' ? 'Alla lager' : warehouses.find(wh => wh.name === warehouse)?.code || warehouse;
