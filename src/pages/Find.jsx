@@ -426,9 +426,9 @@ Returnera informationen i JSON-format.`,
                 </div>
               </div>
             )}
-          </div>
-        )}
-        </div>
+            </motion.div>
+            )}
+            </motion.div>
 
         {/* Review Form Modal */}
         <AnimatePresence>
