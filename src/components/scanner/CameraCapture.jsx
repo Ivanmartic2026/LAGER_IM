@@ -107,18 +107,20 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
         type="file"
         ref={cameraInputRef}
         onChange={handleFileChange}
-        accept="image/*,.raw,.cr2,.nef,.arw,.dng,.rw2,.raf,.x3f"
+        accept="image/*"
         capture="environment"
         multiple
-        className="hidden"
+        style={{ display: 'none' }}
+        disabled={isProcessing}
       />
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept="image/*,.raw,.cr2,.nef,.arw,.dng,.rw2,.raf,.x3f"
+        accept="image/*"
         multiple
-        className="hidden"
+        style={{ display: 'none' }}
+        disabled={isProcessing}
       />
 
       <AnimatePresence mode="wait">
