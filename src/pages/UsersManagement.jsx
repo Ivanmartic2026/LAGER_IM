@@ -81,6 +81,20 @@ export default function UsersManagement() {
     }
   });
 
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ userId, is_active, role }) => {
+      const response = await base44.functions.invoke('updateUserStatus', { userId, is_active, role });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success(language === 'sv' ? 'Användare uppdaterad' : 'User updated');
+    },
+    onError: (error) => {
+      toast.error(language === 'sv' ? 'Kunde inte uppdatera användare' : 'Failed to update user');
+    }
+  });
+
   const handleModuleToggle = (userId, moduleId, currentModules) => {
     const newModules = currentModules.includes(moduleId)
       ? currentModules.filter(m => m !== moduleId)
@@ -306,9 +320,39 @@ export default function UsersManagement() {
                           </h3>
                         )}
                         <p className="text-sm text-white/50">{user.email}</p>
-                        <p className="text-xs text-white/40 mt-1">
-                          {t('users_role', language)}: <span className="font-semibold text-blue-400">{user.role}</span>
-                        </p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-white/40">{t('users_role', language)}:</span>
+                            <select
+                              value={user.role}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                updateStatusMutation.mutate({ userId: user.id, role: e.target.value });
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="bg-blue-500/20 text-blue-300 text-xs px-2 py-1 rounded border border-blue-500/30 focus:outline-none focus:border-blue-500"
+                            >
+                              <option value="user">{language === 'sv' ? 'Användare' : 'User'}</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateStatusMutation.mutate({ userId: user.id, is_active: !user.is_active });
+                            }}
+                            className={cn(
+                              "text-xs px-3 py-1 rounded-full transition-colors",
+                              user.is_active === false
+                                ? "bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                                : "bg-green-500/20 text-green-300 hover:bg-green-500/30"
+                            )}
+                          >
+                            {user.is_active === false 
+                              ? (language === 'sv' ? 'Inaktiv' : 'Inactive')
+                              : (language === 'sv' ? 'Aktiv' : 'Active')}
+                          </button>
+                        </div>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-white/50 mb-2">
