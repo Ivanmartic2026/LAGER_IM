@@ -465,23 +465,22 @@ Returnera informationen i JSON-format.`,
                 )}
 
                 <div className="flex gap-3">
-                  <Button
-                    onClick={handleClear}
-                    variant="outline"
-                    className="flex-1 h-[52px] bg-slate-800 border-slate-600 hover:bg-slate-700 text-white text-base md:text-sm"
-                  >
-                    Avbryt
-                  </Button>
-                  <Link 
-                    to={createPageUrl("Scan")}
-                    className="flex-1"
-                  >
-                    <Button className="w-full h-[52px] bg-emerald-600 hover:bg-emerald-500 text-base md:text-sm">
-                      <Plus className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-                      Lägg till artikel
-                    </Button>
-                  </Link>
-                </div>
+                   <Button
+                     onClick={handleClear}
+                     className="flex-1 h-[52px] bg-white/10 border border-white/20 hover:bg-white/15 text-white text-base md:text-sm backdrop-blur-xl transition-all duration-300"
+                   >
+                     Avbryt
+                   </Button>
+                   <Link 
+                     to={createPageUrl("Scan")}
+                     className="flex-1"
+                   >
+                     <Button className="w-full h-[52px] bg-emerald-500/30 border border-emerald-500/60 hover:bg-emerald-500/40 text-emerald-300 text-base md:text-sm backdrop-blur-xl transition-all duration-300">
+                       <Plus className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+                       Lägg till artikel
+                     </Button>
+                   </Link>
+                 </div>
               </div>
             </motion.div>
           )}
