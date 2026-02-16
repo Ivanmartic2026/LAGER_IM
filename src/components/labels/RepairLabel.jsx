@@ -111,6 +111,19 @@ export default function RepairLabel({ article, repairNotes, repairDate, quantity
             </div>
           </div>
         )}
+
+        {shipment.hasData && (
+          <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded border border-gray-200">
+            <div>
+              <div className="text-[10px] text-gray-600 uppercase font-semibold">Volym per paket</div>
+              <div className="text-[12px] font-semibold">{shipment.volumeL} L</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-600 uppercase font-semibold">Total vikt</div>
+              <div className="text-[12px] font-semibold">{shipment.totalWeightKg} kg</div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Repair Details */}
