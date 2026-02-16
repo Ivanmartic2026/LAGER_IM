@@ -234,24 +234,7 @@ Deno.serve(async (req) => {
           </div>
         </div>` : ''}
 
-        <div class="stats">
-          <div class="stat-box">
-            <div class="stat-number">${images.length}</div>
-            <div class="stat-label">Totalt bilder</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-number">${confirmed.length}</div>
-            <div class="stat-label">Bekräftade</div>
-          </div>
-          <div class="stat-box warning">
-            <div class="stat-number">${needsRepair.length}</div>
-            <div class="stat-label">Behöver repareras</div>
-          </div>
-          <div class="stat-box error">
-            <div class="stat-number">${needsReplacement.length}</div>
-            <div class="stat-label">Behöver bytas</div>
-          </div>
-        </div>
+
 
         ${linkedOrder && orderItems.length > 0 ? `
         <div class="section">
