@@ -737,7 +737,8 @@ Returnera informationen i JSON-format.`,
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-6 rounded-2xl bg-blue-500/10 border border-blue-500/30"
+                  transition={{ delay: 0.25 }}
+                  className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/15 to-blue-600/5 backdrop-blur-xl border border-blue-500/40 shadow-lg shadow-blue-500/10"
                 >
                   <button
                     onClick={() => setShowOnSiteReports(!showOnSiteReports)}
