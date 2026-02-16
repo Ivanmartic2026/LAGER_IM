@@ -233,9 +233,37 @@ Returnera informationen i JSON-format.`,
           </Button>
         </div>
 
+        {/* Status Filter */}
+        {mode === "search" && (
+          <div className="mb-6">
+            <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-3">Status</p>
+            <div className="grid grid-cols-4 gap-2">
+              {['all', 'active', 'low_stock', 'out_of_stock'].map((status) => {
+                const labels = { all: 'Alla', active: 'Aktiv', low_stock: 'Lågt lager', out_of_stock: 'Slut' };
+                return (
+                  <motion.button
+                    key={status}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setStatusFilter(status)}
+                    className={cn(
+                      "p-3 rounded-lg transition-all duration-300 text-sm font-medium",
+                      statusFilter === status
+                        ? "bg-emerald-500/30 border border-emerald-500/60 text-emerald-300"
+                        : "bg-white/5 border border-white/10 hover:bg-white/10 text-white/70"
+                    )}
+                  >
+                    {labels[status]}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Search or Scan Mode */}
-        <div className="mb-6 min-h-[64px] md:min-h-[56px]">
-        {mode === "search" ? (
+         <div className="mb-6 min-h-[64px] md:min-h-[56px]">
+         {mode === "search" ? (
           <div className="relative">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 md:w-5 md:h-5 text-slate-400" />
