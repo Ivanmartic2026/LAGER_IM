@@ -33,6 +33,7 @@ export default function FindPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showOnSiteReports, setShowOnSiteReports] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
   const searchInputRef = useRef(null);
 
   const { data: articles = [] } = useQuery({
@@ -150,9 +151,15 @@ export default function FindPage() {
     }
 
     setIsProcessing(true);
+    setAnalysisProgress(0);
 
     try {
-      // Extract data using AI with all captured images
+      // Show form immediately with progress
+      setExtractedData({ image_urls: capturedImages });
+      setShowReviewForm(true);
+      setAnalysisProgress(20);
+
+      // Extract data using AI with all captured images in background
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Analysera dessa ${capturedImages.length} bilder av samma artikel/etikett och extrahera följande information:
         - Batchnummer/artikelnummer
@@ -160,9 +167,9 @@ export default function FindPage() {
         - Tillverkare
         - Pixel Pitch (om synlig)
         - Dimensioner (bredd × höjd i mm, om synlig)
-        
-Kombinera informationen från alla bilder för att få så komplett data som möjligt.
-Returnera informationen i JSON-format.`,
+
+  Kombinera informationen från alla bilder för att få så komplett data som möjligt.
+  Returnera informationen i JSON-format.`,
         file_urls: capturedImages,
         response_json_schema: {
           type: "object",
@@ -177,12 +184,13 @@ Returnera informationen i JSON-format.`,
         }
       });
 
+      setAnalysisProgress(100);
       setExtractedData({ ...result, image_urls: capturedImages });
-      setShowReviewForm(true);
-      
+
     } catch (error) {
       console.error("Error processing images:", error);
       toast.error("Kunde inte analysera bilderna. Försök igen.");
+      setAnalysisProgress(0);
     } finally {
       setIsProcessing(false);
     }
@@ -431,41 +439,67 @@ Returnera informationen i JSON-format.`,
             </motion.div>
 
         {/* Review Form Modal */}
-        <AnimatePresence>
-          {showReviewForm && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 30 }}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto p-4 flex items-start justify-center pt-12"
-            >
-              <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl">
-                <div className="flex items-center justify-between p-6 border-b border-slate-700">
-                  <h2 className="text-xl font-bold text-white">Granska extraherad data</h2>
-                  <button
-                    onClick={() => setShowReviewForm(false)}
-                    className="text-slate-400 hover:text-white"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
+         <AnimatePresence>
+           {showReviewForm && (
+             <motion.div
+               initial={{ opacity: 0, y: 30 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: 30 }}
+               className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto p-4 flex items-start justify-center pt-12"
+             >
+               <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl">
+                 <div className="flex items-center justify-between p-6 border-b border-slate-700">
+                   <h2 className="text-xl font-bold text-white">
+                     {isProcessing ? 'Analyserar...' : 'Granska extraherad data'}
+                   </h2>
+                   <button
+                     onClick={() => setShowReviewForm(false)}
+                     disabled={isProcessing}
+                     className="text-slate-400 hover:text-white disabled:opacity-50"
+                   >
+                     <X className="w-6 h-6" />
+                   </button>
+                 </div>
 
-                <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-                  <ReviewForm
-                    extractedData={extractedData}
-                    onFieldChange={(field, value) => {
-                      setExtractedData(prev => ({ ...prev, [field]: value }));
-                    }}
-                    onSave={handleSaveArticle}
-                    onCancel={() => setShowReviewForm(false)}
-                    isSaving={false}
-                    mode="inbound"
-                  />
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                 {/* Progress Bar */}
+                 {isProcessing && analysisProgress > 0 && (
+                   <motion.div
+                     initial={{ opacity: 0, height: 0 }}
+                     animate={{ opacity: 1, height: 'auto' }}
+                     className="px-6 pt-6 pb-4 border-b border-slate-700"
+                   >
+                     <div className="flex items-center justify-between mb-3">
+                       <span className="text-sm text-slate-300">Analyserar innehål</span>
+                       <span className="text-sm font-bold text-cyan-400">{analysisProgress}%</span>
+                     </div>
+                     <div className="h-2 bg-slate-700 rounded-full overflow-hidden border border-slate-600">
+                       <motion.div
+                         initial={{ width: 0 }}
+                         animate={{ width: `${analysisProgress}%` }}
+                         transition={{ duration: 0.5 }}
+                         className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-emerald-500 shadow-lg shadow-cyan-500/50"
+                       />
+                     </div>
+                   </motion.div>
+                 )}
+
+                 <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+                   <ReviewForm
+                     extractedData={extractedData}
+                     onFieldChange={(field, value) => {
+                       setExtractedData(prev => ({ ...prev, [field]: value }));
+                     }}
+                     onSave={handleSaveArticle}
+                     onCancel={() => setShowReviewForm(false)}
+                     isSaving={false}
+                     mode="inbound"
+                     isAnalyzing={isProcessing}
+                   />
+                 </div>
+               </div>
+             </motion.div>
+           )}
+         </AnimatePresence>
 
         {/* Scan Result - Not Found */}
          <AnimatePresence mode="wait">
