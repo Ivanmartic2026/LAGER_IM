@@ -54,7 +54,8 @@ export default function ReviewForm({
   onSave,
   onCancel,
   isSaving,
-  mode = "inbound"
+  mode = "inbound",
+  isAnalyzing = false
 }) {
   const [selectedFields, setSelectedFields] = useState(() => {
     // Auto-select fields that have values
@@ -108,22 +109,42 @@ export default function ReviewForm({
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {/* AI Extraction Summary */}
-      <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
-        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-          <Sparkles className="w-5 h-5 text-blue-400" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-blue-300">
-            AI hittade {allExtractedFields.length} fält
-          </p>
-          <p className="text-xs text-blue-200/70">
-            Välj vilka fält som ska sparas för denna artikel
-          </p>
-        </div>
-      </div>
+      {/* AI Extraction Summary or Loading State */}
+       <div className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
+         isAnalyzing 
+           ? 'bg-cyan-500/10 border-cyan-500/30' 
+           : 'bg-blue-500/10 border-blue-500/30'
+       }`}>
+         <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+           isAnalyzing ? 'bg-cyan-500/20' : 'bg-blue-500/20'
+         }`}>
+           <Sparkles className={`w-5 h-5 ${isAnalyzing ? 'text-cyan-400 animate-spin' : 'text-blue-400'}`} />
+         </div>
+         <div>
+           {isAnalyzing ? (
+             <>
+               <p className="text-sm font-semibold text-cyan-300">
+                 Analyserar bilderna...
+               </p>
+               <p className="text-xs text-cyan-200/70">
+                 Du kan redan börja redigera medan vi slutför analysen
+               </p>
+             </>
+           ) : (
+             <>
+               <p className="text-sm font-semibold text-blue-300">
+                 AI hittade {allExtractedFields.length} fält
+               </p>
+               <p className="text-xs text-blue-200/70">
+                 Välj vilka fält som ska sparas för denna artikel
+               </p>
+             </>
+           )}
+         </div>
+       </div>
 
       {/* Extracted Fields List */}
+      {!isAnalyzing && (
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-white/70">Extraherade fält från bild:</h3>
         {allExtractedFields.map(field => {
@@ -199,9 +220,10 @@ export default function ReviewForm({
             </div>
           );
         })}
-      </div>
+        </div>
+        )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ExtractedFieldCard
           field="batch_number"
           label="Batchnummer"
@@ -389,7 +411,11 @@ export default function ReviewForm({
         <Button
           onClick={handleSaveClick}
           disabled={isSaving || !extractedData.batch_number || !extractedData.name}
-          className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all h-12"
+          className={`flex-1 text-white shadow-lg transition-all h-12 ${
+            isAnalyzing
+              ? 'bg-cyan-600/60 hover:bg-cyan-600/70 shadow-cyan-500/50 hover:shadow-cyan-500/70'
+              : 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/50 hover:shadow-blue-500/70 disabled:opacity-50 disabled:cursor-not-allowed'
+          }`}
         >
           {isSaving ? (
             <>
