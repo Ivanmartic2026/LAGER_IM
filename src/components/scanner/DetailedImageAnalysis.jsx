@@ -15,7 +15,33 @@ export default function DetailedImageAnalysis({
   isLoading
 }) {
   const [selectedValues, setSelectedValues] = useState({});
-  const [activeTab, setActiveTab] = useState(0);
+
+  // Auto-kategorisering baserat på innehål
+  const getCategoryForText = (text) => {
+    const textLower = text.toLowerCase();
+    
+    // Datum (YYYY-MM-DD eller DD-MM-YYYY)
+    if (/^\d{4}-\d{2}-\d{2}$|^\d{2}-\d{2}-\d{4}$|^\d{1,2}\/\d{1,2}\/\d{4}$/.test(text)) {
+      return 'manufacturing_date';
+    }
+    
+    // Batch nummer (vanligtvis B följt av siffror eller bokstäver)
+    if (/^B\d+|^BATCH[-\s]?/i.test(text)) {
+      return 'batch_number';
+    }
+    
+    // SKU/Artikelnummer (långa kod-sekvenser med bindestreck)
+    if (/^[A-Z]{2,}-\d+[-\w]*/.test(text) && text.length > 10) {
+      return 'sku';
+    }
+    
+    // Pixel pitch
+    if (/P\d+(\.\d+)?|pitch|mm/i.test(text)) {
+      return 'pixel_pitch_mm';
+    }
+    
+    return null;
+  };
 
   const CATEGORIES = [
     { id: 'batch_number', label: 'Batchnummer' },
@@ -83,42 +109,26 @@ export default function DetailedImageAnalysis({
         </div>
       )}
 
-      {/* Tabs för olika områden */}
+      {/* Alla områden på en sida */}
       {analysisGroups && analysisGroups.length > 0 && (
-        <Tabs value={activeTab.toString()} onValueChange={(v) => setActiveTab(parseInt(v))}>
-          <TabsList className="w-full grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(analysisGroups.length, 3)}, 1fr)` }}>
-            {analysisGroups.map((group, idx) => (
-              <TabsTrigger
-                key={idx}
-                value={idx.toString()}
-                className="text-xs data-[state=active]:bg-indigo-600"
-              >
-                {group.location}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
+        <div className="space-y-6">
           {analysisGroups.map((group, groupIdx) => (
-            <TabsContent key={groupIdx} value={groupIdx.toString()} className="space-y-3 mt-4">
-              {/* Område beskrivning */}
-              <div className={cn(
-                "p-4 rounded-xl border bg-gradient-to-br",
-                getGroupColor(groupIdx)
-              )}>
-                <p className="text-sm font-semibold text-white mb-2">
-                  {group.location}
-                </p>
-                <p className="text-xs text-slate-300">
-                  {group.description}
-                </p>
-              </div>
+            <div key={groupIdx}>
+              {/* Område header */}
+              <h3 className="text-lg font-semibold text-white">
+                {group.location}
+              </h3>
+              <p className="text-sm text-slate-400">
+                {group.description}
+              </p>
 
               {/* Identifierade värden */}
               {group.values && group.values.length > 0 ? (
                 <div className="space-y-3">
                   {group.values.map((item, idx) => {
-                    const valueKey = `${groupIdx}_${idx}`;
-                    const selectedCategory = selectedValues[valueKey]?.category;
+                  const valueKey = `${groupIdx}_${idx}`;
+                  const autoCategory = getCategoryForText(item.text);
+                  const selectedCategory = selectedValues[valueKey]?.category || autoCategory;
                     
                     return (
                       <motion.div
@@ -145,11 +155,14 @@ export default function DetailedImageAnalysis({
                               className={cn(
                                 "px-2 py-1.5 rounded-md text-xs font-medium transition-all",
                                 selectedCategory === cat.id
-                                  ? "bg-indigo-600 text-white ring-1 ring-indigo-400"
+                                  ? autoCategory === cat.id
+                                    ? "bg-emerald-600 text-white ring-1 ring-emerald-400"
+                                    : "bg-indigo-600 text-white ring-1 ring-indigo-400"
                                   : "bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white"
                               )}
                             >
                               {cat.label}
+                              {autoCategory === cat.id && <span className="ml-1">✓</span>}
                             </button>
                           ))}
                         </div>
@@ -174,9 +187,9 @@ export default function DetailedImageAnalysis({
                   Kopiera: {selectedValues[groupIdx]}
                 </Button>
               )}
-            </TabsContent>
+            </div>
           ))}
-        </Tabs>
+        </div>
       )}
 
       {/* Sammanfattning */}
