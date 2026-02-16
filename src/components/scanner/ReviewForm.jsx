@@ -410,10 +410,10 @@ export default function ReviewForm({
         </Button>
         <Button
           onClick={handleSaveClick}
-          disabled={isSaving || !extractedData.batch_number || !extractedData.name}
+          disabled={isSaving || (!extractedData.batch_number && !isAnalyzing) || (!extractedData.name && !isAnalyzing)}
           className={`flex-1 text-white shadow-lg transition-all h-12 ${
-            isAnalyzing
-              ? 'bg-cyan-600/60 hover:bg-cyan-600/70 shadow-cyan-500/50 hover:shadow-cyan-500/70'
+            isSaving 
+              ? 'bg-slate-600/60 shadow-slate-500/50'
               : 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/50 hover:shadow-blue-500/70 disabled:opacity-50 disabled:cursor-not-allowed'
           }`}
         >
