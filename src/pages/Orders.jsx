@@ -491,7 +491,7 @@ export default function OrdersPage() {
         </div>
 
         {/* Search & Filters */}
-        <div className="space-y-3 mb-6">
+         <div className="space-y-3 mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
             <Input
@@ -502,7 +502,23 @@ export default function OrdersPage() {
             />
           </div>
 
-          <div className="flex gap-3 flex-wrap">
+          {/* Mobile Filter Toggle */}
+          <div className="md:hidden flex gap-2">
+            <Button
+              onClick={() => setShowFilters(!showFilters)}
+              variant="outline"
+              className="flex-1 bg-white/5 border-white/10 hover:bg-white/10"
+            >
+              <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+              Filter
+            </Button>
+          </div>
+
+          {/* Desktop Filters - Always Visible */}
+          <div className={cn(
+            "hidden md:flex gap-3 flex-wrap",
+            "space-y-0"
+          )}>
             {viewMode === "orders" ? (
               <>
                 <Tabs value={statusFilter} onValueChange={setStatusFilter}>
@@ -554,6 +570,64 @@ export default function OrdersPage() {
               </Tabs>
             )}
           </div>
+
+          {/* Mobile Filters - Collapsible */}
+          {showFilters && (
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="md:hidden space-y-2"
+              >
+                {viewMode === "orders" ? (
+                  <>
+                    <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+                      <TabsList className="h-10 w-full bg-white/5 border border-white/10 backdrop-blur-xl grid grid-cols-4">
+                        <TabsTrigger value="all" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
+                        <TabsTrigger value="ready_to_pick" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Redo</TabsTrigger>
+                        <TabsTrigger value="picking" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockar</TabsTrigger>
+                        <TabsTrigger value="picked" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockad</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+
+                    <Tabs value={invoiceFilter} onValueChange={setInvoiceFilter}>
+                      <TabsList className="h-10 w-full bg-white/5 border border-white/10 backdrop-blur-xl grid grid-cols-3">
+                        <TabsTrigger value="all" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
+                        <TabsTrigger value="not_invoiced" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Ej fakt</TabsTrigger>
+                        <TabsTrigger value="invoiced" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Fakt</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+
+                    <Tabs value={sortBy} onValueChange={setSortBy}>
+                      <TabsList className="h-10 w-full bg-white/5 border border-white/10 backdrop-blur-xl flex-wrap gap-1 p-1">
+                        <TabsTrigger value="date_desc" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Senaste</TabsTrigger>
+                        <TabsTrigger value="oldest" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Äldsta</TabsTrigger>
+                        <TabsTrigger value="customer_asc" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Kund</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  </>
+                ) : (
+                  <Tabs value={warehouseFilter} onValueChange={setWarehouseFilter}>
+                    <TabsList className="h-10 w-full bg-white/5 border border-white/10 backdrop-blur-xl flex-wrap gap-1 p-1">
+                      <TabsTrigger value="all" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
+                        Alla
+                      </TabsTrigger>
+                      {warehouses.map(wh => (
+                        <TabsTrigger 
+                          key={wh.id} 
+                          value={wh.name}
+                          className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10"
+                        >
+                          {wh.code || wh.name}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          )}
 
           <div className="flex items-center justify-end">
 
