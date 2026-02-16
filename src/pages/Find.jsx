@@ -28,6 +28,7 @@ export default function FindPage() {
   const [scanResult, setScanResult] = useState(null); // "found" or "not_found"
   const [extractedData, setExtractedData] = useState({});
   const [showPrintModal, setShowPrintModal] = useState(false);
+  const [capturedImages, setCapturedImages] = useState([]);
   const searchInputRef = useRef(null);
 
   const { data: articles = [] } = useQuery({
@@ -78,36 +79,54 @@ export default function FindPage() {
     setMode("search");
     setScanResult(null);
     setExtractedData({});
+    setCapturedImages([]);
     searchInputRef.current?.focus();
   };
 
   const handleImageCaptured = async (file) => {
+    // Upload image first
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    
+    // Add to captured images
+    setCapturedImages(prev => [...prev, file_url]);
+    toast.success(`Bild ${capturedImages.length + 1} tillagd`);
+  };
+
+  const handleProcessImages = async () => {
+    if (capturedImages.length === 0) {
+      toast.error("Ingen bild att analysera");
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
-      // Upload image
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-
-      // Extract data using AI
+      // Extract data using AI with all captured images
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analysera denna bild av en artikel/etikett och extrahera följande information:
+        prompt: `Analysera dessa ${capturedImages.length} bilder av samma artikel/etikett och extrahera följande information:
         - Batchnummer/artikelnummer
         - Artikelnamn
         - Tillverkare
+        - Pixel Pitch (om synlig)
+        - Dimensioner (bredd × höjd i mm, om synlig)
         
+Kombinera informationen från alla bilder för att få så komplett data som möjligt.
 Returnera informationen i JSON-format.`,
-        file_urls: [file_url],
+        file_urls: capturedImages,
         response_json_schema: {
           type: "object",
           properties: {
             batch_number: { type: "string" },
             name: { type: "string" },
-            manufacturer: { type: "string" }
+            manufacturer: { type: "string" },
+            pixel_pitch_mm: { type: "number" },
+            dimensions_width_mm: { type: "number" },
+            dimensions_height_mm: { type: "number" }
           }
         }
       });
 
-      setExtractedData({ ...result, image_url: file_url });
+      setExtractedData({ ...result, image_urls: capturedImages });
 
       // Search for article in database
       let found = null;
@@ -136,11 +155,16 @@ Returnera informationen i JSON-format.`,
       }
       
     } catch (error) {
-      console.error("Error processing image:", error);
-      toast.error("Kunde inte analysera bilden. Försök igen.");
+      console.error("Error processing images:", error);
+      toast.error("Kunde inte analysera bilderna. Försök igen.");
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleRemoveImage = (index) => {
+    setCapturedImages(prev => prev.filter((_, i) => i !== index));
+    toast.success("Bild borttagen");
   };
 
   return (
@@ -287,6 +311,55 @@ Returnera informationen i JSON-format.`,
               onImageCaptured={handleImageCaptured}
               isProcessing={isProcessing}
             />
+            
+            {/* Captured Images Preview */}
+            {capturedImages.length > 0 && (
+              <div className="mt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-slate-300">
+                    {capturedImages.length} {capturedImages.length === 1 ? 'bild' : 'bilder'} tillagd{capturedImages.length > 1 ? 'e' : ''}
+                  </p>
+                  <Button
+                    onClick={handleProcessImages}
+                    disabled={isProcessing}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                        Analyserar...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Analysera bilderna
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3">
+                  {capturedImages.map((url, index) => (
+                    <div key={index} className="relative group">
+                      <img 
+                        src={url} 
+                        alt={`Bild ${index + 1}`}
+                        className="w-full aspect-square object-cover rounded-lg border-2 border-slate-700"
+                      />
+                      <button
+                        onClick={() => handleRemoveImage(index)}
+                        className="absolute top-1 right-1 w-7 h-7 bg-red-600 hover:bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4 text-white" />
+                      </button>
+                      <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        {index + 1}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -310,8 +383,8 @@ Returnera informationen i JSON-format.`,
                 </p>
 
                 {extractedData.name && (
-                  <div className="bg-slate-800/50 rounded-xl p-4 mb-6 text-left">
-                    <p className="text-sm text-slate-400 mb-3">Extraherad information:</p>
+                  <div className="bg-slate-800/50 rounded-xl p-4 mb-6 text-left space-y-4">
+                    <p className="text-sm text-slate-400">Extraherad information från {extractedData.image_urls?.length || 1} {extractedData.image_urls?.length === 1 ? 'bild' : 'bilder'}:</p>
                     <div className="space-y-2 text-sm">
                       {extractedData.name && (
                         <div className="flex justify-between">
@@ -331,7 +404,38 @@ Returnera informationen i JSON-format.`,
                           <span className="text-white font-medium">{extractedData.manufacturer}</span>
                         </div>
                       )}
+                      {extractedData.pixel_pitch_mm && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Pixel Pitch:</span>
+                          <span className="text-white font-medium">{extractedData.pixel_pitch_mm} mm</span>
+                        </div>
+                      )}
+                      {extractedData.dimensions_width_mm && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Dimensioner:</span>
+                          <span className="text-white font-medium">
+                            {extractedData.dimensions_width_mm} × {extractedData.dimensions_height_mm || '—'} mm
+                          </span>
+                        </div>
+                      )}
                     </div>
+                    
+                    {/* Show captured images */}
+                    {extractedData.image_urls && extractedData.image_urls.length > 0 && (
+                      <div>
+                        <p className="text-xs text-slate-400 mb-2">Analyserade bilder:</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {extractedData.image_urls.map((url, idx) => (
+                            <img 
+                              key={idx}
+                              src={url} 
+                              alt={`Scannad ${idx + 1}`}
+                              className="w-full aspect-square object-cover rounded border border-slate-700"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
