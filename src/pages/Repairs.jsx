@@ -507,6 +507,98 @@ export default function RepairsPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Report to Repair Modal */}
+        <Dialog open={reportModalOpen} onOpenChange={setReportModalOpen}>
+          <DialogContent className="bg-zinc-950 border-white/10 text-white backdrop-blur-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-blue-400" />
+                Rapportera till Reparation
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-slate-300 mb-2 block">
+                  Välj artikel
+                </label>
+                <select
+                  value={reportData.article_id}
+                  onChange={(e) => setReportData({ ...reportData, article_id: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg p-2.5 focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">-- Välj artikel --</option>
+                  {articles
+                    .filter(a => a.status !== 'on_repair')
+                    .map(article => (
+                      <option key={article.id} value={article.id}>
+                        {article.name} (#{article.batch_number})
+                      </option>
+                    ))
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm text-slate-300 mb-2 block">
+                  Antal (st)
+                </label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={reportData.quantity}
+                  onChange={(e) => setReportData({ ...reportData, quantity: e.target.value })}
+                  className="bg-slate-800 border-slate-700 text-white"
+                  placeholder="1"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-slate-300 mb-2 block">
+                  Felorsak / Anteckningar
+                </label>
+                <Textarea
+                  value={reportData.notes}
+                  onChange={(e) => setReportData({ ...reportData, notes: e.target.value })}
+                  className="bg-slate-800 border-slate-700 text-white h-20"
+                  placeholder="Beskriv problemet..."
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setReportModalOpen(false);
+                  setReportData({ article_id: "", quantity: "1", notes: "" });
+                }}
+                className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+              >
+                Avbryt
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!reportData.article_id) {
+                    toast.error("Välj en artikel");
+                    return;
+                  }
+                  reportToRepairMutation.mutate(reportData);
+                }}
+                disabled={reportToRepairMutation.isPending || !reportData.article_id}
+                className="bg-blue-600 hover:bg-blue-500 text-white"
+              >
+                {reportToRepairMutation.isPending ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                )}
+                Rapportera
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Return Modal */}
         <Dialog open={returnModalOpen} onOpenChange={setReturnModalOpen}>
           <DialogContent className="bg-zinc-950 border-white/10 text-white backdrop-blur-2xl">
