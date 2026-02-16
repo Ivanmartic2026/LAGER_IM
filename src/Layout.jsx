@@ -294,6 +294,18 @@ function LayoutContent({ children, currentPageName }) {
           </AnimatePresence>
         </ErrorBoundary>
       </main>
+
+      {/* Floating Camera Button */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => navigate(createPageUrl("Scan"))}
+        className="fixed bottom-28 md:bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/50 flex items-center justify-center hover:shadow-blue-500/70 transition-shadow z-40"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        title="Öppna kamera"
+      >
+        <Camera className="w-6 h-6" />
+      </motion.button>
     </div>
   );
 }
