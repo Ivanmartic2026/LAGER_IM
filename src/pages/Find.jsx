@@ -62,15 +62,20 @@ export default function FindPage() {
     }
     
     const query = searchQuery.toLowerCase();
-    const results = articles.filter(article => 
+    let results = articles.filter(article => 
       article.name?.toLowerCase().includes(query) ||
       article.batch_number?.toLowerCase().includes(query) ||
       article.manufacturer?.toLowerCase().includes(query) ||
       article.shelf_address?.toLowerCase().includes(query)
-    ).slice(0, 10);
-    
-    setSearchResults(results);
-  }, [searchQuery, articles]);
+    );
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      results = results.filter(article => article.status === statusFilter);
+    }
+
+    setSearchResults(results.slice(0, 10));
+  }, [searchQuery, articles, statusFilter]);
 
   const handleSelectArticle = (article) => {
     setSelectedArticle(article);
