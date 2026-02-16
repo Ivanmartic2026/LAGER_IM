@@ -194,22 +194,27 @@ Returnera informationen i JSON-format.`,
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950/20 to-slate-950 p-4 md:p-6">
       <div className="max-w-2xl mx-auto">
         
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-center mb-10"
         >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mx-auto mb-4">
-            <MapPin className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+          <motion.div 
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-emerald-600/20 backdrop-blur-xl border border-emerald-500/40 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/10"
+          >
+            <MapPin className="w-8 h-8 text-emerald-300" />
+          </motion.div>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">
             Hitta i lager
           </h1>
-          <p className="text-slate-400">
+          <p className="text-slate-400 text-lg md:text-base">
             Sök eller skanna artikel för att se om den finns i lagret
           </p>
         </motion.div>
