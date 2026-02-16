@@ -634,52 +634,85 @@ export default function OrdersPage() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="md:hidden space-y-2"
+                className="md:hidden space-y-3"
               >
                 {viewMode === "orders" ? (
                   <>
-                    <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-                      <TabsList className="h-10 w-full bg-white/5 border border-white/10 backdrop-blur-xl grid grid-cols-4">
-                        <TabsTrigger value="all" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
-                        <TabsTrigger value="ready_to_pick" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Redo</TabsTrigger>
-                        <TabsTrigger value="picking" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockar</TabsTrigger>
-                        <TabsTrigger value="picked" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Plockad</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
+                    <div>
+                      <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Status</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['all', 'ready_to_pick', 'picking', 'picked'].map((status) => {
+                          const labels = { all: 'Alla', ready_to_pick: 'Redo', picking: 'Plockar', picked: 'Plockad' };
+                          return (
+                            <motion.button
+                              key={status}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => setStatusFilter(status)}
+                              className={cn(
+                                "p-2 rounded-lg transition-all duration-300 text-xs font-medium",
+                                statusFilter === status
+                                  ? "bg-blue-500/30 border border-blue-500/60 text-blue-300"
+                                  : "bg-white/5 border border-white/10 text-white/70"
+                              )}
+                            >
+                              {labels[status]}
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    </div>
 
-                    <Tabs value={invoiceFilter} onValueChange={setInvoiceFilter}>
-                      <TabsList className="h-10 w-full bg-white/5 border border-white/10 backdrop-blur-xl grid grid-cols-3">
-                        <TabsTrigger value="all" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
-                        <TabsTrigger value="not_invoiced" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Ej fakt</TabsTrigger>
-                        <TabsTrigger value="invoiced" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Fakt</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-
-                    <Tabs value={sortBy} onValueChange={setSortBy}>
-                      <TabsList className="h-10 w-full bg-white/5 border border-white/10 backdrop-blur-xl flex-wrap gap-1 p-1">
-                        <TabsTrigger value="date_desc" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Senaste</TabsTrigger>
-                        <TabsTrigger value="oldest" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Äldsta</TabsTrigger>
-                        <TabsTrigger value="customer_asc" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Kund</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
+                    <div>
+                      <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Fakturering</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {['all', 'not_invoiced', 'invoiced'].map((invoice) => {
+                          const labels = { all: 'Alla', not_invoiced: 'Ej fakt', invoiced: 'Fakt' };
+                          return (
+                            <motion.button
+                              key={invoice}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => setInvoiceFilter(invoice)}
+                              className={cn(
+                                "p-2 rounded-lg transition-all duration-300 text-xs font-medium",
+                                invoiceFilter === invoice
+                                  ? "bg-green-500/30 border border-green-500/60 text-green-300"
+                                  : "bg-white/5 border border-white/10 text-white/70"
+                              )}
+                            >
+                              {labels[invoice]}
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </>
                 ) : (
-                  <Tabs value={warehouseFilter} onValueChange={setWarehouseFilter}>
-                    <TabsList className="h-10 w-full bg-white/5 border border-white/10 backdrop-blur-xl flex-wrap gap-1 p-1">
-                      <TabsTrigger value="all" className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">
-                        Alla
-                      </TabsTrigger>
-                      {warehouses.map(wh => (
-                        <TabsTrigger 
-                          key={wh.id} 
-                          value={wh.name}
-                          className="text-xs h-8 px-2 text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10"
-                        >
-                          {wh.code || wh.name}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-                  </Tabs>
+                  <div>
+                    <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Lagerställe</p>
+                    <div className="flex flex-wrap gap-2">
+                      {['all', ...warehouses.map(wh => wh.name)].map((warehouse) => {
+                        const label = warehouse === 'all' ? 'Alla' : warehouses.find(wh => wh.name === warehouse)?.code || warehouse;
+                        return (
+                          <motion.button
+                            key={warehouse}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setWarehouseFilter(warehouse)}
+                            className={cn(
+                              "px-3 py-2 rounded-lg transition-all duration-300 text-xs font-medium whitespace-nowrap",
+                              warehouseFilter === warehouse
+                                ? "bg-purple-500/30 border border-purple-500/60 text-purple-300"
+                                : "bg-white/5 border border-white/10 text-white/70"
+                            )}
+                          >
+                            {label}
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
               </motion.div>
             </AnimatePresence>
