@@ -50,21 +50,29 @@ export default function AIProcessingScreen({ progress = 0 }) {
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="text-center mb-10"
         >
-          {/* Premium Icon */}
-          <motion.div
-            animate={{ 
-              rotate: 360,
-              scale: [1, 1.05, 1]
-            }}
-            transition={{ 
-              rotate: { duration: 4, repeat: Infinity, ease: 'linear' },
-              scale: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
-            }}
-            className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 via-cyan-400 to-emerald-400 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-blue-500/50 relative"
-          >
-            <Sparkles className="w-10 h-10 text-white" />
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500 via-cyan-400 to-emerald-400 opacity-0 group-hover:opacity-20 transition-opacity" />
-          </motion.div>
+          {/* Premium Icon with Glow */}
+             <motion.div
+               animate={{ 
+                 rotate: 360,
+                 scale: [1, 1.08, 1]
+               }}
+               transition={{ 
+                 rotate: { duration: 3, repeat: Infinity, ease: 'linear' },
+                 scale: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
+               }}
+               className="relative w-24 h-24 mx-auto mb-8"
+             >
+               {/* Outer glow pulse */}
+               <motion.div
+                 animate={{ scale: [1, 1.2, 1] }}
+                 transition={{ duration: 2.5, repeat: Infinity }}
+                 className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500 via-cyan-400 to-emerald-400 opacity-30 blur-xl"
+               />
+               {/* Icon container */}
+               <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500 via-cyan-400 to-emerald-400 flex items-center justify-center shadow-2xl shadow-blue-500/60 backdrop-blur-xl">
+                 <Sparkles className="w-12 h-12 text-white animate-pulse" />
+               </div>
+             </motion.div>
           
           <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">
             AI Analyserar Bild
@@ -79,7 +87,7 @@ export default function AIProcessingScreen({ progress = 0 }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-gradient-to-br from-white/5 via-white/3 to-transparent border border-white/10 rounded-2xl p-8 backdrop-blur-xl shadow-2xl mb-8"
+          className="bg-gradient-to-br from-white/8 via-white/4 to-white/2 border border-cyan-500/30 rounded-2xl p-8 backdrop-blur-2xl shadow-2xl shadow-cyan-500/20 mb-8"
         >
           {/* Progress Section */}
           <div className="mb-8">
@@ -89,14 +97,14 @@ export default function AIProcessingScreen({ progress = 0 }) {
                 {Math.round(progress)}%
               </span>
             </div>
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="h-full bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 shadow-lg shadow-cyan-500/50"
-              />
-            </div>
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden border border-white/10">
+               <motion.div
+                 initial={{ width: 0 }}
+                 animate={{ width: `${progress}%` }}
+                 transition={{ duration: 0.5, ease: 'easeOut' }}
+                 className="h-full bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400 shadow-2xl shadow-cyan-500/60 rounded-full"
+               />
+             </div>
           </div>
 
           {/* Processing Steps */}
@@ -137,13 +145,13 @@ export default function AIProcessingScreen({ progress = 0 }) {
         </motion.div>
 
         {/* Animated Bottom Text */}
-        <motion.div
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 2.5, repeat: Infinity }}
-          className="text-center text-slate-500 text-xs tracking-wide"
-        >
-          Analyserar innehål...
-        </motion.div>
+         <motion.div
+           animate={{ opacity: [0.5, 1, 0.5] }}
+           transition={{ duration: 2, repeat: Infinity }}
+           className="text-center text-cyan-400/60 text-xs tracking-widest font-medium"
+         >
+           ✨ Analyserar innehål...
+         </motion.div>
       </div>
     </motion.div>
   );
