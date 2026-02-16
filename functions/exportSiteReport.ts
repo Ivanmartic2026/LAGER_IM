@@ -270,13 +270,9 @@ Deno.serve(async (req) => {
               <div class="component ${componentClass}">
                 <div class="component-header">${article.name}</div>
                 <div class="component-details">
-                  ${article.batch_number ? `<strong>Batch:</strong> ${article.batch_number}<br>` : ''}
-                  <span class="status-badge ${statusClass}">${statusText}</span>
-                  ${image.form_data ? Object.keys(image.form_data)
-                    .filter(key => key !== 'component_status' && image.form_data[key])
-                    .map(key => `<br><strong>${key}:</strong> ${image.form_data[key]}`)
-                    .join('') : ''}
-                </div>
+                   ${article.batch_number ? `<strong>Batch:</strong> ${article.batch_number}<br>` : ''}
+                   <span class="status-badge ${statusClass}">${statusText}</span>
+                 </div>
                 <img src="${image.image_url}" class="component-image" alt="Komponent" />
               </div>
             `;
