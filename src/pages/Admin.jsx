@@ -63,6 +63,15 @@ export default function AdminPage() {
       iconColor: "text-blue-400"
     },
     {
+      name: "SupplierDocumentationOverview",
+      label: "Leverantörsdokumentation",
+      description: "Översikt av uppladdade dokument",
+      icon: FileText,
+      color: "from-cyan-600 to-cyan-700",
+      iconBg: "bg-cyan-500/20",
+      iconColor: "text-cyan-400"
+    },
+    {
       name: "Warehouses",
       label: "Lagerställen",
       description: "Hantera lagerställen och hyllplatser",
