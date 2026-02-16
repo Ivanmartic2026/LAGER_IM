@@ -91,6 +91,7 @@ export default function FindPage() {
     setScanResult(null);
     setExtractedData({});
     setCapturedImages([]);
+    setStatusFilter("all");
     searchInputRef.current?.focus();
   };
 
