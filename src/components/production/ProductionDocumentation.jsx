@@ -203,12 +203,23 @@ export default function ProductionDocumentation({
                           {currentIdx + 1} / {images.length}
                         </div>
 
-                        {/* Delete Button */}
+                        {/* Action Buttons */}
                         <motion.button
                           initial={{ opacity: 0 }}
                           whileHover={{ opacity: 1 }}
-                          className="absolute top-3 left-3 bg-red-500/80 hover:bg-red-600 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-3 left-3 bg-blue-500/80 hover:bg-blue-600 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => setFullscreenImage(currentImage)}
+                          title="Zooma"
+                        >
+                          <ZoomIn className="w-4 h-4 text-white" />
+                        </motion.button>
+
+                        <motion.button
+                          initial={{ opacity: 0 }}
+                          whileHover={{ opacity: 1 }}
+                          className="absolute top-3 right-3 bg-red-500/80 hover:bg-red-600 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => onImageDelete(type, currentIdx)}
+                          title="Ta bort"
                         >
                           <Trash2 className="w-4 h-4 text-white" />
                         </motion.button>
