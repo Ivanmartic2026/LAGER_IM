@@ -29,6 +29,7 @@ export default function FindPage() {
   const [extractedData, setExtractedData] = useState({});
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [capturedImages, setCapturedImages] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("all");
   const searchInputRef = useRef(null);
 
   const { data: articles = [] } = useQuery({
