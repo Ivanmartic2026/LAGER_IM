@@ -519,8 +519,8 @@ export default function OrdersPage() {
             {viewMode === "orders" ? (
               <>
                 {/* Status Filter */}
-                <div>
-                  <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Status</p>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-3">Status</p>
                   <div className="grid grid-cols-4 gap-2">
                     {['all', 'ready_to_pick', 'picking', 'picked'].map((status) => {
                       const labels = { all: 'Alla', ready_to_pick: 'Redo', picking: 'Plockar', picked: 'Plockad' };
