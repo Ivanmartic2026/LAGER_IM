@@ -21,6 +21,7 @@ export default function AutoAnalysisReview({
   const [editingField, setEditingField] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [showLowConfidence, setShowLowConfidence] = useState(false);
+  const [showValuePicker, setShowValuePicker] = useState(false);
 
   // Fält som ska visas
   const importantFields = [
@@ -58,6 +59,18 @@ export default function AutoAnalysisReview({
   const startEdit = (field, value) => {
     setEditingField(field);
     setEditValue(value || '');
+    setShowValuePicker(false);
+  };
+
+  // Samla alla unika värden från extraherad data
+  const getAllValues = () => {
+    const values = [];
+    Object.entries(extractedData).forEach(([key, val]) => {
+      if (val && typeof val === 'string') {
+        values.push({ value: val, source: key });
+      }
+    });
+    return values.filter((v, i, arr) => arr.findIndex(x => x.value === v.value) === i);
   };
 
   const saveEdit = (field) => {
@@ -112,7 +125,38 @@ export default function AutoAnalysisReview({
               className="bg-white/5 border-white/10 text-white"
               autoFocus
             />
+            
+            {/* Värde-förslag */}
+            {showValuePicker && getAllValues().length > 0 && (
+              <div className="p-2 rounded-lg bg-slate-800/50 border border-slate-700 space-y-1 max-h-32 overflow-y-auto">
+                <p className="text-xs text-slate-400 px-1 py-0.5">Andra extraherade värden:</p>
+                {getAllValues().map((item, idx) => (
+                  item.value !== editValue && (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setEditValue(item.value);
+                        setShowValuePicker(false);
+                      }}
+                      className="w-full text-left px-2 py-1.5 text-xs rounded-md bg-slate-700/50 hover:bg-slate-700 text-white transition-colors"
+                    >
+                      <span className="block truncate">{item.value}</span>
+                      <span className="text-slate-400 text-xs">från {importantFields.find(f => f.key === item.source)?.label || item.source}</span>
+                    </button>
+                  )
+                ))}
+              </div>
+            )}
+
             <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowValuePicker(!showValuePicker)}
+                className="flex-1 bg-blue-600/20 border-blue-500/30 hover:bg-blue-600/30 text-blue-300 h-8 text-xs"
+              >
+                Byt värde
+              </Button>
               <Button
                 size="sm"
                 onClick={() => saveEdit(field.key)}
