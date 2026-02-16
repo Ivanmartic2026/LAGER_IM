@@ -101,18 +101,20 @@ export default function HomePage() {
 
   // Search functionality
   React.useEffect(() => {
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const results = articles.filter(article => 
-        article.name?.toLowerCase().includes(query) ||
-        article.batch_number?.toLowerCase().includes(query) ||
-        article.manufacturer?.toLowerCase().includes(query) ||
-        article.shelf_address?.toLowerCase().includes(query)
-      ).slice(0, 10);
-      setSearchResults(results);
-    } else {
+    if (!searchQuery.trim()) {
       setSearchResults([]);
+      return;
     }
+    
+    const query = searchQuery.toLowerCase();
+    const results = articles.filter(article => 
+      article.name?.toLowerCase().includes(query) ||
+      article.batch_number?.toLowerCase().includes(query) ||
+      article.manufacturer?.toLowerCase().includes(query) ||
+      article.shelf_address?.toLowerCase().includes(query)
+    ).slice(0, 10);
+    
+    setSearchResults(results);
   }, [searchQuery, articles]);
 
   const handleSelectArticle = (article) => {
