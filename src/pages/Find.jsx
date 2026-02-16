@@ -706,7 +706,7 @@ Returnera informationen i JSON-format.`,
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-800/30 border border-slate-700/30 text-left">
                   <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-4 h-4 text-emerald-400" />
@@ -715,18 +715,6 @@ Returnera informationen i JSON-format.`,
                     <p className="text-sm font-medium text-white mb-1">Hitta hyllplats</p>
                     <p className="text-xs text-slate-400">
                       Se stor och tydlig hyllplats när du hittat rätt artikel
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-800/30 border border-slate-700/30 text-left">
-                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                    <Camera className="w-4 h-4 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white mb-1">Skanna & kontrollera</p>
-                    <p className="text-xs text-slate-400">
-                      Ta foto för att se om artikeln finns eller lägg till ny
                     </p>
                   </div>
                 </div>
