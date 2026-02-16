@@ -600,8 +600,8 @@ Returnera informationen i JSON-format.`,
                   </div>
                 </motion.div>
               ) : (
-                <div className="p-8 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center">
-                  <MapPin className="w-12 h-12 text-amber-400 mx-auto mb-3" />
+                <div className="p-8 rounded-2xl bg-gradient-to-br from-amber-500/15 to-orange-500/5 backdrop-blur-xl border border-amber-500/40 text-center shadow-lg shadow-amber-500/10">
+                  <MapPin className="w-12 h-12 text-amber-300 mx-auto mb-3" />
                   <p className="text-lg font-medium text-amber-200">
                     Ingen hyllplats registrerad
                   </p>
