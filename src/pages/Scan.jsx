@@ -1172,20 +1172,20 @@ Returnera som strukturerad JSON med denna format:
                      const extractionResult = await base44.integrations.Core.InvokeLLM({
                        prompt: `Baserat på följande texter från kortet, extrahera och klassificera värdena:
 
-TEXTER FRÅN KORTET:
-${allText}
+                     TEXTER FRÅN KORTET:
+                     ${allText}
 
-Identifiera:
-- Batchnummer
-- Artikelnamn
-- Tillverkare
-- Tillverkningsdatum
-- Pixel pitch (mm) för LED-moduler
-- Kategori (LED Module, Cabinet, Power Supply, etc)
-- Lagerställe
+                     Identifiera:
+                     - Batchnummer
+                     - Artikelnamn
+                     - Tillverkare
+                     - Tillverkningsdatum
+                     - Pixel pitch (mm) för LED-moduler
+                     - Kategori (LED Module, Cabinet, Power Supply, etc)
+                     - Lagerställe
 
-För varje fält ge confidence (0-1) baserat på hur säker du är.`,
-                       file_urls: urls,
+                     För varje fält ge confidence (0-1) baserat på hur säker du är.`,
+                       file_urls: imageUrls,
                        response_json_schema: schema
                      });
 
