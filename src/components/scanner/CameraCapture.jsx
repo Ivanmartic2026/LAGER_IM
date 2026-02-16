@@ -165,8 +165,9 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
                   variant="outline"
                   className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    cameraInputRef.current?.click();
+                    triggerFileInput(true);
                   }}
                 >
                   <Camera className="w-4 h-4 mr-2" />
@@ -177,8 +178,9 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
                   variant="outline"
                   className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    fileInputRef.current?.click();
+                    triggerFileInput(false);
                   }}
                 >
                   <Upload className="w-4 h-4 mr-2" />
