@@ -17,6 +17,18 @@ export default function DetailedImageAnalysis({
   const [selectedValues, setSelectedValues] = useState({});
   const [activeTab, setActiveTab] = useState(0);
 
+  const CATEGORIES = [
+    { id: 'batch_number', label: 'Batchnummer' },
+    { id: 'name', label: 'Artikelnamn' },
+    { id: 'manufacturer', label: 'Tillverkare' },
+    { id: 'manufacturing_date', label: 'Tillverkningsdatum' },
+    { id: 'pixel_pitch_mm', label: 'Pixel Pitch (mm)' },
+    { id: 'category', label: 'Kategori' },
+    { id: 'warehouse', label: 'Lagerställe' },
+    { id: 'sku', label: 'SKU/Artikelnummer' },
+    { id: 'other', label: 'Övrigt' }
+  ];
+
   const handleSelect = (groupId, value) => {
     setSelectedValues(prev => ({
       ...prev,
@@ -102,48 +114,54 @@ export default function DetailedImageAnalysis({
               </div>
 
               {/* Identifierade värden */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-white">Identifierade texter:</p>
-                {group.values && group.values.length > 0 ? (
-                  <div className="space-y-2">
-                    {group.values.map((item, idx) => (
-                      <motion.button
+              {group.values && group.values.length > 0 ? (
+                <div className="space-y-3">
+                  {group.values.map((item, idx) => {
+                    const valueKey = `${groupIdx}_${idx}`;
+                    const selectedCategory = selectedValues[valueKey]?.category;
+                    
+                    return (
+                      <motion.div
                         key={idx}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        onClick={() => handleSelect(groupIdx, item.text)}
-                        className={cn(
-                          "w-full p-3 rounded-lg text-left transition-all border",
-                          selectedValues[groupIdx] === item.text
-                            ? "bg-indigo-600/20 border-indigo-500 ring-2 ring-indigo-500/50"
-                            : "bg-slate-800/50 border-slate-700 hover:border-slate-600 hover:bg-slate-800"
-                        )}
+                        className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-slate-600 transition-all"
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className="text-white font-mono text-sm truncate">
+                            <p className="text-white font-mono font-semibold text-sm break-words">
                               {item.text}
                             </p>
-                            {item.context && (
-                              <p className="text-xs text-slate-400 mt-1">
-                                {item.context}
-                              </p>
-                            )}
                           </div>
-                          {selectedValues[groupIdx] === item.text && (
-                            <CheckCircle2 className="w-5 h-5 text-indigo-400 flex-shrink-0 ml-2" />
-                          )}
                         </div>
-                      </motion.button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 text-slate-400 text-sm">
-                    Inga texter identifierade i detta område
-                  </div>
-                )}
-              </div>
+
+                        {/* Kategori väljare */}
+                        <div className="mt-2 grid grid-cols-2 gap-1.5">
+                          {CATEGORIES.map(cat => (
+                            <button
+                              key={cat.id}
+                              onClick={() => handleSelect(valueKey, { text: item.text, category: cat.id })}
+                              className={cn(
+                                "px-2 py-1.5 rounded-md text-xs font-medium transition-all",
+                                selectedCategory === cat.id
+                                  ? "bg-indigo-600 text-white ring-1 ring-indigo-400"
+                                  : "bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white"
+                              )}
+                            >
+                              {cat.label}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 text-slate-400 text-sm">
+                  Inga texter identifierade i detta område
+                </div>
+              )}
 
               {/* Kopiera knapp */}
               {selectedValues[groupIdx] && (
@@ -163,17 +181,21 @@ export default function DetailedImageAnalysis({
 
       {/* Sammanfattning */}
       <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
-        <p className="text-sm font-medium text-white mb-2">Valda värden ({Object.keys(selectedValues).length})</p>
+        <p className="text-sm font-medium text-white mb-3">Valda värden ({Object.keys(selectedValues).length})</p>
         {Object.keys(selectedValues).length > 0 ? (
-          <div className="space-y-1">
-            {Object.entries(selectedValues).map(([groupIdx, value]) => (
-              <div key={groupIdx} className="text-xs text-slate-300">
-                <span className="text-slate-500">{analysisGroups[parseInt(groupIdx)]?.location}:</span> <span className="font-mono text-white">{value}</span>
-              </div>
-            ))}
+          <div className="space-y-2">
+            {Object.entries(selectedValues).map(([key, item]) => {
+              const category = CATEGORIES.find(c => c.id === item.category);
+              return (
+                <div key={key} className="p-2 rounded-lg bg-slate-700/50 border border-slate-600">
+                  <p className="text-xs text-slate-400">{category?.label}</p>
+                  <p className="text-sm font-mono text-white">{item.text}</p>
+                </div>
+              );
+            })}
           </div>
         ) : (
-          <p className="text-xs text-slate-400">Välj värden från tabben ovan</p>
+          <p className="text-xs text-slate-400">Välj värden och deras kategorier ovan</p>
         )}
       </div>
 
