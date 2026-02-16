@@ -577,7 +577,7 @@ export default function ArticleDetail({
               e.stopPropagation();
               onAdjustStock("add");
             }}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-12 md:h-14 text-sm md:text-base active:scale-95 transition-transform rounded-lg flex items-center justify-center gap-2"
+            className="bg-emerald-500/30 border border-emerald-500/60 hover:bg-emerald-500/40 text-emerald-300 font-semibold h-12 md:h-14 text-sm md:text-base active:scale-95 transition-all rounded-lg flex items-center justify-center gap-2 backdrop-blur-xl"
           >
             <Plus className="w-4 h-4 md:w-5 md:h-5" />
             Lägg till lager
@@ -588,7 +588,7 @@ export default function ArticleDetail({
               e.stopPropagation();
               onAdjustStock("remove");
             }}
-            className="bg-red-600 hover:bg-red-500 text-white font-semibold h-12 md:h-14 text-sm md:text-base active:scale-95 transition-transform rounded-lg flex items-center justify-center gap-2"
+            className="bg-red-500/30 border border-red-500/60 hover:bg-red-500/40 text-red-300 font-semibold h-12 md:h-14 text-sm md:text-base active:scale-95 transition-all rounded-lg flex items-center justify-center gap-2 backdrop-blur-xl"
           >
             <Minus className="w-4 h-4 md:w-5 md:h-5" />
             Ta ut från lager
@@ -602,7 +602,7 @@ export default function ArticleDetail({
               e.stopPropagation();
               setRepairModalOpen(true);
             }}
-            className="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium h-10 md:h-11 text-sm md:text-base active:scale-95 transition-transform rounded-lg flex items-center justify-center gap-2"
+            className="w-full bg-orange-500/30 border border-orange-500/60 hover:bg-orange-500/40 text-orange-300 font-medium h-10 md:h-11 text-sm md:text-base active:scale-95 transition-all rounded-lg flex items-center justify-center gap-2 backdrop-blur-xl"
           >
             <Wrench className="w-3 h-3 md:w-4 md:h-4" />
             Rapportera till Reparation
