@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Check, X, AlertTriangle, Package } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Check, X, AlertTriangle, Package, Sparkles } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import ExtractedFieldCard from './ExtractedFieldCard';
+import ConfidenceIndicator from './ConfidenceIndicator';
 
 const CATEGORY_OPTIONS = [
   { value: "Cabinet", label: "Kabinett" },
@@ -25,6 +27,26 @@ const STORAGE_TYPE_OPTIONS = [
   { value: "customer_owned", label: "Kundägt lager" }
 ];
 
+const FIELD_LABELS = {
+  batch_number: "Batchnummer",
+  name: "Artikelnamn",
+  manufacturer: "Tillverkare",
+  manufacturing_date: "Tillverkningsdatum",
+  category: "Kategori",
+  pixel_pitch_mm: "Pixel Pitch (mm)",
+  shelf_address: "Hyllplats",
+  stock_qty: "Antal",
+  dimensions_width_mm: "Bredd (mm)",
+  dimensions_height_mm: "Höjd (mm)",
+  dimensions_depth_mm: "Djup (mm)",
+  weight_kg: "Vikt (kg)",
+  warehouse: "Lagerställe",
+  storage_type: "Lagertyp",
+  sku: "SKU/Artikelnummer",
+  supplier_product_code: "Leverantörskod",
+  notes: "Anteckningar"
+};
+
 export default function ReviewForm({ 
   extractedData, 
   confidences = {},
@@ -34,12 +56,51 @@ export default function ReviewForm({
   isSaving,
   mode = "inbound"
 }) {
-  const lowConfidenceCount = Object.values(confidences).filter(c => c < 0.85).length;
+  const [selectedFields, setSelectedFields] = useState(() => {
+    // Auto-select fields that have values
+    const initial = {};
+    Object.keys(extractedData).forEach(key => {
+      if (extractedData[key] && key !== 'image_urls') {
+        initial[key] = true;
+      }
+    });
+    // Always select required fields
+    initial.batch_number = true;
+    initial.name = true;
+    initial.stock_qty = true;
+    initial.storage_type = true;
+    return initial;
+  });
 
   const { data: warehouses = [] } = useQuery({
     queryKey: ['warehouses'],
     queryFn: () => base44.entities.Warehouse.list(),
   });
+
+  // Get all extracted fields (excluding image_urls)
+  const allExtractedFields = Object.keys(extractedData).filter(key => key !== 'image_urls');
+  
+  const toggleField = (field) => {
+    // Can't deselect required fields
+    if (field === 'batch_number' || field === 'name' || field === 'storage_type') {
+      return;
+    }
+    setSelectedFields(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  const handleSaveClick = () => {
+    // Filter extractedData to only include selected fields
+    const filteredData = {};
+    Object.keys(extractedData).forEach(key => {
+      if (selectedFields[key] || key === 'image_urls') {
+        filteredData[key] = extractedData[key];
+      }
+    });
+    onSave(filteredData);
+  };
 
   return (
     <motion.div
@@ -47,16 +108,98 @@ export default function ReviewForm({
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {lowConfidenceCount > 0 && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 border-2 border-amber-500/40 backdrop-blur-xl shadow-lg shadow-amber-500/10">
-          <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-            <AlertTriangle className="w-5 h-5 text-amber-400" />
-          </div>
-          <p className="text-sm text-amber-300">
-            <strong className="font-semibold">{lowConfidenceCount} fält</strong> behöver verifieras. Kontrollera markerade fält.
+      {/* AI Extraction Summary */}
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
+        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+          <Sparkles className="w-5 h-5 text-blue-400" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-blue-300">
+            AI hittade {allExtractedFields.length} fält
+          </p>
+          <p className="text-xs text-blue-200/70">
+            Välj vilka fält som ska sparas för denna artikel
           </p>
         </div>
-      )}
+      </div>
+
+      {/* Extracted Fields List */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-white/70">Extraherade fält från bild:</h3>
+        {allExtractedFields.map(field => {
+          const value = extractedData[field];
+          const confidence = confidences[field] || 0;
+          const isRequired = field === 'batch_number' || field === 'name' || field === 'storage_type';
+          const label = FIELD_LABELS[field] || field;
+          
+          return (
+            <div
+              key={field}
+              onClick={() => toggleField(field)}
+              className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                selectedFields[field]
+                  ? 'bg-blue-500/10 border-blue-500/40 hover:bg-blue-500/15'
+                  : 'bg-white/5 border-white/10 hover:bg-white/10'
+              } ${isRequired ? 'cursor-not-allowed' : ''}`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="pt-1">
+                  <Checkbox
+                    checked={selectedFields[field] || false}
+                    disabled={isRequired}
+                    className="pointer-events-none"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-medium text-white">
+                      {label}
+                      {isRequired && <span className="text-red-400 ml-1">*</span>}
+                    </span>
+                    <ConfidenceIndicator confidence={confidence} />
+                  </div>
+                  
+                  {selectedFields[field] ? (
+                    <ExtractedFieldCard
+                      field={field}
+                      label=""
+                      value={value}
+                      confidence={confidence}
+                      onChange={onFieldChange}
+                      required={isRequired}
+                      type={
+                        field === 'manufacturing_date' ? 'date' :
+                        field === 'category' ? 'select' :
+                        field === 'storage_type' ? 'select' :
+                        field === 'warehouse' ? 'select' :
+                        field.includes('_mm') || field.includes('_kg') || field === 'stock_qty' || field === 'pixel_pitch_mm' ? 'number' :
+                        field === 'notes' ? 'textarea' :
+                        'text'
+                      }
+                      options={
+                        field === 'category' ? CATEGORY_OPTIONS :
+                        field === 'storage_type' ? STORAGE_TYPE_OPTIONS :
+                        field === 'warehouse' ? warehouses.map(w => ({ value: w.name, label: w.name })) :
+                        undefined
+                      }
+                      placeholder={
+                        field === 'batch_number' ? 'T.ex. P2.5250721228' :
+                        field === 'name' ? 'T.ex. P2.5 Gob' :
+                        field === 'manufacturer' ? 'T.ex. Nick Everlasting' :
+                        ''
+                      }
+                    />
+                  ) : (
+                    <div className="text-sm text-white/50 font-mono">
+                      {value ? String(value) : '—'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ExtractedFieldCard
@@ -209,16 +352,29 @@ export default function ReviewForm({
         />
       </div>
 
+      {/* Required Fields Warning */}
       {(!extractedData.batch_number || !extractedData.name) && (
         <div className="p-4 rounded-xl bg-red-500/10 border-2 border-red-500/40">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-red-300">
-              <strong className="font-semibold">Obligatoriska fält</strong> saknas. Fyll i minst Batchnummer och Artikelnamn före sparning.
-            </p>
+            <div>
+              <p className="text-sm font-semibold text-red-300 mb-1">
+                Obligatoriska fält saknas
+              </p>
+              <p className="text-xs text-red-200/70">
+                Fyll i minst Batchnummer och Artikelnamn före sparning.
+              </p>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Selected Fields Summary */}
+      <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
+        <p className="text-sm text-slate-300">
+          <span className="font-semibold text-white">{Object.values(selectedFields).filter(Boolean).length}</span> fält valda för sparning
+        </p>
+      </div>
 
       <div className="flex gap-3 pt-6">
         <Button
@@ -231,7 +387,7 @@ export default function ReviewForm({
           Avbryt
         </Button>
         <Button
-          onClick={onSave}
+          onClick={handleSaveClick}
           disabled={isSaving || !extractedData.batch_number || !extractedData.name}
           className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all h-12"
         >
@@ -243,7 +399,7 @@ export default function ReviewForm({
           ) : (
             <>
               <Check className="w-4 h-4 mr-2" />
-              Godkänn & Spara
+              Spara {Object.values(selectedFields).filter(Boolean).length} fält
             </>
           )}
         </Button>

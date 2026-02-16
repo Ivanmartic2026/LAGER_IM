@@ -478,8 +478,11 @@ export default function ScanPage() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (dataToSave = null) => {
     setIsSaving(true);
+
+    // Use provided data or fall back to extractedData
+    const finalData = dataToSave || extractedData;
 
     try {
       // Check if article exists using multiple criteria
@@ -533,15 +536,15 @@ export default function ScanPage() {
 
       // Prepare data - ensure shelf_address is an array and handle invalid dates
       const preparedData = {
-        ...extractedData,
-        shelf_address: extractedData.shelf_address 
-          ? (Array.isArray(extractedData.shelf_address) 
-            ? extractedData.shelf_address 
-            : [extractedData.shelf_address])
+        ...finalData,
+        shelf_address: finalData.shelf_address 
+          ? (Array.isArray(finalData.shelf_address) 
+            ? finalData.shelf_address 
+            : [finalData.shelf_address])
           : [],
-        storage_type: extractedData.storage_type || 'company_owned',
-        manufacturing_date: extractedData.manufacturing_date && extractedData.manufacturing_date !== '-' 
-          ? extractedData.manufacturing_date 
+        storage_type: finalData.storage_type || 'company_owned',
+        manufacturing_date: finalData.manufacturing_date && finalData.manufacturing_date !== '-' 
+          ? finalData.manufacturing_date 
           : undefined
       };
 
@@ -552,7 +555,7 @@ export default function ScanPage() {
         
         const updateData = { ...preparedData };
         if (mode === "inbound") {
-          updateData.stock_qty = previousQty + (parseInt(extractedData.stock_qty) || 0);
+          updateData.stock_qty = previousQty + (parseInt(finalData.stock_qty) || 0);
         }
         
         await base44.entities.Article.update(article.id, updateData);
@@ -562,7 +565,7 @@ export default function ScanPage() {
         // Create new article
         article = await base44.entities.Article.create({
           ...preparedData,
-          stock_qty: parseInt(extractedData.stock_qty) || 0,
+          stock_qty: parseInt(finalData.stock_qty) || 0,
           status: "active"
         });
       }
@@ -571,7 +574,7 @@ export default function ScanPage() {
       await base44.entities.StockMovement.create({
         article_id: article.id,
         movement_type: mode,
-        quantity: parseInt(extractedData.stock_qty) || 0,
+        quantity: parseInt(finalData.stock_qty) || 0,
         previous_qty: previousQty,
         new_qty: article.stock_qty,
         reason: mode === "inbound" ? "Inleverans via scanning" : "Inventering via scanning"
