@@ -677,12 +677,12 @@ Returnera informationen i JSON-format.`,
                       </Badge>
                     </div>
                   </div>
-                </div>
-              </div>
+                  </motion.div>
+                  </div>
 
-              {/* Additional Info */}
-              {(selectedArticle.pixel_pitch_mm || selectedArticle.dimensions_width_mm || selectedArticle.weight_kg || selectedArticle.manufacturing_date) && (
-                <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+                  {/* Additional Info */}
+                  {(selectedArticle.pixel_pitch_mm || selectedArticle.dimensions_width_mm || selectedArticle.weight_kg || selectedArticle.manufacturing_date) && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-5 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 shadow-lg shadow-white/5">
                   <h3 className="font-semibold text-white mb-4">Ytterligare information</h3>
                   <div className="grid grid-cols-2 gap-4">
                     {selectedArticle.pixel_pitch_mm && (
