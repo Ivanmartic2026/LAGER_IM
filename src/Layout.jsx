@@ -299,16 +299,11 @@ function LayoutContent({ children, currentPageName }) {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => navigate(createPageUrl("Scan"))}
-        className="fixed bottom-28 md:bottom-24 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-white/10 hover:bg-white/15 text-white shadow-lg backdrop-blur-xl border border-white/20 hover:border-white/40 transition-all z-40"
+        className="fixed bottom-28 md:bottom-24 right-6 w-16 h-16 rounded-full bg-white/10 hover:bg-white/15 text-white shadow-lg backdrop-blur-xl border border-white/20 hover:border-white/40 transition-all z-40 flex items-center justify-center"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         title="Öppna kamera"
       >
-        <motion.div
-          animate={{ y: [0, -2, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <Camera className="w-7 h-7" />
-        </motion.div>
+        <Camera className="w-7 h-7" />
       </motion.button>
     </div>
   );
