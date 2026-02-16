@@ -61,6 +61,41 @@ export default function RepairsPage() {
     mutationFn: (data) => base44.entities.RepairLog.create(data),
   });
 
+  const reportToRepairMutation = useMutation({
+    mutationFn: async (data) => {
+      const article = articles.find(a => a.id === data.article_id);
+      if (!article) throw new Error("Artikel inte hittad");
+      
+      await updateArticleMutation.mutateAsync({
+        id: data.article_id,
+        data: {
+          status: "on_repair",
+          repair_notes: `${data.quantity} st - ${data.notes || 'Reparation beställd'}`,
+          repair_date: new Date().toISOString()
+        }
+      });
+
+      return {
+        article_id: data.article_id,
+        article_name: article.name,
+        article_batch_number: article.batch_number,
+        repair_date_start: new Date().toISOString(),
+        status: "in_progress",
+        notes: data.notes || 'Reparation beställd',
+        processed_by: user?.email
+      };
+    },
+    onSuccess: async (repairLog) => {
+      await createRepairLogMutation.mutateAsync(repairLog);
+      toast.success("Artikel rapporterad till reparation");
+      setReportModalOpen(false);
+      setReportData({ article_id: "", quantity: "1", notes: "" });
+    },
+    onError: () => {
+      toast.error("Kunde inte rapportera till reparation");
+    }
+  });
+
   const repairArticles = articles.filter(a => a.status === 'on_repair');
 
   const filteredRepairs = repairArticles.filter(article => 
