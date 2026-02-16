@@ -102,26 +102,51 @@ export default function SiteReportReview({ report, onBack }) {
 
   const handleExportPDF = async () => {
     try {
-      toast.info('Genererar PDF...');
+      toast.info('Genererar rapport...');
       const response = await base44.functions.invoke('exportSiteReport', {
         report_id: report.id
       });
       
-      // Create blob from response
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `site-rapport-${report.site_name}-${format(new Date(report.report_date), 'yyyy-MM-dd')}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
+      const { html, filename } = response.data;
       
-      toast.success('PDF nedladdad');
+      // Create a temporary container
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.width = '800px';
+      container.innerHTML = html;
+      document.body.appendChild(container);
+      
+      // Import html2canvas dynamically
+      const html2canvas = (await import('html2canvas')).default;
+      
+      // Convert to canvas
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      // Clean up
+      document.body.removeChild(container);
+      
+      // Convert to PNG and download
+      canvas.toBlob((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.png`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        toast.success('Rapport nedladdad som PNG');
+      }, 'image/png');
+      
     } catch (error) {
-      console.error('PDF export error:', error);
-      toast.error('Kunde inte generera PDF');
+      console.error('Export error:', error);
+      toast.error('Kunde inte generera rapport');
     }
   };
 
@@ -176,9 +201,9 @@ export default function SiteReportReview({ report, onBack }) {
                 className="bg-white/5 border-white/10 text-white hover:bg-white/10 text-sm md:text-base"
                 size="sm"
               >
-                <FileText className="w-4 h-4 mr-2" />
-                <span className="hidden md:inline">Exportera PDF</span>
-                <span className="md:hidden">PDF</span>
+                <Download className="w-4 h-4 mr-2" />
+                <span className="hidden md:inline">Ladda ner rapport</span>
+                <span className="md:hidden">Rapport</span>
               </Button>
             </div>
           </div>
