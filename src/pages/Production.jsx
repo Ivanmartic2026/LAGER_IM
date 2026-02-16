@@ -202,8 +202,8 @@ export default function ProductionPage() {
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-base font-semibold text-white truncate">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <h3 className="text-base font-semibold text-white">
                             {order.order_number || `Order #${order.id.slice(0, 8)}`}
                           </h3>
                           <Badge className={cn("px-3 py-1 rounded-full font-medium", statusConfig.color)}>
