@@ -1150,51 +1150,50 @@ export default function ArticleDetail({
             ) : (
               <div className="space-y-3">
                 {[article].map((repairArticle) => (
-                   <Link
+                  <Link
                     key={repairArticle.id}
                     to={`${createPageUrl("Repairs")}?articleId=${repairArticle.id}`}
                     className="block"
                   >
-                    <div className="p-4 rounded-xl bg-slate-900/50 border border-orange-500/30 hover:border-orange-500/50 transition-colors cursor-pointer"
-                    >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-white">{repairArticle.name}</span>
-                          <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs">
-                            #{repairArticle.batch_number}
-                          </Badge>
-                        </div>
-                        {repairArticle.repair_notes && (
-                          <p className="text-sm text-orange-200 mb-2">
-                            {repairArticle.repair_notes}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-4 text-xs text-slate-400">
-                          {repairArticle.repair_date && (
-                            <span>
-                              Skickad: {format(new Date(repairArticle.repair_date), "d MMM yyyy", { locale: sv })}
-                            </span>
+                    <div className="p-4 rounded-xl bg-slate-900/50 border border-orange-500/30 hover:border-orange-500/50 transition-colors cursor-pointer">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-white">{repairArticle.name}</span>
+                            <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs">
+                              #{repairArticle.batch_number}
+                            </Badge>
+                          </div>
+                          {repairArticle.repair_notes && (
+                            <p className="text-sm text-orange-200 mb-2">
+                              {repairArticle.repair_notes}
+                            </p>
                           )}
-                          {repairArticle.shelf_address && (
-                            <>
-                              <span>•</span>
-                              <span>{repairArticle.shelf_address}</span>
-                            </>
-                          )}
-                          {repairArticle.manufacturer && (
-                            <>
-                              <span>•</span>
-                              <span>{repairArticle.manufacturer}</span>
-                            </>
-                          )}
+                          <div className="flex items-center gap-4 text-xs text-slate-400">
+                            {repairArticle.repair_date && (
+                              <span>
+                                Skickad: {format(new Date(repairArticle.repair_date), "d MMM yyyy", { locale: sv })}
+                              </span>
+                            )}
+                            {repairArticle.shelf_address && (
+                              <>
+                                <span>•</span>
+                                <span>{repairArticle.shelf_address}</span>
+                              </>
+                            )}
+                            {repairArticle.manufacturer && (
+                              <>
+                                <span>•</span>
+                                <span>{repairArticle.manufacturer}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                    </div>
                   </Link>
                 ))}
-              </div>
+                </div>
             )}
           </div>
         </TabsContent>
