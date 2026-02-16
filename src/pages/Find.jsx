@@ -62,7 +62,6 @@ export default function FindPage() {
       setSearchResults(results);
     } else {
       setSearchResults([]);
-      setSelectedArticle(null);
     }
   }, [searchQuery, articles]);
 
