@@ -141,32 +141,7 @@ Returnera informationen i JSON-format.`,
       });
 
       setExtractedData({ ...result, image_urls: capturedImages });
-
-      // Search for article in database
-      let found = null;
-      
-      if (result.batch_number) {
-        const byBatch = await base44.entities.Article.filter({ 
-          batch_number: result.batch_number 
-        });
-        if (byBatch.length > 0) found = byBatch[0];
-      }
-      
-      if (!found && result.name) {
-        const byName = articles.filter(a => 
-          a.name?.toLowerCase() === result.name?.toLowerCase()
-        );
-        if (byName.length > 0) found = byName[0];
-      }
-
-      if (found) {
-        setSelectedArticle(found);
-        setScanResult("found");
-        toast.success("Artikel hittad i lagret!");
-      } else {
-        setScanResult("not_found");
-        toast.info("Artikeln finns inte i lagret");
-      }
+      setShowReviewForm(true);
       
     } catch (error) {
       console.error("Error processing images:", error);
