@@ -1191,7 +1191,8 @@ export default function ArticleDetail({
                         </div>
                       </div>
                     </div>
-                  </div>
+                    </div>
+                  </Link>
                 ))}
               </div>
             )}
