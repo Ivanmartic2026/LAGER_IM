@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import CameraCapture from "@/components/scanner/CameraCapture";
 import ReviewForm from "@/components/scanner/ReviewForm";
+import AutoAnalysisReview from "@/components/scanner/AutoAnalysisReview";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import UnknownDeliveryForm from "@/components/scanner/UnknownDeliveryForm";
 import SiteDocumentationFlow from "@/components/scan/SiteDocumentationFlow";
@@ -445,7 +446,8 @@ export default function ScanPage() {
         // For repair mode, try to find matching article
         setStep("repair_match");
       } else {
-        setStep("review");
+        // Show auto review with extracted data
+        setStep("auto_review");
       }
 
       } catch (error) {
@@ -914,8 +916,36 @@ export default function ScanPage() {
             </motion.div>
           )}
 
+          {/* Step: Auto Review */}
+           {step === "auto_review" && (
+             <motion.div
+               key="auto_review"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+               className="space-y-6"
+             >
+               <AutoAnalysisReview
+                 imageUrl={imageUrls[0]}
+                 extractedData={extractedData}
+                 confidences={confidences}
+                 onAccept={() => handleSave()}
+                 onReject={() => {
+                   setStep("capture");
+                   setImageFiles([]);
+                   setImageUrls([]);
+                   setExtractedData({});
+                   setConfidences({});
+                   setProgress(0);
+                 }}
+                 onEdit={handleFieldChange}
+                 isLoading={isSaving}
+               />
+             </motion.div>
+           )}
+
           {/* Step: Review */}
-          {step === "review" && (
+           {step === "review" && (
             <motion.div
               key="review"
               initial={{ opacity: 0, y: 20 }}
