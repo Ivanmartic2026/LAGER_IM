@@ -262,22 +262,30 @@ Returnera informationen i JSON-format.`,
 
         {/* Status Filter */}
         {mode === "search" && (
-          <div className="mb-6">
-            <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-3">Status</p>
-            <div className="grid grid-cols-4 gap-2">
-              {['all', 'active', 'low_stock', 'out_of_stock'].map((status) => {
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-8"
+          >
+            <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4 ml-1">Status</p>
+            <div className="grid grid-cols-4 gap-2.5">
+              {['all', 'active', 'low_stock', 'out_of_stock'].map((status, idx) => {
                 const labels = { all: 'Alla', active: 'Aktiv', low_stock: 'Lågt lager', out_of_stock: 'Slut' };
                 return (
                   <motion.button
                     key={status}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.05 }}
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.92 }}
                     onClick={() => setStatusFilter(status)}
                     className={cn(
-                      "p-3 rounded-lg transition-all duration-300 text-sm font-medium",
+                      "p-3.5 rounded-xl transition-all duration-300 text-sm font-semibold border backdrop-blur-xl",
                       statusFilter === status
-                        ? "bg-emerald-500/30 border border-emerald-500/60 text-emerald-300"
-                        : "bg-white/5 border border-white/10 hover:bg-white/10 text-white/70"
+                        ? "bg-gradient-to-br from-emerald-500/40 to-emerald-600/20 border-emerald-500/60 text-emerald-200 shadow-lg shadow-emerald-500/15"
+                        : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white/60"
                     )}
                   >
                     {labels[status]}
@@ -285,7 +293,7 @@ Returnera informationen i JSON-format.`,
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Search or Scan Mode */}
