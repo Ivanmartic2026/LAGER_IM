@@ -37,18 +37,22 @@ export default function FindPage() {
   });
 
   // Check for articleId in URL on mount
+  const hasInitialized = useRef(false);
   useEffect(() => {
+    if (hasInitialized.current || articles.length === 0) return;
+    
     const params = new URLSearchParams(window.location.hash.split('?')[1]);
     const articleId = params.get('articleId');
     
-    if (articleId && articles.length > 0) {
+    if (articleId) {
       const article = articles.find(a => a.id === articleId);
       if (article) {
         setSelectedArticle(article);
         setScanResult("found");
+        hasInitialized.current = true;
       }
     }
-  }, [articles]);
+  }, [articles.length]);
 
   useEffect(() => {
     if (searchQuery.trim()) {
