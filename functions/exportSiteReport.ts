@@ -214,6 +214,26 @@ Deno.serve(async (req) => {
           ${report.notes.replace(/\n/g, '<br>')}
         </div>` : ''}
 
+        ${images.length > 0 ? `
+        <div class="section">
+          <div class="section-title">Bilder från plats</div>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+            ${images.map(image => `
+              <div style="border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <img src="${image.image_url}" style="width: 100%; height: 300px; object-fit: cover;" alt="Bild från plats" />
+                ${image.match_status === 'confirmed' ? `
+                  <div style="padding: 12px; background: #f3f4f6;">
+                    <div style="font-size: 12px; color: #6b7280;">
+                      <strong>Matchad:</strong> ${allArticles.find(a => a.id === image.matched_article_id)?.name || 'Okänd'}<br>
+                      <strong>Status:</strong> ${image.component_status === 'ok' ? 'OK - Fungerar' : image.component_status === 'needs_replacement' ? 'Behöver bytas ut' : image.component_status === 'needs_repair' ? 'Behöver repareras' : 'Dokumenterad'}
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>` : ''}
+
         <div class="stats">
           <div class="stat-box">
             <div class="stat-number">${images.length}</div>
