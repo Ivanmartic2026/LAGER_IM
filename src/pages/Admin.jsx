@@ -133,6 +133,15 @@ export default function AdminPage() {
       color: "from-pink-600 to-pink-700",
       iconBg: "bg-pink-500/20",
       iconColor: "text-pink-400"
+    },
+    {
+      name: "SiteReportSettings",
+      label: "Site-rapport Inställningar",
+      description: "Konfigurera batch-bearbetning av site-rapporter",
+      icon: Settings,
+      color: "from-slate-600 to-slate-700",
+      iconBg: "bg-slate-500/20",
+      iconColor: "text-slate-400"
     }
   ];
 
