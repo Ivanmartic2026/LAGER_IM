@@ -15,10 +15,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing userId or full_name' }, { status: 400 });
     }
 
-    // Update the user's full_name
-    const users = await base44.asServiceRole.entities.User.filter({ id: userId });
+    // Verify user exists
+    const existingUser = await base44.asServiceRole.entities.User.get(userId);
     
-    if (users.length === 0) {
+    if (!existingUser) {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
