@@ -18,6 +18,7 @@ import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import CameraCapture from "@/components/scanner/CameraCapture";
 import LabelDownloader from "@/components/labels/LabelDownloader";
+import ReviewForm from "@/components/scanner/ReviewForm";
 
 export default function FindPage() {
   const [searchQuery, setSearchQuery] = useState("");
