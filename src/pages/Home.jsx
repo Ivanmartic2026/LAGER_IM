@@ -217,16 +217,6 @@ export default function HomePage() {
           transition={{ duration: 0.5 }}
           className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"
         >
-          <motion.div 
-            whileHover={{ y: -4, transition: { duration: 0.2 } }}
-            onClick={() => setShowQuickWithdrawal(true)}
-            className="p-6 rounded-2xl bg-gradient-to-br from-amber-600/20 to-orange-700/10 backdrop-blur-sm border border-amber-500/30 hover:border-amber-500/50 hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-300 cursor-pointer group"
-          >
-            <Zap className="w-8 h-8 text-amber-400 mb-3 group-hover:scale-110 transition-transform duration-300" />
-            <h3 className="font-semibold text-white text-lg mb-1">Snabb utplockning</h3>
-            <p className="text-sm text-slate-400">Ta ut från lager</p>
-          </motion.div>
-
           <Link to={createPageUrl("Scan") + "?mode=inbound"}>
             <motion.div 
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
@@ -237,6 +227,16 @@ export default function HomePage() {
               <p className="text-sm text-slate-400">Registrera nya varor</p>
             </motion.div>
           </Link>
+
+          <motion.div 
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            onClick={() => setShowQuickWithdrawal(true)}
+            className="p-6 rounded-2xl bg-gradient-to-br from-amber-600/20 to-orange-700/10 backdrop-blur-sm border border-amber-500/30 hover:border-amber-500/50 hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-300 cursor-pointer group"
+          >
+            <Zap className="w-8 h-8 text-amber-400 mb-3 group-hover:scale-110 transition-transform duration-300" />
+            <h3 className="font-semibold text-white text-lg mb-1">Snabb utplockning</h3>
+            <p className="text-sm text-slate-400">Ta ut från lager</p>
+          </motion.div>
 
           <Link to={createPageUrl("Scan") + "?mode=site_documentation"}>
             <motion.div 
