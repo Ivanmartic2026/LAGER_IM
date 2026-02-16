@@ -11,21 +11,40 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
   const [previews, setPreviews] = useState([]);
   const [dragActive, setDragActive] = useState(false);
 
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    const validFiles = files.filter(f => {
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      const rawExtensions = ['.raw', '.cr2', '.nef', '.arw', '.dng', '.rw2', '.raf', '.x3f'];
-      const isRaw = rawExtensions.some(ext => f.name.toLowerCase().endsWith(ext));
-      
-      if (!validTypes.includes(f.type) && !isRaw) {
-        toast.error(`${f.name} är inte ett stödd bildformat (JPEG, PNG, WebP, RAW)`);
-        return false;
+  const triggerFileInput = (isCameraMode) => {
+    try {
+      const input = isCameraMode ? cameraInputRef.current : fileInputRef.current;
+      if (input) {
+        input.click();
       }
-      return true;
-    });
-    if (validFiles.length > 0) {
-      processFiles(validFiles);
+    } catch (error) {
+      console.error('Error triggering file input:', error);
+      toast.error('Kunde inte öppna filväljaren. Försök igen.');
+    }
+  };
+
+  const handleFileChange = (e) => {
+    try {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
+      
+      const validFiles = files.filter(f => {
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        const rawExtensions = ['.raw', '.cr2', '.nef', '.arw', '.dng', '.rw2', '.raf', '.x3f'];
+        const isRaw = rawExtensions.some(ext => f.name.toLowerCase().endsWith(ext));
+        
+        if (!validTypes.includes(f.type) && !isRaw) {
+          toast.error(`${f.name} är inte ett stödd bildformat (JPEG, PNG, WebP, RAW)`);
+          return false;
+        }
+        return true;
+      });
+      if (validFiles.length > 0) {
+        processFiles(validFiles);
+      }
+    } catch (error) {
+      console.error('Error handling file change:', error);
+      toast.error('Fel vid bearbetning av fil');
     }
   };
 
