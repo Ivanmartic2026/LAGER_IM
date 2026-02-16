@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Camera, X, ChevronLeft, ChevronRight, Trash2, 
-  CheckCircle2, AlertCircle
+  CheckCircle2, AlertCircle, ZoomIn
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +19,7 @@ export default function ProductionDocumentation({
 }) {
   const [expandedImageType, setExpandedImageType] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState({});
+  const [fullscreenImage, setFullscreenImage] = useState(null);
 
   const imageGalleries = [
     { 
