@@ -106,23 +106,16 @@ Deno.serve(async (req) => {
 </head>
 <body>
   <div class="container">
+    <div class="content">
+      <div class="location">Hyllplats: ${article.shelf_address && article.shelf_address.length > 0 ? (Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address) : '-'}</div>
+      <div class="name">Benämning: ${article.name || 'N/A'}</div>
+      <div class="article-number">Batch: ${article.batch_number || 'N/A'}</div>
+    </div>
     ${qrCodeDataUrl ? `
     <div class="qr">
       <img src="${qrCodeDataUrl}" alt="QR" />
     </div>
     ` : ''}
-
-    <div class="content">
-      ${article.shelf_address && article.shelf_address.length > 0 ? `
-      <div class="location">
-        ${Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}
-      </div>
-      ` : '<div class="location">-</div>'}
-      ${article.sku || article.batch_number ? `
-      <div class="article-number">${article.sku || article.batch_number}</div>
-      ` : ''}
-      <div class="name">${article.customer_name || article.name || 'Artikel'}</div>
-    </div>
   </div>
 </body>
 </html>
