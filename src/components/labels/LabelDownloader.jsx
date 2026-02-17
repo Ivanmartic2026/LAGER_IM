@@ -16,8 +16,10 @@ export default function LabelDownloader({ articles, onClose }) {
 
     try {
       const canvas = await html2canvas(labelElement, {
-        scale: 3,
-        backgroundColor: '#ffffff'
+        scale: 6,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false
       });
       
       const link = document.createElement('a');
