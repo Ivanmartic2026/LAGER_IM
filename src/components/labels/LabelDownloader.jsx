@@ -106,13 +106,13 @@ export default function LabelDownloader({ articles, onClose }) {
                   </div>
                 </div>
                 <Button
-                  onClick={() => downloadAsImage(index)}
+                  onClick={() => printLabel(index)}
                   variant="outline"
                   size="sm"
                   className="w-full bg-slate-700 border-slate-600 hover:bg-slate-600 text-white"
                 >
                   <Download className="w-3 h-3 mr-2" />
-                  Ladda ner
+                  Skriv ut
                 </Button>
               </div>
             ))}
