@@ -91,8 +91,8 @@ Deno.serve(async (req) => {
       <img src="${qrCodeDataUrl}" alt="QR" />
     </div>
     ` : ''}
-    <div class="info">Batch: ${article.batch_number || 'N/A'}</div>
-    <div class="info">Hyllplats: ${article.shelf_address && article.shelf_address.length > 0 ? (Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address) : '-'}</div>
+    <div class="info">${article.batch_number || 'N/A'}</div>
+    <div class="info">${article.shelf_address && article.shelf_address.length > 0 ? (Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address) : '-'}</div>
     </div>
     </body>
     </html>
