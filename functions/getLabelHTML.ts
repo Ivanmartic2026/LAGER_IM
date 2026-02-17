@@ -62,33 +62,33 @@ Deno.serve(async (req) => {
       border: 1px solid #ddd;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       overflow: hidden;
     }
     
     .qr-section {
-      width: 100%;
-      height: 102px;
+      width: 120px;
+      height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2px;
+      padding: 4px;
       flex-shrink: 0;
       background: white;
     }
     
     .qr-section img {
-      width: 98px;
-      height: 98px;
+      width: 110px;
+      height: 110px;
       image-rendering: pixelated;
     }
     
     .content-section {
       flex: 1;
-      padding: 4px 5px;
+      padding: 6px 5px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: space-around;
       align-items: center;
       text-align: center;
       overflow: hidden;
