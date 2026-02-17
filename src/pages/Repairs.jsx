@@ -66,16 +66,15 @@ export default function RepairsPage() {
       const article = articles.find(a => a.id === data.article_id);
       if (!article) throw new Error("Artikel inte hittad");
       
-      await updateArticleMutation.mutateAsync({
-        id: data.article_id,
-        data: {
-          status: "on_repair",
-          repair_notes: `${data.quantity} st - ${data.notes || 'Reparation beställd'}`,
-          repair_date: new Date().toISOString()
-        }
+      // Update article status
+      await base44.entities.Article.update(data.article_id, {
+        status: "on_repair",
+        repair_notes: `${data.quantity} st - ${data.notes || 'Reparation beställd'}`,
+        repair_date: new Date().toISOString()
       });
 
-      return {
+      // Create repair log
+      await base44.entities.RepairLog.create({
         article_id: data.article_id,
         article_name: article.name,
         article_batch_number: article.batch_number,
@@ -83,15 +82,18 @@ export default function RepairsPage() {
         status: "in_progress",
         notes: data.notes || 'Reparation beställd',
         processed_by: user?.email
-      };
+      });
+
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
     },
-    onSuccess: async (repairLog) => {
-      await createRepairLogMutation.mutateAsync(repairLog);
+    onSuccess: () => {
       toast.success("Artikel rapporterad till reparation");
       setReportModalOpen(false);
       setReportData({ article_id: "", quantity: "1", notes: "" });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Repair error:", error);
       toast.error("Kunde inte rapportera till reparation");
     }
   });
