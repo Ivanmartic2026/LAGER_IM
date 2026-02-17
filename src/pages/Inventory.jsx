@@ -808,10 +808,9 @@ export default function InventoryPage() {
               </div>
               <div></div>
               <div>Saldo</div>
+              <div>Hyllplats</div>
               <div>Artikelnummer</div>
               <div>Benämning</div>
-              <div>Hyllplats</div>
-              <div>Lager</div>
               <div>Leverantör</div>
               <div className="text-right">Status</div>
             </div>
