@@ -289,7 +289,7 @@ export default function RepairsPage() {
             <div className="flex gap-2">
               <Button 
                 onClick={() => setReportModalOpen(true)}
-                className="bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white gap-2 shadow-[0_0_25px_rgba(59,130,246,0.6)] hover:shadow-[0_0_35px_rgba(59,130,246,0.8)] transition-all duration-300 rounded-xl font-semibold"
+                className="bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 hover:from-blue-400 hover:via-blue-500 hover:to-blue-600 text-white gap-2 shadow-[0_0_25px_rgba(59,130,246,0.6)] hover:shadow-[0_0_35px_rgba(59,130,246,0.8)] transition-all duration-300 rounded-xl font-semibold"
               >
                 <AlertTriangle className="w-4 h-4" />
                 Rapportera till Reparation
@@ -297,7 +297,7 @@ export default function RepairsPage() {
               {repairArticles.length > 0 && (
                 <Button 
                   onClick={handleExportPdf}
-                  className="bg-gradient-to-br from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 text-white gap-2 shadow-[0_0_25px_rgba(249,115,22,0.6)] hover:shadow-[0_0_35px_rgba(249,115,22,0.8)] transition-all duration-300 rounded-xl font-semibold"
+                  className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 hover:from-orange-400 hover:via-orange-500 hover:to-orange-600 text-white gap-2 shadow-[0_0_25px_rgba(249,115,22,0.6)] hover:shadow-[0_0_35px_rgba(249,115,22,0.8)] transition-all duration-300 rounded-xl font-semibold"
                 >
                   <Download className="w-4 h-4" />
                   Exportera PDF
@@ -387,7 +387,7 @@ export default function RepairsPage() {
                     <Button
                       onClick={() => handlePrintLabel(article)}
                       size="sm"
-                      className="bg-gradient-to-br from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.6)] hover:shadow-[0_0_30px_rgba(239,68,68,0.8)] transition-all duration-300 rounded-xl font-semibold"
+                      className="bg-gradient-to-br from-red-500 via-red-600 to-red-700 hover:from-red-400 hover:via-red-500 hover:to-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.6)] hover:shadow-[0_0_30px_rgba(239,68,68,0.8)] transition-all duration-300 rounded-xl font-semibold"
                     >
                       <Printer className="w-4 h-4 mr-2" />
                       Etikett
@@ -396,7 +396,7 @@ export default function RepairsPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="bg-gradient-to-br from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 border border-slate-600/50 text-white shadow-[0_0_15px_rgba(71,85,105,0.4)] hover:shadow-[0_0_20px_rgba(71,85,105,0.6)] transition-all duration-300 rounded-xl font-semibold"
+                        className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 hover:from-slate-600 hover:via-slate-700 hover:to-slate-800 border border-slate-600/50 text-white shadow-[0_0_15px_rgba(71,85,105,0.4)] hover:shadow-[0_0_20px_rgba(71,85,105,0.6)] transition-all duration-300 rounded-xl font-semibold"
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         Visa
@@ -405,7 +405,7 @@ export default function RepairsPage() {
                     <Button
                      onClick={() => handleQuickReturnToStock(article)}
                      size="sm"
-                     className="bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.6)] hover:shadow-[0_0_30px_rgba(16,185,129,0.8)] transition-all duration-300 rounded-xl font-semibold"
+                     className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 hover:from-emerald-400 hover:via-emerald-500 hover:to-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.6)] hover:shadow-[0_0_30px_rgba(16,185,129,0.8)] transition-all duration-300 rounded-xl font-semibold"
                     >
                      <CheckCircle2 className="w-4 h-4 mr-2" />
                      Återställ
@@ -417,7 +417,7 @@ export default function RepairsPage() {
                      }}
                      size="sm"
                      variant="outline"
-                     className="bg-gradient-to-br from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 border border-slate-600/50 text-white shadow-[0_0_15px_rgba(71,85,105,0.4)] hover:shadow-[0_0_20px_rgba(71,85,105,0.6)] transition-all duration-300 rounded-xl font-semibold"
+                     className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 hover:from-slate-600 hover:via-slate-700 hover:to-slate-800 border border-slate-600/50 text-white shadow-[0_0_15px_rgba(71,85,105,0.4)] hover:shadow-[0_0_20px_rgba(71,85,105,0.6)] transition-all duration-300 rounded-xl font-semibold"
                     >
                      Med detaljer
                     </Button>
