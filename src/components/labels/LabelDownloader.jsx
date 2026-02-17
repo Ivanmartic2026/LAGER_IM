@@ -96,9 +96,9 @@ export default function LabelDownloader({ articles, onClose, labelSize = '80x60'
         </div>
 
         <div className="bg-slate-800 rounded-xl p-6 mb-4">
-          <p className="text-sm text-slate-400 mb-4">
-            {articles.length} etikett{articles.length !== 1 ? 'er' : ''} redo att skrivas ut
-          </p>
+           <p className="text-sm text-slate-400 mb-4">
+             {articles.length} etikett{articles.length !== 1 ? 'er' : ''} ({labelSize} mm) redo att skrivas ut
+           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {articles.map((article, index) => (
               <div key={article.id} className="space-y-3">
