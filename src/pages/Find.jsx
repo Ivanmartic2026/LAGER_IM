@@ -931,10 +931,54 @@ export default function FindPage() {
           </AnimatePresence>
 
           {/* Print Modal */}
-          {showPrintModal && selectedArticle && (
+          <AnimatePresence>
+            {showPrintModal && selectedArticle && !selectedLabelSize && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="bg-slate-800/90 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6"
+                >
+                  <h3 className="text-xl font-bold text-white mb-6">Välj etikettformat</h3>
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => setSelectedLabelSize('80x60')}
+                      className="w-full h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base transition-all duration-300 font-semibold"
+                    >
+                      80 x 60 mm
+                    </Button>
+                    <Button
+                      onClick={() => setSelectedLabelSize('40x30')}
+                      className="w-full h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base transition-all duration-300 font-semibold"
+                    >
+                      40 x 30 mm
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={() => setShowPrintModal(false)}
+                    className="w-full h-[52px] mt-4 bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/15 text-white transition-all duration-300"
+                  >
+                    Avbryt
+                  </Button>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {showPrintModal && selectedArticle && selectedLabelSize && (
             <LabelDownloader
               articles={[selectedArticle]}
-              onClose={() => setShowPrintModal(false)}
+              onClose={() => {
+                setShowPrintModal(false);
+                setSelectedLabelSize(null);
+              }}
+              labelSize={selectedLabelSize}
             />
           )}
 
