@@ -4,6 +4,7 @@ import { X, Download, Loader2 } from "lucide-react";
 import ShelfLabel from "./ShelfLabel";
 import { motion } from "framer-motion";
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { toast } from "sonner";
 
 export default function LabelDownloader({ articles, onClose }) {
@@ -22,14 +23,24 @@ export default function LabelDownloader({ articles, onClose }) {
         logging: false
       });
       
-      const link = document.createElement('a');
-      link.download = `label_40x30mm_${articles[index].batch_number || articles[index].id.slice(0, 8)}_${Date.now()}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      // 80mm x 60mm in inches (1 inch = 25.4mm)
+      const widthMm = 80;
+      const heightMm = 60;
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: [widthMm, heightMm]
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, widthMm, heightMm);
+      
+      const filename = `etikett_${articles[index].batch_number || articles[index].id.slice(0, 8)}_${Date.now()}.pdf`;
+      pdf.save(filename);
       
       toast.success('Etikett nedladdad!');
     } catch (error) {
-      console.error('Error generating image:', error);
+      console.error('Error generating PDF:', error);
       toast.error('Kunde inte generera etikett');
     }
   };
