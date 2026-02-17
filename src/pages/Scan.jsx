@@ -526,8 +526,41 @@ Returnera som strukturerad JSON med denna format:
       if (mode === "unknown") {
         setStep("unknown_review");
       } else if (mode === "repair") {
-        // For repair mode, try to find matching article
-        setStep("repair_match");
+        // For repair mode, automatically find matching article
+        try {
+          let matchedArticle = null;
+          
+          // Search by batch number first
+          if (data.batch_number) {
+            const byBatch = await base44.entities.Article.filter({ 
+              batch_number: data.batch_number 
+            });
+            if (byBatch.length > 0) matchedArticle = byBatch[0];
+          }
+          
+          // If not found, search by name
+          if (!matchedArticle && data.name) {
+            const allArticles = await base44.entities.Article.list();
+            const byName = allArticles.filter(a => 
+              a.name?.toLowerCase().includes(data.name.toLowerCase()) ||
+              data.name.toLowerCase().includes(a.name?.toLowerCase())
+            );
+            if (byName.length > 0) matchedArticle = byName[0];
+          }
+          
+          if (matchedArticle) {
+            setRepairArticle(matchedArticle);
+            setRepairQuantity(1);
+            setStep("repair_match");
+            toast.success(`Artikel hittad: ${matchedArticle.name}`);
+          } else {
+            setStep("repair_match");
+            toast.info("Ingen matchande artikel hittades - välj manuellt");
+          }
+        } catch (error) {
+          console.error("Error finding article for repair:", error);
+          setStep("repair_match");
+        }
       } else {
         // Check if we should skip to quick confirm
         const allFieldsHighConfidence = Object.keys(confs).every(field => {
@@ -1298,46 +1331,49 @@ Returnera som strukturerad JSON med denna format:
                 </div>
               </div>
 
-              {/* Search for article in inventory */}
-              <div className="space-y-3">
-                <Label className="text-sm font-semibold text-white">Välj artikel från lager</Label>
-                <Button
-                  variant="outline"
-                  onClick={async () => {
-                    try {
-                      // Search for articles matching the extracted data
-                      let articles = [];
-                      if (extractedData.batch_number) {
-                        articles = await base44.entities.Article.filter({ 
-                          batch_number: extractedData.batch_number 
-                        });
-                      }
+              {/* Article found automatically or search manually */}
+              {!repairArticle ? (
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-white">Artikel hittades inte automatiskt</Label>
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        // Search for articles matching the extracted data
+                        let articles = [];
+                        if (extractedData.batch_number) {
+                          articles = await base44.entities.Article.filter({ 
+                            batch_number: extractedData.batch_number 
+                          });
+                        }
 
-                      if (articles.length === 0 && extractedData.name) {
-                        const allArticles = await base44.entities.Article.list();
-                        articles = allArticles.filter(a => 
-                          a.name?.toLowerCase().includes(extractedData.name.toLowerCase())
-                        );
-                      }
+                        if (articles.length === 0 && extractedData.name) {
+                          const allArticles = await base44.entities.Article.list();
+                          articles = allArticles.filter(a => 
+                            a.name?.toLowerCase().includes(extractedData.name.toLowerCase())
+                          );
+                        }
 
-                      if (articles.length > 0) {
-                        setRepairArticle(articles[0]);
-                        toast.success(`Artikel hittad: ${articles[0].name}`);
-                      } else {
-                        toast.error("Ingen matchande artikel hittades i lagret");
+                        if (articles.length > 0) {
+                          setRepairArticle(articles[0]);
+                          toast.success(`Artikel hittad: ${articles[0].name}`);
+                        } else {
+                          toast.error("Ingen matchande artikel hittades i lagret");
+                        }
+                      } catch (error) {
+                        console.error("Error searching article:", error);
+                        toast.error("Kunde inte söka i lagret");
                       }
-                    } catch (error) {
-                      console.error("Error searching article:", error);
-                      toast.error("Kunde inte söka i lagret");
-                    }
-                  }}
-                  className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white"
-                >
-                  <Package className="w-4 h-4 mr-2" />
-                  Sök i lager
-                </Button>
+                    }}
+                    className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                  >
+                    <Package className="w-4 h-4 mr-2" />
+                    Sök manuellt i lager
+                  </Button>
+                </div>
+              ) : null}
 
-                {repairArticle && (
+              {repairArticle && (
                   <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
                     <div className="flex items-start gap-3 mb-4">
                       {repairArticle.image_urls?.[0] && (
@@ -1381,6 +1417,7 @@ Returnera som strukturerad JSON med denna format:
                     </div>
                   </div>
                 )}
+              )}
               </div>
 
               <div className="flex gap-3 pt-6">
