@@ -801,7 +801,9 @@ Returnera som strukturerad JSON med denna format:
         article = await base44.entities.Article.create({
           ...preparedData,
           stock_qty: parseInt(finalData.stock_qty) || 0,
-          status: "active"
+          status: "active",
+          ai_extracted_data: extractedData,
+          ai_confidence_scores: confidences
         });
       }
 

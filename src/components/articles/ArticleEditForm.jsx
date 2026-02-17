@@ -730,6 +730,45 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
               </div>
             </div>
 
+            {/* AI-extraherad data (read-only) */}
+            {article.ai_extracted_data && Object.keys(article.ai_extracted_data).length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  <h3 className="text-lg font-semibold text-white">AI-Extraherad Data</h3>
+                </div>
+                <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/30">
+                  <p className="text-xs text-purple-300 mb-3">Ursprunglig data från AI-scanning</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    {Object.entries(article.ai_extracted_data)
+                      .filter(([key, value]) => value && !key.includes('confidence') && !key.includes('image_urls'))
+                      .map(([key, value]) => {
+                        const confidence = article.ai_confidence_scores?.[key];
+                        return (
+                          <div key={key} className="flex justify-between items-center">
+                            <span className="text-slate-400 capitalize">
+                              {key.replace(/_/g, ' ').replace('mm', '(mm)').replace('kg', '(kg)')}:
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-white font-medium">{value}</span>
+                              {confidence !== undefined && (
+                                <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                  confidence >= 0.9 ? 'bg-green-500/20 text-green-400' :
+                                  confidence >= 0.7 ? 'bg-yellow-500/20 text-yellow-400' :
+                                  'bg-red-500/20 text-red-400'
+                                }`}>
+                                  {Math.round(confidence * 100)}%
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Anteckningar */}
             <div>
               <Label className="text-slate-300">Anteckningar</Label>
