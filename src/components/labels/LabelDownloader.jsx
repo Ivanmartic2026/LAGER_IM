@@ -6,26 +6,31 @@ import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
-export default function LabelDownloader({ articles, onClose }) {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const labelRefs = useRef([]);
+export default function LabelDownloader({ articles, onClose, labelSize = '80x60' }) {
+   const [isGenerating, setIsGenerating] = useState(false);
+   const labelRefs = useRef([]);
 
-  const printLabel = async (index) => {
-    try {
-      const response = await base44.functions.invoke('getLabelHTML', {
-        articleId: articles[index].id
-      });
+   const printLabel = async (index) => {
+     try {
+       const functionName = labelSize === '40x30' ? 'getLabelHTML40x30' : 'getLabelHTML';
+       const response = await base44.functions.invoke(functionName, {
+         articleId: articles[index].id
+       });
 
-      const printWindow = window.open('', '', 'width=400,height=300');
-      printWindow.document.write(response.data);
-      printWindow.document.close();
-      
-      toast.success('Etikett öppnad för utskrift');
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Kunde inte öppna etiketten');
-    }
-  };
+       const printWindow = window.open('', '', 'width=400,height=300');
+       if (!printWindow) {
+         toast.error('Kunde inte öppna popup. Kontrollera popup-blockerare.');
+         return;
+       }
+       printWindow.document.write(response.data);
+       printWindow.document.close();
+
+       toast.success('Etikett öppnad för utskrift');
+     } catch (error) {
+       console.error('Error:', error);
+       toast.error('Kunde inte öppna etiketten');
+     }
+   };
 
   const printAll = async () => {
     setIsGenerating(true);
