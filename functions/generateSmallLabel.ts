@@ -18,14 +18,14 @@ Deno.serve(async (req) => {
 
     const article = articles[0];
 
-    // 80x60mm - 226x170 pixels (dubbelt så stor)
-    const width = 226;
-    const height = 170;
+    // 80x60mm - 302x227 pixels
+    const width = 302;
+    const height = 227;
 
-    // Create QR code - larger for bigger label
+    // Create QR code - larger for 80x60mm label
     const qrCodeDataUrl = article.batch_number 
       ? await QRCode.toDataURL(article.batch_number, { 
-          width: 140,
+          width: 240,
           margin: 0,
           errorCorrectionLevel: 'M'
         })
@@ -53,23 +53,22 @@ Deno.serve(async (req) => {
     body { 
       font-family: Arial, sans-serif; 
       background: white;
-      padding: 6px;
+      padding: 10px;
     }
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       width: 100%;
       height: 100%;
       text-align: center;
-      gap: 4px;
-      padding-top: 10px;
+      gap: 8px;
     }
     .qr {
       flex-shrink: 0;
-      width: 80px;
-      height: 80px;
+      width: 120px;
+      height: 120px;
     }
     .qr img {
       width: 100%;
@@ -77,11 +76,11 @@ Deno.serve(async (req) => {
       display: block;
     }
     .info {
-      font-size: 18px;
+      font-size: 24px;
       font-weight: 600;
       color: #000;
       font-family: 'Courier New', monospace;
-      line-height: 1.3;
+      line-height: 1.4;
     }
     </style>
     </head>
