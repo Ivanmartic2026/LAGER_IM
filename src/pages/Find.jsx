@@ -57,7 +57,7 @@ export default function FindPage() {
         hasInitialized.current = true;
       }
     }
-  }, [articles.length]);
+  }, [articles]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
