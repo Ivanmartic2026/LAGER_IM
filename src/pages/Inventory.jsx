@@ -958,14 +958,14 @@ export default function InventoryPage() {
                         <div className="text-xs text-white/40">st</div>
                       </div>
 
-                      <div className="flex-1 min-w-0 grid grid-cols-[minmax(100px,130px)_minmax(180px,1fr)_minmax(100px,130px)_minmax(100px,130px)_100px] gap-4">
-                        <div className="min-w-0">
+                      <div className="flex-1 min-w-0 grid grid-cols-[auto_minmax(180px,1fr)_minmax(100px,130px)_minmax(100px,130px)_100px] gap-4">
+                        <div className="flex-shrink-0">
                           {article.sku ? (
-                            <div className="text-sm font-mono text-blue-400 truncate">
+                            <div className="text-sm font-mono text-blue-400 whitespace-nowrap">
                               {article.sku}
                             </div>
                           ) : article.batch_number ? (
-                            <div className="text-sm font-mono text-white/50 truncate">
+                            <div className="text-sm font-mono text-white/50 whitespace-nowrap">
                               #{article.batch_number}
                             </div>
                           ) : (
