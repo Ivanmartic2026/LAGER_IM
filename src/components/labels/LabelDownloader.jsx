@@ -92,7 +92,7 @@ export default function LabelDownloader({ articles, onClose }) {
 
         <div className="bg-slate-800 rounded-xl p-6 mb-4">
           <p className="text-sm text-slate-400 mb-4">
-            {articles.length} etikett{articles.length !== 1 ? 'er' : ''} redo att ladda ner som PNG
+            {articles.length} etikett{articles.length !== 1 ? 'er' : ''} redo att skrivas ut
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {articles.map((article, index) => (
