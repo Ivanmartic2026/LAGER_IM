@@ -10,39 +10,35 @@ export default function LabelDownloader({ articles, onClose }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const labelRefs = useRef([]);
 
-  const downloadAsImage = async (index) => {
+  const printLabel = async (index) => {
     try {
-      const response = await base44.functions.invoke('generateLabelPDF', {
+      const response = await base44.functions.invoke('getLabelHTML', {
         articleId: articles[index].id
       });
 
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `etikett_${articles[index].batch_number || articles[index].id.slice(0, 8)}.pdf`;
-      link.click();
-      window.URL.revokeObjectURL(url);
+      const printWindow = window.open('', '', 'width=400,height=300');
+      printWindow.document.write(response.data);
+      printWindow.document.close();
       
-      toast.success('Etikett nedladdad!');
+      toast.success('Etikett öppnad för utskrift');
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error('Kunde inte generera etikett');
+      console.error('Error:', error);
+      toast.error('Kunde inte öppna etiketten');
     }
   };
 
-  const downloadAll = async () => {
+  const printAll = async () => {
     setIsGenerating(true);
     
     try {
       for (let i = 0; i < articles.length; i++) {
-        await downloadAsImage(i);
-        // Small delay between downloads
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await printLabel(i);
+        // Delay between opening windows
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
-      toast.success(`${articles.length} etiketter nedladdade!`);
+      toast.success(`${articles.length} etiketter öppnade för utskrift!`);
     } catch (error) {
-      toast.error('Något gick fel vid nedladdning');
+      toast.error('Något gick fel');
     } finally {
       setIsGenerating(false);
     }
