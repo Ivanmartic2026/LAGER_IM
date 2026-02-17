@@ -46,20 +46,7 @@ export default function RepairsPage() {
     queryFn: () => base44.entities.Article.list('-updated_date'),
   });
 
-  const updateArticleMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Article.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['articles'] });
-    }
-  });
 
-  const createMovementMutation = useMutation({
-    mutationFn: (data) => base44.entities.StockMovement.create(data),
-  });
-
-  const createRepairLogMutation = useMutation({
-    mutationFn: (data) => base44.entities.RepairLog.create(data),
-  });
 
   const reportToRepairMutation = useMutation({
     mutationFn: async (data) => {
@@ -111,17 +98,14 @@ export default function RepairsPage() {
     try {
       const currentQty = article.stock_qty || 0;
       
-      await updateArticleMutation.mutateAsync({
-        id: article.id,
-        data: {
-          status: currentQty <= 0 ? "out_of_stock" : 
-                 currentQty <= (article.min_stock_level || 5) ? "low_stock" : "active",
-          repair_notes: null,
-          repair_date: null
-        }
+      await base44.entities.Article.update(article.id, {
+        status: currentQty <= 0 ? "out_of_stock" : 
+               currentQty <= (article.min_stock_level || 5) ? "low_stock" : "active",
+        repair_notes: null,
+        repair_date: null
       });
 
-      await createMovementMutation.mutateAsync({
+      await base44.entities.StockMovement.create({
         article_id: article.id,
         movement_type: "adjustment",
         quantity: 0,
@@ -130,7 +114,7 @@ export default function RepairsPage() {
         reason: "Återställd från reparation till lager"
       });
 
-      await createRepairLogMutation.mutateAsync({
+      await base44.entities.RepairLog.create({
         article_id: article.id,
         article_name: article.name,
         article_batch_number: article.batch_number,
@@ -142,8 +126,10 @@ export default function RepairsPage() {
         processed_by: user?.email
       });
 
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
       toast.success("Artikel återförd till lager");
     } catch (error) {
+      console.error("Quick return error:", error);
       toast.error("Kunde inte uppdatera artikel");
     }
   };
@@ -163,19 +149,16 @@ export default function RepairsPage() {
       const previousQty = selectedRepair.stock_qty || 0;
       const newQty = previousQty + returnedQty;
       
-      await updateArticleMutation.mutateAsync({
-        id: selectedRepair.id,
-        data: {
-          status: newQty <= 0 ? "out_of_stock" : 
-                 newQty <= (selectedRepair.min_stock_level || 5) ? "low_stock" : "active",
-          repair_notes: null,
-          repair_date: null,
-          stock_qty: newQty
-        }
+      await base44.entities.Article.update(selectedRepair.id, {
+        status: newQty <= 0 ? "out_of_stock" : 
+               newQty <= (selectedRepair.min_stock_level || 5) ? "low_stock" : "active",
+        repair_notes: null,
+        repair_date: null,
+        stock_qty: newQty
       });
 
       if (returnedQty > 0) {
-        await createMovementMutation.mutateAsync({
+        await base44.entities.StockMovement.create({
           article_id: selectedRepair.id,
           movement_type: "inbound",
           quantity: returnedQty,
@@ -186,7 +169,7 @@ export default function RepairsPage() {
       }
 
       if (discardedQty > 0) {
-        await createMovementMutation.mutateAsync({
+        await base44.entities.StockMovement.create({
           article_id: selectedRepair.id,
           movement_type: "adjustment",
           quantity: -discardedQty,
@@ -196,7 +179,7 @@ export default function RepairsPage() {
         });
       }
 
-      await createRepairLogMutation.mutateAsync({
+      await base44.entities.RepairLog.create({
         article_id: selectedRepair.id,
         article_name: selectedRepair.name,
         article_batch_number: selectedRepair.batch_number,
@@ -209,11 +192,13 @@ export default function RepairsPage() {
         processed_by: user?.email
       });
 
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
       toast.success(`${returnedQty} st återförda${discardedQty > 0 ? `, ${discardedQty} st kasserade` : ''}`);
       setReturnModalOpen(false);
       setSelectedRepair(null);
       setReturnData({ returned: 0, discarded: 0, notes: "" });
     } catch (error) {
+      console.error("Return error:", error);
       toast.error("Kunde inte uppdatera artikel");
     }
   };
@@ -418,31 +403,23 @@ export default function RepairsPage() {
                       </Button>
                     </Link>
                     <Button
-                      onClick={() => handleQuickReturnToStock(article)}
-                      disabled={updateArticleMutation.isPending}
-                      size="sm"
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 transition-all duration-300"
+                     onClick={() => handleQuickReturnToStock(article)}
+                     size="sm"
+                     className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 transition-all duration-300"
                     >
-                      {updateArticleMutation.isPending ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 mr-2" />
-                          Återställ
-                        </>
-                      )}
+                     <CheckCircle2 className="w-4 h-4 mr-2" />
+                     Återställ
                     </Button>
                     <Button
-                      onClick={() => {
-                        setSelectedRepair(article);
-                        setReturnModalOpen(true);
-                      }}
-                      disabled={updateArticleMutation.isPending}
-                      size="sm"
-                      variant="outline"
-                      className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                     onClick={() => {
+                       setSelectedRepair(article);
+                       setReturnModalOpen(true);
+                     }}
+                     size="sm"
+                     variant="outline"
+                     className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
                     >
-                      Med detaljer
+                     Med detaljer
                     </Button>
                   </div>
                 </div>
@@ -673,7 +650,6 @@ export default function RepairsPage() {
               </Button>
               <Button
                 onClick={handleReturnFromRepair}
-                disabled={updateArticleMutation.isPending}
                 className="bg-emerald-600 hover:bg-emerald-500 text-white"
               >
                 <CheckCircle2 className="w-4 h-4 mr-2" />
