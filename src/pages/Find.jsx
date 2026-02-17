@@ -40,6 +40,7 @@ export default function FindPage() {
   const [showRepairModal, setShowRepairModal] = useState(false);
   const [isSubmittingRepair, setIsSubmittingRepair] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
+  const [selectedLabelSize, setSelectedLabelSize] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: articles = [] } = useQuery({

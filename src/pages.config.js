@@ -61,6 +61,7 @@ import Notifications from './pages/Notifications';
 import Orders from './pages/Orders';
 import PWASetup from './pages/PWASetup';
 import PickOrder from './pages/PickOrder';
+import PrintLabel from './pages/PrintLabel';
 import Production from './pages/Production';
 import ProductionView from './pages/ProductionView';
 import PurchaseOrders from './pages/PurchaseOrders';
@@ -83,7 +84,6 @@ import UnknownDeliveries from './pages/UnknownDeliveries';
 import UsersManagement from './pages/UsersManagement';
 import WarehouseDashboard from './pages/WarehouseDashboard';
 import Warehouses from './pages/Warehouses';
-import PrintLabel from './pages/PrintLabel';
 import __Layout from './Layout.jsx';
 
 
@@ -102,6 +102,7 @@ export const PAGES = {
     "Orders": Orders,
     "PWASetup": PWASetup,
     "PickOrder": PickOrder,
+    "PrintLabel": PrintLabel,
     "Production": Production,
     "ProductionView": ProductionView,
     "PurchaseOrders": PurchaseOrders,
@@ -124,7 +125,6 @@ export const PAGES = {
     "UsersManagement": UsersManagement,
     "WarehouseDashboard": WarehouseDashboard,
     "Warehouses": Warehouses,
-    "PrintLabel": PrintLabel,
 }
 
 export const pagesConfig = {
