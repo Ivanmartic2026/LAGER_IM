@@ -423,7 +423,7 @@ export default function ArticleDetail({
                 const canvas = await html2canvas(iframe.contentDocument.body, {
                   width: 320,
                   height: 240,
-                  scale: 1,
+                  scale: 3,
                   backgroundColor: '#ffffff'
                 });
 
