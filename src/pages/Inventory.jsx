@@ -1008,7 +1008,6 @@ export default function InventoryPage() {
                            )}
                          </div>
                          </div>
-                      </div>
                     </div>
                   </motion.div>
                 );
