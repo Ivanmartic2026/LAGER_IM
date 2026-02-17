@@ -409,8 +409,8 @@ export default function ArticleDetail({
 
                 const iframe = document.createElement('iframe');
                 iframe.style.position = 'absolute';
-                iframe.style.width = '320px';
-                iframe.style.height = '240px';
+                iframe.style.width = '113px';
+                iframe.style.height = '85px';
                 iframe.style.left = '-9999px';
                 document.body.appendChild(iframe);
 
@@ -421,9 +421,9 @@ export default function ArticleDetail({
 
                 const html2canvas = (await import('html2canvas')).default;
                 const canvas = await html2canvas(iframe.contentDocument.body, {
-                  width: 320,
-                  height: 240,
-                  scale: 3,
+                  width: 113,
+                  height: 85,
+                  scale: 1,
                   backgroundColor: '#ffffff'
                 });
 
