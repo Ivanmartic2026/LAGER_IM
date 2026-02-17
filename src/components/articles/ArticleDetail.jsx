@@ -409,8 +409,8 @@ export default function ArticleDetail({
 
                 const iframe = document.createElement('iframe');
                 iframe.style.position = 'absolute';
-                iframe.style.width = '472px';
-                iframe.style.height = '354px';
+                iframe.style.width = '320px';
+                iframe.style.height = '240px';
                 iframe.style.left = '-9999px';
                 document.body.appendChild(iframe);
 
@@ -421,9 +421,9 @@ export default function ArticleDetail({
 
                 const html2canvas = (await import('html2canvas')).default;
                 const canvas = await html2canvas(iframe.contentDocument.body, {
-                  width: 472,
-                  height: 354,
-                  scale: 2,
+                  width: 320,
+                  height: 240,
+                  scale: 1,
                   backgroundColor: '#ffffff'
                 });
 
@@ -431,7 +431,7 @@ export default function ArticleDetail({
                   const url = window.URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
-                  a.download = `etikett_40x30mm_${article.batch_number || article.id.slice(0, 8)}_${Date.now()}.png`;
+                  a.download = `label_40x30mm_${article.batch_number || article.id.slice(0, 8)}_${Date.now()}.png`;
                   document.body.appendChild(a);
                   a.click();
                   window.URL.revokeObjectURL(url);
