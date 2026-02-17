@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { PDFDocument, rgb } from 'npm:pdf-lib@1.17.1';
+import { jsPDF } from 'npm:jspdf@4.0.0';
 import QRCode from 'npm:qrcode@1.5.3';
 
 Deno.serve(async (req) => {
@@ -19,97 +19,65 @@ Deno.serve(async (req) => {
 
     const article = articles[0];
 
-    // Create PDF document (80mm x 60mm = 226 x 170 points)
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([226, 170]);
-    const { height } = page.getSize();
+    // Create PDF - 80mm x 60mm
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: [80, 60]
+    });
 
-    // Generate QR code
+    // Generate QR code as data URL
     const qrDataUrl = article.batch_number 
       ? await QRCode.toDataURL(article.batch_number, { 
-          width: 200,
-          margin: 0,
+          width: 300,
+          margin: 1,
           errorCorrectionLevel: 'M'
         })
       : null;
 
+    // Left side - QR code
     if (qrDataUrl) {
-      const qrImage = await pdfDoc.embedPng(qrDataUrl);
-      // QR code on the left side
-      page.drawImage(qrImage, {
-        x: 10,
-        y: height - 110,
-        width: 100,
-        height: 100,
-      });
+      doc.addImage(qrDataUrl, 'PNG', 2, 5, 25, 25);
     }
 
-    // Text on the right side
-    const textX = 115;
-    let currentY = height - 20;
-
-    // Batch number - large and bold
+    // Right side - text
+    let y = 8;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    
     if (article.batch_number) {
-      page.drawText(article.batch_number, {
-        x: textX,
-        y: currentY,
-        size: 16,
-        color: rgb(0, 0, 0),
-        font: await pdfDoc.embedFont('Courier'),
-      });
-      currentY -= 25;
+      doc.text(article.batch_number, 32, y);
+      y += 8;
     }
 
-    // Shelf address
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    
     if (article.shelf_address) {
       const shelves = Array.isArray(article.shelf_address) 
         ? article.shelf_address[0] 
         : article.shelf_address;
-      page.drawText(`Hylla: ${shelves}`, {
-        x: textX,
-        y: currentY,
-        size: 10,
-        color: rgb(0, 0, 0),
-      });
-      currentY -= 15;
+      doc.text(`Hylla: ${shelves}`, 32, y);
+      y += 6;
     }
 
-    // Article name
+    doc.setFontSize(8);
     if (article.name) {
-      const nameLines = article.name.match(/.{1,20}/g) || [];
-      for (const line of nameLines.slice(0, 2)) {
-        page.drawText(line, {
-          x: textX,
-          y: currentY,
-          size: 8,
-          color: rgb(0, 0, 0),
-        });
-        currentY -= 10;
-      }
+      const splitName = doc.splitTextToSize(article.name, 40);
+      doc.text(splitName.slice(0, 2), 32, y);
+      y += 10;
     }
 
-    // Category
-    if (article.category) {
-      page.drawText(`Typ: ${article.category}`, {
-        x: textX,
-        y: currentY,
-        size: 7,
-        color: rgb(80, 80, 80),
-      });
-      currentY -= 10;
-    }
-
-    // SKU
     if (article.sku) {
-      page.drawText(`SKU: ${article.sku}`, {
-        x: textX,
-        y: currentY,
-        size: 7,
-        color: rgb(80, 80, 80),
-      });
+      doc.text(`SKU: ${article.sku}`, 32, y);
+      y += 5;
     }
 
-    const pdfBytes = await pdfDoc.save();
+    if (article.category) {
+      doc.text(`Typ: ${article.category}`, 32, y);
+    }
+
+    const pdfBytes = doc.output('arraybuffer');
     
     return new Response(pdfBytes, {
       status: 200,
