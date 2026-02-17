@@ -12,7 +12,10 @@ export default function LabelDownloader({ articles, onClose, labelSize = '80x60'
 
    const printLabel = async (index) => {
      try {
-       const functionName = labelSize === '40x30' ? 'getLabelHTML40x30' : 'getLabelHTML';
+       let functionName = 'getLabelHTML';
+       if (labelSize === '40x30') functionName = 'getLabelHTML40x30';
+       if (labelSize === '40x30-noqr') functionName = 'getLabelHTML40x30NoQR';
+       
        const response = await base44.functions.invoke(functionName, {
          articleId: articles[index].id
        });
