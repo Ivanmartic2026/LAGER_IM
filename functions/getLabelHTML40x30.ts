@@ -93,23 +93,23 @@ Deno.serve(async (req) => {
       overflow: hidden;
     }
     .batch {
-      font-size: 10px;
-      font-weight: 700;
-      color: #000;
-      font-family: 'Courier New', monospace;
-      line-height: 1.1;
-      word-break: break-all;
-      max-width: 100%;
-    }
-    .shelf {
-      font-size: 9px;
-      font-weight: 700;
-      color: #000;
-      font-family: 'Courier New', monospace;
-      line-height: 1.1;
-      word-break: break-all;
-      max-width: 100%;
-    }
+       font-size: 14px;
+       font-weight: 700;
+       color: #000;
+       font-family: 'Courier New', monospace;
+       line-height: 1.1;
+       word-break: break-all;
+       max-width: 100%;
+     }
+     .shelf {
+       font-size: 13px;
+       font-weight: 700;
+       color: #000;
+       font-family: 'Courier New', monospace;
+       line-height: 1.1;
+       word-break: break-all;
+       max-width: 100%;
+     }
     </style>
     </head>
     <body>
