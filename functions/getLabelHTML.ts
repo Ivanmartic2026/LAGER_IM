@@ -147,9 +147,8 @@ Deno.serve(async (req) => {
     </div>
     <div class="content-section">
       <div class="batch">${article.batch_number || 'N/A'}</div>
-      <div class="shelf">${article.shelf_address && article.shelf_address.length ? (Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address) : 'N/A'}</div>
       <div class="name">${article.name || ''}</div>
-      <div class="sku">${article.sku ? 'SKU: ' + article.sku : ''}</div>
+      <div class="shelf">${article.shelf_address && article.shelf_address.length ? (Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address) : 'N/A'}</div>
     </div>
   </div>
   
