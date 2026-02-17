@@ -81,28 +81,26 @@ Deno.serve(async (req) => {
       gap: 2px;
     }
     .location {
-      font-size: 14px;
+      font-size: 10px;
       font-weight: bold;
       color: #000;
-      line-height: 1.1;
+      line-height: 1.2;
+    }
+    .name {
+      font-size: 8px;
+      font-weight: 500;
+      color: #000;
+      line-height: 1.2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .article-number {
       font-size: 8px;
       font-weight: 600;
       color: #000;
       font-family: 'Courier New', monospace;
-      line-height: 1.1;
-    }
-    .name {
-      font-size: 7px;
-      font-weight: 500;
-      color: #333;
       line-height: 1.2;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
     }
   </style>
 </head>
