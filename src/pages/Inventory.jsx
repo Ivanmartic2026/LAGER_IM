@@ -809,8 +809,8 @@ export default function InventoryPage() {
               <div></div>
               <div>Saldo</div>
               <div>Hyllplats</div>
-              <div>Artikelnummer</div>
               <div>Benämning</div>
+              <div>Artikelnummer</div>
               <div>Leverantör</div>
               <div className="text-right">Status</div>
             </div>
@@ -958,46 +958,46 @@ export default function InventoryPage() {
                         <div className="text-xs text-white/40">st</div>
                       </div>
 
-                      <div className="flex-1 min-w-0 grid grid-cols-[minmax(120px,150px)_minmax(180px,220px)_minmax(200px,1fr)_minmax(120px,150px)_120px] gap-4">
-                        <div className="min-w-0 flex items-center">
-                          {article.shelf_address ? (
-                            <div className="flex items-center gap-1.5">
-                              <MapPin className="w-4 h-4 text-white/40 flex-shrink-0" />
-                              <span className="text-sm font-medium text-white truncate">
-                                {article.shelf_address}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-white/20">—</span>
-                          )}
-                        </div>
+                      <div className="flex-1 min-w-0 grid grid-cols-[minmax(120px,150px)_minmax(200px,1fr)_minmax(180px,220px)_minmax(120px,150px)_120px] gap-4">
+                         <div className="min-w-0 flex items-center">
+                           {article.shelf_address ? (
+                             <div className="flex items-center gap-1.5">
+                               <MapPin className="w-4 h-4 text-white/40 flex-shrink-0" />
+                               <span className="text-sm font-medium text-white truncate">
+                                 {article.shelf_address}
+                               </span>
+                             </div>
+                           ) : (
+                             <span className="text-xs text-white/20">—</span>
+                           )}
+                         </div>
 
-                        <div className="flex-shrink-0">
-                          {article.sku ? (
-                            <div className="text-sm font-mono text-blue-400 whitespace-nowrap">
-                              {article.sku}
-                            </div>
-                          ) : article.batch_number ? (
-                            <div className="text-sm font-mono text-white/50 whitespace-nowrap">
-                              #{article.batch_number}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-white/20">—</span>
-                          )}
-                        </div>
+                         <div className="min-w-0">
+                           <div className="font-semibold text-white text-sm mb-1 truncate tracking-tight">
+                             {article.customer_name || article.name}
+                           </div>
+                           {article.manufacturer && (
+                             <div className="text-xs text-white/50 truncate">
+                               {article.manufacturer}
+                               {article.series && ` • ${article.series}`}
+                               {article.pitch_value && ` • ${article.pitch_value}`}
+                             </div>
+                           )}
+                         </div>
 
-                        <div className="min-w-0">
-                          <div className="font-semibold text-white text-sm mb-1 truncate tracking-tight">
-                            {article.customer_name || article.name}
-                          </div>
-                          {article.manufacturer && (
-                            <div className="text-xs text-white/50 truncate">
-                              {article.manufacturer}
-                              {article.series && ` • ${article.series}`}
-                              {article.pitch_value && ` • ${article.pitch_value}`}
-                            </div>
-                          )}
-                        </div>
+                         <div className="flex-shrink-0">
+                           {article.sku ? (
+                             <div className="text-sm font-mono text-blue-400 whitespace-nowrap">
+                               {article.sku}
+                             </div>
+                           ) : article.batch_number ? (
+                             <div className="text-sm font-mono text-white/50 whitespace-nowrap">
+                               #{article.batch_number}
+                             </div>
+                           ) : (
+                             <span className="text-xs text-white/20">—</span>
+                           )}
+                         </div>
 
                         <div className="min-w-0 flex items-center">
                           {article.supplier_name ? (
