@@ -675,7 +675,7 @@ export default function FindPage() {
                   initial={{ scale: 0.9 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 200 }}
-                  className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 p-8 md:p-12 text-center shadow-lg shadow-emerald-500/5"
+                  className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 p-8 md:p-12 text-center shadow-[0_0_30px_rgba(16,185,129,0.4)]"
                 >
                   <div className="relative z-10">
                     <div className="flex items-center justify-center gap-2 text-white/50 text-sm mb-4">
@@ -709,7 +709,7 @@ export default function FindPage() {
 
               {/* Article Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="p-5 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/20 shadow-lg shadow-blue-500/5">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="p-5 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl bg-blue-500/30 flex items-center justify-center">
                       <Package className="w-5 h-5 text-blue-300" />
@@ -741,7 +741,7 @@ export default function FindPage() {
                   </div>
                   </motion.div>
 
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 backdrop-blur-xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 backdrop-blur-xl border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500/30 flex items-center justify-center">
                       <Package className="w-5 h-5 text-emerald-300" />
@@ -778,7 +778,7 @@ export default function FindPage() {
 
                   {/* Additional Info */}
                   {(selectedArticle.pixel_pitch_mm || selectedArticle.dimensions_width_mm || selectedArticle.weight_kg || selectedArticle.manufacturing_date) && (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-5 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 shadow-lg shadow-white/5">
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-5 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 shadow-[0_0_15px_rgba(148,163,184,0.2)]">
                   <h3 className="font-semibold text-white mb-4">Ytterligare information</h3>
                   <div className="grid grid-cols-2 gap-4">
                     {selectedArticle.pixel_pitch_mm && (
@@ -877,7 +877,7 @@ export default function FindPage() {
 
               {/* Quick tips */}
                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-8 grid gap-3 max-w-md mx-auto">
-                 <motion.div whileHover={{ scale: 1.02 }} className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/30 text-left shadow-lg shadow-blue-500/5">
+                 <motion.div whileHover={{ scale: 1.02 }} className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl border border-blue-500/30 text-left shadow-[0_0_15px_rgba(59,130,246,0.2)] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-shadow">
                    <div className="w-8 h-8 rounded-lg bg-blue-500/30 flex items-center justify-center flex-shrink-0">
                      <Sparkles className="w-4 h-4 text-blue-300" />
                    </div>
@@ -889,7 +889,7 @@ export default function FindPage() {
                    </div>
                  </motion.div>
 
-                 <motion.div whileHover={{ scale: 1.02 }} className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 backdrop-blur-xl border border-emerald-500/30 text-left shadow-lg shadow-emerald-500/5">
+                 <motion.div whileHover={{ scale: 1.02 }} className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 backdrop-blur-xl border border-emerald-500/30 text-left shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-shadow">
                    <div className="w-8 h-8 rounded-lg bg-emerald-500/30 flex items-center justify-center flex-shrink-0">
                      <MapPin className="w-4 h-4 text-emerald-300" />
                    </div>
