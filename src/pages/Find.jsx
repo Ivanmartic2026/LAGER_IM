@@ -951,13 +951,19 @@ export default function FindPage() {
                       onClick={() => setSelectedLabelSize('80x60')}
                       className="w-full h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base transition-all duration-300 font-semibold"
                     >
-                      80 x 60 mm
+                      80 x 60 mm (med QR)
                     </Button>
                     <Button
                       onClick={() => setSelectedLabelSize('40x30')}
                       className="w-full h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base transition-all duration-300 font-semibold"
                     >
-                      40 x 30 mm
+                      40 x 30 mm (med QR)
+                    </Button>
+                    <Button
+                      onClick={() => setSelectedLabelSize('40x30-noqr')}
+                      className="w-full h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base transition-all duration-300 font-semibold"
+                    >
+                      40 x 30 mm (endast text)
                     </Button>
                   </div>
                   <Button
