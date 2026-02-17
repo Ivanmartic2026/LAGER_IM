@@ -289,7 +289,7 @@ export default function RepairsPage() {
             <div className="flex gap-2">
               <Button 
                 onClick={() => setReportModalOpen(true)}
-                className="bg-blue-600 hover:bg-blue-500 text-white gap-2 shadow-lg shadow-blue-500/50"
+                className="bg-blue-600 hover:bg-blue-500 text-white gap-2 shadow-[0_0_25px_rgba(59,130,246,0.6)] hover:shadow-[0_0_35px_rgba(59,130,246,0.8)] transition-shadow"
               >
                 <AlertTriangle className="w-4 h-4" />
                 Rapportera till Reparation
@@ -297,7 +297,7 @@ export default function RepairsPage() {
               {repairArticles.length > 0 && (
                 <Button 
                   onClick={handleExportPdf}
-                  className="bg-orange-600 hover:bg-orange-500 text-white gap-2 shadow-lg shadow-orange-500/50"
+                  className="bg-orange-600 hover:bg-orange-500 text-white gap-2 shadow-[0_0_25px_rgba(249,115,22,0.6)] hover:shadow-[0_0_35px_rgba(249,115,22,0.8)] transition-shadow"
                 >
                   <Download className="w-4 h-4" />
                   Exportera PDF
@@ -387,7 +387,7 @@ export default function RepairsPage() {
                     <Button
                       onClick={() => handlePrintLabel(article)}
                       size="sm"
-                      className="bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-500/50"
+                      className="bg-red-600 hover:bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.6)] hover:shadow-[0_0_30px_rgba(239,68,68,0.8)] transition-shadow"
                     >
                       <Printer className="w-4 h-4 mr-2" />
                       Etikett
@@ -396,7 +396,7 @@ export default function RepairsPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                        className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white shadow-[0_0_15px_rgba(71,85,105,0.4)] hover:shadow-[0_0_20px_rgba(71,85,105,0.6)] transition-shadow"
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         Visa
@@ -405,7 +405,7 @@ export default function RepairsPage() {
                     <Button
                      onClick={() => handleQuickReturnToStock(article)}
                      size="sm"
-                     className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 transition-all duration-300"
+                     className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.6)] hover:shadow-[0_0_30px_rgba(16,185,129,0.8)] transition-all duration-300"
                     >
                      <CheckCircle2 className="w-4 h-4 mr-2" />
                      Återställ
@@ -417,7 +417,7 @@ export default function RepairsPage() {
                      }}
                      size="sm"
                      variant="outline"
-                     className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
+                     className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white shadow-[0_0_15px_rgba(71,85,105,0.4)] hover:shadow-[0_0_20px_rgba(71,85,105,0.6)] transition-shadow"
                     >
                      Med detaljer
                     </Button>
