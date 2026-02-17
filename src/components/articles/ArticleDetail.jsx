@@ -735,15 +735,18 @@ export default function ArticleDetail({
                         e.preventDefault();
                         e.stopPropagation();
                         try {
+                          const updatedData = {
+                            dimensions_width_mm: dimensionsData.dimensions_width_mm ? Number(dimensionsData.dimensions_width_mm) : null,
+                            dimensions_height_mm: dimensionsData.dimensions_height_mm ? Number(dimensionsData.dimensions_height_mm) : null,
+                            dimensions_depth_mm: dimensionsData.dimensions_depth_mm ? Number(dimensionsData.dimensions_depth_mm) : null,
+                            weight_g: dimensionsData.weight_g ? Number(dimensionsData.weight_g) : null
+                          };
                           await updateArticleMutation.mutateAsync({
                             id: article.id,
-                            data: {
-                              dimensions_width_mm: dimensionsData.dimensions_width_mm ? Number(dimensionsData.dimensions_width_mm) : null,
-                              dimensions_height_mm: dimensionsData.dimensions_height_mm ? Number(dimensionsData.dimensions_height_mm) : null,
-                              dimensions_depth_mm: dimensionsData.dimensions_depth_mm ? Number(dimensionsData.dimensions_depth_mm) : null,
-                              weight_g: dimensionsData.weight_g ? Number(dimensionsData.weight_g) : null
-                            }
+                            data: updatedData
                           });
+                          // Update local article object
+                          Object.assign(article, updatedData);
                           setEditingDimensions(false);
                           toast.success('Mått uppdaterade');
                         } catch (error) {
