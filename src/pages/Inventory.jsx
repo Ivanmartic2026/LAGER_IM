@@ -811,7 +811,7 @@ export default function InventoryPage() {
               <div>Hyllplats</div>
               <div>Benämning</div>
               <div>Artikelnummer</div>
-              <div>Leverantör</div>
+              <div>Batchnummer</div>
               <div className="text-right">Status</div>
             </div>
 
@@ -999,15 +999,15 @@ export default function InventoryPage() {
                            )}
                          </div>
 
-                        <div className="min-w-0 flex items-center">
-                          {article.supplier_name ? (
-                            <span className="text-sm font-medium text-white truncate">
-                              {article.supplier_name}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-white/20">—</span>
-                          )}
-                        </div>
+                         <div className="min-w-0 flex items-center">
+                           {article.batch_number ? (
+                             <span className="text-sm font-medium text-white truncate">
+                               {article.batch_number}
+                             </span>
+                           ) : (
+                             <span className="text-xs text-white/20">—</span>
+                           )}
+                         </div>
 
                         <div className="flex items-center justify-end gap-2 min-w-0">
                           {incomingQuantities[article.id] && (
