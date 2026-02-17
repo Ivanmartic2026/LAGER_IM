@@ -88,9 +88,10 @@ Deno.serve(async (req) => {
       padding: 6px 5px;
       display: flex;
       flex-direction: column;
-      justify-content: space-around;
+      justify-content: center;
       align-items: center;
       text-align: center;
+      gap: 3px;
       overflow: hidden;
     }
     
