@@ -60,22 +60,22 @@ export default function LabelDownloader({ articles, onClose }) {
         className="bg-slate-900 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-auto"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">Ladda ner etiketter</h2>
+          <h2 className="text-xl font-bold text-white">Skriv ut etiketter</h2>
           <div className="flex gap-2">
             <Button
-              onClick={downloadAll}
+              onClick={printAll}
               disabled={isGenerating}
               className="bg-blue-600 hover:bg-blue-500"
             >
               {isGenerating ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Genererar...
+                  Öppnar...
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4 mr-2" />
-                  Ladda ner alla
+                  Skriv ut alla
                 </>
               )}
             </Button>
