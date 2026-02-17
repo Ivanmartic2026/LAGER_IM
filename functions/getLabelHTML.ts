@@ -62,39 +62,71 @@ Deno.serve(async (req) => {
       border: 1px solid #ddd;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       overflow: hidden;
     }
-
+    
+    .qr-section {
+      width: 120px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      flex-shrink: 0;
+      background: white;
+    }
+    
+    .qr-section img {
+      width: 110px;
+      height: 110px;
+      image-rendering: pixelated;
+    }
+    
     .content-section {
       flex: 1;
-      padding: 10px;
+      padding: 6px 5px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
-      gap: 8px;
+      gap: 3px;
       overflow: hidden;
     }
-
+    
     .batch {
-      font-size: 24px;
+      font-size: 9px;
       font-weight: bold;
       font-family: 'Courier New', monospace;
       line-height: 1.1;
       word-break: break-all;
       flex-shrink: 0;
-      max-width: 100%;
     }
-
+    
     .shelf {
-      font-size: 48px;
+      font-size: 18px;
       font-weight: bold;
       line-height: 1;
       word-break: break-word;
+      order: 3;
       flex-shrink: 0;
       max-width: 100%;
+    }
+    
+    .name {
+      font-size: 7px;
+      line-height: 1.1;
+      word-break: break-word;
+      max-height: 16px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    
+    .sku {
+      font-size: 7px;
+      color: #666;
+      line-height: 1.2;
     }
     
     @media print {
