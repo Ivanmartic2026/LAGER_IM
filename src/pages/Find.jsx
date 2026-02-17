@@ -832,29 +832,42 @@ export default function FindPage() {
 
 
               {/* Action Buttons */}
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <Button
-                  onClick={() => setShowRepairModal(true)}
-                  disabled={selectedArticle.status === "on_repair"}
-                  className="h-[52px] bg-orange-600/20 backdrop-blur-xl border border-orange-500/40 hover:bg-orange-600/30 text-orange-200 text-base md:text-sm transition-all duration-300 font-semibold disabled:opacity-50"
-                >
-                  <Wrench className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-                  Till reparation
-                </Button>
-                <Button
-                  onClick={() => setShowPrintModal(true)}
-                  className="h-[52px] bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/15 text-white text-base md:text-sm transition-all duration-300 font-semibold"
-                >
-                  <Printer className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-                  Skriv ut
-                </Button>
-                <Button
-                  onClick={handleClear}
-                  className="h-[52px] bg-emerald-500/20 backdrop-blur-xl border border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-200 text-base md:text-sm transition-all duration-300 font-semibold"
-                >
-                  <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-                  {mode === "scan" ? "Skanna igen" : "Sök igen"}
-                </Button>
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="space-y-3">
+               <Button
+                 onClick={() => {
+                   setMode("scan");
+                   setCapturedImages([]);
+                 }}
+                 className="w-full h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base md:text-sm transition-all duration-300 font-semibold"
+               >
+                 <Camera className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+                 Fota flera bilder
+               </Button>
+
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                 <Button
+                   onClick={() => setShowRepairModal(true)}
+                   disabled={selectedArticle.status === "on_repair"}
+                   className="h-[52px] bg-orange-600/20 backdrop-blur-xl border border-orange-500/40 hover:bg-orange-600/30 text-orange-200 text-base md:text-sm transition-all duration-300 font-semibold disabled:opacity-50"
+                 >
+                   <Wrench className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+                   Till reparation
+                 </Button>
+                 <Button
+                   onClick={() => setShowPrintModal(true)}
+                   className="h-[52px] bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/15 text-white text-base md:text-sm transition-all duration-300 font-semibold"
+                 >
+                   <Printer className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+                   Skriv ut
+                 </Button>
+                 <Button
+                   onClick={handleClear}
+                   className="h-[52px] bg-emerald-500/20 backdrop-blur-xl border border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-200 text-base md:text-sm transition-all duration-300 font-semibold"
+                 >
+                   <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+                   {mode === "scan" ? "Skanna igen" : "Sök igen"}
+                 </Button>
+               </div>
               </motion.div>
             </motion.div>
           ) : !searchQuery && mode === "search" && !scanResult && (
