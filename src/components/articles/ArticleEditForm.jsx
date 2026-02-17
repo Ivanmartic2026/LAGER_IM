@@ -46,6 +46,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
   const [placementSuggestions, setPlacementSuggestions] = useState(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState('');
+  const [shelfSearch, setShelfSearch] = useState('');
 
   // Fetch warehouses, shelves, and suppliers
   const { data: warehouses = [] } = useQuery({
@@ -78,6 +79,12 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
         return warehouse && s.warehouse_id === warehouse.id;
       })
     : [];
+
+  // Filter shelves based on search
+  const filteredShelves = availableShelves.filter(s => 
+    !shelfSearch || 
+    s.shelf_code.toLowerCase().includes(shelfSearch.toLowerCase())
+  );
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -529,11 +536,26 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                               <SelectValue placeholder="Välj lagerplats" />
                             </SelectTrigger>
                             <SelectContent className="max-h-[60vh]" position="popper" sideOffset={5}>
-                              {availableShelves.map((s) => (
-                                <SelectItem key={s.id} value={s.shelf_code}>
-                                  {s.shelf_code}
-                                </SelectItem>
-                              ))}
+                              <div className="p-2 border-b border-slate-700 sticky top-0 bg-slate-900 z-10">
+                                <Input
+                                  placeholder="Sök lagerplats..."
+                                  value={shelfSearch}
+                                  onChange={(e) => setShelfSearch(e.target.value)}
+                                  className="h-9 bg-slate-800 border-slate-700 text-white"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                              {filteredShelves.length === 0 ? (
+                                <div className="p-4 text-center text-slate-400 text-sm">
+                                  Ingen lagerplats hittades
+                                </div>
+                              ) : (
+                                filteredShelves.map((s) => (
+                                  <SelectItem key={s.id} value={s.shelf_code}>
+                                    {s.shelf_code}
+                                  </SelectItem>
+                                ))
+                              )}
                             </SelectContent>
                           </Select>
                           <Button
