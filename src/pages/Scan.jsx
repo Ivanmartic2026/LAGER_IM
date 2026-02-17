@@ -1417,8 +1417,6 @@ Returnera som strukturerad JSON med denna format:
                     </div>
                   </div>
                 )}
-              )}
-              </div>
 
               <div className="flex gap-3 pt-6">
                 <Button
