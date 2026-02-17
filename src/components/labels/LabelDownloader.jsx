@@ -21,7 +21,7 @@ export default function LabelDownloader({ articles, onClose }) {
       });
       
       const link = document.createElement('a');
-      link.download = `etikett_40x30mm_${articles[index].batch_number || articles[index].id.slice(0, 8)}_${Date.now()}.png`;
+      link.download = `label_40x30mm_${articles[index].batch_number || articles[index].id.slice(0, 8)}_${Date.now()}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
       
