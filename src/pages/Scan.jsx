@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { 
   Package, ClipboardList, ArrowLeft, Sparkles, 
-  CheckCircle2, Camera, Download, AlertTriangle, Scan as ScanIcon, PackageSearch, Activity, Printer
+  CheckCircle2, Camera, Download, AlertTriangle, Scan as ScanIcon, PackageSearch, Activity, Printer, X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import CameraCapture from "@/components/scanner/CameraCapture";
 import ReviewForm from "@/components/scanner/ReviewForm";
 import AutoAnalysisReview from "@/components/scanner/AutoAnalysisReview";
