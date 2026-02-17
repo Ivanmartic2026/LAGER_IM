@@ -31,13 +31,13 @@ Deno.serve(async (req) => {
         })
       : null;
 
-    // Build compact HTML - 40mm x 30mm
+    // Build compact HTML - 40mm x 30mm - Design inspired by reference label
     const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="UTF-8">
+    <style>
     @page {
       size: 40mm 30mm;
       margin: 0;
@@ -53,72 +53,59 @@ Deno.serve(async (req) => {
     body { 
       font-family: Arial, sans-serif; 
       background: white;
-      padding: 3px;
+      padding: 4px;
     }
     .container {
       display: flex;
-      gap: 4px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
       width: 100%;
       height: 100%;
-      align-items: center;
+      text-align: center;
+    }
+    .name {
+      font-size: 11px;
+      font-weight: bold;
+      color: #000;
+      line-height: 1.2;
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 0 2px;
     }
     .qr {
       flex-shrink: 0;
-      width: 70px;
-      height: 70px;
+      width: 50px;
+      height: 50px;
     }
     .qr img {
       width: 100%;
       height: 100%;
       display: block;
     }
-    .content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      justify-content: center;
-      gap: 2px;
-    }
-    .location {
+    .batch {
       font-size: 10px;
-      font-weight: bold;
-      color: #000;
-      line-height: 1.2;
-    }
-    .name {
-      font-size: 8px;
-      font-weight: 500;
-      color: #000;
-      line-height: 1.2;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .article-number {
-      font-size: 8px;
       font-weight: 600;
       color: #000;
       font-family: 'Courier New', monospace;
       line-height: 1.2;
     }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="content">
-      <div class="location">Hyllplats: ${article.shelf_address && article.shelf_address.length > 0 ? (Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address) : '-'}</div>
-      <div class="name">Benämning: ${article.name || 'N/A'}</div>
-      <div class="article-number">Batch: ${article.batch_number || 'N/A'}</div>
-    </div>
+    </style>
+    </head>
+    <body>
+    <div class="container">
+    <div class="name">${article.name || 'N/A'}</div>
     ${qrCodeDataUrl ? `
     <div class="qr">
       <img src="${qrCodeDataUrl}" alt="QR" />
     </div>
-    ` : ''}
-  </div>
-</body>
-</html>
+    ` : '<div style="height: 50px;"></div>'}
+    <div class="batch">Batch: ${article.batch_number || 'N/A'}</div>
+    </div>
+    </body>
+    </html>
     `;
 
     return new Response(html, {
