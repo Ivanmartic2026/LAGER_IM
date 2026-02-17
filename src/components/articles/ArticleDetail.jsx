@@ -454,6 +454,29 @@ export default function ArticleDetail({
           </div>
           
           <div
+            onClick={async () => {
+              const loadingToast = toast.loading('Öppnar etikett...');
+              try {
+                const response = await base44.functions.invoke('getLabelHTML', { articleId: article.id });
+                const printWindow = window.open('', '', 'width=400,height=300');
+                printWindow.document.write(response.data);
+                printWindow.document.close();
+                toast.success('Etikett öppnad för utskrift', { id: loadingToast });
+              } catch (error) {
+                console.error('Error:', error);
+                toast.error('Kunde inte öppna etiketten', { id: loadingToast });
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            title="Skriv ut 80x60mm etikett"
+            className="h-10 px-4 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-white text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-xl"
+          >
+            <Printer className="w-4 h-4" />
+            <span className="hidden md:inline">80x60</span>
+          </div>
+
+          <div
             onClick={() => !createArticleMutation.isPending && handleCopyArticle()}
             role="button"
             tabIndex={0}
