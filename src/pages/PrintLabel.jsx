@@ -51,6 +51,11 @@ export default function PrintLabel() {
       });
       
       const printWindow = window.open('', '', 'width=400,height=300');
+      if (!printWindow) {
+        toast.error('Kunde inte öppna popup. Kontrollera popup-blockerare.');
+        return;
+      }
+      
       printWindow.document.write(response.data);
       printWindow.document.close();
       printWindow.focus();
