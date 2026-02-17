@@ -812,6 +812,7 @@ export default function InventoryPage() {
               <div>Benämning</div>
               <div>Hyllplats</div>
               <div>Lager</div>
+              <div>Leverantör</div>
               <div className="text-right">Status</div>
             </div>
 
@@ -1000,16 +1001,10 @@ export default function InventoryPage() {
                         </div>
 
                         <div className="min-w-0 flex items-center">
-                          {article.warehouse ? (
-                            <div className="flex items-center gap-1.5">
-                              <Package className="w-4 h-4 text-white/40 flex-shrink-0" />
-                              <span className="text-sm font-medium text-white truncate">
-                                {(() => {
-                                  const wh = warehouses.find(w => w.name === article.warehouse);
-                                  return wh?.code || article.warehouse;
-                                })()}
-                              </span>
-                            </div>
+                          {article.supplier_name ? (
+                            <span className="text-sm font-medium text-white truncate">
+                              {article.supplier_name}
+                            </span>
                           ) : (
                             <span className="text-xs text-white/20">—</span>
                           )}
