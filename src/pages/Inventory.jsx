@@ -1007,34 +1007,7 @@ export default function InventoryPage() {
                              <span className="text-xs text-white/20">—</span>
                            )}
                          </div>
-                          {incomingQuantities[article.id] && (
-                            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs px-2 py-0.5 flex-shrink-0">
-                              Inkommande ({incomingQuantities[article.id].quantity})
-                              {incomingQuantities[article.id].dates.length > 0 && 
-                                ` - ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
-                              }
-                            </Badge>
-                          )}
-                          {article.status !== 'active' && (
-                            <Badge className={cn(
-                              "text-xs border px-2 py-0.5 flex-shrink-0",
-                              article.status === 'low_stock' ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
-                              article.status === 'out_of_stock' ? "bg-red-500/20 text-red-400 border-red-500/30" :
-                              article.status === 'on_repair' ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
-                              "bg-white/10 text-white/60 border-white/20"
-                            )}>
-                              {article.status === 'low_stock' ? 'Lågt' :
-                               article.status === 'out_of_stock' ? 'Slut' :
-                               article.status === 'on_repair' ? 'Reparation' : 
-                               article.status === 'discontinued' ? 'Utgått' : article.status}
-                            </Badge>
-                          )}
-                          {article.updated_date && (
-                            <div className="text-xs text-white/40 whitespace-nowrap">
-                              {format(new Date(article.updated_date), "d MMM", { locale: sv })}
-                            </div>
-                          )}
-                        </div>
+                         </div>
                       </div>
                     </div>
                   </motion.div>
