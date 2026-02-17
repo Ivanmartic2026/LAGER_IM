@@ -19,63 +19,116 @@ Deno.serve(async (req) => {
 
     const article = articles[0];
 
-    // Create PDF - 80mm x 60mm
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: [80, 60]
-    });
+    // Create PDF 80x60mm at 96 DPI = 305x229 pixels -> scale to 1mm=3.78px
+    const pxPerMm = 3.78;
+    const widthPx = 80 * pxPerMm;   // 302px
+    const heightPx = 60 * pxPerMm;  // 227px
 
-    // Generate QR code as data URL
+    // Create HTML canvas
+    const html = `<!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+          width: ${widthPx}px;
+          height: ${heightPx}px;
+          display: flex;
+          background: white;
+          font-family: Arial, sans-serif;
+        }
+        .qr { 
+          width: 95px;
+          height: 95px;
+          padding: 3px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .qr img {
+          width: 100%;
+          height: 100%;
+          image-rendering: pixelated;
+        }
+        .content {
+          flex: 1;
+          padding: 3px 4px;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          overflow: hidden;
+        }
+        .batch {
+          font-size: 11px;
+          font-weight: bold;
+          font-family: 'Courier New', monospace;
+          line-height: 1;
+          margin-bottom: 2px;
+        }
+        .shelf {
+          font-size: 8px;
+          font-weight: bold;
+          line-height: 1;
+          margin-bottom: 2px;
+        }
+        .name {
+          font-size: 7px;
+          line-height: 1;
+          margin-bottom: 2px;
+          word-break: break-word;
+          max-height: 16px;
+          overflow: hidden;
+        }
+        .sku {
+          font-size: 6px;
+          color: #333;
+          line-height: 1;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="qr">
+        <img src="QR_PLACEHOLDER" alt="QR">
+      </div>
+      <div class="content">
+        <div class="batch">${article.batch_number || 'N/A'}</div>
+        <div class="shelf">${article.shelf_address && article.shelf_address.length ? (Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address) : 'N/A'}</div>
+        <div class="name">${article.name || ''}</div>
+        <div class="sku">${article.sku ? `SKU: ${article.sku}` : ''}</div>
+      </div>
+    </body>
+    </html>`;
+
+    // Generate QR code
     const qrDataUrl = article.batch_number 
       ? await QRCode.toDataURL(article.batch_number, { 
-          width: 300,
-          margin: 1,
+          width: 200,
+          margin: 0,
           errorCorrectionLevel: 'M'
         })
       : null;
 
-    // Left side - QR code
-    if (qrDataUrl) {
-      doc.addImage(qrDataUrl, 'PNG', 2, 5, 25, 25);
-    }
+    const finalHtml = html.replace('QR_PLACEHOLDER', qrDataUrl || '');
 
-    // Right side - text
-    let y = 8;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    
-    if (article.batch_number) {
-      doc.text(article.batch_number, 32, y);
-      y += 8;
-    }
+    // Convert HTML to PDF using jsPDF
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: [80, 60],
+      compress: false
+    });
 
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    
-    if (article.shelf_address) {
-      const shelves = Array.isArray(article.shelf_address) 
-        ? article.shelf_address[0] 
-        : article.shelf_address;
-      doc.text(`Hylla: ${shelves}`, 32, y);
-      y += 6;
-    }
-
-    doc.setFontSize(8);
-    if (article.name) {
-      const splitName = doc.splitTextToSize(article.name, 40);
-      doc.text(splitName.slice(0, 2), 32, y);
-      y += 10;
-    }
-
-    if (article.sku) {
-      doc.text(`SKU: ${article.sku}`, 32, y);
-      y += 5;
-    }
-
-    if (article.category) {
-      doc.text(`Typ: ${article.category}`, 32, y);
-    }
+    // Add HTML to PDF at exact size
+    await doc.html(finalHtml, {
+      x: 0,
+      y: 0,
+      width: 80,
+      height: 60,
+      windowHeight: heightPx,
+      windowWidth: widthPx,
+    });
 
     const pdfBytes = doc.output('arraybuffer');
     
