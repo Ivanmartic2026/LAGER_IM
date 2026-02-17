@@ -94,27 +94,31 @@ Deno.serve(async (req) => {
     }
     
     .batch {
-      font-size: 12px;
+      font-size: 9px;
       font-weight: bold;
       font-family: 'Courier New', monospace;
-      line-height: 1.2;
+      line-height: 1.1;
       word-break: break-all;
+      flex-shrink: 0;
     }
     
     .shelf {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: bold;
-      line-height: 1.1;
+      line-height: 1;
       word-break: break-word;
       order: 3;
+      flex-shrink: 0;
+      max-width: 100%;
     }
     
     .name {
-      font-size: 8px;
-      line-height: 1.2;
+      font-size: 7px;
+      line-height: 1.1;
       word-break: break-word;
-      max-height: 20px;
+      max-height: 16px;
       overflow: hidden;
+      flex-shrink: 0;
     }
     
     .sku {
