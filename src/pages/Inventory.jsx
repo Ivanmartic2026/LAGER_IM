@@ -958,7 +958,7 @@ export default function InventoryPage() {
                         <div className="text-xs text-white/40">st</div>
                       </div>
 
-                      <div className="flex-1 min-w-0 grid grid-cols-[minmax(120px,150px)_minmax(200px,1fr)_minmax(180px,220px)_minmax(120px,150px)_120px] gap-4">
+                      <div className="flex-1 min-w-0 grid grid-cols-[minmax(120px,150px)_minmax(200px,1fr)_minmax(180px,220px)_minmax(200px,250px)_120px] gap-4">
                          <div className="min-w-0 flex items-center">
                            {article.shelf_address ? (
                              <div className="flex items-center gap-1.5">
