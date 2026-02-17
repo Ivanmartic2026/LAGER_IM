@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { X, Download, Loader2 } from "lucide-react";
 import ShelfLabel from "./ShelfLabel";
 import { motion } from "framer-motion";
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 export default function LabelDownloader({ articles, onClose }) {
@@ -12,31 +11,18 @@ export default function LabelDownloader({ articles, onClose }) {
   const labelRefs = useRef([]);
 
   const downloadAsImage = async (index) => {
-    const labelElement = labelRefs.current[index];
-    if (!labelElement) return;
-
     try {
-      const canvas = await html2canvas(labelElement, {
-        scale: 6,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        logging: false
+      const response = await base44.functions.invoke('generateLabelPDF', {
+        articleId: articles[index].id
       });
-      
-      // 80mm x 60mm in inches (1 inch = 25.4mm)
-      const widthMm = 80;
-      const heightMm = 60;
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: [widthMm, heightMm]
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, 0, widthMm, heightMm);
-      
-      const filename = `etikett_${articles[index].batch_number || articles[index].id.slice(0, 8)}_${Date.now()}.pdf`;
-      pdf.save(filename);
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `etikett_${articles[index].batch_number || articles[index].id.slice(0, 8)}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
       
       toast.success('Etikett nedladdad!');
     } catch (error) {
