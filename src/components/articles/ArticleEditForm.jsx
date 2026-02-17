@@ -47,7 +47,6 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState('');
   const [shelfSearch, setShelfSearch] = useState('');
-  const [shelfSearch, setShelfSearch] = useState('');
 
   // Fetch warehouses, shelves, and suppliers
   const { data: warehouses = [] } = useQuery({
