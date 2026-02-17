@@ -28,12 +28,20 @@ Deno.serve(async (req) => {
     doc.text('Reparationsrapport', 20, yPosition);
     yPosition += 10;
 
-    // Date
+    // Date and summary
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text(`Genererad: ${new Date().toLocaleDateString('sv-SE')}`, 20, yPosition);
     doc.text(`Totalt artiklar: ${articles.length}`, 20, yPosition + 6);
-    yPosition += 18;
+    
+    // Calculate total modules
+    const totalModules = articles.reduce((sum, article) => {
+      const repairQty = article.repair_notes?.match(/^(\d+)\s*st/)?.[1];
+      return sum + (repairQty ? parseInt(repairQty) : 0);
+    }, 0);
+    
+    doc.text(`Totalt antal moduler: ${totalModules}`, 20, yPosition + 12);
+    yPosition += 24;
 
     // Table headers
     doc.setFontSize(11);
