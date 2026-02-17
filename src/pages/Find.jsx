@@ -39,6 +39,7 @@ export default function FindPage() {
   const searchInputRef = useRef(null);
   const [showRepairModal, setShowRepairModal] = useState(false);
   const [isSubmittingRepair, setIsSubmittingRepair] = useState(false);
+  const [showImageUpload, setShowImageUpload] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: articles = [] } = useQuery({
@@ -144,9 +145,25 @@ export default function FindPage() {
     // Upload image first
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     
-    // Add to captured images
-    setCapturedImages(prev => [...prev, file_url]);
-    toast.success(`Bild ${capturedImages.length + 1} tillagd`);
+    // If we're in upload mode for existing article, save directly
+    if (showImageUpload && selectedArticle) {
+      const currentImages = selectedArticle.image_urls || [];
+      await base44.entities.Article.update(selectedArticle.id, {
+        image_urls: [...currentImages, file_url]
+      });
+      
+      setSelectedArticle(prev => ({
+        ...prev,
+        image_urls: [...currentImages, file_url]
+      }));
+      
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      toast.success("Bild tillagd till artikel");
+    } else {
+      // Add to captured images for new article scan
+      setCapturedImages(prev => [...prev, file_url]);
+      toast.success(`Bild ${capturedImages.length + 1} tillagd`);
+    }
   };
 
   const handleProcessImages = async () => {
@@ -832,42 +849,36 @@ export default function FindPage() {
 
 
               {/* Action Buttons */}
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="space-y-3">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-2 md:grid-cols-4 gap-3">
                <Button
-                 onClick={() => {
-                   setMode("scan");
-                   setCapturedImages([]);
-                 }}
-                 className="w-full h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base md:text-sm transition-all duration-300 font-semibold"
+                 onClick={() => setShowRepairModal(true)}
+                 disabled={selectedArticle.status === "on_repair"}
+                 className="h-[52px] bg-orange-600/20 backdrop-blur-xl border border-orange-500/40 hover:bg-orange-600/30 text-orange-200 text-base md:text-sm transition-all duration-300 font-semibold disabled:opacity-50"
+               >
+                 <Wrench className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+                 Till reparation
+               </Button>
+               <Button
+                 onClick={() => setShowImageUpload(true)}
+                 className="h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base md:text-sm transition-all duration-300 font-semibold"
                >
                  <Camera className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-                 Fota flera bilder
+                 Fota
                </Button>
-
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                 <Button
-                   onClick={() => setShowRepairModal(true)}
-                   disabled={selectedArticle.status === "on_repair"}
-                   className="h-[52px] bg-orange-600/20 backdrop-blur-xl border border-orange-500/40 hover:bg-orange-600/30 text-orange-200 text-base md:text-sm transition-all duration-300 font-semibold disabled:opacity-50"
-                 >
-                   <Wrench className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-                   Till reparation
-                 </Button>
-                 <Button
-                   onClick={() => setShowPrintModal(true)}
-                   className="h-[52px] bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/15 text-white text-base md:text-sm transition-all duration-300 font-semibold"
-                 >
-                   <Printer className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-                   Skriv ut
-                 </Button>
-                 <Button
-                   onClick={handleClear}
-                   className="h-[52px] bg-emerald-500/20 backdrop-blur-xl border border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-200 text-base md:text-sm transition-all duration-300 font-semibold"
-                 >
-                   <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-                   {mode === "scan" ? "Skanna igen" : "Sök igen"}
-                 </Button>
-               </div>
+               <Button
+                 onClick={() => setShowPrintModal(true)}
+                 className="h-[52px] bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/15 text-white text-base md:text-sm transition-all duration-300 font-semibold"
+               >
+                 <Printer className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+                 Skriv ut
+               </Button>
+               <Button
+                 onClick={handleClear}
+                 className="h-[52px] bg-emerald-500/20 backdrop-blur-xl border border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-200 text-base md:text-sm transition-all duration-300 font-semibold"
+               >
+                 <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+                 {mode === "scan" ? "Skanna igen" : "Sök igen"}
+               </Button>
               </motion.div>
             </motion.div>
           ) : !searchQuery && mode === "search" && !scanResult && (
@@ -934,6 +945,49 @@ export default function FindPage() {
             onSubmit={handleReportToRepair}
             isSubmitting={isSubmittingRepair}
           />
+
+          {/* Image Upload Modal */}
+          <AnimatePresence>
+            {showImageUpload && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="bg-slate-800/90 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6"
+                >
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-white">Lägg till bilder</h3>
+                    <button
+                      onClick={() => setShowImageUpload(false)}
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <CameraCapture
+                    onImageCaptured={handleImageCaptured}
+                    isProcessing={false}
+                  />
+
+                  <div className="mt-6">
+                    <Button
+                      onClick={() => setShowImageUpload(false)}
+                      className="w-full h-[52px] bg-emerald-500/30 border border-emerald-500/60 hover:bg-emerald-500/40 text-emerald-300 backdrop-blur-xl"
+                    >
+                      Klar
+                    </Button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           </div>
           </div>
           );
