@@ -19,7 +19,8 @@ const isStandalone = () => {
 
 export default function PushManager() {
   useEffect(() => {
-    setupPushNotifications();
+    // Don't auto-request permission - only setup in-app notifications
+    setupIOSInAppNotifications();
     setupAppBadge();
   }, []);
 

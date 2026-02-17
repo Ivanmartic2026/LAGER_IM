@@ -11,12 +11,8 @@ import { useEffect } from 'react';
  */
 export default function PWAOptimizer() {
   useEffect(() => {
-    // Register service worker for offline support and push notifications
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=' + Date.now()).catch(err => {
-        console.warn('Service Worker registration failed - fallback not available');
-      });
-    }
+    // Service worker registration disabled - not needed for this app
+    // If you need offline support, create /public/sw.js first
 
     // Disable zoom on input focus (iOS performance)
     const inputs = document.querySelectorAll('input, select, textarea');
