@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Search, MapPin, Package, Hash, Factory, 
   Ruler, Scale, Calendar, Grid3X3, X,
-  ArrowRight, ScanLine, Sparkles, Camera, Plus, Printer
+  ArrowRight, ScanLine, Sparkles, Camera, Plus, Printer, Wrench
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import CameraCapture from "@/components/scanner/CameraCapture";
 import LabelDownloader from "@/components/labels/LabelDownloader";
 import ReviewForm from "@/components/scanner/ReviewForm";
+import RepairModal from "@/components/articles/RepairModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function FindPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,6 +37,9 @@ export default function FindPage() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const searchInputRef = useRef(null);
+  const [showRepairModal, setShowRepairModal] = useState(false);
+  const [isSubmittingRepair, setIsSubmittingRepair] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: articles = [] } = useQuery({
     queryKey: ['articles'],
@@ -211,6 +216,51 @@ export default function FindPage() {
   const handleRemoveImage = (index) => {
     setCapturedImages(prev => prev.filter((_, i) => i !== index));
     toast.success("Bild borttagen");
+  };
+
+  const handleReportToRepair = async (repairNotes, quantity) => {
+    if (!selectedArticle) return;
+    
+    try {
+      setIsSubmittingRepair(true);
+      
+      const currentQty = selectedArticle.stock_qty || 0;
+      const newQty = currentQty - quantity;
+      
+      await base44.entities.Article.update(selectedArticle.id, {
+        status: "on_repair",
+        repair_notes: repairNotes,
+        repair_date: new Date().toISOString(),
+        stock_qty: newQty
+      });
+
+      await base44.entities.StockMovement.create({
+        article_id: selectedArticle.id,
+        movement_type: "outbound",
+        quantity: -quantity,
+        previous_qty: currentQty,
+        new_qty: newQty,
+        reason: `Skickad på reparation: ${repairNotes}`
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      toast.success(`${quantity} st skickad på reparation`);
+      
+      // Update selected article locally
+      setSelectedArticle(prev => ({
+        ...prev,
+        status: "on_repair",
+        repair_notes: repairNotes,
+        repair_date: new Date().toISOString(),
+        stock_qty: newQty
+      }));
+    } catch (error) {
+      console.error("Repair error:", error);
+      toast.error("Kunde inte rapportera till reparation");
+      throw error;
+    } finally {
+      setIsSubmittingRepair(false);
+    }
   };
 
   return (
@@ -782,17 +832,25 @@ export default function FindPage() {
 
 
               {/* Action Buttons */}
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex gap-3">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Button
+                  onClick={() => setShowRepairModal(true)}
+                  disabled={selectedArticle.status === "on_repair"}
+                  className="h-[52px] bg-orange-600/20 backdrop-blur-xl border border-orange-500/40 hover:bg-orange-600/30 text-orange-200 text-base md:text-sm transition-all duration-300 font-semibold disabled:opacity-50"
+                >
+                  <Wrench className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+                  Till reparation
+                </Button>
                 <Button
                   onClick={() => setShowPrintModal(true)}
-                  className="flex-1 h-[52px] bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/15 text-white text-base md:text-sm transition-all duration-300 font-semibold"
+                  className="h-[52px] bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/15 text-white text-base md:text-sm transition-all duration-300 font-semibold"
                 >
                   <Printer className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-                  Skriv ut etikett
+                  Skriv ut
                 </Button>
                 <Button
                   onClick={handleClear}
-                  className="flex-1 h-[52px] bg-emerald-500/20 backdrop-blur-xl border border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-200 text-base md:text-sm transition-all duration-300 font-semibold"
+                  className="h-[52px] bg-emerald-500/20 backdrop-blur-xl border border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-200 text-base md:text-sm transition-all duration-300 font-semibold"
                 >
                   <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                   {mode === "scan" ? "Skanna igen" : "Sök igen"}
@@ -854,6 +912,15 @@ export default function FindPage() {
               onClose={() => setShowPrintModal(false)}
             />
           )}
+
+          {/* Repair Modal */}
+          <RepairModal
+            isOpen={showRepairModal}
+            onClose={() => setShowRepairModal(false)}
+            article={selectedArticle}
+            onSubmit={handleReportToRepair}
+            isSubmitting={isSubmittingRepair}
+          />
           </div>
           </div>
           );
