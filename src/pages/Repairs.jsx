@@ -342,7 +342,7 @@ export default function RepairsPage() {
                 key={article.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-orange-500/30 hover:border-orange-500/50 hover:bg-white/10 hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-300"
+                className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-orange-500/30 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:border-orange-500/50 hover:bg-white/10 hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] transition-all duration-300"
               >
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex-1">
@@ -425,7 +425,7 @@ export default function RepairsPage() {
                 </div>
 
                 {article.repair_notes && (
-                  <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                  <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.15)]">
                     <div className="flex items-start gap-2">
                       <AlertTriangle className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
                       <div className="flex-1">
