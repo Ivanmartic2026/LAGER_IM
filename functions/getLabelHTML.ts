@@ -62,12 +62,13 @@ Deno.serve(async (req) => {
       border: 1px solid #ddd;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       display: flex;
+      flex-direction: column;
       overflow: hidden;
     }
     
     .qr-section {
-      width: 102px;
-      height: 227px;
+      width: 100%;
+      height: 102px;
       display: flex;
       align-items: center;
       justify-content: center;
