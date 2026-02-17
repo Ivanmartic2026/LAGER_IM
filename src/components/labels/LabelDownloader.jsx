@@ -16,7 +16,7 @@ export default function LabelDownloader({ articles, onClose }) {
 
     try {
       const canvas = await html2canvas(labelElement, {
-        scale: 3,
+        scale: 6,
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false
