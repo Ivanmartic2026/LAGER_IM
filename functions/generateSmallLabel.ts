@@ -53,17 +53,18 @@ Deno.serve(async (req) => {
     body { 
       font-family: Arial, sans-serif; 
       background: white;
-      padding: 5px;
+      padding: 3px;
     }
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       width: 100%;
       height: 100%;
       text-align: center;
-      gap: 3px;
+      gap: 2px;
+      padding-top: 5px;
     }
     .qr {
       flex-shrink: 0;
