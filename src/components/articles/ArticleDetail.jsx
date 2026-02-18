@@ -523,6 +523,34 @@ export default function ArticleDetail({
               <Package className="w-12 h-12 md:w-16 md:h-16 text-slate-600" />
             </div>
           )}
+          
+          {/* Quick Add Image Button */}
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            multiple
+            onChange={handleFileUpload}
+            className="hidden"
+            id="quick-image-upload"
+            disabled={uploadingFiles}
+          />
+          <label
+            htmlFor="quick-image-upload"
+            className="mt-3 flex items-center justify-center gap-2 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 hover:bg-blue-600/30 text-blue-300 font-medium cursor-pointer transition-all"
+          >
+            {uploadingFiles ? (
+              <>
+                <div className="w-4 h-4 border-2 border-blue-300/30 border-t-blue-300 rounded-full animate-spin" />
+                <span className="text-sm">Laddar upp...</span>
+              </>
+            ) : (
+              <>
+                <Camera className="w-4 h-4" />
+                <span className="text-sm">Lägg till bilder</span>
+              </>
+            )}
+          </label>
         </div>
 
         {/* Article Info */}
