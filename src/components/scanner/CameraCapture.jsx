@@ -204,7 +204,7 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
                   key={index}
                   src={preview}
                   alt={`Preview ${index + 1}`}
-                  className={previews.length > 1 ? "w-full h-32 object-contain rounded-lg" : "w-full h-auto max-h-[400px] object-contain"}
+                  className={previews.length > 1 ? "w-full h-32 object-contain rounded-lg" : "w-full h-auto max-h-[400px] max-w-full object-contain"}
                 />
               ))}
             </div>

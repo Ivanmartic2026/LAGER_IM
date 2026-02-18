@@ -288,8 +288,8 @@ export default function FindPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-black p-4 md:p-6 overflow-x-hidden">
+      <div className="max-w-4xl mx-auto w-full">
         
         {/* Header */}
         <div className="mb-6">
