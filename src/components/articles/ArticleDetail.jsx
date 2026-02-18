@@ -20,6 +20,7 @@ import ReturnFromRepairModal from "./ReturnFromRepairModal";
 import ImageGallery from "./ImageGallery";
 import ProductAssemblyManager from "./ProductAssemblyManager";
 import ArticleComments from "./ArticleComments";
+import LinkToSiteModal from "./LinkToSiteModal";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -34,6 +35,7 @@ export default function ArticleDetail({
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [repairModalOpen, setRepairModalOpen] = useState(false);
   const [returnFromRepairModalOpen, setReturnFromRepairModalOpen] = useState(false);
+  const [linkToSiteModalOpen, setLinkToSiteModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [editingDimensions, setEditingDimensions] = useState(false);
@@ -1313,10 +1315,20 @@ export default function ArticleDetail({
 
         <TabsContent value="onsite" className="mt-6">
           <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-            <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
-              <Camera className="w-5 h-5 text-blue-400" />
-              Användning på site
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-white flex items-center gap-2">
+                <Camera className="w-5 h-5 text-blue-400" />
+                Användning på site
+              </h3>
+              <Button
+                onClick={() => setLinkToSiteModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-500 text-white"
+                size="sm"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Lägg till manuellt
+              </Button>
+            </div>
 
             {siteReports.length === 0 ? (
               <div className="text-center py-8">
@@ -1406,6 +1418,12 @@ export default function ArticleDetail({
         article={article}
         onSubmit={handleReturnFromRepair}
         isSubmitting={updateArticleMutation.isPending}
+      />
+
+      <LinkToSiteModal
+        isOpen={linkToSiteModalOpen}
+        onClose={() => setLinkToSiteModalOpen(false)}
+        article={article}
       />
       </motion.div>
       );
