@@ -876,10 +876,10 @@ export default function InventoryPage() {
                             {article.batch_number && (
                               <span className="font-mono">#{article.batch_number}</span>
                             )}
-                            {article.manufacturer && (
+                            {article.supplier_name && (
                               <>
                                 <span>•</span>
-                                <span className="truncate">{article.manufacturer}</span>
+                                <span className="truncate">{article.supplier_name}</span>
                               </>
                             )}
                           </div>
@@ -975,9 +975,9 @@ export default function InventoryPage() {
                            <div className="font-semibold text-white text-sm mb-1 truncate tracking-tight">
                              {article.customer_name || article.name}
                            </div>
-                           {article.manufacturer && (
+                           {article.supplier_name && (
                              <div className="text-xs text-white/50 truncate">
-                               {article.manufacturer}
+                               {article.supplier_name}
                                {article.series && ` • ${article.series}`}
                                {article.pitch_value && ` • ${article.pitch_value}`}
                              </div>
