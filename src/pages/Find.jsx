@@ -281,54 +281,60 @@ export default function FindPage() {
     }
   };
 
+  const stats = {
+    total: articles.length,
+    active: articles.filter(a => a.status === "active").length,
+    lowStock: articles.filter(a => a.status === "low_stock").length,
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950/20 to-slate-950 p-4 md:p-6">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-black p-4 md:p-6">
+      <div className="max-w-4xl mx-auto">
         
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-center mb-10"
-        >
-          <motion.div 
-            whileHover={{ scale: 1.05, rotate: 5 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-emerald-600/20 backdrop-blur-xl border border-emerald-500/40 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/10"
-          >
-            <MapPin className="w-8 h-8 text-emerald-300" />
-          </motion.div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">
-            Hitta i lager
-          </h1>
-          <p className="text-slate-400 text-lg md:text-base">
-            Sök eller skanna artikel för att se om den finns i lagret
-          </p>
-        </motion.div>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-white tracking-tight">Hitta</h1>
+              <div className="flex items-center gap-3 text-sm">
+                <Badge 
+                  variant="outline" 
+                  className="bg-blue-500/10 text-blue-400 border-blue-500/30"
+                >
+                  {stats.total} totalt
+                </Badge>
+                <Badge 
+                  variant="outline" 
+                  className="bg-green-500/10 text-green-400 border-green-500/30"
+                >
+                  {stats.active} aktiv
+                </Badge>
+                {stats.lowStock > 0 && (
+                  <Badge 
+                    variant="outline" 
+                    className="bg-amber-500/10 text-amber-400 border-amber-500/30"
+                  >
+                    {stats.lowStock} lågt
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
 
-        {/* Mode Toggle */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex gap-3 mb-8"
-        >
-          <motion.div className="flex-1">
+          {/* Mode Toggle */}
+          <div className="flex gap-3 mb-6">
             <Button
               onClick={() => setMode("search")}
               className={cn(
-                "w-full h-[52px] text-base md:text-sm font-semibold backdrop-blur-xl transition-all duration-300 border",
+                "flex-1 h-11 backdrop-blur-xl transition-all duration-300 border",
                 mode === "search" 
-                  ? "bg-gradient-to-br from-emerald-500/40 to-emerald-600/20 border-emerald-500/60 text-emerald-200 hover:from-emerald-500/50 hover:to-emerald-600/30 shadow-lg shadow-emerald-500/20" 
+                  ? "bg-blue-600 border-blue-500 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/50" 
                   : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20"
               )}
             >
-              <Search className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+              <Search className="w-4 h-4 mr-2" />
               Sök
             </Button>
-          </motion.div>
-          <motion.div className="flex-1">
             <Button
               onClick={() => {
                 setMode("scan");
@@ -336,187 +342,165 @@ export default function FindPage() {
                 setScanResult(null);
               }}
               className={cn(
-                "w-full h-[52px] text-base md:text-sm font-semibold backdrop-blur-xl transition-all duration-300 border",
+                "flex-1 h-11 backdrop-blur-xl transition-all duration-300 border",
                 mode === "scan" 
-                  ? "bg-gradient-to-br from-emerald-500/40 to-emerald-600/20 border-emerald-500/60 text-emerald-200 hover:from-emerald-500/50 hover:to-emerald-600/30 shadow-lg shadow-emerald-500/20" 
+                  ? "bg-blue-600 border-blue-500 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/50" 
                   : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20"
               )}
             >
-              <Camera className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+              <Camera className="w-4 h-4 mr-2" />
               Skanna
             </Button>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Status Filter */}
         {mode === "search" && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="mb-8"
-          >
-            <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4 ml-1">Status</p>
-            <div className="grid grid-cols-4 gap-2.5">
-              {['all', 'active', 'low_stock', 'out_of_stock'].map((status, idx) => {
+          <div className="mb-6">
+            <div className="flex gap-3 flex-wrap">
+              {['all', 'active', 'low_stock', 'out_of_stock'].map((status) => {
                 const labels = { all: 'Alla', active: 'Aktiv', low_stock: 'Lågt lager', out_of_stock: 'Slut' };
                 return (
-                  <motion.button
+                  <button
                     key={status}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.92 }}
                     onClick={() => setStatusFilter(status)}
                     className={cn(
-                      "p-3.5 rounded-xl transition-all duration-300 text-sm font-semibold border backdrop-blur-xl",
+                      "px-4 py-2 rounded-xl text-sm font-medium transition-all border",
                       statusFilter === status
-                        ? "bg-gradient-to-br from-emerald-500/40 to-emerald-600/20 border-emerald-500/60 text-emerald-200 shadow-lg shadow-emerald-500/15"
-                        : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white/60"
+                        ? "bg-blue-600 border-blue-500 text-white"
+                        : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/20"
                     )}
                   >
                     {labels[status]}
-                  </motion.button>
+                  </button>
                 );
               })}
             </div>
-            </motion.div>
-            )}
+          </div>
+        )}
 
         {/* Search or Scan Mode */}
-         <motion.div 
-           initial={{ opacity: 0, y: 15 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ delay: 0.2 }}
-           className="mb-8 min-h-[64px] md:min-h-[56px]"
-         >
-         {mode === "search" ? (
-          <div className="relative">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400/60 group-focus-within:text-emerald-400 transition-colors" />
-            <Input
-              ref={searchInputRef}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Sök artikel, batchnummer eller hyllplats..."
-              className="pl-14 md:pl-12 pr-14 md:pr-12 h-16 md:h-14 bg-white/5 backdrop-blur-xl border border-white/20 text-white text-lg md:text-base placeholder:text-white/40 focus:border-emerald-500/60 focus:bg-white/10 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 rounded-xl transition-all duration-300"
-              autoFocus
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center"
-              >
-                <X className="w-6 h-6 md:w-5 md:h-5" />
-              </button>
-            )}
-          </div>
+        <div className="mb-6">
+          {mode === "search" ? (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+              <Input
+                ref={searchInputRef}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Sök artikel, batchnummer eller hyllplats..."
+                className="pl-11 h-11 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all"
+                autoFocus
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
 
-          {/* Search Results Dropdown */}
-          <AnimatePresence>
-            {searchResults.length > 0 && !selectedArticle && (
-              <motion.div
-                initial={{ opacity: 0, y: -15, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="absolute z-50 w-full mt-3 bg-slate-800/90 backdrop-blur-xl border border-slate-700/60 rounded-xl shadow-2xl shadow-black/50 overflow-hidden"
-              >
-                <div className="max-h-[400px] overflow-y-auto">
-                  {searchResults.map((article, index) => (
-                    <motion.button
-                      key={article.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.03 }}
-                      onClick={() => handleSelectArticle(article)}
-                      className="w-full p-4 text-left hover:bg-white/10 transition-all duration-200 border-b border-slate-700/30 last:border-0"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-white truncate">
-                            {article.name}
-                          </p>
-                          <p className="text-sm text-slate-400 flex items-center gap-2 mt-1">
-                            <Hash className="w-3 h-3" />
-                            {article.batch_number}
-                          </p>
-                        </div>
-                        {article.shelf_address ? (
-                          <div className="flex items-center gap-2 text-emerald-400">
-                            <MapPin className="w-4 h-4" />
-                            <span className="font-bold">{article.shelf_address}</span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-slate-500">Ingen plats</span>
-                        )}
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-            </AnimatePresence>
-            </div>
-            ) : (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-            <CameraCapture
-              onImageCaptured={handleImageCaptured}
-              isProcessing={isProcessing}
-            />
-            
-            {/* Captured Images Preview */}
-            {capturedImages.length > 0 && (
-              <div className="mt-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-slate-300">
-                    {capturedImages.length} {capturedImages.length === 1 ? 'bild' : 'bilder'} tillagd{capturedImages.length > 1 ? 'e' : ''}
-                  </p>
-                  <Button
-                    onClick={handleProcessImages}
-                    disabled={isProcessing}
-                    className="bg-emerald-500/30 border border-emerald-500/60 text-emerald-300 hover:bg-emerald-500/40 backdrop-blur-xl transition-all duration-300"
+              {/* Search Results Dropdown */}
+              <AnimatePresence>
+                {searchResults.length > 0 && !selectedArticle && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute z-50 w-full mt-2 bg-zinc-900 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden"
                   >
-                    {isProcessing ? (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2 animate-spin" />
-                        Analyserar...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Analysera bilderna
-                      </>
-                    )}
-                  </Button>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-3">
-                  {capturedImages.map((url, index) => (
-                    <div key={index} className="relative group">
-                      <img 
-                        src={url} 
-                        alt={`Bild ${index + 1}`}
-                        className="w-full aspect-square object-cover rounded-lg border-2 border-slate-700"
-                      />
-                      <button
-                        onClick={() => handleRemoveImage(index)}
-                        className="absolute top-1 right-1 w-7 h-7 bg-red-600 hover:bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-4 h-4 text-white" />
-                      </button>
-                      <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                        {index + 1}
-                      </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {searchResults.map((article) => (
+                        <button
+                          key={article.id}
+                          onClick={() => handleSelectArticle(article)}
+                          className="w-full p-4 text-left hover:bg-white/10 transition-all border-b border-white/10 last:border-0"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-white truncate">
+                                {article.name}
+                              </p>
+                              <p className="text-sm text-white/50 flex items-center gap-2 mt-1">
+                                <Hash className="w-3 h-3" />
+                                {article.batch_number}
+                              </p>
+                            </div>
+                            {article.shelf_address ? (
+                              <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                                <MapPin className="w-3 h-3 mr-1" />
+                                {article.shelf_address}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-white/30">Ingen plats</span>
+                            )}
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                  ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <div>
+              <CameraCapture
+                onImageCaptured={handleImageCaptured}
+                isProcessing={isProcessing}
+              />
+              
+              {/* Captured Images Preview */}
+              {capturedImages.length > 0 && (
+                <div className="mt-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-white/70">
+                      {capturedImages.length} {capturedImages.length === 1 ? 'bild' : 'bilder'} tillagd{capturedImages.length > 1 ? 'e' : ''}
+                    </p>
+                    <Button
+                      onClick={handleProcessImages}
+                      disabled={isProcessing}
+                      className="bg-blue-600 border-blue-500 text-white hover:bg-blue-500"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                          Analyserar...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Analysera
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-3">
+                    {capturedImages.map((url, index) => (
+                      <div key={index} className="relative group">
+                        <img 
+                          src={url} 
+                          alt={`Bild ${index + 1}`}
+                          className="w-full aspect-square object-cover rounded-lg border-2 border-white/10"
+                        />
+                        <button
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute top-1 right-1 w-7 h-7 bg-red-600 hover:bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
+                        <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            </motion.div>
-            )}
-            </motion.div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Review Form Modal */}
          <AnimatePresence>
