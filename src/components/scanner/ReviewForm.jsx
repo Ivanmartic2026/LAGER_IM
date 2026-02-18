@@ -30,6 +30,7 @@ const STORAGE_TYPE_OPTIONS = [
 const FIELD_LABELS = {
   batch_number: "Batchnummer",
   name: "Artikelnamn",
+  supplier_name: "Leverantör",
   manufacturer: "Tillverkare",
   manufacturing_date: "Tillverkningsdatum",
   category: "Kategori",
@@ -245,10 +246,10 @@ export default function ReviewForm({
         />
 
         <ExtractedFieldCard
-          field="manufacturer"
-          label="Tillverkare"
-          value={extractedData.manufacturer}
-          confidence={confidences.manufacturer}
+          field="supplier_name"
+          label="Leverantör"
+          value={extractedData.supplier_name}
+          confidence={confidences.supplier_name}
           onChange={onFieldChange}
           placeholder="T.ex. Nick Everlasting"
         />
