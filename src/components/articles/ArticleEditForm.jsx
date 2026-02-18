@@ -252,13 +252,18 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     value={formData.supplier_id} 
                     onValueChange={(value) => {
                       const supplier = suppliers.find(s => s.id === value);
-                      handleChange('supplier_id', value);
-                      handleChange('supplier_name', supplier?.name || '');
+                      setFormData(prev => ({
+                        ...prev,
+                        supplier_id: value,
+                        supplier_name: supplier?.name || ''
+                      }));
                       setSupplierSearch('');
                     }}
                   >
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                      <SelectValue placeholder="Välj leverantör" />
+                      <SelectValue placeholder="Välj leverantör">
+                        {formData.supplier_name || "Välj leverantör"}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="max-h-[60vh]" position="popper" sideOffset={5}>
                       <div className="p-2 border-b border-slate-700 sticky top-0 bg-slate-900 z-10">
