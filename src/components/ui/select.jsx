@@ -67,18 +67,17 @@ const SelectContent = React.forwardRef(({ className, children, position = "poppe
         <SelectPrimitive.Content
           ref={ref}
           className={cn(
-            "fixed bottom-0 left-0 right-0 z-[9999] max-h-[80vh] overflow-hidden rounded-t-3xl border-t bg-slate-900 text-white shadow-2xl",
+            "fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-hidden rounded-t-3xl border-t bg-slate-900 text-white shadow-2xl",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
             className
           )}
           position={position}
           {...props}>
-          {/* Drawer handle */}
           <div className="flex justify-center py-3 border-b border-slate-800">
             <div className="w-12 h-1.5 rounded-full bg-slate-700" />
           </div>
-          <SelectPrimitive.Viewport className="p-4 max-h-[calc(80vh-60px)] overflow-y-auto touch-pan-y">
+          <SelectPrimitive.Viewport className="p-2 max-h-[calc(80vh-60px)] overflow-y-auto">
             {children}
           </SelectPrimitive.Viewport>
         </SelectPrimitive.Content>
