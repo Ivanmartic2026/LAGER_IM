@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import ExtractedFieldCard from './ExtractedFieldCard';
 import ConfidenceIndicator from './ConfidenceIndicator';
+import DuplicateWarning from './DuplicateWarning';
 
 const CATEGORY_OPTIONS = [
   { value: "Cabinet", label: "Kabinett" },
@@ -58,6 +59,8 @@ export default function ReviewForm({
   mode = "inbound",
   isAnalyzing = false
 }) {
+  const [duplicateArticles, setDuplicateArticles] = useState([]);
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const [selectedFields, setSelectedFields] = useState(() => {
     // Auto-select fields that have values
     const initial = {};
@@ -79,6 +82,23 @@ export default function ReviewForm({
     queryFn: () => base44.entities.Warehouse.list(),
   });
 
+  const { data: allArticles = [] } = useQuery({
+    queryKey: ['articles'],
+    queryFn: () => base44.entities.Article.list(),
+  });
+
+  // Check for duplicates when batch number changes
+  React.useEffect(() => {
+    if (extractedData.batch_number && extractedData.batch_number.trim()) {
+      const duplicates = allArticles.filter(
+        article => article.batch_number === extractedData.batch_number.trim()
+      );
+      setDuplicateArticles(duplicates);
+    } else {
+      setDuplicateArticles([]);
+    }
+  }, [extractedData.batch_number, allArticles]);
+
   // Get all extracted fields (excluding image_urls)
   const allExtractedFields = Object.keys(extractedData).filter(key => key !== 'image_urls');
   
@@ -94,7 +114,37 @@ export default function ReviewForm({
   };
 
   const handleSaveClick = () => {
+    // Check for duplicates before saving
+    if (duplicateArticles.length > 0 && !showDuplicateWarning) {
+      setShowDuplicateWarning(true);
+      return;
+    }
+
     // Filter extractedData to only include selected fields
+    const filteredData = {};
+    Object.keys(extractedData).forEach(key => {
+      if (selectedFields[key] || key === 'image_urls') {
+        filteredData[key] = extractedData[key];
+      }
+    });
+    onSave(filteredData);
+  };
+
+  const handleUpdateExisting = () => {
+    // Update the first duplicate found (or let user choose if multiple)
+    const existingArticle = duplicateArticles[0];
+    const newQuantity = (existingArticle.stock_qty || 0) + (extractedData.stock_qty || 0);
+    
+    onSave({
+      ...extractedData,
+      id: existingArticle.id,
+      stock_qty: newQuantity,
+      _isUpdate: true
+    });
+  };
+
+  const handleCreateNew = () => {
+    // Proceed with creation despite duplicates
     const filteredData = {};
     Object.keys(extractedData).forEach(key => {
       if (selectedFields[key] || key === 'image_urls') {
@@ -110,6 +160,16 @@ export default function ReviewForm({
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
+      {/* Duplicate Warning */}
+      {showDuplicateWarning && duplicateArticles.length > 0 && (
+        <DuplicateWarning
+          existingArticles={duplicateArticles}
+          onUpdate={handleUpdateExisting}
+          onCreateNew={handleCreateNew}
+          onCancel={() => setShowDuplicateWarning(false)}
+        />
+      )}
+
       {/* AI Extraction Summary or Loading State */}
        <div className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
          isAnalyzing 
