@@ -123,17 +123,19 @@ const SelectItem = React.forwardRef(({ className, children, ...props }, ref) => 
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-sm py-3 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 active:bg-accent",
-      "md:py-1.5 md:cursor-default", // Smaller padding on desktop
+      "relative flex w-full cursor-pointer items-center rounded-lg py-4 px-4 text-base outline-none focus:bg-slate-800 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:bg-slate-800 touch-manipulation",
+      "md:py-1.5 md:px-2 md:text-sm md:rounded-sm md:cursor-default", // Desktop styles
       className
     )}
+    onPointerDown={(e) => {
+      // Ensure the item is clickable on mobile
+      e.currentTarget.click();
+    }}
     {...props}>
-    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
-      <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
-      </SelectPrimitive.ItemIndicator>
-    </span>
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    <SelectPrimitive.ItemText className="flex-1">{children}</SelectPrimitive.ItemText>
+    <SelectPrimitive.ItemIndicator className="ml-2">
+      <Check className="h-5 w-5 text-blue-400" />
+    </SelectPrimitive.ItemIndicator>
   </SelectPrimitive.Item>
 ))
 SelectItem.displayName = SelectPrimitive.Item.displayName
