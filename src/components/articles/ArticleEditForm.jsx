@@ -265,16 +265,12 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                         {formData.supplier_name || "Välj leverantör"}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent className="max-h-[60vh] bg-slate-900 border-slate-700" position="popper" sideOffset={5}>
+                    <SelectContent className="max-h-[60vh]">
                       <div className="p-2 border-b border-slate-700 sticky top-0 bg-slate-900 z-10">
                         <Input
                           placeholder="Sök leverantör..."
                           value={supplierSearch}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            setSupplierSearch(e.target.value);
-                          }}
-                          onPointerDown={(e) => e.stopPropagation()}
+                          onChange={(e) => setSupplierSearch(e.target.value)}
                           className="h-9 bg-slate-800 border-slate-700 text-white"
                         />
                       </div>
@@ -314,7 +310,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                       <SelectValue placeholder="Välj kategori" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[60vh]" position="popper" sideOffset={5}>
+                    <SelectContent className="max-h-[60vh]">
                       <SelectItem value="Cabinet">10 - Cabinet</SelectItem>
                       <SelectItem value="LED Module">11 - LED Module</SelectItem>
                       <SelectItem value="Power Supply">12 - Power Supply</SelectItem>
@@ -337,7 +333,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                       <SelectValue placeholder="Välj lagertyp" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[60vh]" position="popper" sideOffset={5}>
+                    <SelectContent className="max-h-[60vh]">
                       <SelectItem value="company_owned">Företagsägt lager</SelectItem>
                       <SelectItem value="customer_owned">Kundägt lager</SelectItem>
                     </SelectContent>
@@ -512,7 +508,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                       <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                         <SelectValue placeholder="Välj lagerställe" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-[60vh]" position="popper" sideOffset={5}>
+                      <SelectContent className="max-h-[60vh]">
                         {warehouses.map((warehouse) => (
                           <SelectItem key={warehouse.id} value={warehouse.name}>
                             {warehouse.code ? `${warehouse.code} - ${warehouse.name}` : warehouse.name}
@@ -547,14 +543,13 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                             <SelectTrigger className="bg-slate-800 border-slate-700 text-white flex-1">
                               <SelectValue placeholder="Välj lagerplats" />
                             </SelectTrigger>
-                            <SelectContent className="max-h-[60vh]" position="popper" sideOffset={5}>
+                            <SelectContent className="max-h-[60vh]">
                               <div className="p-2 border-b border-slate-700 sticky top-0 bg-slate-900 z-10">
                                 <Input
                                   placeholder="Sök lagerplats..."
                                   value={shelfSearch}
                                   onChange={(e) => setShelfSearch(e.target.value)}
                                   className="h-9 bg-slate-800 border-slate-700 text-white"
-                                  onClick={(e) => e.stopPropagation()}
                                 />
                               </div>
                               {filteredShelves.length === 0 ? (
@@ -658,7 +653,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                       <SelectValue placeholder="Välj serie" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[60vh]" position="popper" sideOffset={5}>
+                    <SelectContent className="max-h-[60vh]">
                       <SelectItem value="Indoor">Indoor</SelectItem>
                       <SelectItem value="Outdoor">Outdoor</SelectItem>
                       <SelectItem value="UltraBright">UltraBright</SelectItem>
