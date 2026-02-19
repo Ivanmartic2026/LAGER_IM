@@ -265,14 +265,17 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                         {formData.supplier_name || "Välj leverantör"}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent className="max-h-[60vh]" position="popper" sideOffset={5}>
+                    <SelectContent className="max-h-[60vh] bg-slate-900 border-slate-700" position="popper" sideOffset={5}>
                       <div className="p-2 border-b border-slate-700 sticky top-0 bg-slate-900 z-10">
                         <Input
                           placeholder="Sök leverantör..."
                           value={supplierSearch}
-                          onChange={(e) => setSupplierSearch(e.target.value)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            setSupplierSearch(e.target.value);
+                          }}
+                          onPointerDown={(e) => e.stopPropagation()}
                           className="h-9 bg-slate-800 border-slate-700 text-white"
-                          onClick={(e) => e.stopPropagation()}
                         />
                       </div>
                       {filteredSuppliers.length === 0 ? (
@@ -281,7 +284,11 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                         </div>
                       ) : (
                         filteredSuppliers.map((supplier) => (
-                          <SelectItem key={supplier.id} value={supplier.id}>
+                          <SelectItem 
+                            key={supplier.id} 
+                            value={supplier.id}
+                            className="bg-slate-900 text-white hover:bg-slate-800"
+                          >
                             {supplier.name}
                           </SelectItem>
                         ))
