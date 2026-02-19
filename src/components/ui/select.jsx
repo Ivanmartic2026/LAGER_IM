@@ -64,7 +64,6 @@ const SelectContent = React.forwardRef(({ className, children, position = "poppe
     // Mobile: Use Drawer (Action Sheet style)
     return (
       <SelectPrimitive.Portal>
-        <div className="fixed inset-0 z-[9998] bg-black/50" />
         <SelectPrimitive.Content
           ref={ref}
           className={cn(
@@ -74,7 +73,6 @@ const SelectContent = React.forwardRef(({ className, children, position = "poppe
             className
           )}
           position={position}
-          onPointerDownOutside={(e) => e.preventDefault()}
           {...props}>
           {/* Drawer handle */}
           <div className="flex justify-center py-3 border-b border-slate-800">
