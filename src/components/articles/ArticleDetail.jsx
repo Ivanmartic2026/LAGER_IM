@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Package, MapPin, Calendar, Hash, Factory, Ruler, 
   Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2, History,
-  DollarSign, Warehouse, Tag, Check, X, ShoppingCart, Copy, Camera, MessageSquare, Sparkles
+  DollarSign, Warehouse, Tag, Check, X, ShoppingCart, Copy, Camera, MessageSquare, Sparkles, FileText, Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -36,6 +36,7 @@ export default function ArticleDetail({
   const [repairModalOpen, setRepairModalOpen] = useState(false);
   const [returnFromRepairModalOpen, setReturnFromRepairModalOpen] = useState(false);
   const [linkToSiteModalOpen, setLinkToSiteModalOpen] = useState(false);
+  const [generatingDocument, setGeneratingDocument] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [editingDimensions, setEditingDimensions] = useState(false);
@@ -489,6 +490,41 @@ export default function ArticleDetail({
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <Copy className="w-4 h-4" />
+            )}
+          </div>
+
+          <div
+            onClick={async () => {
+              if (generatingDocument) return;
+              setGeneratingDocument(true);
+              try {
+                const response = await base44.functions.invoke('generateSupplierRequestDocument', {
+                  article_id: article.id
+                });
+
+                if (response.data.success) {
+                  const newWindow = window.open('', '_blank');
+                  if (newWindow) {
+                    newWindow.document.write(response.data.html);
+                    newWindow.document.close();
+                    toast.success('Dokument genererat! Spara som PDF eller skriv ut.');
+                  }
+                }
+              } catch (error) {
+                console.error('Error:', error);
+                toast.error('Kunde inte generera dokument');
+              } finally {
+                setGeneratingDocument(false);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            className={`h-10 px-4 rounded-xl text-white text-sm font-medium flex items-center gap-2 transition-all shadow-lg hover:shadow-xl ${generatingDocument ? 'bg-slate-600 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-600 hover:to-blue-600 cursor-pointer'}`}
+          >
+            {generatingDocument ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileText className="w-4 h-4" />
             )}
           </div>
           
