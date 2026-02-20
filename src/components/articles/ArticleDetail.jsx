@@ -46,6 +46,28 @@ export default function ArticleDetail({
     dimensions_depth_mm: article.dimensions_depth_mm || '',
     weight_g: article.weight_g || ''
   });
+  const [editingBasicInfo, setEditingBasicInfo] = useState(false);
+  const [basicInfoData, setBasicInfoData] = useState({
+    sku: article.sku || '',
+    name: article.name || '',
+    batch_number: article.batch_number || '',
+    supplier_name: article.supplier_name || '',
+    category: article.category || '',
+  });
+  const [editingLocation, setEditingLocation] = useState(false);
+  const [locationData, setLocationData] = useState({
+    warehouse: article.warehouse || '',
+    shelf_address: article.shelf_address || '',
+  });
+  const [editingTechnical, setEditingTechnical] = useState(false);
+  const [technicalData, setTechnicalData] = useState({
+    pixel_pitch_mm: article.pixel_pitch_mm || '',
+    series: article.series || '',
+    product_version: article.product_version || '',
+    brightness_nits: article.brightness_nits || '',
+    manufacturer: article.manufacturer || '',
+    manufacturing_date: article.manufacturing_date || '',
+  });
   const queryClient = useQueryClient();
 
   // Fetch stock movements for this article
@@ -763,30 +785,144 @@ export default function ArticleDetail({
           {/* Grundläggande information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <h3 className="font-semibold text-white mb-4">Artikelinformation</h3>
-              <div className="space-y-0">
-                {article.sku && (
-                  <InfoRow icon={Hash} label="Artikelnummer" value={article.sku} />
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-white">Artikelinformation</h3>
+                {!editingBasicInfo ? (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setEditingBasicInfo(true);
+                      setBasicInfoData({
+                        sku: article.sku || '',
+                        name: article.name || '',
+                        batch_number: article.batch_number || '',
+                        supplier_name: article.supplier_name || '',
+                        category: article.category || '',
+                      });
+                    }}
+                    className="h-8 px-3 text-sm rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 flex items-center gap-1 transition-colors"
+                  >
+                    <Edit className="w-3 h-3" />
+                    Redigera
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditingBasicInfo(false);
+                      }}
+                      className="h-8 px-3 text-sm rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                    >
+                      Avbryt
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        try {
+                          const updatedData = {
+                            sku: basicInfoData.sku || null,
+                            name: basicInfoData.name,
+                            batch_number: basicInfoData.batch_number || null,
+                            supplier_name: basicInfoData.supplier_name || null,
+                            category: basicInfoData.category || null,
+                          };
+                          await updateArticleMutation.mutateAsync({
+                            id: article.id,
+                            data: updatedData
+                          });
+                          Object.assign(article, updatedData);
+                          setEditingBasicInfo(false);
+                          toast.success('Information uppdaterad');
+                        } catch (error) {
+                          toast.error('Kunde inte uppdatera information');
+                        }
+                      }}
+                      disabled={updateArticleMutation.isPending || !basicInfoData.name}
+                      className="h-8 px-3 text-sm rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors disabled:opacity-50"
+                    >
+                      Spara
+                    </button>
+                  </div>
                 )}
-                <InfoRow icon={Package} label="Benämning" value={article.name} />
-                {article.batch_number && (
-                  <InfoRow icon={Hash} label="Batch Nummer" value={article.batch_number} />
-                )}
-                {article.supplier_name && (
-                  <InfoRow icon={Factory} label="Leverantör" value={article.supplier_name} />
-                )}
-                {article.supplier_price && (
-                  <InfoRow icon={DollarSign} label="Leverantörspris" value={`${article.supplier_price} kr`} />
-                )}
-                {article.category && (
-                  <InfoRow icon={Tag} label="Typ av artikel" value={article.category} />
-                )}
-                <InfoRow 
-                  icon={article.is_stock_item !== false ? Check : X} 
-                  label="Lagervara" 
-                  value={article.is_stock_item !== false ? "Ja" : "Nej"} 
-                />
               </div>
+              {editingBasicInfo ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Artikelnummer (SKU)</label>
+                    <Input
+                      type="text"
+                      value={basicInfoData.sku}
+                      onChange={(e) => setBasicInfoData({...basicInfoData, sku: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Benämning *</label>
+                    <Input
+                      type="text"
+                      value={basicInfoData.name}
+                      onChange={(e) => setBasicInfoData({...basicInfoData, name: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Batch Nummer</label>
+                    <Input
+                      type="text"
+                      value={basicInfoData.batch_number}
+                      onChange={(e) => setBasicInfoData({...basicInfoData, batch_number: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Leverantör</label>
+                    <Input
+                      type="text"
+                      value={basicInfoData.supplier_name}
+                      onChange={(e) => setBasicInfoData({...basicInfoData, supplier_name: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Typ av artikel</label>
+                    <Input
+                      type="text"
+                      value={basicInfoData.category}
+                      onChange={(e) => setBasicInfoData({...basicInfoData, category: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-0">
+                  {article.sku && (
+                    <InfoRow icon={Hash} label="Artikelnummer" value={article.sku} />
+                  )}
+                  <InfoRow icon={Package} label="Benämning" value={article.name} />
+                  {article.batch_number && (
+                    <InfoRow icon={Hash} label="Batch Nummer" value={article.batch_number} />
+                  )}
+                  {article.supplier_name && (
+                    <InfoRow icon={Factory} label="Leverantör" value={article.supplier_name} />
+                  )}
+                  {article.supplier_price && (
+                    <InfoRow icon={DollarSign} label="Leverantörspris" value={`${article.supplier_price} kr`} />
+                  )}
+                  {article.category && (
+                    <InfoRow icon={Tag} label="Typ av artikel" value={article.category} />
+                  )}
+                  <InfoRow 
+                    icon={article.is_stock_item !== false ? Check : X} 
+                    label="Lagervara" 
+                    value={article.is_stock_item !== false ? "Ja" : "Nej"} 
+                  />
+                </div>
+              )}
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
@@ -915,36 +1051,249 @@ export default function ArticleDetail({
             </div>
           </div>
 
-          {/* Lagerplats & Kostnader */}
+          {/* Lagerplats & Teknisk */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <h3 className="font-semibold text-white mb-4">Lagerplats</h3>
-              <div className="space-y-0">
-                {article.warehouse && (
-                  <InfoRow icon={Warehouse} label="Lagerställe" value={article.warehouse} />
-                )}
-                {article.shelf_address && (
-                  <InfoRow icon={MapPin} label="Lagerplats" value={article.shelf_address} />
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-white">Lagerplats</h3>
+                {!editingLocation ? (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setEditingLocation(true);
+                      setLocationData({
+                        warehouse: article.warehouse || '',
+                        shelf_address: article.shelf_address || '',
+                      });
+                    }}
+                    className="h-8 px-3 text-sm rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 flex items-center gap-1 transition-colors"
+                  >
+                    <Edit className="w-3 h-3" />
+                    Redigera
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditingLocation(false);
+                      }}
+                      className="h-8 px-3 text-sm rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                    >
+                      Avbryt
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        try {
+                          const updatedData = {
+                            warehouse: locationData.warehouse || null,
+                            shelf_address: locationData.shelf_address || null,
+                          };
+                          await updateArticleMutation.mutateAsync({
+                            id: article.id,
+                            data: updatedData
+                          });
+                          Object.assign(article, updatedData);
+                          setEditingLocation(false);
+                          toast.success('Lagerplats uppdaterad');
+                        } catch (error) {
+                          toast.error('Kunde inte uppdatera lagerplats');
+                        }
+                      }}
+                      disabled={updateArticleMutation.isPending}
+                      className="h-8 px-3 text-sm rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors disabled:opacity-50"
+                    >
+                      Spara
+                    </button>
+                  </div>
                 )}
               </div>
+              {editingLocation ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Lagerställe</label>
+                    <Input
+                      type="text"
+                      value={locationData.warehouse}
+                      onChange={(e) => setLocationData({...locationData, warehouse: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Hyllplats</label>
+                    <Input
+                      type="text"
+                      value={locationData.shelf_address}
+                      onChange={(e) => setLocationData({...locationData, shelf_address: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-0">
+                  {article.warehouse && (
+                    <InfoRow icon={Warehouse} label="Lagerställe" value={article.warehouse} />
+                  )}
+                  {article.shelf_address && (
+                    <InfoRow icon={MapPin} label="Lagerplats" value={article.shelf_address} />
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <h3 className="font-semibold text-white mb-4">Teknisk Information</h3>
-              <div className="space-y-0">
-                {article.pixel_pitch_mm && (
-                  <InfoRow icon={Grid3X3} label="Pixel Pitch" value={`${article.pixel_pitch_mm} mm`} />
-                )}
-                {article.series && (
-                  <InfoRow icon={Package} label="Serie" value={article.series} />
-                )}
-                {article.product_version && (
-                  <InfoRow icon={Hash} label="Version" value={article.product_version} />
-                )}
-                {article.brightness_nits && (
-                  <InfoRow icon={Grid3X3} label="Ljusstyrka" value={`${article.brightness_nits} nits`} />
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-white">Teknisk Information</h3>
+                {!editingTechnical ? (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setEditingTechnical(true);
+                      setTechnicalData({
+                        pixel_pitch_mm: article.pixel_pitch_mm || '',
+                        series: article.series || '',
+                        product_version: article.product_version || '',
+                        brightness_nits: article.brightness_nits || '',
+                        manufacturer: article.manufacturer || '',
+                        manufacturing_date: article.manufacturing_date || '',
+                      });
+                    }}
+                    className="h-8 px-3 text-sm rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 flex items-center gap-1 transition-colors"
+                  >
+                    <Edit className="w-3 h-3" />
+                    Redigera
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditingTechnical(false);
+                      }}
+                      className="h-8 px-3 text-sm rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                    >
+                      Avbryt
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        try {
+                          const updatedData = {
+                            pixel_pitch_mm: technicalData.pixel_pitch_mm ? Number(technicalData.pixel_pitch_mm) : null,
+                            series: technicalData.series || null,
+                            product_version: technicalData.product_version || null,
+                            brightness_nits: technicalData.brightness_nits ? Number(technicalData.brightness_nits) : null,
+                            manufacturer: technicalData.manufacturer || null,
+                            manufacturing_date: technicalData.manufacturing_date || null,
+                          };
+                          await updateArticleMutation.mutateAsync({
+                            id: article.id,
+                            data: updatedData
+                          });
+                          Object.assign(article, updatedData);
+                          setEditingTechnical(false);
+                          toast.success('Teknisk information uppdaterad');
+                        } catch (error) {
+                          toast.error('Kunde inte uppdatera information');
+                        }
+                      }}
+                      disabled={updateArticleMutation.isPending}
+                      className="h-8 px-3 text-sm rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors disabled:opacity-50"
+                    >
+                      Spara
+                    </button>
+                  </div>
                 )}
               </div>
+              {editingTechnical ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Pixel Pitch (mm)</label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={technicalData.pixel_pitch_mm}
+                      onChange={(e) => setTechnicalData({...technicalData, pixel_pitch_mm: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Serie</label>
+                    <Input
+                      type="text"
+                      value={technicalData.series}
+                      onChange={(e) => setTechnicalData({...technicalData, series: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Version</label>
+                    <Input
+                      type="text"
+                      value={technicalData.product_version}
+                      onChange={(e) => setTechnicalData({...technicalData, product_version: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Ljusstyrka (nits)</label>
+                    <Input
+                      type="number"
+                      value={technicalData.brightness_nits}
+                      onChange={(e) => setTechnicalData({...technicalData, brightness_nits: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Tillverkare</label>
+                    <Input
+                      type="text"
+                      value={technicalData.manufacturer}
+                      onChange={(e) => setTechnicalData({...technicalData, manufacturer: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block">Tillverkningsdatum</label>
+                    <Input
+                      type="date"
+                      value={technicalData.manufacturing_date}
+                      onChange={(e) => setTechnicalData({...technicalData, manufacturing_date: e.target.value})}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-0">
+                  {article.pixel_pitch_mm && (
+                    <InfoRow icon={Grid3X3} label="Pixel Pitch" value={`${article.pixel_pitch_mm} mm`} />
+                  )}
+                  {article.series && (
+                    <InfoRow icon={Package} label="Serie" value={article.series} />
+                  )}
+                  {article.product_version && (
+                    <InfoRow icon={Hash} label="Version" value={article.product_version} />
+                  )}
+                  {article.brightness_nits && (
+                    <InfoRow icon={Grid3X3} label="Ljusstyrka" value={`${article.brightness_nits} nits`} />
+                  )}
+                  {article.manufacturer && (
+                    <InfoRow icon={Factory} label="Tillverkare" value={article.manufacturer} />
+                  )}
+                  {article.manufacturing_date && !isNaN(new Date(article.manufacturing_date).getTime()) && (
+                    <InfoRow icon={Calendar} label="Tillverkningsdatum" value={
+                      format(new Date(article.manufacturing_date), "d MMM yyyy", { locale: sv })
+                    } />
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
