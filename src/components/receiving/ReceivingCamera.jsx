@@ -48,10 +48,7 @@ export default function ReceivingCamera({ onCapture, onClose }) {
 
       canvasRef.current.toBlob((blob) => {
         const file = new File([blob], `receiving-${Date.now()}.jpg`, { type: 'image/jpeg' });
-        setCapturedImage(canvasRef.current.toDataURL());
-        setTimeout(() => {
-          onCapture(file);
-        }, 800);
+        setCapturedImage({ file, dataUrl: canvasRef.current.toDataURL() });
       }, 'image/jpeg', 0.95);
     }
   };
@@ -191,7 +188,7 @@ export default function ReceivingCamera({ onCapture, onClose }) {
               animate={{ scale: 1, opacity: 1 }}
               className="relative w-full max-w-md"
             >
-              <img src={capturedImage} alt="Captured" className="w-full rounded-2xl" />
+              <img src={capturedImage?.dataUrl} alt="Captured" className="w-full rounded-2xl" />
               
               <motion.div
                 initial={{ scale: 0 }}
@@ -217,10 +214,14 @@ export default function ReceivingCamera({ onCapture, onClose }) {
                 Fotografera igen
               </Button>
               <Button
-                onClick={onClose}
+                onClick={() => {
+                  if (capturedImage?.file) {
+                    onCapture(capturedImage.file);
+                  }
+                }}
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white px-8 shadow-lg shadow-green-500/50"
               >
-                Klar
+                Använd bild
               </Button>
             </motion.div>
           </motion.div>
