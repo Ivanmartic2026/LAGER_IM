@@ -199,6 +199,22 @@ export default function SupplierDocumentUpload() {
               </div>
             </div>
 
+            {/* Documentation Request */}
+            <div className="bg-blue-500/10 rounded-xl p-4 border border-blue-500/30">
+              <h2 className="text-lg font-semibold text-blue-300 mb-3">Documentation Request</h2>
+              <div className="text-sm text-slate-300 space-y-2">
+                <p>
+                  We kindly request supplementary documentation regarding the relevant purchase, including the corresponding invoice, in order for us to reference the correct installation/delivery in our system.
+                </p>
+                <p>
+                  If available, please also include the project name and any relevant product images, as this will help us ensure accurate identification and traceability.
+                </p>
+                <p>
+                  We would appreciate it if you could provide the requested documentation at your earliest convenience.
+                </p>
+              </div>
+            </div>
+
             {/* Upload Area */}
             <div>
               <h2 className="text-lg font-semibold text-white mb-3">Upload Documents</h2>
