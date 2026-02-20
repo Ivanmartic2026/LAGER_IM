@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Package, MapPin, Calendar, Hash, Factory, Ruler, 
   Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2, History,
@@ -85,6 +86,11 @@ export default function ArticleDetail({
   });
 
   const articlesOnRepair = allArticles.filter(a => a.status === 'on_repair');
+
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: () => base44.entities.Supplier.list(),
+  });
 
   // Fetch assembly data
   const { data: assemblyParts = [] } = useQuery({
@@ -881,21 +887,43 @@ export default function ArticleDetail({
                   </div>
                   <div>
                     <label className="text-xs text-slate-400 mb-1 block">Leverantör</label>
-                    <Input
-                      type="text"
+                    <Select
                       value={basicInfoData.supplier_name}
-                      onChange={(e) => setBasicInfoData({...basicInfoData, supplier_name: e.target.value})}
-                      className="bg-slate-900 border-slate-700 text-white"
-                    />
+                      onValueChange={(value) => setBasicInfoData({...basicInfoData, supplier_name: value})}
+                    >
+                      <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                        <SelectValue placeholder="Välj leverantör..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {suppliers.map(supplier => (
+                          <SelectItem key={supplier.id} value={supplier.name}>
+                            {supplier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <label className="text-xs text-slate-400 mb-1 block">Typ av artikel</label>
-                    <Input
-                      type="text"
+                    <Select
                       value={basicInfoData.category}
-                      onChange={(e) => setBasicInfoData({...basicInfoData, category: e.target.value})}
-                      className="bg-slate-900 border-slate-700 text-white"
-                    />
+                      onValueChange={(value) => setBasicInfoData({...basicInfoData, category: value})}
+                    >
+                      <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                        <SelectValue placeholder="Välj typ..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Cabinet">Kabinett</SelectItem>
+                        <SelectItem value="LED Module">LED-modul</SelectItem>
+                        <SelectItem value="Power Supply">Strömförsörjning</SelectItem>
+                        <SelectItem value="Receiving Card">Receiving card</SelectItem>
+                        <SelectItem value="Control Processor">Control Processor</SelectItem>
+                        <SelectItem value="Computer">Dator</SelectItem>
+                        <SelectItem value="Cable">Kabel</SelectItem>
+                        <SelectItem value="Accessory">Tillbehör</SelectItem>
+                        <SelectItem value="Other">Övrigt</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               ) : (
