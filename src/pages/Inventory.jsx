@@ -748,13 +748,15 @@ export default function InventoryPage() {
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white">
                   <SelectItem value="all">Alla kategorier</SelectItem>
-                  <SelectItem value="LED Module">LED Module</SelectItem>
-                  <SelectItem value="Cabinet">Cabinet</SelectItem>
-                  <SelectItem value="Controller">Controller</SelectItem>
-                  <SelectItem value="Power Supply">Power Supply</SelectItem>
-                  <SelectItem value="Cable">Cable</SelectItem>
-                  <SelectItem value="Accessory">Accessory</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
+                  <SelectItem value="Cabinet">Kabinett</SelectItem>
+                  <SelectItem value="LED Module">LED-modul</SelectItem>
+                  <SelectItem value="Power Supply">Strömförsörjning</SelectItem>
+                  <SelectItem value="Receiving Card">Receiving card</SelectItem>
+                  <SelectItem value="Control Processor">Control Processor</SelectItem>
+                  <SelectItem value="Computer">Dator</SelectItem>
+                  <SelectItem value="Cable">Kabel</SelectItem>
+                  <SelectItem value="Accessory">Tillbehör</SelectItem>
+                  <SelectItem value="Other">Övrigt</SelectItem>
                 </SelectContent>
               </Select>
               </div>
