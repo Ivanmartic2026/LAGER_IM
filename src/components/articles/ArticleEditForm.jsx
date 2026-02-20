@@ -264,13 +264,17 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                       <SelectValue placeholder="Välj leverantör" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[60vh]">
-                      <div className="p-2 border-b border-slate-700 sticky top-0 bg-slate-900 z-10">
+                      <div 
+                        className="p-2 border-b border-slate-700 sticky top-0 bg-slate-900 z-10"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                      >
                         <Input
                           placeholder="Sök leverantör..."
                           value={supplierSearch}
                           onChange={(e) => setSupplierSearch(e.target.value)}
                           className="h-9 bg-slate-800 border-slate-700 text-white"
-                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
                         />
                       </div>
                       {filteredSuppliers.length === 0 ? (
