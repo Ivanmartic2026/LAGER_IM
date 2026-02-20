@@ -381,6 +381,58 @@ export default function ArticleDetail({
         <div className="flex gap-2 flex-wrap relative z-[101]">
           <div
             onClick={async () => {
+              const loadingToast = toast.loading('Genererar etikett...');
+              try {
+                const response = await base44.functions.invoke('generateA4Label', { articleId: article.id });
+                
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'absolute';
+                iframe.style.width = '1240px';
+                iframe.style.height = '1754px';
+                iframe.style.left = '-9999px';
+                document.body.appendChild(iframe);
+                
+                iframe.contentDocument.write(response.data);
+                iframe.contentDocument.close();
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const html2canvas = (await import('html2canvas')).default;
+                const canvas = await html2canvas(iframe.contentDocument.body, {
+                  width: 1240,
+                  height: 1754,
+                  scale: 2,
+                  backgroundColor: '#ffffff'
+                });
+                
+                canvas.toBlob((blob) => {
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `artikel_${article.batch_number}_${Date.now()}.png`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  a.remove();
+                  document.body.removeChild(iframe);
+                  toast.success('A4-etikett nedladdad', { id: loadingToast });
+                }, 'image/png');
+                
+              } catch (error) {
+                console.error('A4 error:', error);
+                toast.error('Kunde inte generera etikett: ' + error.message, { id: loadingToast });
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            className="h-10 px-4 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-white text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-xl"
+          >
+            <Printer className="w-4 h-4" />
+            <span className="hidden sm:inline">A4</span>
+          </div>
+          
+          <div
+            onClick={async () => {
               const loadingToast = toast.loading('Öppnar etikett...');
               try {
                 const response = await base44.functions.invoke('generateResponsiveLabel', {
@@ -405,7 +457,7 @@ export default function ArticleDetail({
             className="h-10 px-4 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-white text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-xl"
           >
             <Printer className="w-4 h-4" />
-            <span className="hidden sm:inline">HTML Etikett</span>
+            <span className="hidden sm:inline">HTML</span>
           </div>
 
           <div
