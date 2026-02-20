@@ -17,6 +17,7 @@ import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import ReceivingItemCard from "@/components/receiving/ReceivingItemCard";
 import ReceivingRecordDetailModal from "@/components/receiving/ReceivingRecordDetailModal";
 import ReceivingCamera from "@/components/receiving/ReceivingCamera";
+import AIReviewForm from "@/components/receiving/AIReviewForm";
 
 export default function ReceivePurchaseOrderPage() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -27,6 +28,8 @@ export default function ReceivePurchaseOrderPage() {
   const [selectedReceivingRecords, setSelectedReceivingRecords] = useState([]);
   const [showReceivingModal, setShowReceivingModal] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [aiExtractedData, setAiExtractedData] = useState(null);
+  const [showAIReview, setShowAIReview] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -482,45 +485,68 @@ export default function ReceivePurchaseOrderPage() {
               onCapture={async (file) => {
                 try {
                   // Upload image
+                  toast.info('Laddar upp bild...');
                   const { file_url } = await base44.integrations.Core.UploadFile({ file });
                   
                   // Parse document with AI
-                  toast.info('Analyserar dokument...');
+                  toast.info('Analyserar dokument med AI...');
                   const analysis = await base44.functions.invoke('parseReceivingDocument', {
                     fileUrls: [file_url]
                   });
 
                   if (analysis.data.success && analysis.data.extracted) {
                     const extracted = analysis.data.extracted;
-                    
-                    // Show extracted information to user
-                    if (extracted.article_numbers?.length > 0) {
-                      const articleNumbers = extracted.article_numbers.map(a => a.value).join(', ');
-                      toast.success(`Hittade artikelnummer: ${articleNumbers}`);
-                    }
-                    
-                    if (extracted.batch_lot?.length > 0) {
-                      const batches = extracted.batch_lot.map(b => b.value).join(', ');
-                      toast.success(`Hittade batch: ${batches}`);
-                    }
-
-                    if (extracted.quantity?.length > 0) {
-                      const quantities = extracted.quantity.map(q => q.value).join(', ');
-                      toast.info(`Hittade kvantitet: ${quantities}`);
-                    }
+                    setAiExtractedData(extracted);
+                    setShowCamera(false);
+                    setShowAIReview(true);
+                    toast.success('Dokument analyserat! Granska resultatet.');
+                  } else {
+                    toast.error('Kunde inte extrahera data från dokumentet');
+                    setShowCamera(false);
                   }
-                  
-                  toast.success('Dokument analyserat och sparat!');
-                  setShowCamera(false);
                 } catch (error) {
                   console.error('Error:', error);
                   toast.error('Kunde inte analysera dokument: ' + error.message);
+                  setShowCamera(false);
                 }
               }}
               onClose={() => setShowCamera(false)}
             />
           )}
         </AnimatePresence>
+
+        {/* AI Review Form */}
+        {showAIReview && aiExtractedData && (
+          <AIReviewForm
+            extractedData={aiExtractedData}
+            poItems={pendingItems}
+            articles={articles}
+            onConfirm={async (selectedItems, notes) => {
+              try {
+                for (const item of selectedItems) {
+                  await handleReceiveQuantity(item.poItem, {
+                    quantity: item.quantity,
+                    shelfAddress: item.article.shelf_address?.[0] || '',
+                    notes: notes || `AI-scannad från dokument`,
+                    qualityCheck: false,
+                    hasDiscrepancy: false,
+                    discrepancyReason: null,
+                    images: []
+                  });
+                }
+                setShowAIReview(false);
+                setAiExtractedData(null);
+                toast.success('Artiklar mottagna!');
+              } catch (error) {
+                toast.error('Kunde inte ta emot artiklar: ' + error.message);
+              }
+            }}
+            onCancel={() => {
+              setShowAIReview(false);
+              setAiExtractedData(null);
+            }}
+          />
+        )}
 
         {/* Receiving Records Modal */}
          {showReceivingModal && selectedReceivingRecords.length > 0 && (
