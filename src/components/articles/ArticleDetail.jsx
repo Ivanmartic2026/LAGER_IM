@@ -49,10 +49,9 @@ export default function ArticleDetail({
   });
   const [editingBasicInfo, setEditingBasicInfo] = useState(false);
   const [basicInfoData, setBasicInfoData] = useState({
-    sku: article.sku || '',
     name: article.name || '',
     batch_number: article.batch_number || '',
-    supplier_name: article.supplier_name || '',
+    manufacturer: article.manufacturer || '',
     category: article.category || '',
   });
   const [editingLocation, setEditingLocation] = useState(false);
@@ -800,10 +799,9 @@ export default function ArticleDetail({
                       e.stopPropagation();
                       setEditingBasicInfo(true);
                       setBasicInfoData({
-                        sku: article.sku || '',
                         name: article.name || '',
                         batch_number: article.batch_number || '',
-                        supplier_name: article.supplier_name || '',
+                        manufacturer: article.manufacturer || '',
                         category: article.category || '',
                       });
                     }}
@@ -830,10 +828,9 @@ export default function ArticleDetail({
                         e.stopPropagation();
                         try {
                           const updatedData = {
-                            sku: basicInfoData.sku || null,
                             name: basicInfoData.name,
                             batch_number: basicInfoData.batch_number || null,
-                            supplier_name: basicInfoData.supplier_name || null,
+                            manufacturer: basicInfoData.manufacturer || null,
                             category: basicInfoData.category || null,
                           };
                           await updateArticleMutation.mutateAsync({
@@ -858,15 +855,6 @@ export default function ArticleDetail({
               {editingBasicInfo ? (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Artikelnummer (SKU)</label>
-                    <Input
-                      type="text"
-                      value={basicInfoData.sku}
-                      onChange={(e) => setBasicInfoData({...basicInfoData, sku: e.target.value})}
-                      className="bg-slate-900 border-slate-700 text-white"
-                    />
-                  </div>
-                  <div>
                     <label className="text-xs text-slate-400 mb-1 block">Benämning *</label>
                     <Input
                       type="text"
@@ -886,13 +874,13 @@ export default function ArticleDetail({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Leverantör</label>
+                    <label className="text-xs text-slate-400 mb-1 block">Tillverkare</label>
                     <Select
-                      value={basicInfoData.supplier_name}
-                      onValueChange={(value) => setBasicInfoData({...basicInfoData, supplier_name: value})}
+                      value={basicInfoData.manufacturer}
+                      onValueChange={(value) => setBasicInfoData({...basicInfoData, manufacturer: value})}
                     >
                       <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
-                        <SelectValue placeholder="Välj leverantör..." />
+                        <SelectValue placeholder="Välj tillverkare..." />
                       </SelectTrigger>
                       <SelectContent>
                         {suppliers.map(supplier => (
@@ -928,27 +916,16 @@ export default function ArticleDetail({
                 </div>
               ) : (
                 <div className="space-y-0">
-                  {article.sku && (
-                    <InfoRow icon={Hash} label="Artikelnummer" value={article.sku} />
-                  )}
                   <InfoRow icon={Package} label="Benämning" value={article.name} />
                   {article.batch_number && (
                     <InfoRow icon={Hash} label="Batch Nummer" value={article.batch_number} />
                   )}
-                  {article.supplier_name && (
-                    <InfoRow icon={Factory} label="Leverantör" value={article.supplier_name} />
-                  )}
-                  {article.supplier_price && (
-                    <InfoRow icon={DollarSign} label="Leverantörspris" value={`${article.supplier_price} kr`} />
+                  {article.manufacturer && (
+                    <InfoRow icon={Factory} label="Tillverkare" value={article.manufacturer} />
                   )}
                   {article.category && (
                     <InfoRow icon={Tag} label="Typ av artikel" value={article.category} />
                   )}
-                  <InfoRow 
-                    icon={article.is_stock_item !== false ? Check : X} 
-                    label="Lagervara" 
-                    value={article.is_stock_item !== false ? "Ja" : "Nej"} 
-                  />
                 </div>
               )}
             </div>
