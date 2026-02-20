@@ -381,129 +381,31 @@ export default function ArticleDetail({
         <div className="flex gap-2 flex-wrap relative z-[101]">
           <div
             onClick={async () => {
-              const loadingToast = toast.loading('Genererar etikett...');
-              try {
-                const response = await base44.functions.invoke('generateA4Label', { articleId: article.id });
-                
-                const iframe = document.createElement('iframe');
-                iframe.style.position = 'absolute';
-                iframe.style.width = '1240px';
-                iframe.style.height = '1754px';
-                iframe.style.left = '-9999px';
-                document.body.appendChild(iframe);
-                
-                iframe.contentDocument.write(response.data);
-                iframe.contentDocument.close();
-                
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                const html2canvas = (await import('html2canvas')).default;
-                const canvas = await html2canvas(iframe.contentDocument.body, {
-                  width: 1240,
-                  height: 1754,
-                  scale: 2,
-                  backgroundColor: '#ffffff'
-                });
-                
-                canvas.toBlob((blob) => {
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `artikel_${article.batch_number}_${Date.now()}.png`;
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                  a.remove();
-                  document.body.removeChild(iframe);
-                  toast.success('A4-etikett nedladdad', { id: loadingToast });
-                }, 'image/png');
-                
-              } catch (error) {
-                console.error('A4 error:', error);
-                toast.error('Kunde inte generera etikett: ' + error.message, { id: loadingToast });
-              }
-            }}
-            role="button"
-            tabIndex={0}
-            className="h-10 px-4 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-white text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-xl"
-          >
-            <Printer className="w-4 h-4" />
-            <span className="hidden sm:inline">A4</span>
-          </div>
-          
-          <div
-            onClick={async () => {
-              const loadingToast = toast.loading('Genererar liten etikett...');
-              try {
-                const response = await base44.functions.invoke('generateSmallLabel', { articleId: article.id });
-
-                const iframe = document.createElement('iframe');
-                iframe.style.position = 'absolute';
-                iframe.style.width = '113px';
-                iframe.style.height = '85px';
-                iframe.style.left = '-9999px';
-                document.body.appendChild(iframe);
-
-                iframe.contentDocument.write(response.data);
-                iframe.contentDocument.close();
-
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                const html2canvas = (await import('html2canvas')).default;
-                const canvas = await html2canvas(iframe.contentDocument.body, {
-                  width: 113,
-                  height: 85,
-                  scale: 1,
-                  backgroundColor: '#ffffff'
-                });
-
-                canvas.toBlob((blob) => {
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `label_40x30mm_${article.batch_number || article.id.slice(0, 8)}_${Date.now()}.png`;
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                  a.remove();
-                  document.body.removeChild(iframe);
-                  toast.success('40x30mm etikett nedladdad', { id: loadingToast });
-                }, 'image/png');
-
-              } catch (error) {
-                console.error('Label error:', error);
-                toast.error('Kunde inte generera etikett: ' + error.message, { id: loadingToast });
-              }
-            }}
-            role="button"
-            tabIndex={0}
-            className="h-10 px-4 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-white text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-xl"
-          >
-            <Printer className="w-4 h-4" />
-            <span className="hidden md:inline">40x30mm</span>
-          </div>
-          
-          <div
-            onClick={async () => {
               const loadingToast = toast.loading('Öppnar etikett...');
               try {
-                const response = await base44.functions.invoke('getLabelHTML', { articleId: article.id });
-                const printWindow = window.open('', '', 'width=400,height=300');
-                printWindow.document.write(response.data);
-                printWindow.document.close();
-                toast.success('Etikett öppnad för utskrift', { id: loadingToast });
+                const response = await base44.functions.invoke('generateResponsiveLabel', {
+                  articleId: article.id
+                });
+                
+                const printWindow = window.open('', '_blank');
+                if (printWindow) {
+                  printWindow.document.write(response.data);
+                  printWindow.document.close();
+                  toast.success('Etikett öppnad!', { id: loadingToast });
+                } else {
+                  toast.error('Kunde inte öppna popup. Kontrollera popup-blockerare.', { id: loadingToast });
+                }
               } catch (error) {
                 console.error('Error:', error);
-                toast.error('Kunde inte öppna etiketten', { id: loadingToast });
+                toast.error('Kunde inte generera etikett', { id: loadingToast });
               }
             }}
             role="button"
             tabIndex={0}
-            title="Skriv ut 80x60mm etikett"
             className="h-10 px-4 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-white text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:shadow-xl"
           >
             <Printer className="w-4 h-4" />
-            <span className="hidden md:inline">80x60</span>
+            <span className="hidden sm:inline">HTML Etikett</span>
           </div>
 
           <div
