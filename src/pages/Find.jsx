@@ -916,38 +916,50 @@ export default function FindPage() {
 
           {/* Print Modal */}
           <AnimatePresence>
-            {showPrintModal && selectedArticle && !selectedLabelSize && (
+            {showPrintModal && selectedArticle && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                onClick={() => setShowPrintModal(false)}
               >
                 <motion.div
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.9, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
                   className="bg-slate-800/90 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6"
                 >
-                  <h3 className="text-xl font-bold text-white mb-6">Välj etikettformat</h3>
+                  <h3 className="text-xl font-bold text-white mb-6">Skriv ut etikett</h3>
+                  <p className="text-sm text-slate-400 mb-6">
+                    Etiketten öppnas i ett nytt fönster där du kan justera storleken och skriva ut.
+                  </p>
                   <div className="space-y-3">
                     <Button
-                      onClick={() => setSelectedLabelSize('80x60')}
+                      onClick={async () => {
+                        try {
+                          const response = await base44.functions.invoke('generateResponsiveLabel', {
+                            articleId: selectedArticle.id
+                          });
+                          
+                          const printWindow = window.open('', '_blank');
+                          if (printWindow) {
+                            printWindow.document.write(response.data);
+                            printWindow.document.close();
+                            setShowPrintModal(false);
+                            toast.success('Etikett öppnad!');
+                          } else {
+                            toast.error('Kunde inte öppna popup. Kontrollera popup-blockerare.');
+                          }
+                        } catch (error) {
+                          console.error('Error:', error);
+                          toast.error('Kunde inte generera etikett');
+                        }
+                      }}
                       className="w-full h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base transition-all duration-300 font-semibold"
                     >
-                      80 x 60 mm (med QR)
-                    </Button>
-                    <Button
-                      onClick={() => setSelectedLabelSize('40x30')}
-                      className="w-full h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base transition-all duration-300 font-semibold"
-                    >
-                      40 x 30 mm (med QR)
-                    </Button>
-                    <Button
-                      onClick={() => setSelectedLabelSize('40x30-noqr')}
-                      className="w-full h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base transition-all duration-300 font-semibold"
-                    >
-                      40 x 30 mm (endast text)
+                      📄 A4 Etikett (skalbar)
                     </Button>
                   </div>
                   <Button
@@ -960,17 +972,6 @@ export default function FindPage() {
               </motion.div>
             )}
           </AnimatePresence>
-
-          {showPrintModal && selectedArticle && selectedLabelSize && (
-            <LabelDownloader
-              articles={[selectedArticle]}
-              onClose={() => {
-                setShowPrintModal(false);
-                setSelectedLabelSize(null);
-              }}
-              labelSize={selectedLabelSize}
-            />
-          )}
 
           {/* Repair Modal */}
           <RepairModal
