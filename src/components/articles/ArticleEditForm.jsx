@@ -257,29 +257,35 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                         supplier_id: value,
                         supplier_name: supplier?.name || ''
                       }));
+                      setSupplierSearch('');
                     }}
                   >
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                      <SelectValue placeholder="Välj leverantör">
-                        {formData.supplier_name || "Välj leverantör"}
-                      </SelectValue>
+                      <SelectValue placeholder="Välj leverantör" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {suppliers.filter(s => s.is_active !== false).length === 0 ? (
+                    <SelectContent className="max-h-[60vh]">
+                      <div className="p-2 border-b border-slate-700 sticky top-0 bg-slate-900 z-10">
+                        <Input
+                          placeholder="Sök leverantör..."
+                          value={supplierSearch}
+                          onChange={(e) => setSupplierSearch(e.target.value)}
+                          className="h-9 bg-slate-800 border-slate-700 text-white"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      {filteredSuppliers.length === 0 ? (
                         <div className="p-4 text-center text-slate-400 text-sm">
                           Ingen leverantör hittades
                         </div>
                       ) : (
-                        suppliers
-                          .filter(s => s.is_active !== false)
-                          .map((supplier) => (
-                            <SelectItem 
-                              key={supplier.id} 
-                              value={supplier.id}
-                            >
-                              {supplier.name}
-                            </SelectItem>
-                          ))
+                        filteredSuppliers.map((supplier) => (
+                          <SelectItem 
+                            key={supplier.id} 
+                            value={supplier.id}
+                          >
+                            {supplier.name}
+                          </SelectItem>
+                        ))
                       )}
                     </SelectContent>
                   </Select>
