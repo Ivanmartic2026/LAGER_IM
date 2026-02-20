@@ -733,6 +733,9 @@ export default function ArticleDetail({
                   <InfoRow icon={Hash} label="Artikelnummer" value={article.sku} />
                 )}
                 <InfoRow icon={Package} label="Benämning" value={article.name} />
+                {article.batch_number && (
+                  <InfoRow icon={Hash} label="Batch Nummer" value={article.batch_number} />
+                )}
                 {article.supplier_name && (
                   <InfoRow icon={Factory} label="Leverantör" value={article.supplier_name} />
                 )}
@@ -886,9 +889,6 @@ export default function ArticleDetail({
                 )}
                 {article.shelf_address && (
                   <InfoRow icon={MapPin} label="Lagerplats" value={article.shelf_address} />
-                )}
-                {article.batch_number && (
-                  <InfoRow icon={Hash} label="Batch Nummer" value={article.batch_number} />
                 )}
               </div>
             </div>
