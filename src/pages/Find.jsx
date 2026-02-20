@@ -959,7 +959,8 @@ export default function FindPage() {
                       }}
                       className="w-full h-[52px] bg-blue-600/20 backdrop-blur-xl border border-blue-500/40 hover:bg-blue-600/30 text-blue-200 text-base transition-all duration-300 font-semibold"
                     >
-                      📄 A4 Etikett (skalbar)
+                      <Printer className="w-5 h-5 mr-2" />
+                      HTML Etikett (responsiv)
                     </Button>
                   </div>
                   <Button
