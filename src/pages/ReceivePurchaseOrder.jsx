@@ -479,18 +479,43 @@ export default function ReceivePurchaseOrderPage() {
         <AnimatePresence>
           {showCamera && (
             <ReceivingCamera
-              onCapture={(file) => {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                  try {
-                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                    toast.success('Bild uppladdad!');
-                    setShowCamera(false);
-                  } catch (error) {
-                    toast.error('Kunde inte ladda upp bild');
+              onCapture={async (file) => {
+                try {
+                  // Upload image
+                  const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                  
+                  // Parse document with AI
+                  toast.info('Analyserar dokument...');
+                  const analysis = await base44.functions.invoke('parseReceivingDocument', {
+                    fileUrls: [file_url]
+                  });
+
+                  if (analysis.data.success && analysis.data.extracted) {
+                    const extracted = analysis.data.extracted;
+                    
+                    // Show extracted information to user
+                    if (extracted.article_numbers?.length > 0) {
+                      const articleNumbers = extracted.article_numbers.map(a => a.value).join(', ');
+                      toast.success(`Hittade artikelnummer: ${articleNumbers}`);
+                    }
+                    
+                    if (extracted.batch_lot?.length > 0) {
+                      const batches = extracted.batch_lot.map(b => b.value).join(', ');
+                      toast.success(`Hittade batch: ${batches}`);
+                    }
+
+                    if (extracted.quantity?.length > 0) {
+                      const quantities = extracted.quantity.map(q => q.value).join(', ');
+                      toast.info(`Hittade kvantitet: ${quantities}`);
+                    }
                   }
-                };
-                reader.readAsArrayBuffer(file);
+                  
+                  toast.success('Dokument analyserat och sparat!');
+                  setShowCamera(false);
+                } catch (error) {
+                  console.error('Error:', error);
+                  toast.error('Kunde inte analysera dokument: ' + error.message);
+                }
               }}
               onClose={() => setShowCamera(false)}
             />
