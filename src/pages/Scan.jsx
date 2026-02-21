@@ -456,6 +456,8 @@ Returnera som strukturerad JSON med denna format:
           }
         });
         
+        setProgress(95);
+        
         // Remove duplicates and sort by match score
         const uniqueMatches = [];
         const seenIds = new Set();
@@ -467,8 +469,6 @@ Returnera som strukturerad JSON med denna format:
               uniqueMatches.push(match);
             }
           });
-        
-        setProgress(95);
         
         // If we found a match, verify batch number specifically
         if (uniqueMatches.length > 0) {
