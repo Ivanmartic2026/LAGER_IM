@@ -1141,6 +1141,7 @@ Returnera som strukturerad JSON med denna format:
                    setProgress(0);
                  }}
                  onEdit={handleFieldChange}
+                 onManualReview={() => setStep("review")}
                  isLoading={isSaving}
                />
              </motion.div>
