@@ -132,9 +132,10 @@ export default function FindPage() {
         setShowReviewForm(false);
         toast.success("Artikel hittad i lagret!");
       } else {
+        // Article not found - show option to create
         setScanResult("not_found");
         setShowReviewForm(false);
-        toast.info("Artikeln finns inte i lagret");
+        // Keep extracted data for the "not found" view
       }
     } catch (error) {
       console.error("Error:", error);
@@ -648,15 +649,16 @@ export default function FindPage() {
                    >
                      Avbryt
                    </Button>
-                   <Link 
-                     to={createPageUrl("Scan")}
-                     className="flex-1"
+                   <Button
+                     onClick={() => {
+                       setShowReviewForm(true);
+                       setScanResult(null);
+                     }}
+                     className="flex-1 h-[52px] bg-emerald-500/30 border border-emerald-500/60 hover:bg-emerald-500/40 text-emerald-300 text-base md:text-sm backdrop-blur-xl transition-all duration-300"
                    >
-                     <Button className="w-full h-[52px] bg-emerald-500/30 border border-emerald-500/60 hover:bg-emerald-500/40 text-emerald-300 text-base md:text-sm backdrop-blur-xl transition-all duration-300">
-                       <Plus className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-                       Lägg till artikel
-                     </Button>
-                   </Link>
+                     <Plus className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+                     Lägg till artikel
+                   </Button>
                  </div>
               </div>
             </motion.div>
