@@ -267,33 +267,47 @@ export default function AutoAnalysisReview({
       )}
 
       {/* Åtgärder */}
-      <div className="flex gap-3 pt-4">
-        <Button
-          onClick={onReject}
-          disabled={isLoading}
-          variant="outline"
-          className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-white h-11"
-        >
-          <X className="w-4 h-4 mr-2" />
-          Avvisa & ta nytt foto
-        </Button>
-        <Button
-          onClick={onAccept}
-          disabled={isLoading || filledImportant.length === 0}
-          className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white h-11"
-        >
-          {isLoading ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-              Sparar...
-            </>
-          ) : (
-            <>
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Godkänn & spara
-            </>
-          )}
-        </Button>
+      <div className="space-y-3 pt-4">
+        <div className="flex gap-3">
+          <Button
+            onClick={onReject}
+            disabled={isLoading}
+            variant="outline"
+            className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-white h-11"
+          >
+            <X className="w-4 h-4 mr-2" />
+            Avvisa & ta nytt foto
+          </Button>
+          <Button
+            onClick={onAccept}
+            disabled={isLoading || filledImportant.length === 0}
+            className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white h-11"
+          >
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Sparar...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Godkänn & spara
+              </>
+            )}
+          </Button>
+        </div>
+        
+        {onManualReview && (
+          <Button
+            onClick={onManualReview}
+            disabled={isLoading}
+            variant="outline"
+            className="w-full bg-blue-600/20 border-blue-500/40 hover:bg-blue-600/30 text-blue-300 h-11"
+          >
+            <Edit3 className="w-4 h-4 mr-2" />
+            Granska och redigera alla fält
+          </Button>
+        )}
       </div>
     </motion.div>
   );
