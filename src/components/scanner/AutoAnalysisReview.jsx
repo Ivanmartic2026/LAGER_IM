@@ -16,6 +16,7 @@ export default function AutoAnalysisReview({
   onAccept,
   onReject,
   onEdit,
+  onManualReview,
   isLoading
 }) {
   const [editingField, setEditingField] = useState(null);
