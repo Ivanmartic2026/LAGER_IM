@@ -86,19 +86,52 @@ export default function ScanPage() {
   const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
 
 
-  const calculateBatchMatch = (extracted, existing) => {
-    const extractedStr = extracted.toString().toUpperCase();
-    const existingStr = existing.toString().toUpperCase();
+  const levenshteinDistance = (str1, str2) => {
+    const matrix = [];
     
-    if (extractedStr === existingStr) return 100;
-    if (extractedStr.includes(existingStr) || existingStr.includes(extractedStr)) return 95;
-    
-    let matches = 0;
-    const maxLen = Math.max(extractedStr.length, existingStr.length);
-    for (let i = 0; i < Math.min(extractedStr.length, existingStr.length); i++) {
-      if (extractedStr[i] === existingStr[i]) matches++;
+    for (let i = 0; i <= str2.length; i++) {
+      matrix[i] = [i];
     }
-    return Math.round((matches / maxLen) * 100);
+    
+    for (let j = 0; j <= str1.length; j++) {
+      matrix[0][j] = j;
+    }
+    
+    for (let i = 1; i <= str2.length; i++) {
+      for (let j = 1; j <= str1.length; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // substitution
+            matrix[i][j - 1] + 1,     // insertion
+            matrix[i - 1][j] + 1      // deletion
+          );
+        }
+      }
+    }
+    
+    return matrix[str2.length][str1.length];
+  };
+
+  const calculateBatchMatch = (extracted, existing) => {
+    const extractedStr = extracted.toString().toUpperCase().replace(/\s+/g, '');
+    const existingStr = existing.toString().toUpperCase().replace(/\s+/g, '');
+    
+    // Exact match
+    if (extractedStr === existingStr) return 100;
+    
+    // Substring match (one contains the other)
+    if (extractedStr.includes(existingStr) || existingStr.includes(extractedStr)) {
+      return 95;
+    }
+    
+    // Levenshtein distance-based similarity
+    const distance = levenshteinDistance(extractedStr, existingStr);
+    const maxLen = Math.max(extractedStr.length, existingStr.length);
+    const similarity = Math.round(((maxLen - distance) / maxLen) * 100);
+    
+    return similarity;
   };
 
   const handleModeSelect = (selectedMode) => {
@@ -475,34 +508,32 @@ Returnera som strukturerad JSON med denna format:
         if (uniqueMatches.length > 0) {
           const topMatch = uniqueMatches[0];
           
-          // Calculate batch number match percentage
+          // Calculate batch number match percentage using advanced algorithm
           let batchMatchPercentage = 0;
           if (data.batch_number && topMatch.article.batch_number) {
-            const extractedBatch = data.batch_number.toString();
-            const existingBatch = topMatch.article.batch_number.toString();
-            
-            // Levenshtein-like simple similarity check
-            const longer = extractedBatch.length > existingBatch.length ? extractedBatch : existingBatch;
-            const shorter = extractedBatch.length > existingBatch.length ? existingBatch : extractedBatch;
-            
-            if (longer.includes(shorter) || shorter.includes(longer)) {
-              batchMatchPercentage = 100;
-            } else {
-              // Count matching characters
-              let matches = 0;
-              for (let i = 0; i < shorter.length; i++) {
-                if (longer[i] === shorter[i]) matches++;
-              }
-              batchMatchPercentage = Math.round((matches / longer.length) * 100);
-            }
+            batchMatchPercentage = calculateBatchMatch(data.batch_number, topMatch.article.batch_number);
           }
 
-          console.log(`Match found. Batch match: ${batchMatchPercentage}%`);
+          console.log(`Match found. Batch similarity: ${batchMatchPercentage}%`);
+          console.log(`Scanned: ${data.batch_number}, Existing: ${topMatch.article.batch_number}`);
           
-          // Show match only if batch number match is >= 80%
-          // Never show if batch numbers exist but don't match
+          // Lowered threshold to 70% to catch more OCR variations
+          // Also check if names are similar for additional confidence
           const hasBatchNumbers = !!(data.batch_number && topMatch.article.batch_number);
-          const shouldShowMatch = hasBatchNumbers ? batchMatchPercentage >= 80 : false;
+          let shouldShowMatch = false;
+          
+          if (hasBatchNumbers && batchMatchPercentage >= 70) {
+            shouldShowMatch = true;
+          } else if (hasBatchNumbers && batchMatchPercentage >= 60) {
+            // For 60-69% similarity, also check if names match
+            const namesMatch = data.name && topMatch.article.name &&
+              (data.name.toLowerCase().includes(topMatch.article.name.toLowerCase()) ||
+               topMatch.article.name.toLowerCase().includes(data.name.toLowerCase()));
+            if (namesMatch) {
+              shouldShowMatch = true;
+              console.log('Name similarity boosted confidence');
+            }
+          }
 
           if (shouldShowMatch) {
             setPotentialMatches([{ 
