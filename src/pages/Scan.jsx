@@ -413,6 +413,8 @@ Returnera som strukturerad JSON med denna format:
       
       // Search for existing articles based on extracted data
       let potentialMatches = [];
+      let uniqueMatches = [];
+      
       try {
         const searchPromises = [];
         
@@ -459,7 +461,6 @@ Returnera som strukturerad JSON med denna format:
         setProgress(95);
         
         // Remove duplicates and sort by match score
-        const uniqueMatches = [];
         const seenIds = new Set();
         potentialMatches
           .sort((a, b) => b.matchScore - a.matchScore)
