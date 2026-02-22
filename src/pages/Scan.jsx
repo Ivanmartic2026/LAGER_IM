@@ -721,6 +721,14 @@ Returnera som strukturerad JSON med denna format:
     // Use provided data or fall back to extractedData
     const finalData = dataToSave || extractedData;
 
+    // Validate required fields
+    if (!finalData.name || finalData.name.trim() === '') {
+      toast.error("Artikelnamn måste fyllas i");
+      setIsSaving(false);
+      setStep("review");
+      return;
+    }
+
     try {
       // Check if article exists using multiple criteria
       let existing = [];

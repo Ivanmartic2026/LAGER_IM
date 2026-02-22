@@ -26,8 +26,8 @@ export default function AutoAnalysisReview({
 
   // Fält som ska visas
   const importantFields = [
+    { key: 'name', label: 'Artikelnamn *', icon: '📝', required: true },
     { key: 'batch_number', label: 'Batchnummer', icon: '📦' },
-    { key: 'name', label: 'Artikelnamn', icon: '📝' },
     { key: 'manufacturer', label: 'Tillverkare', icon: '🏭' },
     { key: 'category', label: 'Kategori', icon: '📂' },
     { key: 'stock_qty', label: 'Lagermängd', icon: '📊' },
@@ -84,7 +84,8 @@ export default function AutoAnalysisReview({
     const confidence = confidences[field.key] || 0;
     const isEditing = editingField === field.key;
 
-    if (!value && confidence < 0.5) return null;
+    // Always show required fields, even if empty
+    if (!value && confidence < 0.5 && !field.required) return null;
 
     return (
       <motion.div
@@ -94,17 +95,30 @@ export default function AutoAnalysisReview({
         exit={{ opacity: 0, x: -20 }}
         className={cn(
           "p-4 rounded-xl border transition-all",
-          getConfidenceBg(confidence),
-          confidence >= 0.7 ? "border-slate-700" : "border-amber-500/50"
+          field.required && !value ? "bg-red-500/10 border-red-500/50" : getConfidenceBg(confidence),
+          field.required && !value ? "border-red-500/50" : confidence >= 0.7 ? "border-slate-700" : "border-amber-500/50"
         )}
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="text-lg">{field.icon}</span>
             <span className="font-medium text-white">{field.label}</span>
+            {field.required && !value && (
+              <Badge className="bg-red-500/20 text-red-400 text-xs">
+                Obligatorisk
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-2">
-            {confidence && (
+            {!isEditing && (
+              <button
+                onClick={() => startEdit(field.key, value)}
+                className="text-blue-400 hover:text-blue-300 transition-colors p-1"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+            )}
+            {confidence > 0 && (
               <Badge 
                 className={cn(
                   "text-xs",
@@ -177,13 +191,11 @@ export default function AutoAnalysisReview({
           </div>
         ) : (
           <div className="flex items-center justify-between">
-            <span className="text-white">{value || '—'}</span>
-            <button
-              onClick={() => startEdit(field.key, value)}
-              className="text-slate-400 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity p-1"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button>
+            {field.required && !value ? (
+              <span className="text-red-400 italic text-sm">Klicka för att fylla i</span>
+            ) : (
+              <span className="text-white">{value || '—'}</span>
+            )}
           </div>
         )}
       </motion.div>
@@ -281,8 +293,8 @@ export default function AutoAnalysisReview({
           </Button>
           <Button
             onClick={onAccept}
-            disabled={isLoading || filledImportant.length === 0}
-            className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white h-11"
+            disabled={isLoading || !extractedData.name}
+            className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white h-11 disabled:opacity-50"
           >
             {isLoading ? (
               <>
