@@ -147,13 +147,14 @@ export default function SupplierProductUpload({ supplierId }) {
             <label className="text-sm font-medium mb-2 block">
               CFG-fil (valfritt)
             </label>
-            <div className="flex gap-2">
-              <Input
+            <div className="flex gap-2 items-center">
+              <input
                 type="file"
                 accept=".cfg,.txt,.json"
                 onChange={handleFileUpload}
                 disabled={isUploadingFile}
-                className="flex-1"
+                className="flex-1 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                id="cfg-file-upload"
               />
               {formData.cfg_file_url && (
                 <Button
