@@ -354,10 +354,14 @@ export default function OrdersPage() {
     }, []);
 
   const filteredPickingTasks = pickingTasks.filter(task => {
+    const shelfAddressString = Array.isArray(task.shelf_address) 
+      ? task.shelf_address.join(', ') 
+      : (task.shelf_address || '');
+    
     const matchesSearch = !searchQuery || 
       task.article_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.article_batch?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.shelf_address?.toLowerCase().includes(searchQuery.toLowerCase());
+      shelfAddressString.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesWarehouse = warehouseFilter === "all" || task.warehouse === warehouseFilter;
     
