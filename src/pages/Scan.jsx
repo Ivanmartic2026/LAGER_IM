@@ -84,6 +84,7 @@ export default function ScanPage() {
   const [repairQuantity, setRepairQuantity] = useState(1);
   const [repairNotes, setRepairNotes] = useState("");
   const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
+  const [isManualEntry, setIsManualEntry] = useState(false);
 
 
   const levenshteinDistance = (str1, str2) => {
