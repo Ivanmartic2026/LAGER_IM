@@ -917,6 +917,7 @@ Returnera som strukturerad JSON med denna format:
     setRepairArticle(null);
     setRepairQuantity(1);
     setRepairNotes("");
+    setIsManualEntry(false);
   };
 
   return (
