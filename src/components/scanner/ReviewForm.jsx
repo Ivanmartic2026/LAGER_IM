@@ -57,7 +57,8 @@ export default function ReviewForm({
   onCancel,
   isSaving,
   mode = "inbound",
-  isAnalyzing = false
+  isAnalyzing = false,
+  isManual = false
 }) {
   const [duplicateArticles, setDuplicateArticles] = useState([]);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
