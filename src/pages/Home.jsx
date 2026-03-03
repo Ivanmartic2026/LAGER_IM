@@ -62,6 +62,7 @@ export default function HomePage() {
     refetchOnWindowFocus: false,
   });
 
+  const readyToPickOrders = orders.filter(o => o.status === 'ready_to_pick');
   const pendingOrders = orders.filter(o => 
     (o.status === 'ready_to_pick' || o.status === 'picking' || o.status === 'picked') && 
     !o.fortnox_invoiced
