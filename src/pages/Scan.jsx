@@ -1095,6 +1095,21 @@ Returnera som strukturerad JSON med denna format:
                   ? "AI hittar modulen i lagret och förbereder reparation" 
                   : "AI analyserar bilden och fyller i fälten automatiskt"}</span>
               </div>
+
+              {mode !== "repair" && (
+                <div className="text-center pt-2">
+                  <button
+                    onClick={() => {
+                      setExtractedData({ stock_qty: 1 });
+                      setConfidences({});
+                      setStep("review");
+                    }}
+                    className="text-sm text-slate-500 hover:text-slate-300 underline underline-offset-2 transition-colors"
+                  >
+                    Registrera manuellt utan AI
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
 
