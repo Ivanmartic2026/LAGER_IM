@@ -1097,17 +1097,19 @@ Returnera som strukturerad JSON med denna format:
               </div>
 
               {mode !== "repair" && (
-                <div className="text-center pt-2">
-                  <button
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
                     onClick={() => {
                       setExtractedData({ stock_qty: 1 });
                       setConfidences({});
                       setStep("review");
                     }}
-                    className="text-sm text-slate-500 hover:text-slate-300 underline underline-offset-2 transition-colors"
+                    className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white"
                   >
-                    Registrera manuellt utan AI
-                  </button>
+                    <ClipboardList className="w-4 h-4 mr-2" />
+                    Registrera manuellt
+                  </Button>
                 </div>
               )}
             </motion.div>
