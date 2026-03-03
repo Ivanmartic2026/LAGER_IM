@@ -1101,8 +1101,9 @@ Returnera som strukturerad JSON med denna format:
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setExtractedData({ stock_qty: 1 });
+                      setExtractedData({ stock_qty: 1, storage_type: 'company_owned' });
                       setConfidences({});
+                      setIsManualEntry(true);
                       setStep("review");
                     }}
                     className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white"
