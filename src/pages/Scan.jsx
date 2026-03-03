@@ -1105,6 +1105,7 @@ Returnera som strukturerad JSON med denna format:
                       setExtractedData({ stock_qty: 1, storage_type: 'company_owned' });
                       setConfidences({});
                       setIsManualEntry(false);
+
                       setStep("review");
                     }}
                     className="w-full bg-white/5 border-white/10 hover:bg-white/10 text-white"
