@@ -263,6 +263,68 @@ export default function HomePage() {
           </motion.div>
         </motion.div>
 
+        {/* Ready to Pick - prominent section */}
+        {readyToPickOrders.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05, duration: 0.5 }}
+            className="p-5 md:p-6 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 border-2 border-emerald-500/40 mb-6 backdrop-blur-sm shadow-lg shadow-emerald-500/10"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 md:mb-2">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                    <ClipboardList className="w-4 h-4 md:w-5 md:h-5 text-emerald-300" />
+                  </div>
+                  <h2 className="text-base md:text-lg font-bold text-white">Redo att plocka</h2>
+                  <Badge className="bg-emerald-500/30 text-emerald-300 border-emerald-500/40 font-bold">
+                    {readyToPickOrders.length}
+                  </Badge>
+                </div>
+                <p className="text-xs md:text-sm text-emerald-200">Dessa ordrar väntar på att plockas nu</p>
+              </div>
+              <Link to={`${createPageUrl("Orders")}?status=ready_to_pick`} className="flex-shrink-0">
+                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-xs md:text-sm h-8 md:h-9 px-3 md:px-4">
+                  Alla
+                </Button>
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {readyToPickOrders.slice(0, 5).map(order => {
+                const daysOld = getOrderAge(order);
+                return (
+                  <Link
+                    key={order.id}
+                    to={`${createPageUrl("PickOrder")}?orderId=${order.id}`}
+                    className="block p-3 md:p-4 rounded-xl bg-slate-900/50 hover:bg-slate-900/70 border border-emerald-700/40 hover:border-emerald-500/50 transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-white text-sm md:text-base truncate">
+                          {order.order_number || `Order #${order.id.slice(0, 8)}`}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs md:text-sm text-slate-400 truncate">{order.customer_name}</p>
+                          <Badge className={cn(
+                            "text-xs",
+                            daysOld > 7 ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                            daysOld > 3 ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
+                            "bg-slate-700/50 text-slate-300 border-slate-600/50"
+                          )}>
+                            {daysOld} dag{daysOld !== 1 ? 'ar' : ''}
+                          </Badge>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 flex-shrink-0 ml-2" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
         {/* Orders to Pick */}
         {pendingOrders.length > 0 && (
           <motion.div
