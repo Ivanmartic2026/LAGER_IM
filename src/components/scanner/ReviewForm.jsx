@@ -316,11 +316,13 @@ export default function ReviewForm({
       )}
 
       {/* Selected Fields Summary */}
-      <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
-        <p className="text-sm text-slate-300">
-          <span className="font-semibold text-white">{Object.values(selectedFields).filter(Boolean).length}</span> fält valda för sparning
-        </p>
-      </div>
+      {!isManual && (
+        <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700">
+          <p className="text-sm text-slate-300">
+            <span className="font-semibold text-white">{Object.values(selectedFields).filter(Boolean).length}</span> fält valda för sparning
+          </p>
+        </div>
+      )}
 
       <div className="flex gap-3 pt-6">
         <Button
