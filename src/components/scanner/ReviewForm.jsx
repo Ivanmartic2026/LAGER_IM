@@ -106,7 +106,9 @@ export default function ReviewForm({
   }, [extractedData.batch_number, allArticles]);
 
   // Get all extracted fields (excluding image_urls)
-  const allExtractedFields = Object.keys(extractedData).filter(key => key !== 'image_urls');
+  const allExtractedFields = isManual
+    ? Object.keys(FIELD_LABELS)
+    : Object.keys(extractedData).filter(key => key !== 'image_urls');
   
   const toggleField = (field) => {
     // Can't deselect required fields
