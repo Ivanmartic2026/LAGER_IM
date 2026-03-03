@@ -512,9 +512,34 @@ export default function OrdersPage() {
 
 
 
-          <div className="flex items-center justify-end">
+          {/* Status Filter Tabs */}
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {[
+              { value: "all", label: "Alla" },
+              { value: "draft", label: "Utkast" },
+              { value: "ready_to_pick", label: "Redo att plocka" },
+              { value: "picking", label: "Plockar" },
+              { value: "picked", label: "Plockad" },
+              { value: "delivered", label: "Levererad" },
+              { value: "cancelled", label: "Avbruten" },
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => setStatusFilter(value)}
+                className={cn(
+                  "whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-all border",
+                  statusFilter === value
+                    ? "bg-blue-600 text-white border-blue-500"
+                    : "bg-white/5 text-white/50 border-white/10 hover:bg-white/10 hover:text-white"
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-            {selectedOrderIds.length > 0 && (
+          {selectedOrderIds.length > 0 && (
+            <div className="flex items-center justify-end">
               <Button
                 variant="ghost"
                 size="sm"
@@ -524,8 +549,8 @@ export default function OrdersPage() {
                 <X className="w-4 h-4 mr-2" />
                 Avmarkera alla
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Content */}
