@@ -1219,10 +1219,10 @@ Returnera som strukturerad JSON med denna format:
             >
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-white mb-2">
-                  Granska & Godkänn
+                  {isManualEntry ? "Registrera artikel manuellt" : "Granska & Godkänn"}
                 </h2>
                 <p className="text-slate-400">
-                  Kontrollera att informationen är korrekt
+                  {isManualEntry ? "Fyll i uppgifterna för den nya artikeln" : "Kontrollera att informationen är korrekt"}
                 </p>
               </div>
 
