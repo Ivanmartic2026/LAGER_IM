@@ -179,6 +179,7 @@ export default function ReviewForm({
       )}
 
       {/* AI Extraction Summary or Loading State */}
+      {!isManual && (
        <div className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
          isAnalyzing 
            ? 'bg-cyan-500/10 border-cyan-500/30' 
@@ -211,11 +212,12 @@ export default function ReviewForm({
            )}
          </div>
        </div>
+      )}
 
-      {/* Extracted Fields List */}
+      {/* Fields List */}
       {!isAnalyzing && (
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-white/70">Extraherade fält från bild:</h3>
+        <h3 className="text-sm font-semibold text-white/70">{isManual ? 'Fyll i artikeluppgifter:' : 'Extraherade fält från bild:'}</h3>
         {allExtractedFields.map(field => {
           const value = extractedData[field];
           const confidence = confidences[field] || 0;
