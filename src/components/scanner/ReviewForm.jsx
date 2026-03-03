@@ -78,6 +78,11 @@ export default function ReviewForm({
     return initial;
   });
 
+  // For manual mode: ensure all fields are shown with empty values
+  const allFields = isManual
+    ? Object.keys(FIELD_LABELS)
+    : Object.keys(extractedData).filter(key => key !== 'image_urls');
+
   const { data: warehouses = [] } = useQuery({
     queryKey: ['warehouses'],
     queryFn: () => base44.entities.Warehouse.list(),
