@@ -1266,6 +1266,7 @@ Returnera som strukturerad JSON med denna format:
                 onCancel={handleReset}
                 isSaving={isSaving}
                 mode={mode}
+                isManual={isManualEntry}
               />
 
               {/* Duplicate Confirmation Modal */}
