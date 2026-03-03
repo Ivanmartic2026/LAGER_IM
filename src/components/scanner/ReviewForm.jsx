@@ -227,36 +227,40 @@ export default function ReviewForm({
           return (
             <div
               key={field}
-              onClick={() => toggleField(field)}
-              className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                selectedFields[field]
-                  ? 'bg-blue-500/10 border-blue-500/40 hover:bg-blue-500/15'
-                  : 'bg-white/5 border-white/10 hover:bg-white/10'
-              } ${isRequired ? 'cursor-not-allowed' : ''}`}
+              onClick={() => !isManual && toggleField(field)}
+              className={`p-4 rounded-xl border-2 transition-all ${
+                isManual
+                  ? 'bg-white/5 border-white/10'
+                  : selectedFields[field]
+                    ? `bg-blue-500/10 border-blue-500/40 hover:bg-blue-500/15 cursor-pointer`
+                    : `bg-white/5 border-white/10 hover:bg-white/10 cursor-pointer ${isRequired ? 'cursor-not-allowed' : ''}`
+              }`}
             >
               <div className="flex items-start gap-3">
-                <div className="pt-1">
-                  <Checkbox
-                    checked={selectedFields[field] || false}
-                    disabled={isRequired}
-                    className="pointer-events-none"
-                  />
-                </div>
+                {!isManual && (
+                  <div className="pt-1">
+                    <Checkbox
+                      checked={selectedFields[field] || false}
+                      disabled={isRequired}
+                      className="pointer-events-none"
+                    />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm font-medium text-white">
                       {label}
                       {isRequired && <span className="text-red-400 ml-1">*</span>}
                     </span>
-                    <ConfidenceIndicator confidence={confidence} />
+                    {!isManual && <ConfidenceIndicator confidence={confidence} />}
                   </div>
                   
-                  {selectedFields[field] ? (
+                  {(isManual || selectedFields[field]) ? (
                     <ExtractedFieldCard
                       field={field}
                       label=""
                       value={value}
-                      confidence={confidence}
+                      confidence={isManual ? 1 : confidence}
                       onChange={onFieldChange}
                       required={isRequired}
                       type={
