@@ -13,9 +13,27 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
 
   const triggerFileInput = (isCameraMode) => {
     try {
-      const input = isCameraMode ? cameraInputRef.current : fileInputRef.current;
-      if (input) {
+      if (isCameraMode) {
+        // On Android WebView/APK, create a fresh input element each time to avoid issues
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.capture = 'environment';
+        input.style.position = 'fixed';
+        input.style.top = '-1000px';
+        input.style.left = '-1000px';
+        document.body.appendChild(input);
+        input.addEventListener('change', (e) => {
+          handleFileChange(e);
+          document.body.removeChild(input);
+        });
         input.click();
+      } else {
+        const input = fileInputRef.current;
+        if (input) {
+          input.value = '';
+          input.click();
+        }
       }
     } catch (error) {
       console.error('Error triggering file input:', error);
