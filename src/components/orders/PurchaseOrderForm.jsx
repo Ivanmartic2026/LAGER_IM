@@ -49,12 +49,13 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
     queryKey: ['purchaseOrderItems', purchaseOrder?.id],
     queryFn: () => purchaseOrder?.id ? base44.entities.PurchaseOrderItem.filter({ purchase_order_id: purchaseOrder.id }) : Promise.resolve([]),
     enabled: !!purchaseOrder?.id,
-    onSuccess: (items) => {
-      if (items.length > 0) {
-        setPOItems(items);
-      }
-    }
   });
+
+  useEffect(() => {
+    if (existingItems.length > 0) {
+      setPOItems(existingItems);
+    }
+  }, [existingItems.length]);
 
   const savePOMutation = useMutation({
     mutationFn: async (data) => {
