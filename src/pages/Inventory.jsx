@@ -657,6 +657,65 @@ export default function InventoryPage() {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={async () => {
+                      const loadingToast = toast.loading(`Genererar ${selectedArticleIds.length} etiketter...`);
+                      try {
+                        const response = await base44.functions.invoke('generateA4Label', { articleIds: selectedArticleIds });
+                        const html2canvas = (await import('html2canvas')).default;
+                        
+                        const articlesList = response.data?.articles || [{ id: selectedArticleIds[0], name: 'artikel', html: response.data }];
+                        
+                        for (const item of articlesList) {
+                          const iframe = document.createElement('iframe');
+                          iframe.style.position = 'absolute';
+                          iframe.style.width = '1240px';
+                          iframe.style.height = '1754px';
+                          iframe.style.left = '-9999px';
+                          document.body.appendChild(iframe);
+                          
+                          iframe.contentDocument.write(item.html);
+                          iframe.contentDocument.close();
+                          
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                          
+                          const canvas = await html2canvas(iframe.contentDocument.body, {
+                            width: 1240,
+                            height: 1754,
+                            scale: 2,
+                            backgroundColor: '#ffffff'
+                          });
+                          
+                          await new Promise((resolve) => {
+                            canvas.toBlob((blob) => {
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `artikel_${item.name}_${Date.now()}.png`;
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                              a.remove();
+                              resolve();
+                            }, 'image/png');
+                          });
+                          
+                          document.body.removeChild(iframe);
+                        }
+                        
+                        toast.success(`${articlesList.length} etiketter nedladdade!`, { id: loadingToast });
+                      } catch (error) {
+                        console.error('A4 bulk error:', error);
+                        toast.error('Kunde inte generera etiketter: ' + error.message, { id: loadingToast });
+                      }
+                    }}
+                    className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    A4
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setBulkEditOpen(true)}
                     className="bg-white/10 border-white/30 text-white hover:bg-white/20"
                   >
