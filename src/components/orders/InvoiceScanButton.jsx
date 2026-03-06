@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Zap, X, CheckCircle2, FileText, Package, Calendar, Hash, Plus, Pencil, Trash2, Save } from "lucide-react";
+import { Zap, X, CheckCircle2, FileText, Package, Calendar, Hash, Plus, Pencil, Trash2, Save, ScanLine, Brain, Sparkles, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
