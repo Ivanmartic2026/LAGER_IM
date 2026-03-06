@@ -7,6 +7,125 @@ import { Zap, X, CheckCircle2, FileText, Package, Calendar, Hash, Plus, Pencil, 
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+const SCAN_STEPS = [
+  { icon: ScanLine, label: 'Läser in faktura...', color: 'text-blue-400' },
+  { icon: Search, label: 'Analyserar innehåll...', color: 'text-purple-400' },
+  { icon: Brain, label: 'Extraherar artiklar...', color: 'text-pink-400' },
+  { icon: Sparkles, label: 'Färdigställer data...', color: 'text-emerald-400' },
+];
+
+function AILoadingOverlay() {
+  const [step, setStep] = useState(0);
+  const [particles, setParticles] = useState([]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStep(prev => (prev + 1) % SCAN_STEPS.length);
+    }, 900);
+    // Generate random particles
+    setParticles(Array.from({ length: 18 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      duration: Math.random() * 3 + 2,
+      delay: Math.random() * 2,
+    })));
+    return () => clearInterval(interval);
+  }, []);
+
+  const CurrentIcon = SCAN_STEPS[step].icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}
+    >
+      {/* Floating particles */}
+      {particles.map(p => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full bg-purple-400/30"
+          style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size }}
+          animate={{ y: [-10, 10, -10], opacity: [0.2, 0.6, 0.2] }}
+          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      ))}
+
+      <div className="flex flex-col items-center gap-8 relative">
+        {/* Pulsing ring */}
+        <div className="relative">
+          <motion.div
+            className="absolute inset-0 rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 70%)' }}
+            animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.div
+            className="w-28 h-28 rounded-full flex items-center justify-center relative"
+            style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.3), rgba(59,130,246,0.3))', border: '1px solid rgba(139,92,246,0.5)' }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+          >
+            {/* Spinning border arc */}
+            <div className="absolute inset-0 rounded-full" style={{
+              background: 'conic-gradient(from 0deg, transparent 70%, rgba(139,92,246,0.8) 100%)',
+              borderRadius: '50%',
+            }} />
+          </motion.div>
+          {/* Center icon */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.5, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <CurrentIcon className={`w-10 h-10 ${SCAN_STEPS[step].color}`} />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Step label */}
+        <div className="text-center">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={step}
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -10, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className={`text-lg font-semibold ${SCAN_STEPS[step].color}`}
+            >
+              {SCAN_STEPS[step].label}
+            </motion.p>
+          </AnimatePresence>
+          <p className="text-white/40 text-sm mt-1">AI analyserar fakturan</p>
+        </div>
+
+        {/* Step dots */}
+        <div className="flex gap-2">
+          {SCAN_STEPS.map((s, i) => (
+            <motion.div
+              key={i}
+              className="rounded-full"
+              style={{ width: i === step ? 20 : 6, height: 6, background: i === step ? '#8b5cf6' : 'rgba(255,255,255,0.2)' }}
+              animate={{ width: i === step ? 20 : 6 }}
+              transition={{ duration: 0.3 }}
+            />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function InvoiceScanButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
