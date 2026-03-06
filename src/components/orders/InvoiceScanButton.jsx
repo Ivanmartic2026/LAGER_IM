@@ -364,6 +364,10 @@ export default function InvoiceScanButton() {
       </Button>
 
       <AnimatePresence>
+        {isLoading && <AILoadingOverlay />}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {result && (
           <motion.div
             initial={{ opacity: 0 }}
