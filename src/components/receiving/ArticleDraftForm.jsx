@@ -20,6 +20,9 @@ export default function ArticleDraftForm({ extracted, onFieldChange, onSave, isS
     manufacturing_date: '',
     notes: ''
   });
+  const [images, setImages] = useState([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const imageInputRef = useRef(null);
 
   const handleFieldChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
