@@ -121,6 +121,7 @@ export default function InvoiceScanButton() {
         invoice_file_url: result.file_url,
         order_date: result.invoice_date || new Date().toISOString().split('T')[0],
         status: 'draft',
+        fortnox_project_number: '-',
         notes: `Skapad från faktura ${result.invoice_number || ''}`.trim(),
       });
 
