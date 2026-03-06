@@ -266,22 +266,24 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
         
         // Check if supplier exists, create if not
         let supplierId = formData.supplier_id;
+        let supplierName = formData.supplier_name;
         if (data.supplier_name) {
           const existingSupplier = suppliers.find(s => 
             s.name.toLowerCase() === data.supplier_name.toLowerCase()
           );
           
           if (!existingSupplier) {
-            // Create new supplier
             const newSupplier = await base44.entities.Supplier.create({
               name: data.supplier_name,
               is_active: true
             });
             supplierId = newSupplier.id;
-            queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-            toast.success(`Ny leverantör "${data.supplier_name}" skapad`);
+            supplierName = newSupplier.name;
+            await queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+            toast.success(`Ny leverantör "${data.supplier_name}" skapad automatiskt`);
           } else {
             supplierId = existingSupplier.id;
+            supplierName = existingSupplier.name;
           }
         }
         
@@ -290,7 +292,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           ...prev,
           po_number: data.invoice_number || prev.po_number,
           supplier_id: supplierId || prev.supplier_id,
-          supplier_name: data.supplier_name || prev.supplier_name,
+          supplier_name: supplierName || prev.supplier_name,
           order_date: data.invoice_date || prev.order_date
         }));
 
