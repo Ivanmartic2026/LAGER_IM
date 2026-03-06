@@ -125,12 +125,38 @@ export default function InvoiceScanButton() {
         notes: `Skapad från faktura ${result.invoice_number || ''}`.trim(),
       });
 
-      // Create PO items
+      // Create PO items - search for matching article or create with placeholder
       if (result.items && result.items.length > 0) {
         for (const item of result.items) {
           if (!item.name) continue;
+
+          // Try to find matching article by name or article_number
+          let articleId = null;
+          try {
+            const allArticles = await base44.entities.Article.list();
+            const match = allArticles.find(a =>
+              (item.article_number && a.sku?.toLowerCase() === item.article_number.toLowerCase()) ||
+              (item.article_number && a.batch_number?.toLowerCase() === item.article_number.toLowerCase()) ||
+              a.name?.toLowerCase().includes(item.name.toLowerCase().slice(0, 20))
+            );
+            if (match) articleId = match.id;
+          } catch {}
+
+          // If no article found, create a placeholder article
+          if (!articleId) {
+            const newArticle = await base44.entities.Article.create({
+              name: item.name,
+              sku: item.article_number || '',
+              storage_type: 'company_owned',
+              status: 'pending_verification',
+              stock_qty: 0,
+            });
+            articleId = newArticle.id;
+          }
+
           await base44.entities.PurchaseOrderItem.create({
             purchase_order_id: po.id,
+            article_id: articleId,
             article_name: item.name,
             quantity_ordered: item.quantity || 1,
             unit_price: item.unit_price || 0,
