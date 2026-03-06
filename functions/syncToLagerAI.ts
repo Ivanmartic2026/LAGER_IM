@@ -46,13 +46,24 @@ Deno.serve(async (req) => {
       updated_date: article.updated_date || ''
     }));
 
-    const response = await fetch(lagerAiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-      body: JSON.stringify({ articles: payload })
-    });
+    let response;
+    try {
+      response = await fetch(lagerAiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        body: JSON.stringify({ articles: payload }),
+        signal: AbortSignal.timeout(30000)
+      });
+    } catch (fetchError) {
+      console.warn('Lager AI server unreachable:', fetchError.message);
+      return Response.json({ 
+        success: false, 
+        warning: 'Lager AI server is unreachable. Sync skipped.',
+        article_count: payload.length
+      }, { status: 200 });
+    }
 
     if (!response.ok) {
       const text = await response.text();
