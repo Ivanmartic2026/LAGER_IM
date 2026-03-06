@@ -29,6 +29,32 @@ export default function ArticleDraftForm({ extracted, onFieldChange, onSave, isS
     onFieldChange(field, value);
   };
 
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setUploadingImages(true);
+    try {
+      const uploadedUrls = await Promise.all(
+        files.map(async (file) => {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          return file_url;
+        })
+      );
+      const newImages = [...images, ...uploadedUrls];
+      setImages(newImages);
+      onFieldChange('image_urls', newImages);
+    } finally {
+      setUploadingImages(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
+
+  const removeImage = (index) => {
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+    onFieldChange('image_urls', newImages);
+  };
+
   const applySuggestion = (field, value) => {
     handleFieldChange(field, value);
   };
