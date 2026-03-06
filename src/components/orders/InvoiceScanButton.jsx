@@ -116,9 +116,29 @@ export default function InvoiceScanButton() {
   const handleCreateOrder = async () => {
     setIsSaving(true);
     try {
+      // Find or create supplier
+      let supplierId = null;
+      if (result.supplier_name) {
+        const existingSupplier = suppliers.find(s =>
+          s.name.toLowerCase() === result.supplier_name.toLowerCase()
+        );
+        if (existingSupplier) {
+          supplierId = existingSupplier.id;
+        } else {
+          const newSupplier = await base44.entities.Supplier.create({
+            name: result.supplier_name,
+            is_active: true
+          });
+          supplierId = newSupplier.id;
+          await queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+          toast.success(`Ny leverantör "${result.supplier_name}" skapad automatiskt`);
+        }
+      }
+
       // Create the purchase order
       const po = await base44.entities.PurchaseOrder.create({
         supplier_name: result.supplier_name || 'Okänd leverantör',
+        supplier_id: supplierId || undefined,
         po_number: result.po_number || result.invoice_number || '',
         invoice_number: result.invoice_number || '',
         invoice_amount: result.total_amount || 0,
