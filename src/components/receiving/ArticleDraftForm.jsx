@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Check, Copy, Lightbulb } from "lucide-react";
+import { ChevronDown, Check, Copy, Lightbulb, ImagePlus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { base44 } from "@/api/base44Client";
 
 export default function ArticleDraftForm({ extracted, onFieldChange, onSave, isSaving }) {
   const [expandedField, setExpandedField] = useState(null);
