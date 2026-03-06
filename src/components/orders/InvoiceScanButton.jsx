@@ -258,9 +258,9 @@ export default function InvoiceScanButton() {
                     { key: 'supplier_name', label: 'Leverantör', icon: Package },
                     { key: 'invoice_number', label: 'Fakturanummer', icon: Hash },
                     { key: 'invoice_date', label: 'Datum', icon: Calendar },
-                  ].map(({ key, label, icon: Icon }) => (
+                  ].map(({ key, label, icon: FieldIcon }) => (
                     <div key={key} className="flex items-center gap-3 p-3 rounded-lg bg-white/5 group">
-                      <Icon className="w-4 h-4 text-white/40 flex-shrink-0" />
+                      <FieldIcon className="w-4 h-4 text-white/40 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-white/40">{label}</div>
                         {editingField === key ? (
