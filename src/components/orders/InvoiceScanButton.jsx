@@ -21,6 +21,11 @@ export default function InvoiceScanButton() {
     queryFn: () => base44.entities.PurchaseOrder.list('-created_date'),
   });
 
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: () => base44.entities.Supplier.list(),
+  });
+
   const handleFileSelect = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
