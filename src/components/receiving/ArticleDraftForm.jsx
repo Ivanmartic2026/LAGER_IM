@@ -287,6 +287,48 @@ export default function ArticleDraftForm({ extracted, onFieldChange, onSave, isS
         </div>
       </div>
 
+      {/* Images */}
+      <div>
+        <label className="block text-sm font-semibold text-white mb-2">Bilder</label>
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleImageUpload}
+          className="hidden"
+        />
+        <div className="flex flex-wrap gap-2">
+          {images.map((url, i) => (
+            <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-700 group">
+              <img src={url} alt={`Bild ${i + 1}`} className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => removeImage(i)}
+                className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="w-3 h-3 text-white" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => imageInputRef.current?.click()}
+            disabled={uploadingImages}
+            className="w-20 h-20 rounded-lg border border-dashed border-slate-600 hover:border-slate-400 flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-slate-300 transition-colors"
+          >
+            {uploadingImages ? (
+              <div className="w-5 h-5 border-2 border-slate-500 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                <ImagePlus className="w-5 h-5" />
+                <span className="text-xs">Lägg till</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* Extracted Data Panel */}
       {renderExtractedSection()}
 
