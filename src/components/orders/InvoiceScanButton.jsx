@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Zap, X, CheckCircle2, FileText, Package, Calendar, Hash } from "lucide-react";
+import { Zap, X, CheckCircle2, FileText, Package, Calendar, Hash, Plus, Pencil, Trash2, Save } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -10,7 +11,9 @@ export default function InvoiceScanButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-  const fileInputRef = React.useRef(null);
+  const [editingField, setEditingField] = useState(null);
+  const [editingItemIndex, setEditingItemIndex] = useState(null);
+  const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data: purchaseOrders = [] } = useQuery({
@@ -26,10 +29,8 @@ export default function InvoiceScanButton() {
     const toastId = toast.loading('Analyserar faktura med AI...');
 
     try {
-      // Upload file
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Extract invoice data using AI
       const extracted = await base44.integrations.Core.InvokeLLM({
         prompt: `Analysera denna faktura/följesedel noggrant och extrahera all relevant information.
         
@@ -70,13 +71,81 @@ export default function InvoiceScanButton() {
       });
 
       toast.success('Faktura analyserad!', { id: toastId });
-      setResult({ ...extracted, file_url });
+      setResult({ ...extracted, file_url, items: extracted.items || [] });
     } catch (error) {
       console.error('Invoice scan error:', error);
       toast.error('Kunde inte analysera fakturan: ' + error.message, { id: toastId });
     } finally {
       setIsLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const updateField = (field, value) => {
+    setResult(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateItem = (index, field, value) => {
+    setResult(prev => {
+      const items = [...prev.items];
+      items[index] = { ...items[index], [field]: value };
+      return { ...prev, items };
+    });
+  };
+
+  const removeItem = (index) => {
+    setResult(prev => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addItem = () => {
+    setResult(prev => ({
+      ...prev,
+      items: [...prev.items, { name: '', article_number: '', quantity: 1, unit_price: 0 }]
+    }));
+    setEditingItemIndex(result.items.length);
+  };
+
+  const handleCreateOrder = async () => {
+    setIsSaving(true);
+    try {
+      // Create the purchase order
+      const po = await base44.entities.PurchaseOrder.create({
+        supplier_name: result.supplier_name || 'Okänd leverantör',
+        po_number: result.po_number || result.invoice_number || '',
+        invoice_number: result.invoice_number || '',
+        invoice_amount: result.total_amount || 0,
+        invoice_currency: result.currency || 'USD',
+        invoice_file_url: result.file_url,
+        order_date: result.invoice_date || new Date().toISOString().split('T')[0],
+        status: 'draft',
+        notes: `Skapad från faktura ${result.invoice_number || ''}`.trim(),
+      });
+
+      // Create PO items
+      if (result.items && result.items.length > 0) {
+        for (const item of result.items) {
+          if (!item.name) continue;
+          await base44.entities.PurchaseOrderItem.create({
+            purchase_order_id: po.id,
+            article_name: item.name,
+            quantity_ordered: item.quantity || 1,
+            unit_price: item.unit_price || 0,
+            status: 'pending',
+          });
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['purchaseOrderItems'] });
+      toast.success(`Inköpsorder skapad: ${po.po_number || po.supplier_name}!`);
+      setResult(null);
+    } catch (error) {
+      toast.error('Kunde inte skapa inköpsorder: ' + error.message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -99,7 +168,6 @@ export default function InvoiceScanButton() {
     }
   };
 
-  // Find matching POs based on supplier name or po number
   const matchingPOs = purchaseOrders.filter(po => {
     if (result?.po_number && po.po_number?.toLowerCase().includes(result.po_number.toLowerCase())) return true;
     if (result?.supplier_name && po.supplier_name?.toLowerCase().includes(result.supplier_name.toLowerCase())) return true;
@@ -124,7 +192,6 @@ export default function InvoiceScanButton() {
         {isLoading ? 'Analyserar...' : 'Skanna faktura'}
       </Button>
 
-      {/* Result Modal */}
       <AnimatePresence>
         {result && (
           <motion.div
@@ -141,14 +208,15 @@ export default function InvoiceScanButton() {
               onClick={(e) => e.stopPropagation()}
               className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between p-5 border-b border-white/10">
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b border-white/10 sticky top-0 bg-slate-900 z-10">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
                     <FileText className="w-5 h-5 text-purple-400" />
                   </div>
                   <div>
                     <h3 className="font-bold text-white">Faktura analyserad</h3>
-                    <p className="text-xs text-white/50">Granska och koppla till inköpsorder</p>
+                    <p className="text-xs text-white/50">Redigera och skapa inköpsorder</p>
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => setResult(null)} className="text-white/50 hover:text-white">
@@ -157,94 +225,180 @@ export default function InvoiceScanButton() {
               </div>
 
               <div className="p-5 space-y-4">
-                {/* Extracted data */}
+                {/* Editable fields */}
                 <div className="space-y-2">
-                  {result.supplier_name && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-                      <Package className="w-4 h-4 text-white/40" />
-                      <div>
-                        <div className="text-xs text-white/40">Leverantör</div>
-                        <div className="text-sm font-medium text-white">{result.supplier_name}</div>
+                  {[
+                    { key: 'supplier_name', label: 'Leverantör', icon: Package },
+                    { key: 'invoice_number', label: 'Fakturanummer', icon: Hash },
+                    { key: 'invoice_date', label: 'Datum', icon: Calendar },
+                  ].map(({ key, label, icon: Icon }) => (
+                    <div key={key} className="flex items-center gap-3 p-3 rounded-lg bg-white/5 group">
+                      <Icon className="w-4 h-4 text-white/40 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-white/40">{label}</div>
+                        {editingField === key ? (
+                          <Input
+                            value={result[key] || ''}
+                            onChange={(e) => updateField(key, e.target.value)}
+                            onBlur={() => setEditingField(null)}
+                            onKeyDown={(e) => e.key === 'Enter' && setEditingField(null)}
+                            autoFocus
+                            className="h-7 text-sm bg-white/10 border-white/20 text-white mt-0.5 p-1"
+                          />
+                        ) : (
+                          <div className="text-sm font-medium text-white truncate">{result[key] || '—'}</div>
+                        )}
                       </div>
+                      <button onClick={() => setEditingField(editingField === key ? null : key)} className="opacity-0 group-hover:opacity-100 transition-opacity text-white/40 hover:text-white">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                  )}
-                  {result.invoice_number && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-                      <Hash className="w-4 h-4 text-white/40" />
-                      <div>
-                        <div className="text-xs text-white/40">Fakturanummer</div>
-                        <div className="text-sm font-medium text-white">{result.invoice_number}</div>
-                      </div>
-                    </div>
-                  )}
-                  {result.invoice_date && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-                      <Calendar className="w-4 h-4 text-white/40" />
-                      <div>
-                        <div className="text-xs text-white/40">Datum</div>
-                        <div className="text-sm font-medium text-white">{result.invoice_date}</div>
-                      </div>
-                    </div>
-                  )}
-                  {result.total_amount && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-                      <Zap className="w-4 h-4 text-white/40" />
-                      <div>
-                        <div className="text-xs text-white/40">Belopp</div>
-                        <div className="text-sm font-medium text-white">
-                          {result.total_amount.toLocaleString('sv-SE')} {result.currency || 'SEK'}
+                  ))}
+
+                  {/* Amount + currency */}
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 group">
+                    <Zap className="w-4 h-4 text-white/40 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-white/40">Belopp</div>
+                      {editingField === 'amount' ? (
+                        <div className="flex gap-2 mt-0.5">
+                          <Input
+                            type="number"
+                            value={result.total_amount || ''}
+                            onChange={(e) => updateField('total_amount', parseFloat(e.target.value) || 0)}
+                            className="h-7 text-sm bg-white/10 border-white/20 text-white p-1 flex-1"
+                          />
+                          <Input
+                            value={result.currency || ''}
+                            onChange={(e) => updateField('currency', e.target.value)}
+                            onBlur={() => setEditingField(null)}
+                            className="h-7 text-sm bg-white/10 border-white/20 text-white p-1 w-20"
+                            placeholder="USD"
+                          />
                         </div>
-                      </div>
+                      ) : (
+                        <div className="text-sm font-medium text-white">
+                          {result.total_amount ? `${result.total_amount.toLocaleString('sv-SE')} ${result.currency || 'USD'}` : '—'}
+                        </div>
+                      )}
                     </div>
-                  )}
+                    <button onClick={() => setEditingField(editingField === 'amount' ? null : 'amount')} className="opacity-0 group-hover:opacity-100 transition-opacity text-white/40 hover:text-white">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Items */}
-                {result.items && result.items.length > 0 && (
-                  <div>
-                    <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Artiklar ({result.items.length})</p>
-                    <div className="space-y-1">
-                      {result.items.map((item, i) => (
-                        <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-white/5 text-sm">
-                          <div>
-                            <span className="text-white">{item.name}</span>
-                            {item.article_number && <span className="text-white/40 ml-2 text-xs">#{item.article_number}</span>}
-                          </div>
-                          <div className="text-white/60 text-xs">
-                            {item.quantity} st {item.unit_price ? `· ${item.unit_price} ${result.currency || 'SEK'}` : ''}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Link to PO */}
                 <div>
-                  <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
-                    {matchingPOs.length > 0 ? 'Koppla till inköpsorder' : 'Ingen matchande inköpsorder hittades'}
-                  </p>
-                  {matchingPOs.length > 0 ? (
-                    <div className="space-y-2">
-                      {matchingPOs.map(po => (
-                        <button
-                          key={po.id}
-                          onClick={() => handleLinkToOrder(po)}
-                          disabled={isSaving}
-                          className="w-full flex items-center justify-between p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all text-left"
-                        >
-                          <div>
-                            <div className="text-sm font-medium text-white">{po.po_number || `PO #${po.id.slice(0, 8)}`}</div>
-                            <div className="text-xs text-white/50">{po.supplier_name}</div>
-                          </div>
-                          <CheckCircle2 className="w-5 h-5 text-blue-400" />
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-white/40 text-center py-3">
-                      Fakturan sparad men ingen matchande order hittades baserat på leverantör/ordernummer.
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                      Artiklar ({result.items.length})
                     </p>
+                    <button onClick={addItem} className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                      <Plus className="w-3.5 h-3.5" /> Lägg till
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {result.items.map((item, i) => (
+                      <div key={i} className="rounded-lg bg-white/5 border border-white/5 overflow-hidden">
+                        {editingItemIndex === i ? (
+                          <div className="p-3 space-y-2">
+                            <Input
+                              value={item.name || ''}
+                              onChange={(e) => updateItem(i, 'name', e.target.value)}
+                              placeholder="Artikelnamn"
+                              className="h-8 text-sm bg-white/10 border-white/20 text-white"
+                            />
+                            <div className="flex gap-2">
+                              <Input
+                                value={item.article_number || ''}
+                                onChange={(e) => updateItem(i, 'article_number', e.target.value)}
+                                placeholder="Art.nr"
+                                className="h-8 text-sm bg-white/10 border-white/20 text-white flex-1"
+                              />
+                              <Input
+                                type="number"
+                                value={item.quantity || ''}
+                                onChange={(e) => updateItem(i, 'quantity', parseInt(e.target.value) || 0)}
+                                placeholder="Antal"
+                                className="h-8 text-sm bg-white/10 border-white/20 text-white w-20"
+                              />
+                              <Input
+                                type="number"
+                                value={item.unit_price || ''}
+                                onChange={(e) => updateItem(i, 'unit_price', parseFloat(e.target.value) || 0)}
+                                placeholder="Pris"
+                                className="h-8 text-sm bg-white/10 border-white/20 text-white w-24"
+                              />
+                            </div>
+                            <div className="flex justify-end gap-2">
+                              <Button size="sm" variant="ghost" onClick={() => removeItem(i)} className="text-red-400 hover:text-red-300 h-7 px-2">
+                                <Trash2 className="w-3.5 h-3.5 mr-1" /> Ta bort
+                              </Button>
+                              <Button size="sm" onClick={() => setEditingItemIndex(null)} className="bg-blue-600 hover:bg-blue-500 h-7 px-3">
+                                <Save className="w-3.5 h-3.5 mr-1" /> Klar
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between p-2.5 text-sm group">
+                            <div className="flex-1 min-w-0 pr-2">
+                              <span className="text-white">{item.name || '—'}</span>
+                              {item.article_number && item.article_number !== 'N/A' && (
+                                <span className="text-white/40 ml-2 text-xs">#{item.article_number}</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className="text-white/60 text-xs">
+                                {item.quantity} st{item.unit_price ? ` · ${item.unit_price} ${result.currency || 'USD'}` : ''}
+                              </span>
+                              <button onClick={() => setEditingItemIndex(i)} className="opacity-0 group-hover:opacity-100 transition-opacity text-white/40 hover:text-white">
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="space-y-3 pt-2 border-t border-white/10">
+                  {/* Create new PO */}
+                  <Button
+                    onClick={handleCreateOrder}
+                    disabled={isSaving}
+                    className="w-full bg-purple-600 hover:bg-purple-500 text-white"
+                  >
+                    {isSaving ? (
+                      <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />Skapar...</>
+                    ) : (
+                      <><Plus className="w-4 h-4 mr-2" />Skapa ny inköpsorder</>
+                    )}
+                  </Button>
+
+                  {/* Link to existing PO */}
+                  {matchingPOs.length > 0 && (
+                    <div>
+                      <p className="text-xs text-white/40 text-center mb-2">eller koppla till befintlig order</p>
+                      <div className="space-y-2">
+                        {matchingPOs.map(po => (
+                          <button
+                            key={po.id}
+                            onClick={() => handleLinkToOrder(po)}
+                            disabled={isSaving}
+                            className="w-full flex items-center justify-between p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-all text-left"
+                          >
+                            <div>
+                              <div className="text-sm font-medium text-white">{po.po_number || `PO #${po.id.slice(0, 8)}`}</div>
+                              <div className="text-xs text-white/50">{po.supplier_name}</div>
+                            </div>
+                            <CheckCircle2 className="w-5 h-5 text-blue-400" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
