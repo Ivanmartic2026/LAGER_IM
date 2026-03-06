@@ -109,8 +109,7 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
         onChange={handleFileChange}
         accept="image/*"
         capture="environment"
-        multiple
-        style={{ display: 'none' }}
+        style={{ display: 'none', position: 'absolute', top: 0, left: 0 }}
         disabled={isProcessing}
       />
       <input
