@@ -1,39 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import QRCode from 'npm:qrcode@1.5.3';
 
-Deno.serve(async (req) => {
-  try {
-    const base44 = createClientFromRequest(req);
-    const { articleId } = await req.json();
-
-    if (!articleId) {
-      return Response.json({ error: 'Article ID required' }, { status: 400 });
-    }
-
-    const articles = await base44.asServiceRole.entities.Article.filter({ id: articleId });
-    
-    if (!articles || articles.length === 0) {
-      return Response.json({ error: 'Article not found' }, { status: 404 });
-    }
-
-    const article = articles[0];
-
-    // A4 dimensions at 150 DPI
-    const width = 1240;
-    const height = 1754;
-    const margin = 80;
-
-    // Create HTML for canvas rendering
-    const qrCodeDataUrl = article.batch_number 
-      ? await QRCode.toDataURL(article.batch_number, { 
-          width: 400,
-          margin: 2,
-          errorCorrectionLevel: 'H'
-        })
-      : null;
-
-    // Build HTML
-    const html = `
+function buildArticleHTML(article, qrCodeDataUrl, width, height, margin) {
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -127,9 +96,7 @@ Deno.serve(async (req) => {
     ${article.sku ? `<div class="field"><div class="field-label">Artikelnummer (SKU):</div><div class="field-value">${article.sku}</div></div>` : ''}
     ${article.name ? `<div class="field"><div class="field-label">Benämning:</div><div class="field-value">${article.name}</div></div>` : ''}
     ${article.supplier_name ? `<div class="field"><div class="field-label">Leverantör:</div><div class="field-value">${article.supplier_name}</div></div>` : ''}
-    ${article.supplier_price ? `<div class="field"><div class="field-label">Leverantörspris:</div><div class="field-value">${article.supplier_price} kr</div></div>` : ''}
     ${article.category ? `<div class="field"><div class="field-label">Kategori:</div><div class="field-value">${article.category}</div></div>` : ''}
-    ${article.is_stock_item !== false ? `<div class="field"><div class="field-label">Lagervara:</div><div class="field-value">Ja</div></div>` : `<div class="field"><div class="field-label">Lagervara:</div><div class="field-value">Nej</div></div>`}
   </div>
   
   <div class="section">
@@ -148,8 +115,6 @@ Deno.serve(async (req) => {
     ${(article.dimensions_width_mm || article.dimensions_height_mm || article.dimensions_depth_mm) ? `<div class="field"><div class="field-label">Dimensioner (BxHxD):</div><div class="field-value">${article.dimensions_width_mm || '-'} x ${article.dimensions_height_mm || '-'} x ${article.dimensions_depth_mm || '-'} mm</div></div>` : ''}
     ${article.weight_g ? `<div class="field"><div class="field-label">Vikt:</div><div class="field-value">${article.weight_g} g</div></div>` : ''}
   </div>
-
-
 
   ${article.notes ? `
   <div class="section">
@@ -178,19 +143,61 @@ Deno.serve(async (req) => {
   </div>
 </body>
 </html>
-    `;
+  `;
+}
 
-    // Use Deno's built-in API to convert HTML to image
-    // For now, return HTML that can be screenshot on client side
-    // Or we can use a headless browser service
-    
-    // Simple approach: Return HTML and let client convert to PNG
-    return new Response(html, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-      }
-    });
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const body = await req.json();
+
+    // Support both single articleId and multiple articleIds
+    const articleIds = body.articleIds || (body.articleId ? [body.articleId] : []);
+
+    if (!articleIds || articleIds.length === 0) {
+      return Response.json({ error: 'Article ID(s) required' }, { status: 400 });
+    }
+
+    const width = 1240;
+    const height = 1754;
+    const margin = 80;
+
+    // Fetch all articles
+    const articleHtmlList = [];
+    for (const articleId of articleIds) {
+      const articles = await base44.asServiceRole.entities.Article.filter({ id: articleId });
+      if (!articles || articles.length === 0) continue;
+
+      const article = articles[0];
+      const qrCodeDataUrl = article.batch_number
+        ? await QRCode.toDataURL(article.batch_number, {
+            width: 400,
+            margin: 2,
+            errorCorrectionLevel: 'H'
+          })
+        : null;
+
+      articleHtmlList.push({
+        id: article.id,
+        name: article.batch_number || article.name || article.id,
+        html: buildArticleHTML(article, qrCodeDataUrl, width, height, margin)
+      });
+    }
+
+    if (articleHtmlList.length === 0) {
+      return Response.json({ error: 'No articles found' }, { status: 404 });
+    }
+
+    // If single article, return HTML directly (backwards compatible)
+    if (articleHtmlList.length === 1) {
+      return new Response(articleHtmlList[0].html, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+      });
+    }
+
+    // Multiple articles: return JSON with array of html strings
+    return Response.json({ articles: articleHtmlList });
 
   } catch (error) {
     console.error('Error:', error);
