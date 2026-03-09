@@ -1510,6 +1510,31 @@ export default function ArticleDetail({
                     </div>
                   );
                 })}
+                {article.stock_qty > 0 && (
+                  <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/30 opacity-60">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">📦</span>
+                          <span className="font-medium text-slate-300">Artikel skapad</span>
+                          <Badge variant="outline" className="bg-slate-800 text-slate-300 text-xs">
+                            +{article.stock_qty} st (startsaldo)
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-slate-400 mb-2">Startsaldo vid registrering</p>
+                        <div className="flex items-center gap-4 text-xs text-slate-500">
+                          <span>{format(new Date(article.created_date), "d MMM yyyy HH:mm", { locale: sv })}</span>
+                          {article.created_by && (
+                            <>
+                              <span>•</span>
+                              <span>{article.created_by}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
