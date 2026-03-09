@@ -1378,6 +1378,30 @@ export default function ArticleDetail({
               Uppladdade filer
             </h3>
 
+            {/* Source invoice link */}
+            {article.source_invoice_url && (
+              <div className="mb-4 p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <FileText className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs text-purple-300">Originalfaktura (inköpskälla)</p>
+                    <p className="text-sm text-white font-medium truncate">
+                      {article.source_invoice_number || 'Faktura'}
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href={article.source_invoice_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 text-xs font-medium transition-colors"
+                >
+                  Öppna
+                </a>
+              </div>
+            )}
+
+
             {article.image_urls && article.image_urls.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
                 {article.image_urls.map((url, index) => {
