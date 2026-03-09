@@ -1,0 +1,78 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+Deno.serve(async (req) => {
+    try {
+        const base44 = createClientFromRequest(req);
+
+        // --- Authentication ---
+        const authHeader = req.headers.get("Authorization");
+        const expectedKey = Deno.env.get("EXTERNAL_API_KEY");
+
+        if (!expectedKey) {
+            return Response.json({ error: "API key not configured on server" }, { status: 500 });
+        }
+
+        if (!authHeader || authHeader !== `Bearer ${expectedKey}`) {
+            return Response.json({ error: "Unauthorized: Invalid or missing API key" }, { status: 401 });
+        }
+
+        const url = new URL(req.url);
+        const id = url.searchParams.get("id");
+        const method = req.method;
+
+        // --- GET: List all or single article ---
+        if (method === "GET") {
+            if (id) {
+                const article = await base44.asServiceRole.entities.Article.get(id);
+                if (!article) {
+                    return Response.json({ error: "Article not found" }, { status: 404 });
+                }
+                return Response.json(article);
+            } else {
+                const articles = await base44.asServiceRole.entities.Article.list();
+                return Response.json(articles);
+            }
+        }
+
+        // --- POST: Create a new article ---
+        if (method === "POST") {
+            const body = await req.json();
+
+            if (!body.name || !body.storage_type) {
+                return Response.json({ 
+                    error: "Missing required fields: 'name' and 'storage_type' are required" 
+                }, { status: 400 });
+            }
+
+            const article = await base44.asServiceRole.entities.Article.create(body);
+            return Response.json(article, { status: 201 });
+        }
+
+        // --- PUT: Update an existing article ---
+        if (method === "PUT") {
+            if (!id) {
+                return Response.json({ error: "Missing required parameter: 'id'" }, { status: 400 });
+            }
+
+            const body = await req.json();
+            const updated = await base44.asServiceRole.entities.Article.update(id, body);
+            return Response.json(updated);
+        }
+
+        // --- DELETE: Remove an article ---
+        if (method === "DELETE") {
+            if (!id) {
+                return Response.json({ error: "Missing required parameter: 'id'" }, { status: 400 });
+            }
+
+            await base44.asServiceRole.entities.Article.delete(id);
+            return new Response(null, { status: 204 });
+        }
+
+        return Response.json({ error: "Method not allowed" }, { status: 405 });
+
+    } catch (error) {
+        console.error("articleApi error:", error.message);
+        return Response.json({ error: error.message }, { status: 500 });
+    }
+});
