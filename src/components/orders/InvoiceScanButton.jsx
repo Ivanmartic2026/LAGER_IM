@@ -294,8 +294,21 @@ export default function InvoiceScanButton() {
               storage_type: 'company_owned',
               status: 'pending_verification',
               stock_qty: 0,
+              source_invoice_url: result.file_url,
+              source_invoice_number: result.invoice_number || '',
+              source_purchase_order_id: po.id,
             });
             articleId = newArticle.id;
+          } else {
+            // Update existing article with invoice reference if not already set
+            const existingArticle = (await base44.entities.Article.list()).find(a => a.id === articleId);
+            if (existingArticle && !existingArticle.source_invoice_url) {
+              await base44.entities.Article.update(articleId, {
+                source_invoice_url: result.file_url,
+                source_invoice_number: result.invoice_number || '',
+                source_purchase_order_id: po.id,
+              });
+            }
           }
 
           await base44.entities.PurchaseOrderItem.create({
