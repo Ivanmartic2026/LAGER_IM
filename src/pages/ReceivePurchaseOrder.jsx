@@ -164,7 +164,10 @@ export default function ReceivePurchaseOrderPage() {
         const updateData = { 
           stock_qty: newStockQty,
           status: newStockQty <= 0 ? "out_of_stock" : 
-                  newStockQty <= (article.min_stock_level || 5) ? "low_stock" : "active"
+                  newStockQty <= (article.min_stock_level || 5) ? "low_stock" : "active",
+          source_purchase_order_id: purchaseOrder.id,
+          source_invoice_number: purchaseOrder.invoice_number || purchaseOrder.po_number || '',
+          ...(purchaseOrder.invoice_file_url && { source_invoice_url: purchaseOrder.invoice_file_url }),
         };
 
         if (shelfAddress) {
