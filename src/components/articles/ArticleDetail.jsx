@@ -73,10 +73,7 @@ export default function ArticleDetail({
   // Fetch stock movements for this article
   const { data: movements = [] } = useQuery({
     queryKey: ['article-movements', article.id],
-    queryFn: async () => {
-      const allMovements = await base44.entities.StockMovement.list('-created_date', 100);
-      return allMovements.filter(m => m.article_id === article.id);
-    },
+    queryFn: () => base44.entities.StockMovement.filter({ article_id: article.id }, '-created_date', 500),
   });
 
   const { data: allArticles = [] } = useQuery({
