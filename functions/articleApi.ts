@@ -38,9 +38,22 @@ Deno.serve(async (req) => {
         if (method === "POST") {
             const body = await req.json();
 
-            if (!body.name || !body.storage_type) {
+            const requiredFields = [
+                "name", "storage_type", "sku", "category", "status", "unit_cost",
+                "stock_qty", "reserved_stock_qty", "supplier_name", "supplier_product_code",
+                "warehouse", "shelf_address", "batch_number", "pixel_pitch_mm", "pitch_value",
+                "series", "product_version", "manufacturer", "manufacturing_date",
+                "brightness_nits", "dimensions_width_mm", "dimensions_height_mm",
+                "dimensions_depth_mm", "weight_g", "min_stock_level", "customer_name",
+                "notes", "repair_notes", "repair_date", "delivery_date",
+                "source_invoice_number", "source_invoice_url", "source_purchase_order_id",
+                "cfg_file_url", "image_urls"
+            ];
+
+            const missingFields = requiredFields.filter(f => body[f] === undefined || body[f] === null || body[f] === "");
+            if (missingFields.length > 0) {
                 return Response.json({ 
-                    error: "Missing required fields: 'name' and 'storage_type' are required" 
+                    error: `Missing required fields: ${missingFields.join(", ")}` 
                 }, { status: 400 });
             }
 
