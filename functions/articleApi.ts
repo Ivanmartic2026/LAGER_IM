@@ -34,9 +34,37 @@ Deno.serve(async (req) => {
             }
         }
 
-        // --- POST: Create a new article ---
+        // --- POST: Create a new article (supports both JSON and multipart/form-data) ---
         if (method === "POST") {
-            const body = await req.json();
+            let body = {};
+            let imageUrls = [];
+
+            const contentType = req.headers.get("content-type") || "";
+
+            if (contentType.includes("multipart/form-data")) {
+                const formData = await req.formData();
+
+                // Parse JSON fields from form
+                for (const [key, value] of formData.entries()) {
+                    if (key === "image" || key === "images") continue;
+                    try { body[key] = JSON.parse(value); } catch { body[key] = value; }
+                }
+
+                // Upload image files via Base44 integrations
+                const imageFiles = formData.getAll("images").concat(formData.getAll("image"));
+                for (const file of imageFiles) {
+                    if (file instanceof File) {
+                        const uploadResult = await base44.asServiceRole.integrations.Core.UploadFile({ file });
+                        if (uploadResult?.file_url) imageUrls.push(uploadResult.file_url);
+                    }
+                }
+
+                // Merge uploaded image urls with any provided image_urls
+                const existingUrls = Array.isArray(body.image_urls) ? body.image_urls : [];
+                body.image_urls = [...existingUrls, ...imageUrls];
+            } else {
+                body = await req.json();
+            }
 
             // Endast verkligt obligatoriska fält
             const requiredFields = [
