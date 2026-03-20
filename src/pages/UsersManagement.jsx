@@ -184,7 +184,8 @@ export default function UsersManagement() {
       name: createName, 
       email: createEmail, 
       password: createPassword, 
-      role: createRole 
+      role: createRole,
+      allowed_modules: createModules
     });
   };
 
