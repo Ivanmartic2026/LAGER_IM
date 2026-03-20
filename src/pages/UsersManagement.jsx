@@ -35,6 +35,7 @@ export default function UsersManagement() {
   const [createEmail, setCreateEmail] = useState('');
   const [createPassword, setCreatePassword] = useState('');
   const [createRole, setCreateRole] = useState('user');
+  const [createModules, setCreateModules] = useState([]);
   const [activeTab, setActiveTab] = useState('list');
   const { language } = useLanguage();
   const queryClient = useQueryClient();
