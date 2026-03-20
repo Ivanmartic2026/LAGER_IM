@@ -136,12 +136,13 @@ export default function UsersManagement() {
   };
 
   const createUserMutation = useMutation({
-    mutationFn: async ({ name, email, password, role }) => {
+    mutationFn: async ({ name, email, password, role, allowed_modules }) => {
       const response = await base44.functions.invoke('createUserWithPassword', { 
         full_name: name, 
         email, 
         password, 
-        role 
+        role,
+        allowed_modules: allowed_modules || []
       });
       return response.data;
     },
