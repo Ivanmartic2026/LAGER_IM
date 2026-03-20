@@ -342,49 +342,8 @@ Returnera som strukturerad JSON med denna format:
       
       setProgress(70);
 
-      // Enrich data with web search if we have manufacturer and name
+      // Only batch number is extracted from image - no web enrichment
       let enrichedData = { ...result };
-      if (result.name || result.manufacturer) {
-        try {
-          setProgress(75);
-          const webInfo = await base44.integrations.Core.InvokeLLM({
-            prompt: `Sök på internet efter produkten "${result.name || ''}" från tillverkare "${result.manufacturer || ''}" och hitta ytterligare information som:
-            - Fullständigt produktnamn
-            - Korrekt tillverkarnamn
-            - Tekniska specifikationer (pixel pitch, dimensioner, vikt)
-            - Kategori
-            - Länk till produktsida eller datasheet om möjligt
-
-            Returnera bara information du hittar med hög säkerhet.`,
-            add_context_from_internet: true,
-            response_json_schema: {
-              type: "object",
-              properties: {
-                name: { type: "string" },
-                manufacturer: { type: "string" },
-                pixel_pitch_mm: { type: "number" },
-                dimensions_width_mm: { type: "number" },
-                dimensions_height_mm: { type: "number" },
-                dimensions_depth_mm: { type: "number" },
-                weight_kg: { type: "number" },
-                category: { type: "string" },
-                product_url: { type: "string" }
-              }
-            }
-          });
-
-          // Merge web info with extracted data (prefer web info if confidence is low)
-          Object.keys(webInfo).forEach(key => {
-            if (webInfo[key] && (!enrichedData[key] || (enrichedData[`${key}_confidence`] || 0) < 0.7)) {
-              enrichedData[key] = webInfo[key];
-              enrichedData[`${key}_confidence`] = 0.9; // High confidence from web
-            }
-          });
-        } catch (webError) {
-          console.log("Could not enrich data from web:", webError);
-          // Continue with original data
-        }
-      }
       setProgress(90);
 
       // Separate data and confidence values
