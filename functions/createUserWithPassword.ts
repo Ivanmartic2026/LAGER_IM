@@ -16,18 +16,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Create user via backend
-    const newUser = await base44.asServiceRole.functions.invoke('createAdminUser', {
-      full_name,
+    // Create user with allowed_modules directly in userData
+    const result = await base44.asServiceRole.auth.createUser({
       email,
       password,
-      role
+      userData: {
+        full_name,
+        role,
+        allowed_modules: allowed_modules || []
+      }
     });
 
-    // Update allowed_modules if provided
-    if (allowed_modules && allowed_modules.length > 0 && newUser?.id) {
-      await base44.asServiceRole.entities.User.update(newUser.id, { allowed_modules });
-    }
+    const newUser = result;
 
     // Log registration
     await base44.asServiceRole.entities.UserRegistration.create({
