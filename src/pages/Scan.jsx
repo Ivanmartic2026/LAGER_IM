@@ -296,31 +296,7 @@ Returnera som strukturerad JSON med denna format:
         type: "object",
         properties: {
           batch_number: { type: "string" },
-          batch_number_confidence: { type: "number" },
-          name: { type: "string" },
-          name_confidence: { type: "number" },
-          manufacturer: { type: "string" },
-          manufacturer_confidence: { type: "number" },
-          manufacturing_date: { type: "string" },
-          manufacturing_date_confidence: { type: "number" },
-          pixel_pitch_mm: { type: "number" },
-          pixel_pitch_mm_confidence: { type: "number" },
-          shelf_address: { type: "string" },
-          shelf_address_confidence: { type: "number" },
-          dimensions_width_mm: { type: "number" },
-          dimensions_width_mm_confidence: { type: "number" },
-          dimensions_height_mm: { type: "number" },
-          dimensions_height_mm_confidence: { type: "number" },
-          dimensions_depth_mm: { type: "number" },
-          dimensions_depth_mm_confidence: { type: "number" },
-          weight_kg: { type: "number" },
-          weight_kg_confidence: { type: "number" },
-          stock_qty: { type: "number" },
-          stock_qty_confidence: { type: "number" },
-          category: { type: "string" },
-          category_confidence: { type: "number" },
-          warehouse: { type: "string" },
-          warehouse_confidence: { type: "number" }
+          batch_number_confidence: { type: "number" }
         }
       };
 
