@@ -28,10 +28,10 @@ Deno.serve(async (req) => {
     );
 
     // Fetch full names for created_by and picked_by
-    const createdByUser = order.created_by ? (await base44.entities.User.filter({ email: order.created_by }))[0] : null;
+    const createdByUser = order.created_by ? (await base44.asServiceRole.entities.User.filter({ email: order.created_by }))[0] : null;
     const createdByName = createdByUser?.full_name || order.created_by || '-';
 
-    const pickedByUser = order.picked_by ? (await base44.entities.User.filter({ email: order.picked_by }))[0] : null;
+    const pickedByUser = order.picked_by ? (await base44.asServiceRole.entities.User.filter({ email: order.picked_by }))[0] : null;
     const pickedByName = pickedByUser?.full_name || order.picked_by || '-';
 
     const itemsHtml = orderItems.map(item => {
