@@ -64,7 +64,9 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
         await base44.entities.PurchaseOrder.update(purchaseOrder.id, data);
         savedPO = { ...purchaseOrder, ...data };
       } else {
-        savedPO = await base44.entities.PurchaseOrder.create(data);
+        // Generate a unique supplier portal token
+        const token = crypto.randomUUID().replace(/-/g, '');
+        savedPO = await base44.entities.PurchaseOrder.create({ ...data, supplier_portal_token: token });
       }
 
       // Delete removed items
