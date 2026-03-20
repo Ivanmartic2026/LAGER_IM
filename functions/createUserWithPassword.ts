@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const { full_name, email, password, role } = await req.json();
+    const { full_name, email, password, role, allowed_modules } = await req.json();
 
     if (!full_name || !email || !password || !role) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
@@ -23,6 +23,11 @@ Deno.serve(async (req) => {
       password,
       role
     });
+
+    // Update allowed_modules if provided
+    if (allowed_modules && allowed_modules.length > 0 && newUser?.id) {
+      await base44.asServiceRole.entities.User.update(newUser.id, { allowed_modules });
+    }
 
     // Log registration
     await base44.asServiceRole.entities.UserRegistration.create({
