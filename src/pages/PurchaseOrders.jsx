@@ -416,10 +416,16 @@ export default function PurchaseOrdersPage() {
                           size="sm"
                           variant="outline"
                           className="bg-purple-600/20 border-purple-500/30 text-purple-400 hover:bg-purple-600/30"
-                          onClick={() => {
-                            const portalUrl = `${window.location.origin}${createPageUrl('SupplierPOView')}?po=${po.id}&token=${po.supplier_portal_token || 'MISSING_TOKEN'}`;
-                            navigator.clipboard.writeText(portalUrl);
-                            toast.success('Leverantörslänk kopierad! Dela denna med leverantören.');
+                          onClick={async () => {
+                           let token = po.supplier_portal_token;
+                           if (!token) {
+                             token = crypto.randomUUID().replace(/-/g, '');
+                             await base44.entities.PurchaseOrder.update(po.id, { supplier_portal_token: token });
+                             queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+                           }
+                           const portalUrl = `${window.location.origin}${createPageUrl('SupplierPOView')}?po=${po.id}&token=${token}`;
+                           navigator.clipboard.writeText(portalUrl);
+                           toast.success('Leverantörslänk kopierad! Dela denna med leverantören.');
                           }}
                         >
                           <Link2 className="w-4 h-4 md:mr-2" />
