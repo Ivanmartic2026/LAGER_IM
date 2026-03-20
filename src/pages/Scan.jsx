@@ -303,33 +303,14 @@ Returnera som strukturerad JSON med denna format:
       // Analyze all images in parallel
       const analysisPromises = urls.map(url => 
         base44.integrations.Core.InvokeLLM({
-          prompt: `ANALYSERA DENNA BILD MYCKET NOGGRANT OCH EXTRAHERA ALLA NUMMER/KODER:
+          prompt: `ANALYSERA DENNA BILD NOGGRANT OCH EXTRAHERA BATCHNUMMER:
 
-      Du MÅSTE läsa av ALLA siffror, bokstäver och nummer som syns på bilden, speciellt:
-      - BATCHNUMMER (ofta i format som "123-456-789", "LOT123", "BATCH-001", etc)
-      - ARTIKELNUMMER / SKU
-      - SERIENUMMER
-      - PRODUKTKODER
-
+      Läs av EXAKT BATCHNUMMER som syns på bilden (ofta i format "123-456-789", "LOT123", "BATCH-001", etc).
       VAR EXAKT: Skriv EXAKT vad du ser, ingen gissning eller normalisering.
 
-      Identifiera även:
-      - Artikelnamn/benämning
-      - Tillverkare
-      - Tillverkningsdatum
-      - Pixel pitch (mm) - om det är en LED-modul
-      - Kategori baserat på vad produkten är:
-      * LED Module - om det är LED-panel, LED-modul, ljusmodul
-      * Cabinet - om det är ett kabinett, hölje, låda
-      * Controller - om det är en kontrollenhet, processor
-      * Power Supply - om det är en strömförsörjning, transformator
-      * Cable - om det är en kabel, kontakt
-      * Accessory - övriga tillbehör
-      * Other - om det inte passar någon av ovanstående
-
-      För VARJE fält ge ett confidence-värde (0-1):
+      För batchnumret, ge ett confidence-värde (0-1):
       - 1.0 = helt säker, kan läsa tydligt
-      - 0.7-0.9 = säker, läsbara men lite suddig
+      - 0.7-0.9 = säker, läsbar men lite suddig
       - 0.4-0.6 = osäker, svårläst
       - <0.4 = mycket osäker eller inte läsbar`,
           file_urls: [url],
