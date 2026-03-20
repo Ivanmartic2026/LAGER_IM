@@ -580,6 +580,31 @@ export default function UsersManagement() {
                      </select>
                    </div>
 
+                   <div>
+                     <label className="block text-sm font-medium text-white mb-2">
+                       {language === 'sv' ? 'Moduler & tillgång' : 'Modules & Access'}
+                     </label>
+                     <div className="grid grid-cols-2 gap-2">
+                       {AVAILABLE_MODULES.map(module => (
+                         <label
+                           key={module.id}
+                           className="flex items-center gap-2 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 cursor-pointer border border-slate-700"
+                         >
+                           <Checkbox
+                             checked={createModules.includes(module.id)}
+                             onCheckedChange={(checked) => {
+                               setCreateModules(prev =>
+                                 checked ? [...prev, module.id] : prev.filter(m => m !== module.id)
+                               );
+                             }}
+                             className="w-4 h-4"
+                           />
+                           <span className="text-sm text-white/80">{t(module.labelKey, language)}</span>
+                         </label>
+                       ))}
+                     </div>
+                   </div>
+
                    <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3">
                      <p className="text-sm text-slate-300">
                        {language === 'sv' 
