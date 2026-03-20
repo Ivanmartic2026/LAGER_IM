@@ -163,6 +163,7 @@ export default function UsersManagement() {
         setCreateEmail('');
         setCreatePassword('');
         setCreateRole('user');
+        setCreateModules([]);
         setShowCreateModal(false);
       }, 1500);
     },
