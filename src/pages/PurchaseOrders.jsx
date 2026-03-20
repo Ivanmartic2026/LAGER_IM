@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { 
-  Search, Plus, ShoppingCart, Download, Calendar,
-  Truck, Package, User, Printer, Mail, Eye, X, CheckCircle2, AlertCircle, Link2, Copy
+Search, Plus, ShoppingCart, Download, Calendar,
+Truck, Package, User, Printer, Mail, Eye, X, CheckCircle2, AlertCircle, Link2, Copy, FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
