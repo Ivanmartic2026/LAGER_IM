@@ -463,6 +463,18 @@ export default function PurchaseOrdersPage() {
                           </Button>
                         )}
 
+                        {po.invoice_file_url && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-amber-600/20 border-amber-500/30 text-amber-400 hover:bg-amber-600/30"
+                            onClick={() => window.open(po.invoice_file_url, '_blank')}
+                          >
+                            <FileText className="w-4 h-4 md:mr-2" />
+                            <span className="hidden md:inline">Faktura</span>
+                          </Button>
+                        )}
+
                         <Button
                           size="sm"
                           variant="outline"
