@@ -1135,9 +1135,9 @@ export default function InventoryPage() {
 
                          <div className="flex items-center justify-end flex-shrink-0 w-32">
                            {article.status === 'in_transit' && (
-                             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 shadow-lg shadow-blue-500/40">
-                               <span className="text-sm leading-none">🚢</span>
-                               <span className="text-white font-bold text-xs tracking-wide">IN PROD.</span>
+                             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/25">
+                               <span className="text-xs leading-none">🚢</span>
+                               <span className="text-blue-300 text-xs">I produktion</span>
                              </div>
                            )}
                          </div>
