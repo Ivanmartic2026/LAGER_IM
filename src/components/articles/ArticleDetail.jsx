@@ -508,12 +508,8 @@ export default function ArticleDetail({
                 });
 
                 if (response.data.success) {
-                  const newWindow = window.open('', '_blank');
-                  if (newWindow) {
-                    newWindow.document.write(response.data.html);
-                    newWindow.document.close();
-                    toast.success('Dokument genererat! Spara som PDF eller skriv ut.');
-                  }
+                  window.open(response.data.upload_url, '_blank');
+                  toast.success('Leverantörslänk öppnad!');
                 }
               } catch (error) {
                 console.error('Error:', error);
