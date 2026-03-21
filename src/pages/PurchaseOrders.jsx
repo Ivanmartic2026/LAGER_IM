@@ -431,6 +431,16 @@ export default function PurchaseOrdersPage() {
                         <Button
                           size="sm"
                           variant="outline"
+                          className="bg-blue-600/20 border-blue-500/30 text-blue-400 hover:bg-blue-600/30"
+                          onClick={() => setDocumentsPO(po)}
+                        >
+                          <FileText className="w-4 h-4 md:mr-2" />
+                          <span className="hidden md:inline">Dokumentation</span>
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="bg-purple-600/20 border-purple-500/30 text-purple-400 hover:bg-purple-600/30"
                           onClick={async () => {
                            let token = po.supplier_portal_token;
