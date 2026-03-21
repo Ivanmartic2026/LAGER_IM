@@ -532,50 +532,12 @@ export default function InventoryPage() {
       <div className="min-h-screen bg-black p-4 md:p-6">
         <div className="max-w-6xl mx-auto">
         
-        {/* Compact Header */}
+        {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-white tracking-tight">Lager</h1>
-              <div className="flex items-center gap-3 text-sm">
-                <Badge 
-                  variant="outline" 
-                  className="bg-blue-500/10 text-blue-400 border-blue-500/30 cursor-pointer hover:bg-blue-500/20 transition-colors"
-                  onClick={() => setStatusFilter('all')}
-                >
-                  {stats.total} totalt
-                </Badge>
-                {stats.lowStock > 0 && (
-                  <Badge 
-                    variant="outline" 
-                    className="bg-amber-500/10 text-amber-400 border-amber-500/30 cursor-pointer hover:bg-amber-500/20 transition-colors"
-                    onClick={() => setStatusFilter('low_stock')}
-                  >
-                    {stats.lowStock} lågt
-                  </Badge>
-                )}
-                {stats.outOfStock > 0 && (
-                  <Badge 
-                    variant="outline" 
-                    className="bg-red-500/10 text-red-400 border-red-500/30 cursor-pointer hover:bg-red-500/20 transition-colors"
-                    onClick={() => setStatusFilter('out_of_stock')}
-                  >
-                    {stats.outOfStock} slut
-                  </Badge>
-                )}
-                {stats.onRepair > 0 && (
-                  <Badge 
-                    variant="outline" 
-                    className="bg-orange-500/10 text-orange-400 border-orange-500/30 cursor-pointer hover:bg-orange-500/20 transition-colors"
-                    onClick={() => setStatusFilter('on_repair')}
-                  >
-                    {stats.onRepair} reparation
-                  </Badge>
-                )}
-              </div>
-            </div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Lager</h1>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -584,67 +546,92 @@ export default function InventoryPage() {
                 className="hidden"
                 id="file-import-input"
               />
-              <Button
-                onClick={handleExportExcel}
-                disabled={isExportingExcel}
-                size="sm"
-                className="bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/30 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                {isExportingExcel ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                    Exporterar...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" />
-                    Excel
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={handleExportCsv}
-                disabled={isExportingCsv}
-                size="sm"
-                className="bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/30 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                {isExportingCsv ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                    Exporterar...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" />
-                    CSV
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isImporting}
-                size="sm"
-                className="bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/30 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                {isImporting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                    Importerar...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Importera
-                  </>
-                )}
-              </Button>
+
+              {/* Actions Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" className="bg-white/10 border border-white/20 hover:bg-white/20 text-white">
+                    <MoreHorizontal className="w-4 h-4 mr-2" />
+                    Åtgärder
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-zinc-900 border-white/10 text-white">
+                  <DropdownMenuItem onClick={handleExportExcel} disabled={isExportingExcel} className="hover:bg-white/10 cursor-pointer">
+                    <Download className="w-4 h-4 mr-2 text-green-400" />
+                    {isExportingExcel ? "Exporterar Excel..." : "Exportera Excel"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportCsv} disabled={isExportingCsv} className="hover:bg-white/10 cursor-pointer">
+                    <Download className="w-4 h-4 mr-2 text-blue-400" />
+                    {isExportingCsv ? "Exporterar CSV..." : "Exportera CSV"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem onClick={() => fileInputRef.current?.click()} disabled={isImporting} className="hover:bg-white/10 cursor-pointer">
+                    <Upload className="w-4 h-4 mr-2 text-purple-400" />
+                    {isImporting ? "Importerar..." : "Importera Excel"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Link to={createPageUrl("Scan")}>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-200">
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white font-medium shadow-lg shadow-blue-500/30">
                   <Camera className="w-4 h-4 mr-2" />
                   Skanna
                 </Button>
               </Link>
             </div>
+          </div>
+
+          {/* Stat Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={cn(
+                "p-3 rounded-xl border text-left transition-all",
+                statusFilter === 'all'
+                  ? "bg-white/15 border-white/30"
+                  : "bg-white/5 border-white/10 hover:bg-white/10"
+              )}
+            >
+              <div className="text-2xl font-bold text-white">{stats.total}</div>
+              <div className="text-xs text-white/50 mt-0.5">Totalt</div>
+            </button>
+            <button
+              onClick={() => setStatusFilter(statusFilter === 'low_stock' ? 'all' : 'low_stock')}
+              className={cn(
+                "p-3 rounded-xl border text-left transition-all",
+                statusFilter === 'low_stock'
+                  ? "bg-amber-500/20 border-amber-500/40"
+                  : "bg-white/5 border-white/10 hover:bg-amber-500/10 hover:border-amber-500/20"
+              )}
+            >
+              <div className="text-2xl font-bold text-amber-400">{stats.lowStock}</div>
+              <div className="text-xs text-white/50 mt-0.5">Lågt lager</div>
+            </button>
+            <button
+              onClick={() => setStatusFilter(statusFilter === 'out_of_stock' ? 'all' : 'out_of_stock')}
+              className={cn(
+                "p-3 rounded-xl border text-left transition-all",
+                statusFilter === 'out_of_stock'
+                  ? "bg-red-500/20 border-red-500/40"
+                  : "bg-white/5 border-white/10 hover:bg-red-500/10 hover:border-red-500/20"
+              )}
+            >
+              <div className="text-2xl font-bold text-red-400">{stats.outOfStock}</div>
+              <div className="text-xs text-white/50 mt-0.5">Slut i lager</div>
+            </button>
+            <button
+              onClick={() => setStatusFilter(statusFilter === 'on_repair' ? 'all' : 'on_repair')}
+              className={cn(
+                "p-3 rounded-xl border text-left transition-all",
+                statusFilter === 'on_repair'
+                  ? "bg-orange-500/20 border-orange-500/40"
+                  : "bg-white/5 border-white/10 hover:bg-orange-500/10 hover:border-orange-500/20"
+              )}
+            >
+              <div className="text-2xl font-bold text-orange-400">{stats.onRepair}</div>
+              <div className="text-xs text-white/50 mt-0.5">På reparation</div>
+            </button>
           </div>
 
           {/* Bulk Actions Toolbar */}
