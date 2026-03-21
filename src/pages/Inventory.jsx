@@ -758,64 +758,121 @@ export default function InventoryPage() {
           </AnimatePresence>
 
           {/* Search & Filters */}
-          <div className="space-y-3">
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Sök artikelnummer, batch, benämning eller tillverkare..."
-                className="pl-11 h-11 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300 text-base"
-              />
+          <div className="space-y-2">
+            {/* Search + Filter toggle row */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Sök artikel, batch, SKU..."
+                  className="pl-10 h-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 transition-all text-base"
+                />
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFiltersOpen(f => !f)}
+                className={cn(
+                  "h-10 px-3 border transition-all",
+                  filtersOpen || warehouseFilter !== 'all' || storageTypeFilter !== 'all' || categoryFilter !== 'all'
+                    ? "bg-blue-600/20 border-blue-500/40 text-blue-400"
+                    : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                )}
+              >
+                <Filter className="w-4 h-4 mr-1.5" />
+                Filter
+                {filtersOpen ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
+              </Button>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="h-10 w-40 bg-white/5 border-white/10 text-white/70">
+                  <ArrowUpDown className="w-3 h-3 mr-1.5 text-white/40" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectItem value="newest">Nyast</SelectItem>
+                  <SelectItem value="name">Namn A–Ö</SelectItem>
+                  <SelectItem value="shelf">Hyllplats</SelectItem>
+                  <SelectItem value="stock">Saldo</SelectItem>
+                  <SelectItem value="supplier">Leverantör</SelectItem>
+                  <SelectItem value="batch">Batch</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Filters Row */}
-            <div className="flex flex-wrap gap-3">
-              <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
-                <SelectTrigger className="w-52 h-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300">
-                  <SelectValue placeholder="Lager" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                  <SelectItem value="all">Alla lager</SelectItem>
-                  {warehouses.map(warehouse => (
-                    <SelectItem key={warehouse.id} value={warehouse.name}>
-                      {warehouse.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Collapsible Filters */}
+            <AnimatePresence>
+              {filtersOpen && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
+                      <SelectTrigger className="w-48 h-9 bg-white/5 border-white/10 text-white text-sm">
+                        <SelectValue placeholder="Lager" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                        <SelectItem value="all">Alla lager</SelectItem>
+                        {warehouses.map(warehouse => (
+                          <SelectItem key={warehouse.id} value={warehouse.name}>{warehouse.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
-              <Select value={storageTypeFilter} onValueChange={setStorageTypeFilter}>
-                <SelectTrigger className="w-52 h-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300">
-                  <SelectValue placeholder="Lagertyp" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                  <SelectItem value="all">Alla typer</SelectItem>
-                  <SelectItem value="company_owned">Företagsägt</SelectItem>
-                  <SelectItem value="customer_owned">Kundägt</SelectItem>
-                </SelectContent>
-              </Select>
+                    <Select value={storageTypeFilter} onValueChange={setStorageTypeFilter}>
+                      <SelectTrigger className="w-44 h-9 bg-white/5 border-white/10 text-white text-sm">
+                        <SelectValue placeholder="Lagertyp" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                        <SelectItem value="all">Alla typer</SelectItem>
+                        <SelectItem value="company_owned">Företagsägt</SelectItem>
+                        <SelectItem value="customer_owned">Kundägt</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-52 h-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-xl transition-all duration-300">
-                  <SelectValue placeholder="Kategori" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                  <SelectItem value="all">Alla kategorier</SelectItem>
-                  <SelectItem value="Cabinet">Kabinett</SelectItem>
-                  <SelectItem value="LED Module">LED-modul</SelectItem>
-                  <SelectItem value="Power Supply">Strömförsörjning</SelectItem>
-                  <SelectItem value="Receiving Card">Receiving card</SelectItem>
-                  <SelectItem value="Control Processor">Control Processor</SelectItem>
-                  <SelectItem value="Computer">Dator</SelectItem>
-                  <SelectItem value="Cable">Kabel</SelectItem>
-                  <SelectItem value="Accessory">Tillbehör</SelectItem>
-                  <SelectItem value="Other">Övrigt</SelectItem>
-                </SelectContent>
-              </Select>
-              </div>
-              </div>
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="w-48 h-9 bg-white/5 border-white/10 text-white text-sm">
+                        <SelectValue placeholder="Kategori" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                        <SelectItem value="all">Alla kategorier</SelectItem>
+                        <SelectItem value="Cabinet">Kabinett</SelectItem>
+                        <SelectItem value="LED Module">LED-modul</SelectItem>
+                        <SelectItem value="Power Supply">Strömförsörjning</SelectItem>
+                        <SelectItem value="Receiving Card">Receiving card</SelectItem>
+                        <SelectItem value="Control Processor">Control Processor</SelectItem>
+                        <SelectItem value="Computer">Dator</SelectItem>
+                        <SelectItem value="Cable">Kabel</SelectItem>
+                        <SelectItem value="Accessory">Tillbehör</SelectItem>
+                        <SelectItem value="Other">Övrigt</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {(warehouseFilter !== 'all' || storageTypeFilter !== 'all' || categoryFilter !== 'all') && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setWarehouseFilter('all'); setStorageTypeFilter('all'); setCategoryFilter('all'); }}
+                        className="h-9 text-white/50 hover:text-white hover:bg-white/10 text-sm"
+                      >
+                        <X className="w-3 h-3 mr-1" />
+                        Rensa filter
+                      </Button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Results count */}
+            <div className="text-xs text-white/40 pt-1">
+              Visar {filteredArticles.length} av {articles.length} artiklar
+            </div>
+          </div>
         </div>
 
         {/* Articles List */}
