@@ -559,26 +559,49 @@ export default function OrdersPage() {
             <p className="text-sm text-white/50">Plockar</p>
           </motion.button>
 
-          <motion.button
-            whileHover={{ y: -4, transition: { duration: 0.2 } }}
-            onClick={() => setStatusFilter('picked')}
-            className={cn(
-              "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
-              statusFilter === 'picked'
-                ? "bg-orange-500/20 border-orange-500/40 shadow-lg shadow-orange-500/10"
-                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:shadow-orange-500/10"
-            )}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/30 to-orange-600/30 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-orange-400" />
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-white mb-1 tracking-tight">
-              {orders.filter(o => o.status === 'picked' && !o.fortnox_invoiced).length}
-            </p>
-            <p className="text-sm text-white/50">Väntar fakturering</p>
-          </motion.button>
+          {(() => {
+            const pendingInvoiceCount = orders.filter(o => o.status === 'picked' && !o.fortnox_invoiced).length;
+            return (
+              <motion.button
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                onClick={() => setStatusFilter('picked')}
+                className={cn(
+                  "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left relative overflow-hidden",
+                  statusFilter === 'picked'
+                    ? "bg-red-500/20 border-red-500/40 shadow-lg shadow-red-500/10"
+                    : pendingInvoiceCount > 0
+                    ? "bg-red-500/10 border-red-500/30 hover:bg-red-500/20 hover:border-red-500/50 hover:shadow-xl hover:shadow-red-500/10"
+                    : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:shadow-orange-500/10"
+                )}
+                animate={pendingInvoiceCount > 0 ? {
+                  boxShadow: ['0 0 0px rgba(239,68,68,0)', '0 0 20px rgba(239,68,68,0.4)', '0 0 0px rgba(239,68,68,0)']
+                } : {}}
+                transition={pendingInvoiceCount > 0 ? { repeat: Infinity, duration: 1.5, ease: "easeInOut" } : {}}
+              >
+                {pendingInvoiceCount > 0 && (
+                  <motion.div
+                    className="absolute inset-0 bg-red-500/10 rounded-2xl"
+                    animate={{ opacity: [0, 0.5, 0] }}
+                    transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                  />
+                )}
+                <div className="flex items-center justify-between mb-3 relative z-10">
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center",
+                    pendingInvoiceCount > 0
+                      ? "bg-gradient-to-br from-red-500/40 to-red-600/40"
+                      : "bg-gradient-to-br from-orange-500/30 to-orange-600/30"
+                  )}>
+                    <AlertTriangle className={cn("w-5 h-5", pendingInvoiceCount > 0 ? "text-red-400" : "text-orange-400")} />
+                  </div>
+                </div>
+                <p className={cn("text-3xl font-bold mb-1 tracking-tight relative z-10", pendingInvoiceCount > 0 ? "text-red-300" : "text-white")}>
+                  {pendingInvoiceCount}
+                </p>
+                <p className={cn("text-sm relative z-10", pendingInvoiceCount > 0 ? "text-red-400/70" : "text-white/50")}>Väntar fakturering</p>
+              </motion.button>
+            );
+          })()}
         </div>
 
         {/* Search & Filters */}
