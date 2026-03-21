@@ -200,6 +200,7 @@ export default function InvoiceScanButton() {
 
       toast.success('Faktura analyserad!', { id: toastId });
       setResult({ ...extracted, file_url, items: extracted.items || [] });
+      uploadedFileUrl.current = file_url;
     } catch (error) {
       console.error('Invoice scan error:', error);
       const errorMsg = error.message.includes('Unsupported file type') 
