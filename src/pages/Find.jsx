@@ -22,6 +22,11 @@ import ReviewForm from "@/components/scanner/ReviewForm";
 import RepairModal from "@/components/articles/RepairModal";
 import { useQueryClient } from "@tanstack/react-query";
 
+// Make this page public/unauthenticated
+export async function getPublicAccess() {
+  return true;
+}
+
 export default function FindPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
