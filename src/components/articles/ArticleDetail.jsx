@@ -1354,56 +1354,66 @@ export default function ArticleDetail({
 
           {/* AI-extraherad information */}
           {(article.ai_extracted_data || article.ai_confidence_scores) && (
-            <div className="p-5 rounded-2xl bg-purple-500/10 border border-purple-500/30">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-purple-400" />
+            <div className="rounded-2xl bg-purple-500/10 border border-purple-500/30 overflow-hidden">
+              <button
+                onClick={() => setAiDataExpanded(prev => !prev)}
+                className="w-full flex items-center justify-between p-5 text-left hover:bg-purple-500/5 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <h3 className="font-semibold text-white">AI-Extraherad Data</h3>
                 </div>
-                <h3 className="font-semibold text-white">AI-Extraherad Data</h3>
-              </div>
+                <ChevronDown className={cn("w-4 h-4 text-purple-400 transition-transform", aiDataExpanded && "rotate-180")} />
+              </button>
               
-              {article.ai_extracted_data && (
-                <div className="space-y-3 mb-4">
-                  {Object.entries(article.ai_extracted_data).map(([key, value]) => {
-                    if (!value || key.endsWith('_confidence') || key === 'image_urls') return null;
-                    
-                    const confidence = article.ai_confidence_scores?.[key];
-                    const confidencePercent = confidence ? Math.round(confidence * 100) : null;
-                    
-                    return (
-                      <div key={key} className="flex items-start justify-between py-2 border-b border-purple-500/20 last:border-0">
-                        <div className="flex-1">
-                          <p className="text-xs text-purple-300 mb-1 capitalize">
-                            {key.replace(/_/g, ' ')}
-                          </p>
-                          <p className="text-white font-medium">{value.toString()}</p>
-                        </div>
-                        {confidencePercent !== null && (
-                          <div className="flex items-center gap-2">
-                            <div className="w-20 h-2 bg-slate-700 rounded-full overflow-hidden">
-                              <div 
-                                className={`h-full transition-all ${
-                                  confidencePercent >= 90 ? 'bg-emerald-500' :
-                                  confidencePercent >= 70 ? 'bg-amber-500' : 'bg-red-500'
-                                }`}
-                                style={{ width: `${confidencePercent}%` }}
-                              />
+              {aiDataExpanded && (
+                <div className="px-5 pb-5">
+                  {article.ai_extracted_data && (
+                    <div className="space-y-3 mb-4">
+                      {Object.entries(article.ai_extracted_data).map(([key, value]) => {
+                        if (!value || key.endsWith('_confidence') || key === 'image_urls') return null;
+                        
+                        const confidence = article.ai_confidence_scores?.[key];
+                        const confidencePercent = confidence ? Math.round(confidence * 100) : null;
+                        
+                        return (
+                          <div key={key} className="flex items-start justify-between py-2 border-b border-purple-500/20 last:border-0">
+                            <div className="flex-1">
+                              <p className="text-xs text-purple-300 mb-1 capitalize">
+                                {key.replace(/_/g, ' ')}
+                              </p>
+                              <p className="text-white font-medium">{value.toString()}</p>
                             </div>
-                            <span className="text-xs text-purple-300 min-w-[3rem] text-right">
-                              {confidencePercent}%
-                            </span>
+                            {confidencePercent !== null && (
+                              <div className="flex items-center gap-2">
+                                <div className="w-20 h-2 bg-slate-700 rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full transition-all ${
+                                      confidencePercent >= 90 ? 'bg-emerald-500' :
+                                      confidencePercent >= 70 ? 'bg-amber-500' : 'bg-red-500'
+                                    }`}
+                                    style={{ width: `${confidencePercent}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs text-purple-300 min-w-[3rem] text-right">
+                                  {confidencePercent}%
+                                </span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  )}
+                  
+                  <p className="text-xs text-purple-300/70 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Denna information extraherades automatiskt vid scanning
+                  </p>
                 </div>
               )}
-              
-              <p className="text-xs text-purple-300/70 flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                Denna information extraherades automatiskt vid scanning
-              </p>
             </div>
           )}
 
