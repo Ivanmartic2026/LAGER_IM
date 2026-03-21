@@ -1156,11 +1156,15 @@ export default function InventoryPage() {
                            )}
                          </div>
 
-                         <div className="flex items-center justify-end flex-shrink-0 w-32">
-                           {article.status === 'in_transit' && (
-                             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/25">
-                               <span className="text-xs leading-none">🚢</span>
-                               <span className="text-blue-300 text-xs">I produktion</span>
+                         <div className="flex items-center justify-end flex-shrink-0">
+                           {article.transit_expected_date && (
+                             <div className="flex flex-col items-end gap-0.5 bg-blue-600/20 border border-blue-500/30 rounded-xl px-3 py-1.5 whitespace-nowrap">
+                               <div className="flex items-center gap-1 text-blue-300 text-[11px] font-semibold uppercase tracking-wider">
+                                 <span>ETA</span>
+                               </div>
+                               <span className="text-white font-bold text-xs">
+                                 {format(new Date(article.transit_expected_date), "d MMM", { locale: sv })}
+                               </span>
                              </div>
                            )}
                          </div>
