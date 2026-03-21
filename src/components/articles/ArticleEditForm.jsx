@@ -807,6 +807,40 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
               </div>
             )}
 
+            {/* Status */}
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">Status</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-300">Artikelstatus</Label>
+                  <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                      <SelectValue placeholder="Välj status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">✅ Aktiv / I lager</SelectItem>
+                      <SelectItem value="in_transit">🚢 In Production / I transit</SelectItem>
+                      <SelectItem value="low_stock">⚠️ Lågt lager</SelectItem>
+                      <SelectItem value="out_of_stock">❌ Slut i lager</SelectItem>
+                      <SelectItem value="on_repair">🔧 På reparation</SelectItem>
+                      <SelectItem value="discontinued">🚫 Utgått</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {formData.status === 'in_transit' && (
+                  <div>
+                    <Label className="text-slate-300">Förväntat ankomstdatum</Label>
+                    <Input
+                      type="date"
+                      value={formData.transit_expected_date}
+                      onChange={(e) => handleChange('transit_expected_date', e.target.value)}
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Anteckningar */}
             <div>
               <Label className="text-slate-300">Anteckningar</Label>
