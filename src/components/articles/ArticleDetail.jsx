@@ -533,6 +533,27 @@ export default function ArticleDetail({
         </div>
       </div>
 
+      {/* In Production Banner */}
+      {article.status === 'in_transit' && (
+        <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-blue-600 border border-blue-400/50 shadow-lg shadow-blue-500/30">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🚢</span>
+            <div>
+              <p className="text-white font-bold text-base tracking-wide">IN PRODUCTION</p>
+              <p className="text-blue-200 text-xs">Artikeln är under produktion / i transit</p>
+            </div>
+          </div>
+          {article.transit_expected_date && (
+            <div className="text-right flex-shrink-0">
+              <p className="text-blue-200 text-xs">Beräknad ankomst</p>
+              <p className="text-white font-bold text-sm">
+                {format(new Date(article.transit_expected_date), "d MMM yyyy", { locale: sv })}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Article Header - Mobile Optimized */}
       <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-6">
         {/* Image Gallery */}
