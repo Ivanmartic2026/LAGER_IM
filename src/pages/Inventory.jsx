@@ -535,7 +535,7 @@ export default function InventoryPage() {
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Lager</h1>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Inventory</h1>
 
             <div className="flex gap-2 items-center">
               <input
@@ -583,55 +583,78 @@ export default function InventoryPage() {
           </div>
 
           {/* Stat Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <button
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <motion.button
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
               onClick={() => setStatusFilter('all')}
-              className={cn(
-                "p-3 rounded-xl border text-left transition-all",
-                statusFilter === 'all'
-                  ? "bg-white/15 border-white/30"
-                  : "bg-white/5 border-white/10 hover:bg-white/10"
-              )}
+              className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300 cursor-pointer group text-left"
             >
-              <div className="text-2xl font-bold text-white">{stats.total}</div>
-              <div className="text-xs text-white/50 mt-0.5">Totalt</div>
-            </button>
-            <button
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300">
+                  <Package className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+              </div>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.total}</p>
+              <p className="text-sm text-white/50">Artiklar</p>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
               onClick={() => setStatusFilter(statusFilter === 'low_stock' ? 'all' : 'low_stock')}
               className={cn(
-                "p-3 rounded-xl border text-left transition-all",
+                "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
                 statusFilter === 'low_stock'
-                  ? "bg-amber-500/20 border-amber-500/40"
-                  : "bg-white/5 border-white/10 hover:bg-amber-500/10 hover:border-amber-500/20"
+                  ? "bg-amber-500/20 border-amber-500/40 shadow-lg shadow-amber-500/10"
+                  : "bg-[#3a3d42]/60 border-[#5a5d62]/50 hover:bg-[#3a3d42]/80 hover:border-[#7B7F85] hover:shadow-xl hover:shadow-amber-500/10"
               )}
             >
-              <div className="text-2xl font-bold text-amber-400">{stats.lowStock}</div>
-              <div className="text-xs text-white/50 mt-0.5">Lågt lager</div>
-            </button>
-            <button
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-amber-500/30 transition-all duration-300">
+                  <AlertTriangle className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform duration-300" />
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.lowStock}</p>
+              <p className="text-sm text-white/50">Lågt lager</p>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
               onClick={() => setStatusFilter(statusFilter === 'out_of_stock' ? 'all' : 'out_of_stock')}
               className={cn(
-                "p-3 rounded-xl border text-left transition-all",
+                "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
                 statusFilter === 'out_of_stock'
-                  ? "bg-red-500/20 border-red-500/40"
-                  : "bg-white/5 border-white/10 hover:bg-red-500/10 hover:border-red-500/20"
+                  ? "bg-red-500/20 border-red-500/40 shadow-lg shadow-red-500/10"
+                  : "bg-[#3a3d42]/60 border-[#5a5d62]/50 hover:bg-[#3a3d42]/80 hover:border-[#7B7F85] hover:shadow-xl hover:shadow-red-500/10"
               )}
             >
-              <div className="text-2xl font-bold text-red-400">{stats.outOfStock}</div>
-              <div className="text-xs text-white/50 mt-0.5">Slut i lager</div>
-            </button>
-            <button
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500/30 to-red-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-red-500/30 transition-all duration-300">
+                  <Package className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform duration-300" />
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.outOfStock}</p>
+              <p className="text-sm text-white/50">Slut i lager</p>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
               onClick={() => setStatusFilter(statusFilter === 'on_repair' ? 'all' : 'on_repair')}
               className={cn(
-                "p-3 rounded-xl border text-left transition-all",
+                "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
                 statusFilter === 'on_repair'
-                  ? "bg-orange-500/20 border-orange-500/40"
-                  : "bg-white/5 border-white/10 hover:bg-orange-500/10 hover:border-orange-500/20"
+                  ? "bg-orange-500/20 border-orange-500/40 shadow-lg shadow-orange-500/10"
+                  : "bg-[#3a3d42]/60 border-[#5a5d62]/50 hover:bg-[#3a3d42]/80 hover:border-[#7B7F85] hover:shadow-xl hover:shadow-orange-500/10"
               )}
             >
-              <div className="text-2xl font-bold text-orange-400">{stats.onRepair}</div>
-              <div className="text-xs text-white/50 mt-0.5">På reparation</div>
-            </button>
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/30 to-orange-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all duration-300">
+                  <Package className="w-5 h-5 text-orange-400 group-hover:scale-110 transition-transform duration-300" />
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.onRepair}</p>
+              <p className="text-sm text-white/50">På reparation</p>
+            </motion.button>
           </div>
 
           {/* Bulk Actions Toolbar */}
