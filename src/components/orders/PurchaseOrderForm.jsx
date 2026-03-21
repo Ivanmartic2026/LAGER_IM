@@ -470,8 +470,12 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="draft">Utkast</SelectItem>
-                  <SelectItem value="ordered">Beställd</SelectItem>
-                  <SelectItem value="prepaid">Förskottbetald</SelectItem>
+                  <SelectItem value="sent">Skickad till leverantör</SelectItem>
+                  <SelectItem value="confirmed">Bekräftad av leverantör</SelectItem>
+                  <SelectItem value="waiting_for_supplier_documentation">Väntar på dokumentation</SelectItem>
+                  <SelectItem value="in_production">Under produktion</SelectItem>
+                  <SelectItem value="shipped">Skickad / I transit</SelectItem>
+                  <SelectItem value="ready_for_reception">Klar för mottagning</SelectItem>
                   <SelectItem value="received">Mottagen</SelectItem>
                   <SelectItem value="cancelled">Avbruten</SelectItem>
                 </SelectContent>
