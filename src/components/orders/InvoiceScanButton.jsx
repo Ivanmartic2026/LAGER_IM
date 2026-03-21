@@ -239,6 +239,43 @@ export default function InvoiceScanButton() {
     setEditingItemIndex(result.items.length);
   };
 
+  const handleExtractSupplierData = async () => {
+    if (!uploadedFileUrl.current || !result.supplier_name) {
+      toast.error('Faktura krävs för att extrahera leverantörsdata');
+      return;
+    }
+
+    setLoadingSupplierData(true);
+    try {
+      const response = await base44.functions.invoke('parseImage', {
+        image_url: uploadedFileUrl.current,
+        prompt: `Extract supplier contact information from this invoice. Return a JSON object with these fields (use empty string if not found): 
+        - contact_person: Name of contact person
+        - email: Email address
+        - phone: Phone number
+        - address: Physical address
+        - website: Website URL
+        Look for the supplier/sender information, not the recipient. Supplier name is: "${result.supplier_name}"`
+      });
+
+      if (response.data && typeof response.data === 'object') {
+        setNewSupplierData(prev => ({
+          name: result.supplier_name,
+          contact_person: response.data.contact_person || prev.contact_person || '',
+          email: response.data.email || prev.email || '',
+          phone: response.data.phone || prev.phone || '',
+          address: response.data.address || prev.address || '',
+          website: response.data.website || prev.website || ''
+        }));
+        toast.success('Leverantördata extraherad från fakturan');
+      }
+    } catch (error) {
+      toast.error('Kunde inte extrahera leverantördata: ' + error.message);
+    } finally {
+      setLoadingSupplierData(false);
+    }
+  };
+
   const handleCreateSupplier = async () => {
     if (!newSupplierData.name) {
       toast.error('Leverantörnamn är obligatoriskt');
