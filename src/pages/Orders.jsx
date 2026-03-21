@@ -38,7 +38,7 @@ export default function OrdersPage() {
 
   const [viewMode, setViewMode] = useState(storedState.viewMode || "orders");
   const [searchQuery, setSearchQuery] = useState(storedState.searchQuery || "");
-  const [statusFilter, setStatusFilter] = useState(storedState.statusFilter || "all");
+  const [statusFilter, setStatusFilter] = useState(storedState.statusFilter || "ready_to_pick");
   const [invoiceFilter, setInvoiceFilter] = useState(storedState.invoiceFilter || "all");
   const [sortBy, setSortBy] = useState(storedState.sortBy || "date_desc");
   const [showForm, setShowForm] = useState(false);
