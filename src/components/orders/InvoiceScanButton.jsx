@@ -132,6 +132,8 @@ export default function InvoiceScanButton() {
   const [isSaving, setIsSaving] = useState(false);
   const [editingField, setEditingField] = useState(null);
   const [editingItemIndex, setEditingItemIndex] = useState(null);
+  const [creatingSupplier, setCreatingSupplier] = useState(false);
+  const [newSupplierData, setNewSupplierData] = useState({});
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
