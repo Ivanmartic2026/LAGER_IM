@@ -100,8 +100,8 @@ export default function ArticleCard({ article, onClick }) {
 
       {/* Col 4: Status + Stock info */}
       <div className="flex flex-col items-end gap-1.5 flex-shrink-0 min-w-[160px]">
-        {/* ETA-badge – ersätter statusbadge för transit-artiklar */}
-        {hasIncoming ? (
+        {/* ETA-badge – visas när datum finns */}
+        {article.transit_expected_date ? (
           <div className="flex flex-col items-end gap-0.5 bg-blue-600/20 border border-blue-500/30 rounded-xl px-3 py-2">
             <div className="flex items-center gap-1.5 text-blue-300 text-xs font-semibold uppercase tracking-wider">
               <Truck className="w-3 h-3" />
