@@ -679,6 +679,48 @@ export default function ArticleDetail({
             Rapportera till Reparation
           </button>
         )}
+
+        {/* Transit status buttons */}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const newStatus = article.status === 'in_transit' ? 'active' : 'in_transit';
+              await updateArticleMutation.mutateAsync({ id: article.id, data: { status: newStatus } });
+              Object.assign(article, { status: newStatus });
+              toast.success(newStatus === 'in_transit' ? 'Markerad: I transit från leverantör' : 'Status återställd');
+            }}
+            className={`h-10 md:h-11 text-sm active:scale-95 transition-all rounded-lg flex items-center justify-center gap-2 backdrop-blur-xl font-medium border ${
+              article.status === 'in_transit'
+                ? 'bg-blue-600/40 border-blue-400/60 text-blue-200'
+                : 'bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20 text-blue-400'
+            }`}
+          >
+            <span className="text-base">🚢</span>
+            <span className="hidden sm:inline">I transit</span>
+            <span className="sm:hidden">Transit</span>
+          </button>
+          <button
+            onClick={async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const newStatus = article.status === 'on_its_way_home' ? 'active' : 'on_its_way_home';
+              await updateArticleMutation.mutateAsync({ id: article.id, data: { status: newStatus } });
+              Object.assign(article, { status: newStatus });
+              toast.success(newStatus === 'on_its_way_home' ? 'Markerad: På väg hem' : 'Status återställd');
+            }}
+            className={`h-10 md:h-11 text-sm active:scale-95 transition-all rounded-lg flex items-center justify-center gap-2 backdrop-blur-xl font-medium border ${
+              article.status === 'on_its_way_home'
+                ? 'bg-violet-600/40 border-violet-400/60 text-violet-200'
+                : 'bg-violet-500/10 border-violet-500/30 hover:bg-violet-500/20 text-violet-400'
+            }`}
+          >
+            <span className="text-base">✈️</span>
+            <span className="hidden sm:inline">På väg hem</span>
+            <span className="sm:hidden">Hem</span>
+          </button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
