@@ -170,9 +170,11 @@ export default function PurchaseOrdersPage() {
       po.po_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       po.supplier_name?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // On main view (statusFilter "all"), exclude received orders
-    const matchesStatus = statusFilter === "all" 
+    const pågående = ['sent','confirmed','in_production','shipped','ready_for_reception','waiting_for_supplier_documentation'];
+    const matchesStatus = statusFilter === "all"
       ? po.status !== "received"
+      : statusFilter === "sent"
+      ? pågående.includes(po.status)
       : po.status === statusFilter;
     
     return matchesSearch && matchesStatus;
