@@ -22,6 +22,7 @@ import ImageGallery from "./ImageGallery";
 import ProductAssemblyManager from "./ProductAssemblyManager";
 import ArticleComments from "./ArticleComments";
 import LinkToSiteModal from "./LinkToSiteModal";
+import PODocumentHub from "@/components/purchaseorders/PODocumentHub";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -110,6 +111,24 @@ export default function ArticleDetail({
     queryFn: async () => {
       const allItems = await base44.entities.OrderItem.list('-created_date', 100);
       return allItems.filter(item => item.article_id === article.id);
+    },
+  });
+
+  // Fetch linked purchase order via source_purchase_order_id or by matching article in PO items
+  const { data: linkedPurchaseOrder } = useQuery({
+    queryKey: ['linked-po', article.id, article.source_purchase_order_id],
+    queryFn: async () => {
+      if (article.source_purchase_order_id) {
+        const orders = await base44.entities.PurchaseOrder.filter({ id: article.source_purchase_order_id });
+        return orders[0] || null;
+      }
+      // Try to find via PO items
+      const poItems = await base44.entities.PurchaseOrderItem.filter({ article_id: article.id });
+      if (poItems.length > 0) {
+        const orders = await base44.entities.PurchaseOrder.filter({ id: poItems[0].purchase_order_id });
+        return orders[0] || null;
+      }
+      return null;
     },
   });
 
