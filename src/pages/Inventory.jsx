@@ -1026,7 +1026,7 @@ export default function InventoryPage() {
                                 article.status === 'low_stock' ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
                                 article.status === 'out_of_stock' ? "bg-red-500/20 text-red-400 border-red-500/30" :
                                 article.status === 'on_repair' ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
-                                article.status === 'in_transit' ? "bg-blue-600 text-white border-blue-500 font-bold shadow-md shadow-blue-500/40" :
+                                article.status === 'in_transit' ? "bg-blue-500/20 text-blue-300 border-blue-500/30" :
                                 article.status === 'on_its_way_home' ? "bg-violet-500/20 text-violet-400 border-violet-500/30" :
                                 "bg-slate-500/20 text-slate-400 border-slate-500/30"
                                 )}>
