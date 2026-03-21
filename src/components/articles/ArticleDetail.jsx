@@ -599,6 +599,12 @@ export default function ArticleDetail({
               </div>
             </div>
             <div className="flex flex-col gap-2 items-end">
+              {article.status === 'in_transit' && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-500/40 animate-pulse">
+                  <span>🚢</span>
+                  IN PRODUCTION
+                </div>
+              )}
               <Badge className={cn("border text-xs md:text-sm flex-shrink-0", statusConfig.color)}>
                 {statusConfig.label}
               </Badge>
