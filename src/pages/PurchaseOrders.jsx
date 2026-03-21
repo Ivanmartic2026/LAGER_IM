@@ -19,6 +19,7 @@ import { sv } from "date-fns/locale";
 import PurchaseOrderForm from "@/components/orders/PurchaseOrderForm";
 import SimplifiedReceivingForm from "@/components/receiving/SimplifiedReceivingForm";
 import InvoiceScanButton from "@/components/orders/InvoiceScanButton";
+import PODocumentHub from "@/components/purchaseorders/PODocumentHub";
 
 export default function PurchaseOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,6 +31,7 @@ export default function PurchaseOrdersPage() {
   const [customEmail, setCustomEmail] = useState("");
   const [receivingPO, setReceivingPO] = useState(null);
   const [viewingPO, setViewingPO] = useState(null);
+  const [documentsPO, setDocumentsPO] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -181,18 +183,32 @@ export default function PurchaseOrdersPage() {
 
   const statusColors = {
     draft: "bg-slate-500/20 text-slate-400 border-slate-500/30",
+    sent: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    confirmed: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+    waiting_for_supplier_documentation: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+    in_production: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+    shipped: "bg-violet-500/20 text-violet-400 border-violet-500/30",
+    ready_for_reception: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+    received: "bg-green-500/20 text-green-400 border-green-500/30",
+    cancelled: "bg-red-500/20 text-red-400 border-red-500/30",
+    // legacy
     ordered: "bg-blue-500/20 text-blue-400 border-blue-500/30",
     partially_received: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-    received: "bg-green-500/20 text-green-400 border-green-500/30",
-    cancelled: "bg-red-500/20 text-red-400 border-red-500/30"
   };
 
   const statusLabels = {
     draft: "Utkast",
+    sent: "Skickad",
+    confirmed: "Bekräftad",
+    waiting_for_supplier_documentation: "Väntar dok.",
+    in_production: "Under produktion",
+    shipped: "Skickad / I transit",
+    ready_for_reception: "Klar för mottagning",
+    received: "Mottagen",
+    cancelled: "Avbruten",
+    // legacy
     ordered: "Beställd",
     partially_received: "Delvis mottagen",
-    received: "Mottagen",
-    cancelled: "Avbruten"
   };
 
   return (
