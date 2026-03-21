@@ -69,6 +69,7 @@ export default function InventoryPage() {
   const [categoryFilter, setCategoryFilter] = useState(storedState.categoryFilter || "all");
   const [adjustmentModal, setAdjustmentModal] = useState({ open: false, type: null });
   const [editingArticle, setEditingArticle] = useState(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [quickInventoryOpen, setQuickInventoryOpen] = useState(false);
   const [pickListOpen, setPickListOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
