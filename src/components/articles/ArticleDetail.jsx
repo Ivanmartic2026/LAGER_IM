@@ -61,6 +61,7 @@ export default function ArticleDetail({
     shelf_address: article.shelf_address || '',
   });
   const [editingTechnical, setEditingTechnical] = useState(false);
+  const [aiDataExpanded, setAiDataExpanded] = useState(false);
   const [technicalData, setTechnicalData] = useState({
     pixel_pitch_mm: article.pixel_pitch_mm || '',
     series: article.series || '',
