@@ -205,6 +205,10 @@ export default function ArticleDetail({
         return { label: "Utgått", color: "bg-slate-500/20 text-slate-400 border-slate-500/30" };
       case "on_repair":
         return { label: "På reparation", color: "bg-orange-500/20 text-orange-400 border-orange-500/30" };
+      case "in_transit":
+        return { label: "I transit från leverantör", color: "bg-blue-500/20 text-blue-400 border-blue-500/30" };
+      case "on_its_way_home":
+        return { label: "På väg hem", color: "bg-violet-500/20 text-violet-400 border-violet-500/30" };
       default:
         return { label: "I lager", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" };
     }
