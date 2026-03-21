@@ -88,6 +88,11 @@ export default function ReviewForm({
     queryFn: () => base44.entities.Warehouse.list(),
   });
 
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: () => base44.entities.Supplier.list(),
+  });
+
   const { data: allArticles = [] } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list(),
