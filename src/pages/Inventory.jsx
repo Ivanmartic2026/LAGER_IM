@@ -13,8 +13,16 @@ import {
   Search, Camera, Package, AlertTriangle, Filter,
   Grid3X3, List, Plus, SlidersHorizontal, Sparkles,
   ClipboardList, Download, Upload, ArrowUpDown, MapPin,
-  CheckSquare, Trash2, Edit2, X, Database, Printer
+  CheckSquare, Trash2, Edit2, X, Database, Printer,
+  ChevronDown, MoreHorizontal, TrendingDown, AlertCircle, Wrench, ArrowUpCircle, ChevronUp
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
