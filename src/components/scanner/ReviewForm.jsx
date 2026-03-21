@@ -273,6 +273,7 @@ export default function ReviewForm({
                         field === 'category' ? 'select' :
                         field === 'storage_type' ? 'select' :
                         field === 'warehouse' ? 'select' :
+                        field === 'supplier_name' ? 'select' :
                         field.includes('_mm') || field.includes('_kg') || field === 'stock_qty' || field === 'pixel_pitch_mm' ? 'number' :
                         field === 'notes' ? 'textarea' :
                         'text'
