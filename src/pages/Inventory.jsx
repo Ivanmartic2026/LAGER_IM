@@ -1033,7 +1033,7 @@ export default function InventoryPage() {
                                 {article.status === 'low_stock' ? 'Lågt' :
                                  article.status === 'out_of_stock' ? 'Slut' :
                                  article.status === 'on_repair' ? 'Rep.' : 
-                                 article.status === 'in_transit' ? '🚢 IN PRODUCTION' :
+                                 article.status === 'in_transit' ? '🚢 I produktion' :
                                  article.status === 'on_its_way_home' ? '✈️ På väg hem' :
                                  article.status === 'discontinued' ? 'Utgått' : article.status}
                               </Badge>
