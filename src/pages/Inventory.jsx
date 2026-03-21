@@ -887,7 +887,14 @@ export default function InventoryPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     onClick={() => setSelectedArticle(article)}
-                    className="group p-3 md:p-4 rounded-2xl cursor-pointer transition-all bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5 active:scale-[0.98] duration-300"
+                    className={cn(
+                      "group p-3 md:p-4 rounded-2xl cursor-pointer transition-all backdrop-blur-xl border active:scale-[0.98] duration-300 hover:shadow-2xl hover:shadow-white/5",
+                      article.status === 'in_transit'
+                        ? "bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/15 hover:border-blue-500/50"
+                        : article.status === 'on_its_way_home'
+                        ? "bg-violet-500/10 border-violet-500/30 hover:bg-violet-500/15 hover:border-violet-500/50"
+                        : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
+                    )}
                   >
                     {/* Mobile Layout */}
                     <div className="md:hidden">
