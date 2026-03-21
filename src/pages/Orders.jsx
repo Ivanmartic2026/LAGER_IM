@@ -495,6 +495,92 @@ export default function OrdersPage() {
           </Tabs> */}
         </div>
 
+        {/* Stat Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <motion.button
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            onClick={() => setStatusFilter('all')}
+            className={cn(
+              "p-5 rounded-2xl backdrop-blur-xl border transition-all duration-300 cursor-pointer group text-left",
+              statusFilter === 'all'
+                ? "bg-white/10 border-white/30 shadow-lg shadow-white/10"
+                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5"
+            )}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center">
+                <ClipboardList className="w-5 h-5 text-blue-400" />
+              </div>
+              <TrendingUp className="w-4 h-4 text-emerald-400" />
+            </div>
+            <p className="text-3xl font-bold text-white mb-1 tracking-tight">{orders.length}</p>
+            <p className="text-sm text-white/50">Totalt ordrar</p>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            onClick={() => setStatusFilter('ready_to_pick')}
+            className={cn(
+              "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
+              statusFilter === 'ready_to_pick'
+                ? "bg-emerald-500/20 border-emerald-500/40 shadow-lg shadow-emerald-500/10"
+                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:shadow-emerald-500/10"
+            )}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/30 to-emerald-600/30 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-white mb-1 tracking-tight">
+              {orders.filter(o => o.status === 'ready_to_pick').length}
+            </p>
+            <p className="text-sm text-white/50">Redo att plocka</p>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            onClick={() => setStatusFilter('picking')}
+            className={cn(
+              "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
+              statusFilter === 'picking'
+                ? "bg-amber-500/20 border-amber-500/40 shadow-lg shadow-amber-500/10"
+                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:shadow-amber-500/10"
+            )}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-600/30 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-amber-400" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-white mb-1 tracking-tight">
+              {orders.filter(o => o.status === 'picking').length}
+            </p>
+            <p className="text-sm text-white/50">Plockar</p>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            onClick={() => setStatusFilter('picked')}
+            className={cn(
+              "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
+              statusFilter === 'picked'
+                ? "bg-orange-500/20 border-orange-500/40 shadow-lg shadow-orange-500/10"
+                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:shadow-orange-500/10"
+            )}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/30 to-orange-600/30 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-orange-400" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-white mb-1 tracking-tight">
+              {orders.filter(o => o.status === 'picked' && !o.fortnox_invoiced).length}
+            </p>
+            <p className="text-sm text-white/50">Väntar fakturering</p>
+          </motion.button>
+        </div>
+
         {/* Search & Filters */}
          <div className="space-y-3 mb-6">
           <div className="relative">
