@@ -549,19 +549,18 @@ export default function ArticleDetail({
         </div>
       </div>
 
-      {/* In Production Banner */}
+      {/* ETA Banner */}
       {article.status === 'in_transit' && (
-        <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-blue-600 border border-blue-400/50 shadow-lg shadow-blue-500/30">
+        <div className="flex items-center justify-between gap-4 px-5 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 shadow-xl shadow-blue-500/30 border border-blue-400/30">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🚢</span>
-            <div>
-              <p className="text-white font-bold text-base tracking-wide">Estimated Time of Arrival</p>
-              <p className="text-blue-200 text-xs">Artikeln är under produktion / i transit</p>
+            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-xl flex-shrink-0">
+              🚢
             </div>
+            <p className="text-white font-bold text-base tracking-wide">Estimated Time of Arrival</p>
           </div>
           {article.transit_expected_date && (
-            <div className="text-right flex-shrink-0">
-              <p className="text-blue-200 text-xs">Beräknad ankomst</p>
+            <div className="flex items-center gap-2 bg-white/15 rounded-xl px-4 py-2 flex-shrink-0">
+              <Calendar className="w-4 h-4 text-blue-100" />
               <p className="text-white font-bold text-sm">
                 {format(new Date(article.transit_expected_date), "d MMM yyyy", { locale: sv })}
               </p>
