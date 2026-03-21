@@ -1018,6 +1018,14 @@ export default function InventoryPage() {
                         </div>
                       )}
 
+                      {/* In Production indicator */}
+                      {article.status === 'in_transit' && (
+                        <div className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-1 rounded-lg bg-blue-600 shadow-lg shadow-blue-500/40 min-w-[72px]">
+                          <span className="text-lg leading-none">🚢</span>
+                          <span className="text-white font-bold text-[10px] tracking-wide leading-none">IN PROD.</span>
+                        </div>
+                      )}
+
                       <div className="w-20 text-center flex-shrink-0">
                         <div className={cn(
                           "text-2xl font-bold leading-none mb-1 tracking-tight",
