@@ -1806,6 +1806,20 @@ export default function ArticleDetail({
           <ArticleComments articleId={article.id} />
         </TabsContent>
 
+        {linkedPurchaseOrder && (
+          <TabsContent value="documents" className="mt-6">
+            <div className="space-y-4">
+              <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                <p className="text-xs text-blue-300">
+                  Dokument kopplade till inköpsorder: <span className="font-semibold text-white">{linkedPurchaseOrder.po_number || `PO #${linkedPurchaseOrder.id.slice(0,8)}`}</span>
+                  {linkedPurchaseOrder.supplier_name && <span> · {linkedPurchaseOrder.supplier_name}</span>}
+                </p>
+              </div>
+              <PODocumentHub purchaseOrder={linkedPurchaseOrder} />
+            </div>
+          </TabsContent>
+        )}
+
         <TabsContent value="onsite" className="mt-6">
           <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
             <div className="flex items-center justify-between mb-4">
