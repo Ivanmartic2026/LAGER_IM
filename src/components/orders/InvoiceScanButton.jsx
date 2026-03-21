@@ -237,6 +237,27 @@ export default function InvoiceScanButton() {
     setEditingItemIndex(result.items.length);
   };
 
+  const handleCreateSupplier = async () => {
+    if (!newSupplierData.name) {
+      toast.error('Leverantörnamn är obligatoriskt');
+      return;
+    }
+    
+    setIsSaving(true);
+    try {
+      const created = await base44.entities.Supplier.create(newSupplierData);
+      await queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      setResult(prev => ({ ...prev, supplier_name: created.name }));
+      setCreatingSupplier(false);
+      setNewSupplierData({});
+      toast.success(`Leverantör "${created.name}" skapad!`);
+    } catch (error) {
+      toast.error('Kunde inte skapa leverantör: ' + error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleCreateOrder = async () => {
     setIsSaving(true);
     try {
@@ -249,13 +270,14 @@ export default function InvoiceScanButton() {
         if (existingSupplier) {
           supplierId = existingSupplier.id;
         } else {
-          const newSupplier = await base44.entities.Supplier.create({
-            name: result.supplier_name,
-            is_active: true
-          });
-          supplierId = newSupplier.id;
-          await queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-          toast.success(`Ny leverantör "${result.supplier_name}" skapad automatiskt`);
+          // Check if supplier was just created
+          const updatedSuppliers = await base44.entities.Supplier.list();
+          const newlyCreated = updatedSuppliers.find(s =>
+            s.name.toLowerCase() === result.supplier_name.toLowerCase()
+          );
+          if (newlyCreated) {
+            supplierId = newlyCreated.id;
+          }
         }
       }
 
