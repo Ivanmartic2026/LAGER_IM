@@ -685,45 +685,7 @@ export default function ArticleDetail({
       {/* Quick Actions - Mobile Optimized */}
       <div className="space-y-2 md:space-y-3 mb-6">
 
-        {/* In Production / Transit button */}
-        <div className="space-y-2">
-          <button
-            onClick={async (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const newStatus = article.status === 'in_transit' ? 'active' : 'in_transit';
-              await updateArticleMutation.mutateAsync({ id: article.id, data: { status: newStatus } });
-              Object.assign(article, { status: newStatus });
-              toast.success(newStatus === 'in_transit' ? 'Markerad: In Production / I transit' : 'Status återställd');
-            }}
-            className={`w-full h-11 text-sm active:scale-95 transition-all rounded-lg flex items-center justify-center gap-2 backdrop-blur-xl font-medium border ${
-              article.status === 'in_transit'
-                ? 'bg-blue-600/40 border-blue-400/60 text-blue-200'
-                : 'bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20 text-blue-400'
-            }`}
-          >
-            <span className="text-base">🚢</span>
-            In Production
-          </button>
 
-          {/* Expected arrival date - shown when in_transit */}
-          {article.status === 'in_transit' && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
-              <span className="text-xs text-blue-300 flex-shrink-0">Beräknad ankomst:</span>
-              <input
-                type="date"
-                defaultValue={article.transit_expected_date || ''}
-                onChange={async (e) => {
-                  const date = e.target.value;
-                  await updateArticleMutation.mutateAsync({ id: article.id, data: { transit_expected_date: date } });
-                  Object.assign(article, { transit_expected_date: date });
-                }}
-                className="flex-1 bg-transparent text-blue-200 text-xs border-none outline-none min-w-0"
-              />
-            </div>
-          )}
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
           <button
