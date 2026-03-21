@@ -555,7 +555,7 @@ export default function ArticleDetail({
           <div className="flex items-center gap-3">
             <span className="text-2xl">🚢</span>
             <div>
-              <p className="text-white font-bold text-base tracking-wide">IN PRODUCTION</p>
+              <p className="text-white font-bold text-base tracking-wide">Estimated Time of Arrival</p>
               <p className="text-blue-200 text-xs">Artikeln är under produktion / i transit</p>
             </div>
           </div>

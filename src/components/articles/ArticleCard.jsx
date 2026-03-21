@@ -108,9 +108,9 @@ export default function ArticleCard({ article, onClick }) {
 
         {/* ETA – visas för transit/på väg */}
         {hasIncoming && (
-          <div className="flex items-center gap-1 text-[11px] text-slate-400">
+          <div className="flex items-center gap-1 text-[11px] text-blue-400 font-medium">
             <Calendar className="w-3 h-3" />
-            <span>Ankomst {format(new Date(article.transit_expected_date), "d MMM yyyy", { locale: sv })}</span>
+            <span>ETA {format(new Date(article.transit_expected_date), "d MMM yyyy", { locale: sv })}</span>
           </div>
         )}
 
