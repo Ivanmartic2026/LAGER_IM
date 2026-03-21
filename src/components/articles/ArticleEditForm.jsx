@@ -128,6 +128,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
     // Convert numeric fields
     const dataToSave = {
       ...formData,
+      transit_expected_date: formData.transit_expected_date || null,
       unit_cost: formData.unit_cost ? parseFloat(formData.unit_cost) : undefined,
       dimensions_width_mm: formData.dimensions_width_mm ? parseFloat(formData.dimensions_width_mm) : undefined,
       dimensions_height_mm: formData.dimensions_height_mm ? parseFloat(formData.dimensions_height_mm) : undefined,
