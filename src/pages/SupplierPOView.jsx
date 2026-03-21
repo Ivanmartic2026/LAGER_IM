@@ -4,11 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, FileText, CheckCircle2, Clock } from "lucide-react";
+import { Package, FileText, CheckCircle2, Clock, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import SupplierPOConfirmation from "@/components/supplier/SupplierPOConfirmation";
 import SupplierPODocuments from "@/components/supplier/SupplierPODocuments";
+import SupplierDocumentUploadHub from "@/components/supplier/SupplierDocumentUploadHub";
 
 export default function SupplierPOView() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -208,11 +209,15 @@ export default function SupplierPOView() {
           </TabsContent>
 
           <TabsContent value="documents">
-            <SupplierPODocuments 
-              purchaseOrder={purchaseOrder}
-              supplierName={supplier?.contact_person || supplier?.name || 'Leverantör'}
-              supplierEmail={supplier?.email || ''}
-            />
+            <div className="space-y-6">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <h3 className="font-semibold text-blue-800 mb-1">Dokumentationsportal</h3>
+                <p className="text-sm text-blue-600">
+                  Ladda upp dokument för varje fas av ordern. IMvision ser dina uppladdningar direkt och granskar dem.
+                </p>
+              </div>
+              <SupplierDocumentUploadHub purchaseOrder={purchaseOrder} />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
