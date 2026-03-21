@@ -156,7 +156,8 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
           const updatedArticle = await base44.entities.Article.update(item.article_id, {
             stock_qty: newQty,
             status: newQty <= 0 ? "out_of_stock" : 
-                    newQty <= (foundArticle.min_stock_level || 5) ? "low_stock" : "active"
+                    newQty <= (foundArticle.min_stock_level || 5) ? "low_stock" : "active",
+            transit_expected_date: null  // Clear transit date on receipt
           });
           results.updatedArticles.push(updatedArticle);
 

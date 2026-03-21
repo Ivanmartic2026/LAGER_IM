@@ -20,6 +20,8 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
     unit_cost: article.unit_cost || article.supplier_price || article.calculated_cost || '',
     category: article.category || '',
     storage_type: article.storage_type || '',
+    status: article.status || 'active',
+    transit_expected_date: article.transit_expected_date || '',
     dimensions_width_mm: article.dimensions_width_mm || '',
     dimensions_height_mm: article.dimensions_height_mm || '',
     dimensions_depth_mm: article.dimensions_depth_mm || '',
