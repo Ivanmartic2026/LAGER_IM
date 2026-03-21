@@ -560,6 +560,40 @@ export default function PurchaseOrdersPage() {
           />
         )}
 
+        {/* Documents Modal */}
+        {documentsPO && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setDocumentsPO(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-slate-700">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Dokumentation</h2>
+                  <p className="text-sm text-slate-400 mt-1">
+                    {documentsPO.po_number || `PO #${documentsPO.id.slice(0, 8)}`} · {documentsPO.supplier_name}
+                  </p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setDocumentsPO(null)} className="text-slate-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6">
+                <PODocumentHub purchaseOrder={documentsPO} />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
         {/* Email Modal */}
         {emailModalOpen && selectedPOForEmail && (
           <motion.div
