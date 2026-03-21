@@ -221,7 +221,7 @@ export default function PurchaseOrdersPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4 gap-3">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 tracking-tight">Inköpsordrar</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 tracking-tight">Purchase Order</h1>
               <p className="text-white/50">Hantera och spåra dina inköpsordrar</p>
             </div>
             <div className="flex gap-3">
@@ -381,14 +381,14 @@ export default function PurchaseOrdersPage() {
               Inga inköpsordrar ännu
             </h3>
             <p className="text-white/50 mb-6">
-              Skapa din första inköpsorder för att komma igång
+              Skapa din första Purchase Order för att komma igång
             </p>
             <Button
               onClick={() => setShowForm(true)}
               className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Skapa inköpsorder
+              Skapa Purchase Order
             </Button>
           </div>
         ) : (
@@ -693,7 +693,7 @@ export default function PurchaseOrdersPage() {
               onClick={(e) => e.stopPropagation()}
               className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6"
             >
-              <h3 className="text-xl font-bold text-white mb-4">Skicka inköpsorder via email</h3>
+              <h3 className="text-xl font-bold text-white mb-4">Skicka Purchase Order via email</h3>
               
               <div className="space-y-4">
                 <div>
