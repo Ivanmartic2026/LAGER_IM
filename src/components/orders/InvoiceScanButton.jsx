@@ -198,7 +198,10 @@ export default function InvoiceScanButton() {
       setResult({ ...extracted, file_url, items: extracted.items || [] });
     } catch (error) {
       console.error('Invoice scan error:', error);
-      toast.error('Kunde inte analysera fakturan: ' + error.message, { id: toastId });
+      const errorMsg = error.message.includes('Unsupported file type') 
+        ? 'Filformat stöds inte. Använd PDF, JPG, PNG eller XLSX.' 
+        : 'Kunde inte analysera fakturan: ' + error.message;
+      toast.error(errorMsg, { id: toastId });
     } finally {
       setIsLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -363,7 +366,7 @@ export default function InvoiceScanButton() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
+        accept=".pdf,.jpg,.jpeg,.png,.xlsx"
         onChange={handleFileSelect}
         className="hidden"
       />
