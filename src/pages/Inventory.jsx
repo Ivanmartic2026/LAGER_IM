@@ -1105,6 +1105,17 @@ export default function InventoryPage() {
                         <div className="text-xs text-white/40">st</div>
                       </div>
 
+                      {article.transit_expected_date && (
+                        <div className="flex-shrink-0 flex flex-col items-center gap-0.5 bg-blue-600/20 border border-blue-500/30 rounded-xl px-3 py-1.5 whitespace-nowrap">
+                          <div className="flex items-center gap-1 text-blue-300 text-[11px] font-semibold uppercase tracking-wider">
+                            <span>ETA</span>
+                          </div>
+                          <span className="text-white font-bold text-xs">
+                            {format(new Date(article.transit_expected_date), "d MMM", { locale: sv })}
+                          </span>
+                        </div>
+                      )}
+
                       <div className="flex-1 min-w-0 grid grid-cols-[minmax(120px,150px)_minmax(200px,1fr)_minmax(180px,220px)_minmax(200px,250px)] gap-4">
                          <div className="min-w-0 flex items-center">
                            {article.shelf_address ? (
