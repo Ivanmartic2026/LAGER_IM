@@ -99,19 +99,23 @@ export default function ArticleCard({ article, onClick }) {
       </div>
 
       {/* Col 4: Status + Stock info */}
-      <div className="flex flex-col items-end gap-1.5 flex-shrink-0 min-w-[140px]">
-        {/* Primär statusbadge */}
-        <Badge className={cn("text-xs border flex items-center gap-1 px-2 py-0.5", statusConfig.color)}>
-          <StatusIcon className="w-3 h-3" />
-          {statusConfig.label}
-        </Badge>
-
-        {/* ETA – visas för transit/på väg */}
-        {hasIncoming && (
-          <div className="flex items-center gap-1 text-[11px] text-blue-400 font-medium">
-            <Calendar className="w-3 h-3" />
-            <span>ETA {format(new Date(article.transit_expected_date), "d MMM yyyy", { locale: sv })}</span>
+      <div className="flex flex-col items-end gap-1.5 flex-shrink-0 min-w-[160px]">
+        {/* ETA-badge – ersätter statusbadge för transit-artiklar */}
+        {hasIncoming ? (
+          <div className="flex flex-col items-end gap-0.5 bg-blue-600/20 border border-blue-500/30 rounded-xl px-3 py-2">
+            <div className="flex items-center gap-1.5 text-blue-300 text-xs font-semibold uppercase tracking-wider">
+              <Truck className="w-3 h-3" />
+              ETA
+            </div>
+            <span className="text-white font-bold text-sm">
+              {format(new Date(article.transit_expected_date), "d MMM yyyy", { locale: sv })}
+            </span>
           </div>
+        ) : (
+          <Badge className={cn("text-xs border flex items-center gap-1 px-2 py-0.5", statusConfig.color)}>
+            <StatusIcon className="w-3 h-3" />
+            {statusConfig.label}
+          </Badge>
         )}
 
         {/* Lågt saldo-varning (endast för active/low_stock) */}
