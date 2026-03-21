@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { 
-  Search, Camera, Package, AlertTriangle, Filter,
+  Search, Camera, Package, AlertTriangle, Filter, TrendingUp,
   Grid3X3, List, Plus, SlidersHorizontal, Sparkles,
   ClipboardList, Download, Upload, ArrowUpDown, MapPin,
   CheckSquare, Trash2, Edit2, X, Database, Printer,
