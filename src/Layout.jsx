@@ -56,7 +56,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: "Production", label: t('nav_production', language), icon: Activity, module: "Production" },
     { name: "PurchaseOrders", label: t('nav_purchase', language), icon: ShoppingCart, module: "PurchaseOrders" },
     { name: "SiteReports", label: t('nav_site', language), icon: MapPin, module: "SiteReports" },
-    { name: "UnknownDeliveries", label: t('nav_unknown', language), icon: PackageSearch, module: "UnknownDeliveries" },
+
     { name: "Repairs", label: t('nav_repairs', language), icon: Activity, module: "Repairs" },
     { name: "Admin", label: t('nav_admin', language), icon: FileText, module: null }
   ];
