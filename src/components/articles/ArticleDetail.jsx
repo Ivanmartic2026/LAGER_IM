@@ -364,7 +364,10 @@ export default function ArticleDetail({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-6"
+      className={cn(
+        "space-y-6 rounded-2xl transition-all",
+        article.status === 'in_transit' ? "ring-2 ring-blue-500/40 ring-offset-2 ring-offset-black" : ""
+      )}
     >
       {/* Header - Mobile Optimized */}
       <div className="flex items-center justify-between mb-4 sticky top-0 bg-black/80 backdrop-blur-xl z-[100] -mx-4 px-4 py-3">
