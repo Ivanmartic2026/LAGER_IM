@@ -54,7 +54,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: "Inventory", label: t('nav_inventory', language), icon: Package, module: "Inventory" },
     { name: "Orders", label: t('nav_orders', language), icon: ShoppingCart, module: "Orders" },
     { name: "Production", label: t('nav_production', language), icon: Activity, module: "Production" },
-    { name: "PurchaseOrders", label: t('nav_purchase', language), icon: ShoppingCart, module: "PurchaseOrders" },
+    { name: "PurchaseOrders", label: "Purchase Order", icon: ShoppingCart, module: "PurchaseOrders" },
     { name: "SiteReports", label: t('nav_site', language), icon: MapPin, module: "SiteReports" },
 
     { name: "Repairs", label: t('nav_repairs', language), icon: Activity, module: "Repairs" },
