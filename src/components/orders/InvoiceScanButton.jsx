@@ -134,8 +134,10 @@ export default function InvoiceScanButton() {
   const [editingItemIndex, setEditingItemIndex] = useState(null);
   const [creatingSupplier, setCreatingSupplier] = useState(false);
   const [newSupplierData, setNewSupplierData] = useState({});
+  const [loadingSupplierData, setLoadingSupplierData] = useState(false);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
+  const uploadedFileUrl = useRef(null);
 
   const { data: purchaseOrders = [] } = useQuery({
     queryKey: ['purchaseOrders'],
