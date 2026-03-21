@@ -930,7 +930,7 @@ export default function InventoryPage() {
         ) : (
           <div className="space-y-2">
             {/* Header Row - Desktop Only */}
-            <div className="hidden md:grid px-4 py-2 grid-cols-[40px_80px_80px_minmax(120px,150px)_minmax(200px,1fr)_minmax(120px,150px)_minmax(120px,150px)_128px] gap-4 text-xs font-medium text-white/40 uppercase tracking-wider border-b border-white/10">
+            <div className="hidden md:grid px-4 py-2 grid-cols-[40px_80px_80px_minmax(120px,150px)_minmax(200px,1fr)_minmax(180px,220px)_minmax(200px,250px)] gap-4 text-xs font-medium text-white/40 uppercase tracking-wider border-b border-white/10">
               <div className="flex items-center">
                 <Checkbox
                   checked={selectedArticleIds.length === filteredArticles.length && filteredArticles.length > 0}
@@ -945,6 +945,7 @@ export default function InventoryPage() {
               </div>
               <div></div>
               <div>Saldo</div>
+              <div>ETA</div>
               <div>Hyllplats</div>
               <div>Benämning</div>
               <div>Artikelnummer</div>
