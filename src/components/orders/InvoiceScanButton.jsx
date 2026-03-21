@@ -495,67 +495,76 @@ export default function InvoiceScanButton() {
                 )}
 
                 {/* New supplier form */}
-                {creatingSupplier && (
-                  <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 space-y-2">
-                    <Input
-                      value={newSupplierData.name || ''}
-                      onChange={(e) => setNewSupplierData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Leverantörnamn"
-                      className="h-8 text-sm bg-white/10 border-white/20 text-white"
-                    />
-                    <Input
-                      value={newSupplierData.contact_person || ''}
-                      onChange={(e) => setNewSupplierData(prev => ({ ...prev, contact_person: e.target.value }))}
-                      placeholder="Kontaktperson"
-                      className="h-8 text-sm bg-white/10 border-white/20 text-white"
-                    />
-                    <Input
-                      value={newSupplierData.email || ''}
-                      onChange={(e) => setNewSupplierData(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder="E-postadress"
-                      className="h-8 text-sm bg-white/10 border-white/20 text-white"
-                    />
-                    <Input
-                      value={newSupplierData.phone || ''}
-                      onChange={(e) => setNewSupplierData(prev => ({ ...prev, phone: e.target.value }))}
-                      placeholder="Telefonnummer"
-                      className="h-8 text-sm bg-white/10 border-white/20 text-white"
-                    />
-                    <Input
-                      value={newSupplierData.address || ''}
-                      onChange={(e) => setNewSupplierData(prev => ({ ...prev, address: e.target.value }))}
-                      placeholder="Adress"
-                      className="h-8 text-sm bg-white/10 border-white/20 text-white"
-                    />
-                    <Input
-                      value={newSupplierData.website || ''}
-                      onChange={(e) => setNewSupplierData(prev => ({ ...prev, website: e.target.value }))}
-                      placeholder="Webbsida (valfritt)"
-                      className="h-8 text-sm bg-white/10 border-white/20 text-white"
-                    />
-                    <div className="flex gap-2 pt-1">
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => {
-                          setCreatingSupplier(false);
-                          setNewSupplierData({});
-                        }}
-                        className="flex-1 h-7 text-white/50 hover:text-white"
-                      >
-                        Avbryt
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        onClick={handleCreateSupplier}
-                        disabled={isSaving}
-                        className="flex-1 bg-blue-600 hover:bg-blue-500 h-7"
-                      >
-                        {isSaving ? 'Sparar...' : 'Skapa'}
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                 {creatingSupplier && (
+                   <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 space-y-2">
+                     <Input
+                       value={newSupplierData.name || ''}
+                       onChange={(e) => setNewSupplierData(prev => ({ ...prev, name: e.target.value }))}
+                       placeholder="Leverantörnamn"
+                       className="h-8 text-sm bg-white/10 border-white/20 text-white"
+                     />
+                     <Input
+                       value={newSupplierData.contact_person || ''}
+                       onChange={(e) => setNewSupplierData(prev => ({ ...prev, contact_person: e.target.value }))}
+                       placeholder="Kontaktperson"
+                       className="h-8 text-sm bg-white/10 border-white/20 text-white"
+                     />
+                     <Input
+                       value={newSupplierData.email || ''}
+                       onChange={(e) => setNewSupplierData(prev => ({ ...prev, email: e.target.value }))}
+                       placeholder="E-postadress"
+                       className="h-8 text-sm bg-white/10 border-white/20 text-white"
+                     />
+                     <Input
+                       value={newSupplierData.phone || ''}
+                       onChange={(e) => setNewSupplierData(prev => ({ ...prev, phone: e.target.value }))}
+                       placeholder="Telefonnummer"
+                       className="h-8 text-sm bg-white/10 border-white/20 text-white"
+                     />
+                     <Input
+                       value={newSupplierData.address || ''}
+                       onChange={(e) => setNewSupplierData(prev => ({ ...prev, address: e.target.value }))}
+                       placeholder="Adress"
+                       className="h-8 text-sm bg-white/10 border-white/20 text-white"
+                     />
+                     <Input
+                       value={newSupplierData.website || ''}
+                       onChange={(e) => setNewSupplierData(prev => ({ ...prev, website: e.target.value }))}
+                       placeholder="Webbsida (valfritt)"
+                       className="h-8 text-sm bg-white/10 border-white/20 text-white"
+                     />
+                     <Button 
+                       size="sm" 
+                       onClick={handleExtractSupplierData}
+                       disabled={loadingSupplierData}
+                       variant="ghost"
+                       className="w-full h-7 text-blue-300 hover:text-blue-200 text-xs"
+                     >
+                       {loadingSupplierData ? 'Extraherar...' : '✨ Extrahera från faktura'}
+                     </Button>
+                     <div className="flex gap-2 pt-1">
+                       <Button 
+                         size="sm" 
+                         variant="ghost"
+                         onClick={() => {
+                           setCreatingSupplier(false);
+                           setNewSupplierData({});
+                         }}
+                         className="flex-1 h-7 text-white/50 hover:text-white"
+                       >
+                         Avbryt
+                       </Button>
+                       <Button 
+                         size="sm" 
+                         onClick={handleCreateSupplier}
+                         disabled={isSaving}
+                         className="flex-1 bg-blue-600 hover:bg-blue-500 h-7"
+                       >
+                         {isSaving ? 'Sparar...' : 'Skapa'}
+                       </Button>
+                     </div>
+                   </div>
+                 )}
 
                 {/* Editable fields */}
                 <div className="space-y-2">
