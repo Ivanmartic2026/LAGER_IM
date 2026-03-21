@@ -11,15 +11,15 @@ import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 const STATUS_CONFIG = {
-  active:               { label: "I lager",          color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", icon: CheckCircle2 },
-  low_stock:            { label: "Lågt lager",        color: "bg-amber-500/20 text-amber-400 border-amber-500/30",   icon: AlertTriangle },
-  out_of_stock:         { label: "Slut i lager",      color: "bg-red-500/20 text-red-400 border-red-500/30",         icon: TrendingDown },
-  in_transit:           { label: "I transit",         color: "bg-blue-500/20 text-blue-400 border-blue-500/30",      icon: Truck },
-  on_its_way_home:      { label: "På väg hem",        color: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",      icon: Truck },
-  on_repair:            { label: "I produktion",      color: "bg-purple-500/20 text-purple-400 border-purple-500/30", icon: Activity },
-  discontinued:         { label: "Utgått",            color: "bg-slate-500/20 text-slate-400 border-slate-500/30",   icon: Package },
-  unknown_delivery:     { label: "Okänd leverans",    color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: HelpCircle },
-  pending_verification: { label: "Väntar verif.",     color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30", icon: Clock },
+  active:               { label: "I lager",           color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", icon: CheckCircle2 },
+  low_stock:            { label: "Lågt lager",         color: "bg-amber-500/20 text-amber-400 border-amber-500/30",      icon: AlertTriangle },
+  out_of_stock:         { label: "Slut i lager",       color: "bg-red-500/20 text-red-400 border-red-500/30",            icon: TrendingDown },
+  in_transit:           { label: "Under transit",      color: "bg-blue-500/20 text-blue-400 border-blue-500/30",         icon: Truck },
+  on_its_way_home:      { label: "På väg hem",         color: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",         icon: Truck },
+  on_repair:            { label: "Under reparation",   color: "bg-orange-500/20 text-orange-400 border-orange-500/30",   icon: Wrench },
+  discontinued:         { label: "Utgått",             color: "bg-slate-500/20 text-slate-400 border-slate-500/30",      icon: Package },
+  unknown_delivery:     { label: "Okänd leverans",     color: "bg-orange-500/20 text-orange-400 border-orange-500/30",   icon: HelpCircle },
+  pending_verification: { label: "Väntar verifiering", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",   icon: Clock },
 };
 
 export default function ArticleCard({ article, onClick }) {
