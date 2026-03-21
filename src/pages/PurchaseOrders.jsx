@@ -337,14 +337,31 @@ export default function PurchaseOrdersPage() {
             />
           </div>
           
-          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList className="bg-white/5 border border-white/10 backdrop-blur-xl w-full md:w-auto">
-              <TabsTrigger value="all" className="text-xs flex-1 md:flex-none text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Alla</TabsTrigger>
-              <TabsTrigger value="ordered" className="text-xs flex-1 md:flex-none text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Beställd</TabsTrigger>
-              <TabsTrigger value="partially_received" className="text-xs flex-1 md:flex-none text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Delvis</TabsTrigger>
-              <TabsTrigger value="received" className="text-xs flex-1 md:flex-none text-white/70 data-[state=active]:text-white data-[state=active]:bg-white/10">Mottagen</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {[
+              { value: "all", label: "Alla" },
+              { value: "draft", label: "Utkast" },
+              { value: "sent", label: "Skickad" },
+              { value: "confirmed", label: "Bekräftad" },
+              { value: "in_production", label: "I produktion" },
+              { value: "shipped", label: "I transit" },
+              { value: "ready_for_reception", label: "Klar för mottagning" },
+              { value: "received", label: "Mottagen" },
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => setStatusFilter(value)}
+                className={cn(
+                  "whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-all border",
+                  statusFilter === value
+                    ? "bg-blue-600 text-white border-blue-500"
+                    : "bg-white/5 text-white/50 border-white/10 hover:bg-white/10 hover:text-white"
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Purchase Orders List */}
