@@ -99,31 +99,26 @@ export default function ArticleCard({ article, onClick }) {
       </div>
 
       {/* Col 4: Status + Stock info */}
-      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+      <div className="flex flex-col items-end gap-1.5 flex-shrink-0 min-w-[140px]">
+        {/* Primär statusbadge */}
         <Badge className={cn("text-xs border flex items-center gap-1 px-2 py-0.5", statusConfig.color)}>
           <StatusIcon className="w-3 h-3" />
           {statusConfig.label}
         </Badge>
 
-        {article.status === 'active' && article.stock_qty === 0 && (
-          <Badge className="text-xs border bg-red-500/20 text-red-400 border-red-500/30">
-            Slut i lager
-          </Badge>
-        )}
-
+        {/* ETA – visas för transit/på väg */}
         {hasIncoming && (
-          <div className="flex items-center gap-1 text-[11px] text-cyan-400">
-            <Truck className="w-3 h-3" />
-            <span>
-              ETA {format(new Date(article.transit_expected_date), "d MMM", { locale: sv })}
-            </span>
+          <div className="flex items-center gap-1 text-[11px] text-slate-400">
+            <Calendar className="w-3 h-3" />
+            <span>Ankomst {format(new Date(article.transit_expected_date), "d MMM yyyy", { locale: sv })}</span>
           </div>
         )}
 
-        {isLow && (
+        {/* Lågt saldo-varning (endast för active/low_stock) */}
+        {isLow && article.status !== 'out_of_stock' && (
           <div className="flex items-center gap-1 text-[11px] text-amber-400">
             <AlertTriangle className="w-3 h-3" />
-            <span>Lågt saldo</span>
+            <span>Under miniminivå</span>
           </div>
         )}
 
