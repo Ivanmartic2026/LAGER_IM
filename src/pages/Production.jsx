@@ -68,74 +68,81 @@ export default function ProductionPage() {
             <h1 className="text-2xl font-bold text-white tracking-tight mb-4">Produktion</h1>
             
             {/* Status Cards */}
-             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                <motion.button
-                 whileHover={{ scale: 1.05 }}
-                 whileTap={{ scale: 0.95 }}
+                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
                  onClick={() => setStatusFilter('all')}
                  className={cn(
-                   "p-4 rounded-2xl transition-all duration-300",
+                   "p-5 rounded-2xl backdrop-blur-xl border transition-all duration-300 cursor-pointer group text-left",
                    statusFilter === 'all'
-                     ? "bg-gradient-to-br from-white to-gray-100 text-black shadow-xl shadow-white/20"
-                     : "bg-white/10 border border-white/20 hover:bg-white/15 text-white"
+                     ? "bg-white/10 border-white/30 shadow-lg shadow-white/10"
+                     : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5"
                  )}
                >
-                 <div className="text-3xl font-bold mb-1">{productionOrders.length}</div>
-                 <div className="text-sm font-medium opacity-70">Alla</div>
+                 <div className="flex items-center justify-between mb-3">
+                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/20 to-white/10 flex items-center justify-center">
+                     <Package className="w-5 h-5 text-white/70" />
+                   </div>
+                 </div>
+                 <p className="text-3xl font-bold text-white mb-1 tracking-tight">{productionOrders.length}</p>
+                 <p className="text-sm text-white/50">Alla</p>
                </motion.button>
 
                <motion.button
-                 whileHover={{ scale: 1.05 }}
-                 whileTap={{ scale: 0.95 }}
+                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
                  onClick={() => setStatusFilter('picked')}
                  className={cn(
-                   "p-4 rounded-2xl transition-all duration-300",
+                   "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
                    statusFilter === 'picked'
-                     ? "bg-gradient-to-br from-amber-400 to-amber-500 text-white shadow-xl shadow-amber-500/40"
-                     : "bg-amber-500/15 border border-amber-500/40 hover:bg-amber-500/20 text-amber-300"
+                     ? "bg-amber-500/20 border-amber-500/40 shadow-lg shadow-amber-500/10"
+                     : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:shadow-amber-500/10"
                  )}
                >
-                 <div className="flex items-start justify-between mb-2">
-                   <div className="text-3xl font-bold">{stats.picked}</div>
-                   <Zap className="w-4 h-4" />
+                 <div className="flex items-center justify-between mb-3">
+                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-600/30 flex items-center justify-center">
+                     <Zap className="w-5 h-5 text-amber-400" />
+                   </div>
                  </div>
-                 <div className="text-sm font-medium opacity-70">Redo</div>
+                 <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.picked}</p>
+                 <p className="text-sm text-white/50">Redo</p>
                </motion.button>
 
                <motion.button
-                 whileHover={{ scale: 1.05 }}
-                 whileTap={{ scale: 0.95 }}
+                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
                  onClick={() => setStatusFilter('in_production')}
                  className={cn(
-                   "p-4 rounded-2xl transition-all duration-300",
+                   "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
                    statusFilter === 'in_production'
-                     ? "bg-gradient-to-br from-blue-400 to-blue-500 text-white shadow-xl shadow-blue-500/40"
-                     : "bg-blue-500/15 border border-blue-500/40 hover:bg-blue-500/20 text-blue-300"
+                     ? "bg-blue-500/20 border-blue-500/40 shadow-lg shadow-blue-500/10"
+                     : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:shadow-blue-500/10"
                  )}
                >
-                 <div className="flex items-start justify-between mb-2">
-                   <div className="text-3xl font-bold">{stats.inProduction}</div>
-                   <Play className="w-4 h-4" />
+                 <div className="flex items-center justify-between mb-3">
+                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center">
+                     <Play className="w-5 h-5 text-blue-400" />
+                   </div>
                  </div>
-                 <div className="text-sm font-medium opacity-70">Pågående</div>
+                 <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.inProduction}</p>
+                 <p className="text-sm text-white/50">Pågående</p>
                </motion.button>
 
                <motion.button
-                 whileHover={{ scale: 1.05 }}
-                 whileTap={{ scale: 0.95 }}
+                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
                  onClick={() => setStatusFilter('production_completed')}
                  className={cn(
-                   "p-4 rounded-2xl transition-all duration-300",
+                   "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
                    statusFilter === 'production_completed'
-                     ? "bg-gradient-to-br from-green-400 to-green-500 text-white shadow-xl shadow-green-500/40"
-                     : "bg-green-500/15 border border-green-500/40 hover:bg-green-500/20 text-green-300"
+                     ? "bg-green-500/20 border-green-500/40 shadow-lg shadow-green-500/10"
+                     : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:shadow-green-500/10"
                  )}
                >
-                 <div className="flex items-start justify-between mb-2">
-                   <div className="text-3xl font-bold">{stats.completed}</div>
-                   <Trophy className="w-4 h-4" />
+                 <div className="flex items-center justify-between mb-3">
+                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/30 to-green-600/30 flex items-center justify-center">
+                     <Trophy className="w-5 h-5 text-green-400" />
+                   </div>
                  </div>
-                 <div className="text-sm font-medium opacity-70">Klara</div>
+                 <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.completed}</p>
+                 <p className="text-sm text-white/50">Klara</p>
                </motion.button>
              </div>
           </div>
