@@ -281,6 +281,7 @@ export default function ReviewForm({
                         field === 'category' ? CATEGORY_OPTIONS :
                         field === 'storage_type' ? STORAGE_TYPE_OPTIONS :
                         field === 'warehouse' ? warehouses.map(w => ({ value: w.name, label: w.name })) :
+                        field === 'supplier_name' ? suppliers.map(s => ({ value: s.name, label: s.name })) :
                         undefined
                       }
                       placeholder={
