@@ -46,17 +46,19 @@ export default function SupplierDocumentUpload() {
 
     setUploading(true);
     try {
-      const uploadPromises = files.map(file => 
-        base44.integrations.Core.UploadFile({ file })
-      );
-      const results = await Promise.all(uploadPromises);
-      const newUrls = results.map(r => ({ url: r.file_url, name: files[uploadPromises.indexOf(base44.integrations.Core.UploadFile({ file: files[0] }))].name }));
-      
-      setUploadedFiles(prev => [...prev, ...newUrls.map((r, i) => ({ url: r.url, name: files[i].name }))]);
-      toast.success(`${files.length} file(s) uploaded`);
+      const uploadedResults = [];
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('token', token);
+        const response = await base44.functions.invoke('supplierUploadFile', formData);
+        uploadedResults.push({ url: response.data.file_url, name: file.name });
+      }
+      setUploadedFiles(prev => [...prev, ...uploadedResults]);
+      toast.success(`${files.length} fil(er) uppladdade`);
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload files');
+      toast.error('Kunde inte ladda upp filer');
     } finally {
       setUploading(false);
     }
