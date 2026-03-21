@@ -239,29 +239,89 @@ export default function PurchaseOrdersPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-4 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
-              <div className="text-2xl font-bold text-white mb-1 tracking-tight">{filteredPOs.length}</div>
-              <div className="text-xs text-white/50">Totalt ordrar</div>
-            </div>
-            <div className="p-4 rounded-xl bg-blue-500/10 backdrop-blur-xl border border-blue-500/30 hover:bg-blue-500/20 transition-all duration-300">
-              <div className="text-2xl font-bold text-blue-400 mb-1 tracking-tight">
-                {purchaseOrders.filter(po => po.status === 'ordered').length}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <motion.button
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              onClick={() => setStatusFilter('all')}
+              className={cn(
+                "p-5 rounded-2xl backdrop-blur-xl border transition-all duration-300 text-left",
+                statusFilter === 'all'
+                  ? "bg-white/10 border-white/30 shadow-lg shadow-white/10"
+                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+              )}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center">
+                  <ShoppingCart className="w-5 h-5 text-blue-400" />
+                </div>
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="text-xs text-blue-300">Beställda</div>
-            </div>
-            <div className="p-4 rounded-xl bg-amber-500/10 backdrop-blur-xl border border-amber-500/30 hover:bg-amber-500/20 transition-all duration-300">
-              <div className="text-2xl font-bold text-amber-400 mb-1 tracking-tight">
-                {purchaseOrders.filter(po => po.status === 'partially_received').length}
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{purchaseOrders.length}</p>
+              <p className="text-sm text-white/50">Totalt ordrar</p>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              onClick={() => setStatusFilter('sent')}
+              className={cn(
+                "p-5 rounded-2xl backdrop-blur-xl border transition-all duration-300 text-left",
+                statusFilter === 'sent'
+                  ? "bg-blue-500/20 border-blue-500/40 shadow-lg shadow-blue-500/10"
+                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+              )}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/30 to-blue-600/30 flex items-center justify-center">
+                  <Truck className="w-5 h-5 text-cyan-400" />
+                </div>
               </div>
-              <div className="text-xs text-amber-300">Delvis mottagna</div>
-            </div>
-            <div className="p-4 rounded-xl bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/30 hover:bg-emerald-500/20 transition-all duration-300">
-              <div className="text-2xl font-bold text-emerald-400 mb-1 tracking-tight">
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">
+                {purchaseOrders.filter(po => ['sent','confirmed','in_production','shipped','ready_for_reception','waiting_for_supplier_documentation'].includes(po.status)).length}
+              </p>
+              <p className="text-sm text-white/50">Pågående</p>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              onClick={() => setStatusFilter('ready_for_reception')}
+              className={cn(
+                "p-5 rounded-2xl backdrop-blur-xl border transition-all duration-300 text-left",
+                statusFilter === 'ready_for_reception'
+                  ? "bg-amber-500/20 border-amber-500/40 shadow-lg shadow-amber-500/10"
+                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+              )}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-600/30 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-amber-400" />
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">
+                {purchaseOrders.filter(po => po.status === 'ready_for_reception').length}
+              </p>
+              <p className="text-sm text-white/50">Klar för mottagning</p>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              onClick={() => setStatusFilter('received')}
+              className={cn(
+                "p-5 rounded-2xl backdrop-blur-xl border transition-all duration-300 text-left",
+                statusFilter === 'received'
+                  ? "bg-emerald-500/20 border-emerald-500/40 shadow-lg shadow-emerald-500/10"
+                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+              )}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/30 to-emerald-600/30 flex items-center justify-center">
+                  <PackageCheck className="w-5 h-5 text-emerald-400" />
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">
                 {purchaseOrders.filter(po => po.status === 'received').length}
-              </div>
-              <div className="text-xs text-emerald-300">Mottagna</div>
-            </div>
+              </p>
+              <p className="text-sm text-white/50">Mottagna</p>
+            </motion.button>
           </div>
         </div>
 
