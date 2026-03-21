@@ -2,7 +2,7 @@ export const translations = {
   sv: {
     // Navigation
     nav_home: "Hem",
-    nav_inventory: "Lager",
+    nav_inventory: "Inventory",
     nav_orders: "Ordrar",
     nav_production: "Produktion",
     nav_purchase: "Inköp",
