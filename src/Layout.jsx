@@ -95,14 +95,17 @@ function LayoutContent({ children, currentPageName }) {
   // Handle tab navigation with stack restoration
   const handleTabClick = (tabName) => {
     const stack = navigationStacks[tabName];
+    const tabRoot = `/${tabName.toLowerCase()}`;
     if (stack && stack.length > 0) {
-      // Restore last position in this tab
+      // Only restore if the last path is actually under this tab's root
       const lastPath = stack[stack.length - 1];
-      navigate(lastPath);
-    } else {
-      // Navigate to tab root
-      navigate(createPageUrl(tabName));
+      if (lastPath.toLowerCase().startsWith(tabRoot)) {
+        navigate(lastPath);
+        return;
+      }
     }
+    // Navigate to tab root
+    navigate(createPageUrl(tabName));
   };
 
   // Check if we should show back button (deeper than root tabs)
