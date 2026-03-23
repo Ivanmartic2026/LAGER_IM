@@ -30,6 +30,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [customArticleMode, setCustomArticleMode] = useState(false);
   const [customArticleName, setCustomArticleName] = useState('');
   const [customBatchNumber, setCustomBatchNumber] = useState('');
+  const [customSku, setCustomSku] = useState('');
   const [isScanningInvoice, setIsScanningInvoice] = useState(false);
   const invoiceInputRef = React.useRef(null);
 
