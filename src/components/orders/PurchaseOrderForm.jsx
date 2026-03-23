@@ -579,13 +579,22 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
             {customArticleMode ? (
               <div className="space-y-2 mb-3">
                 <div className="text-xs font-medium text-slate-400 mb-1">Artiklar</div>
-                <div className="grid grid-cols-[150px_1fr_100px_100px_auto] gap-2">
+                <div className="grid grid-cols-[130px_130px_1fr_90px_80px_auto] gap-2">
                   <div>
-                    <div className="text-xs text-slate-500 mb-1">Artikelnr</div>
+                    <div className="text-xs text-slate-500 mb-1">Artikelnr (SKU)</div>
+                    <Input
+                      value={customSku}
+                      onChange={(e) => setCustomSku(e.target.value)}
+                      placeholder="SKU"
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Batchnummer</div>
                     <Input
                       value={customBatchNumber}
                       onChange={(e) => setCustomBatchNumber(e.target.value)}
-                      placeholder="Batch"
+                      placeholder="Batchnr"
                       className="bg-slate-800 border-slate-700 text-white"
                     />
                   </div>
