@@ -87,6 +87,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
         if (item.is_custom && !item.article_id) {
           const newArticle = await base44.entities.Article.create({
             name: item.article_name,
+            sku: item.article_sku || null,
             batch_number: item.article_batch_number || null,
             supplier_id: formData.supplier_id || null,
             supplier_name: formData.supplier_name || null,
