@@ -122,6 +122,14 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
         } else {
           await base44.entities.PurchaseOrderItem.create(itemData);
         }
+
+        // Update article's transit_expected_date so ETA shows in Inventory
+        if (item.article_id && data.expected_delivery_date) {
+          await base44.entities.Article.update(item.article_id, {
+            transit_expected_date: data.expected_delivery_date,
+            status: 'in_transit'
+          });
+        }
       }
 
       // Calculate total cost after all items are saved
