@@ -1038,10 +1038,10 @@ export default function InventoryPage() {
                               </Badge>
                             )}
                             {incomingQuantities[article.id] && (
-                              <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
-                                Inkommande ({incomingQuantities[article.id].quantity} st)
+                              <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-xs font-medium">
+                                🚚 På inköp ({incomingQuantities[article.id].quantity} st)
                                 {incomingQuantities[article.id].dates.length > 0 && 
-                                  ` - ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
+                                  ` · ETA ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
                                 }
                               </Badge>
                             )}
