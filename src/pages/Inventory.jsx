@@ -394,13 +394,14 @@ export default function InventoryPage() {
 
   // Calculate incoming quantities for each article
   const incomingQuantities = {};
+  const ACTIVE_PO_STATUSES = ['draft', 'sent', 'confirmed', 'waiting_for_supplier_documentation', 'in_production', 'shipped', 'ready_for_reception'];
   purchaseOrderItems.forEach(item => {
     const po = purchaseOrders.find(p => p.id === item.purchase_order_id);
-    if (po && (po.status === 'ordered' || po.status === 'prepaid')) {
+    if (po && ACTIVE_PO_STATUSES.includes(po.status)) {
       const remaining = item.quantity_ordered - (item.quantity_received || 0);
       if (remaining > 0) {
         if (!incomingQuantities[item.article_id]) {
-          incomingQuantities[item.article_id] = { quantity: 0, dates: [] };
+          incomingQuantities[item.article_id] = { quantity: 0, dates: [], poStatus: po.status };
         }
         incomingQuantities[item.article_id].quantity += remaining;
         if (po.expected_delivery_date) {
