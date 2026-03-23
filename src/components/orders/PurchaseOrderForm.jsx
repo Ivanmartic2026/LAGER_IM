@@ -691,8 +691,9 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             {poItems.length > 0 ? (
               <div className="space-y-2">
-                <div className="grid grid-cols-[150px_1fr_100px_100px_100px_auto] gap-2 px-3 py-2 text-xs font-medium text-slate-500">
-                  <div>Artikelnr</div>
+                <div className="grid grid-cols-[130px_130px_1fr_90px_80px_90px_auto] gap-2 px-3 py-2 text-xs font-medium text-slate-500">
+                  <div>Artikelnr (SKU)</div>
+                  <div>Batchnummer</div>
                   <div>Benämning</div>
                   <div>Enhetspris</div>
                   <div>Antal</div>
@@ -704,13 +705,21 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                   return (
                     <div
                       key={index}
-                      className="grid grid-cols-[150px_1fr_100px_100px_100px_auto] gap-2 p-3 rounded-lg bg-slate-800/50 border border-slate-700 items-center"
+                      className="grid grid-cols-[130px_130px_1fr_90px_80px_90px_auto] gap-2 p-3 rounded-lg bg-slate-800/50 border border-slate-700 items-center"
                     >
+                      <div>
+                        <Input
+                          value={item.article_sku || ''}
+                          onChange={(e) => handleUpdateItem(index, 'article_sku', e.target.value)}
+                          placeholder="SKU/Artikelnr"
+                          className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                        />
+                      </div>
                       <div>
                         <Input
                           value={item.article_batch_number || ''}
                           onChange={(e) => handleUpdateItem(index, 'article_batch_number', e.target.value)}
-                          placeholder="Batch"
+                          placeholder="Batchnr"
                           className="bg-slate-800 border-slate-700 text-white text-sm h-9"
                         />
                       </div>
