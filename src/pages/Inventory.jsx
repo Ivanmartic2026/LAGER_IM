@@ -1107,7 +1107,19 @@ export default function InventoryPage() {
                         <div className="text-xs text-white/40">st</div>
                       </div>
 
-                      {article.transit_expected_date && (
+                      {incomingQuantities[article.id] ? (
+                        <div className="flex-shrink-0 flex flex-col items-center gap-0.5 bg-amber-500/15 border border-amber-500/40 rounded-xl px-3 py-1.5 whitespace-nowrap">
+                          <div className="flex items-center gap-1 text-amber-300 text-[11px] font-semibold uppercase tracking-wider">
+                            <span>🚚 På inköp</span>
+                          </div>
+                          <span className="text-amber-200 font-bold text-xs">
+                            {incomingQuantities[article.id].quantity} st
+                            {incomingQuantities[article.id].dates.length > 0 && 
+                              ` · ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
+                            }
+                          </span>
+                        </div>
+                      ) : article.transit_expected_date ? (
                         <div className="flex-shrink-0 flex flex-col items-center gap-0.5 bg-blue-600/20 border border-blue-500/30 rounded-xl px-3 py-1.5 whitespace-nowrap">
                           <div className="flex items-center gap-1 text-blue-300 text-[11px] font-semibold uppercase tracking-wider">
                             <span>ETA</span>
@@ -1116,7 +1128,7 @@ export default function InventoryPage() {
                             {format(new Date(article.transit_expected_date), "d MMM", { locale: sv })}
                           </span>
                         </div>
-                      )}
+                      ) : null}
 
                       <div className="flex-1 min-w-0 grid grid-cols-[minmax(120px,150px)_minmax(200px,1fr)_minmax(180px,220px)_minmax(200px,250px)] gap-4">
                          <div className="min-w-0 flex items-center">
