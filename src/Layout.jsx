@@ -31,8 +31,9 @@ function LayoutContent({ children, currentPageName }) {
   
   // Independent navigation stacks for each tab
   const [navigationStacks, setNavigationStacks] = useReactState(() => {
-    const stored = localStorage.getItem('nav_stacks');
-    return stored ? JSON.parse(stored) : {};
+    // Clear any stale nav stacks that might point to wrong pages
+    localStorage.removeItem('nav_stacks');
+    return {};
   });
 
   useEffect(() => {
