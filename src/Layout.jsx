@@ -51,7 +51,7 @@ function LayoutContent({ children, currentPageName }) {
   }, []);
 
   const NAV_ITEMS = [
-    { name: "Inventory", label: t('nav_inventory', language), icon: Package, module: "Inventory" },
+    { name: "Inventory", label: t('nav_inventory', language), icon: Package, module: null },
     { name: "Orders", label: t('nav_orders', language), icon: ShoppingCart, module: "Orders" },
     { name: "Production", label: t('nav_production', language), icon: Activity, module: "Production" },
     { name: "PurchaseOrders", label: "Purchase Order", icon: ShoppingCart, module: "PurchaseOrders" },
