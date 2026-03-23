@@ -174,6 +174,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
       setPOItems([...poItems, {
         article_id: null,
         article_name: customArticleName,
+        article_sku: customSku || null,
         article_batch_number: customBatchNumber || null,
         quantity_ordered: quantity,
         quantity_received: 0,
@@ -184,6 +185,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
       setCustomArticleName('');
       setCustomBatchNumber('');
+      setCustomSku('');
       setQuantity(1);
       setUnitPrice(0);
       setCustomArticleMode(false);
