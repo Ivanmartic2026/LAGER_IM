@@ -683,8 +683,80 @@ VIKTIGT: batch_number ska vara det EXAKTA numret från etiketten, inte ett appro
             </motion.div>
           )}
 
+          {/* Multiple Matches - Let user pick */}
+          {scanResult === "multiple_matches" && matchingArticles.length > 0 && (
+            <motion.div
+              key="multiple-matches"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                  <Package className="w-4 h-4 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-emerald-300">{matchingArticles.length} matchande artiklar hittade</p>
+                  <p className="text-xs text-emerald-200/70">Välj rätt artikel eller skapa ny</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {matchingArticles.map(article => (
+                  <button
+                    key={article.id}
+                    onClick={() => {
+                      setSelectedArticle(article);
+                      setScanResult("found");
+                      setMatchingArticles([]);
+                    }}
+                    className="w-full p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-left flex items-center gap-4"
+                  >
+                    {article.image_urls?.[0] ? (
+                      <img src={article.image_urls[0]} alt={article.name} className="w-14 h-14 object-cover rounded-lg flex-shrink-0 bg-slate-800" />
+                    ) : (
+                      <div className="w-14 h-14 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
+                        <Package className="w-6 h-6 text-slate-600" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-white truncate">{article.name || "—"}</p>
+                      <p className="text-xs text-slate-400 mt-1">Batch: <span className="text-slate-300 font-mono">{article.batch_number || "—"}</span></p>
+                      {article.manufacturer && <p className="text-xs text-slate-400">Tillverkare: <span className="text-slate-300">{article.manufacturer}</span></p>}
+                      <p className="text-xs text-slate-400">Kategori: <span className="text-slate-300">{article.category || "—"}</span></p>
+                      <p className="text-xs text-slate-400">Lagersaldo: <span className="text-white font-bold">{article.stock_qty || 0} st</span></p>
+                      {article.shelf_address && <p className="text-xs text-slate-400">Hyllplats: <span className="text-blue-300">{Array.isArray(article.shelf_address) ? article.shelf_address.join(', ') : article.shelf_address}</span></p>}
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-slate-500 flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  onClick={handleClear}
+                  className="flex-1 h-12 bg-white/10 border border-white/20 hover:bg-white/15 text-white"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Avbryt
+                </Button>
+                <Button
+                  onClick={() => {
+                    setScanResult("not_found");
+                    setMatchingArticles([]);
+                  }}
+                  className="flex-1 h-12 bg-emerald-500/20 border border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-300"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Skapa ny artikel
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
           {/* Selected Article - Location Display */}
-          {selectedArticle && scanResult !== "not_found" ? (
+          {selectedArticle && scanResult !== "not_found" && scanResult !== "multiple_matches" ? (
             <motion.div
               key="result"
               initial={{ opacity: 0, scale: 0.95 }}
