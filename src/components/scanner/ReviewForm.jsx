@@ -75,7 +75,6 @@ export default function ReviewForm({
     initial.name = true;
     initial.stock_qty = true;
     initial.storage_type = true;
-    initial.storage_type = true;
     return initial;
   });
 
