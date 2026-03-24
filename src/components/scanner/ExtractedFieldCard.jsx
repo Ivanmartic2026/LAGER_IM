@@ -19,7 +19,9 @@ export default function ExtractedFieldCard({
   const needsReview = confidence < 0.85;
 
   return (
-    <div className={cn(
+    <div 
+      onClick={(e) => e.stopPropagation()}
+      className={cn(
       "relative p-4 rounded-xl border-2 transition-all duration-200 backdrop-blur-xl",
       needsReview 
         ? "bg-amber-500/10 border-amber-500/40 shadow-lg shadow-amber-500/10" 
