@@ -743,8 +743,9 @@ VIKTIGT: batch_number ska vara det EXAKTA numret från etiketten, inte ett appro
                 </Button>
                 <Button
                   onClick={() => {
-                    setScanResult("not_found");
                     setMatchingArticles([]);
+                    setScanResult(null);
+                    setShowReviewForm(true);
                   }}
                   className="flex-1 h-12 bg-emerald-500/20 border border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-300"
                 >
