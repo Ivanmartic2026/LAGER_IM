@@ -111,9 +111,14 @@ export default function ReviewForm({
   }, [extractedData.batch_number, allArticles]);
 
   // Get all extracted fields (excluding image_urls)
+  // Always include required fields even if AI found nothing
+  const REQUIRED_FIELDS = ['batch_number', 'name', 'storage_type', 'stock_qty'];
   const allExtractedFields = isManual
     ? Object.keys(FIELD_LABELS)
-    : Object.keys(extractedData).filter(key => key !== 'image_urls');
+    : [...new Set([
+        ...REQUIRED_FIELDS,
+        ...Object.keys(extractedData).filter(key => key !== 'image_urls')
+      ])];
   
   const toggleField = (field) => {
     // Can't deselect required fields
