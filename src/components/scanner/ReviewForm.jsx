@@ -214,8 +214,8 @@ export default function ReviewForm({
            ) : (
              <>
                <p className="text-sm font-semibold text-blue-300">
-                 AI hittade {allExtractedFields.length} fält
-               </p>
+                  AI hittade {aiFoundFields.length} fält
+                </p>
                <p className="text-xs text-blue-200/70">
                  Välj vilka fält som ska sparas för denna artikel
                </p>
