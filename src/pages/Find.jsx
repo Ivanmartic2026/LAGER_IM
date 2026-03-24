@@ -110,6 +110,7 @@ export default function FindPage() {
     setCapturedImages([]);
     setStatusFilter("all");
     setShowReviewForm(false);
+    setMatchingArticles([]);
     searchInputRef.current?.focus();
   };
 
