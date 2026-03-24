@@ -113,6 +113,7 @@ export default function ReviewForm({
   // Get all extracted fields (excluding image_urls)
   // Always include required fields even if AI found nothing
   const REQUIRED_FIELDS = ['batch_number', 'name', 'storage_type', 'stock_qty'];
+  const aiFoundFields = Object.keys(extractedData).filter(key => key !== 'image_urls' && extractedData[key]);
   const allExtractedFields = isManual
     ? Object.keys(FIELD_LABELS)
     : [...new Set([
