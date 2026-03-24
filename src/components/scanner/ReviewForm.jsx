@@ -226,7 +226,7 @@ export default function ReviewForm({
         {allExtractedFields.map(field => {
           const value = extractedData[field];
           const confidence = confidences[field] || 0;
-          const isRequired = field === 'batch_number' || field === 'name' || field === 'storage_type';
+          const isRequired = field === 'batch_number' || field === 'storage_type';
           const label = FIELD_LABELS[field] || field;
           
           return (
