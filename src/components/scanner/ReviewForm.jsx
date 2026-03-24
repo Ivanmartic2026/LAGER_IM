@@ -237,7 +237,10 @@ export default function ReviewForm({
           return (
             <div
               key={field}
-              onClick={() => !isManual && toggleField(field)}
+              onClick={(e) => {
+                // Only toggle if clicking the card itself, not the input inside
+                if (!isManual && e.target === e.currentTarget) toggleField(field);
+              }}
               className={`p-4 rounded-xl border-2 transition-all ${
                 isManual
                   ? 'bg-white/5 border-white/10'
