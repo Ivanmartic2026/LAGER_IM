@@ -115,38 +115,48 @@ export default function FindPage() {
 
   const handleSaveArticle = async (data) => {
     try {
-      // Search for article first
-      let found = null;
+      const query = (data.batch_number || "").toLowerCase();
       
-      if (data.batch_number) {
-        const byBatch = await base44.entities.Article.filter({ 
-          batch_number: data.batch_number 
-        });
-        if (byBatch.length > 0) found = byBatch[0];
-      }
+      // Find matches: exact batch first, then fuzzy (batch contains or name contains)
+      const exactBatch = articles.filter(a => 
+        a.batch_number?.toLowerCase() === query
+      );
       
-      if (!found && data.name) {
-        const byName = articles.filter(a => 
-          a.name?.toLowerCase() === data.name?.toLowerCase()
+      const fuzzyMatches = articles.filter(a => {
+        if (exactBatch.find(e => e.id === a.id)) return false; // skip exact already found
+        return (
+          (query && a.batch_number?.toLowerCase().includes(query)) ||
+          (data.name && a.name?.toLowerCase().includes(data.name.toLowerCase()))
         );
-        if (byName.length > 0) found = byName[0];
-      }
+      });
 
-      if (found) {
-        setSelectedArticle(found);
+      const allMatches = [...exactBatch, ...fuzzyMatches];
+
+      if (allMatches.length === 1) {
+        // Single exact match — go directly
+        setSelectedArticle(allMatches[0]);
         setScanResult("found");
         setShowReviewForm(false);
         toast.success("Artikel hittad i lagret!");
+      } else if (allMatches.length > 1) {
+        // Multiple matches — show picker
+        setMatchingArticles(allMatches);
+        setScanResult("multiple_matches");
+        setShowReviewForm(false);
       } else {
-        // Article not found - show option to create
+        // Not found
         setScanResult("not_found");
         setShowReviewForm(false);
-        // Keep extracted data for the "not found" view
       }
     } catch (error) {
       console.error("Error:", error);
       toast.error("Kunde inte söka efter artikel");
     }
+  };
+
+  const handleClearMatchingArticles = () => {
+    setMatchingArticles([]);
+    setScanResult(null);
   };
 
   const handleImageCaptured = async (file) => {
