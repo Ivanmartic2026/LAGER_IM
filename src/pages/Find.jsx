@@ -41,6 +41,7 @@ export default function FindPage() {
 
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [matchingArticles, setMatchingArticles] = useState([]);
   const searchInputRef = useRef(null);
   const [showRepairModal, setShowRepairModal] = useState(false);
   const [isSubmittingRepair, setIsSubmittingRepair] = useState(false);
