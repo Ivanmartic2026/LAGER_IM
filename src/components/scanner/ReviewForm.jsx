@@ -117,7 +117,7 @@ export default function ReviewForm({
   
   const toggleField = (field) => {
     // Can't deselect required fields
-    if (field === 'batch_number' || field === 'name' || field === 'storage_type') {
+    if (field === 'batch_number' || field === 'storage_type') {
       return;
     }
     setSelectedFields(prev => ({
