@@ -959,7 +959,7 @@ VIKTIGT: batch_number ska vara det EXAKTA numret från etiketten, inte ett appro
                </Button>
               </motion.div>
             </motion.div>
-          ) : !searchQuery && mode === "search" && !scanResult && (
+          ) : !searchQuery && mode === "search" && !scanResult && scanResult !== "multiple_matches" && (
             <motion.div
               key="empty"
               initial={{ opacity: 0 }}
