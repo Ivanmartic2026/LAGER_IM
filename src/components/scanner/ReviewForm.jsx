@@ -306,7 +306,7 @@ export default function ReviewForm({
         )}
 
       {/* Required Fields Warning */}
-      {(!extractedData.batch_number || !extractedData.name) && (
+      {!extractedData.batch_number && (
         <div className="p-4 rounded-xl bg-red-500/10 border-2 border-red-500/40">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
@@ -315,7 +315,7 @@ export default function ReviewForm({
                 Obligatoriska fält saknas
               </p>
               <p className="text-xs text-red-200/70">
-                Fyll i minst Batchnummer och Artikelnamn före sparning.
+                Fyll i Batchnummer före sparning.
               </p>
             </div>
           </div>
