@@ -207,15 +207,17 @@ export default function FindPage() {
 
       // Extract data using AI with all captured images in background
       const llmPromise = base44.integrations.Core.InvokeLLM({
-        prompt: `Analysera dessa ${capturedImages.length} bilder av samma artikel/etikett och extrahera följande information:
-        - Batchnummer/artikelnummer
-        - Artikelnamn
-        - Tillverkare
-        - Pixel Pitch (om synlig)
-        - Dimensioner (bredd × höjd i mm, om synlig)
+        prompt: `Du är en expert på LED-displayprodukter och lagerhantering. Analysera dessa ${capturedImages.length} bilder av samma artikel/etikett noggrant.
 
-  Kombinera informationen från alla bilder för att få så komplett data som möjligt.
-  Returnera informationen i JSON-format.`,
+Extrahera EXAKT följande information (var mycket precis — detta används för lagermatchning):
+- batch_number: Det exakta batchnumret/serienumret som syns på etiketten (t.ex. "P3.076-250915-2084", "P2.5-ABC123"). INTE ett generellt modellnamn.
+- name: Produktens fullständiga namn/modellbeteckning (t.ex. "IM Vision P3 UltraBright LED-modul v1.0")
+- manufacturer: Tillverkarens namn (t.ex. "Unilumin", "Absen", "Leyard", "Nick Everlasting")
+- pixel_pitch_mm: Pixel Pitch i mm som ett nummer (t.ex. 3.076 för P3.076, 2.5 för P2.5)
+- dimensions_width_mm: Bredd i mm om synlig
+- dimensions_height_mm: Höjd i mm om synlig
+
+VIKTIGT: batch_number ska vara det EXAKTA numret från etiketten, inte ett approximerat värde. Om det inte går att läsa tydligt, returnera null för det fältet.`,
         file_urls: capturedImages,
         response_json_schema: {
           type: "object",
