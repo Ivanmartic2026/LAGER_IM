@@ -256,8 +256,8 @@ Deno.serve(async (req) => {
                       <div>
                         <div style="font-size: 16px; font-weight: 600; color: #000000; margin-bottom: 8px;">${record.article_name}</div>
                         <div style="font-size: 14px; color: #666666;">
-                          Mottaget: <strong style="color: #000000;">${record.quantity_received} st</strong>
-                          ${record.shelf_address ? ` • Hyllplats: <strong style="color: #000000;">${record.shelf_address}</strong>` : ''}
+                          Received: <strong style="color: #000000;">${record.quantity_received} pcs</strong>
+                          ${record.shelf_address ? ` • Shelf: <strong style="color: #000000;">${record.shelf_address}</strong>` : ''}
                         </div>
                       </div>
                       <div style="font-size: 24px;">
