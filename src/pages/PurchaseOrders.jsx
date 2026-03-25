@@ -242,51 +242,55 @@ export default function PurchaseOrdersPage() {
               filter: 'all',
               icon: ShoppingCart,
               iconColor: 'text-blue-400',
-              iconBg: 'from-blue-500/20 to-blue-600/20',
+              accentColor: 'bg-blue-500',
               count: purchaseOrders.length,
               label: 'Totalt ordrar',
-              activeClass: 'border-blue-500/40 bg-blue-500/10',
+              activeClass: 'border-blue-500/40 bg-blue-500/8 shadow-lg shadow-blue-500/10',
             },
             {
               filter: 'sent',
               icon: Truck,
               iconColor: 'text-cyan-400',
-              iconBg: 'from-cyan-500/20 to-blue-600/20',
+              accentColor: 'bg-cyan-500',
               count: purchaseOrders.filter(po => ['sent','confirmed','in_production','shipped','ready_for_reception','waiting_for_supplier_documentation'].includes(po.status)).length,
               label: 'Pågående',
-              activeClass: 'border-cyan-500/40 bg-cyan-500/10',
+              activeClass: 'border-cyan-500/40 bg-cyan-500/8 shadow-lg shadow-cyan-500/10',
             },
             {
               filter: 'ready_for_reception',
               icon: Clock,
               iconColor: 'text-amber-400',
-              iconBg: 'from-amber-500/20 to-amber-600/20',
+              accentColor: 'bg-amber-500',
               count: purchaseOrders.filter(po => po.status === 'ready_for_reception').length,
-              label: 'Klar för mottagning',
-              activeClass: 'border-amber-500/40 bg-amber-500/10',
+              label: 'Klar mottagning',
+              activeClass: 'border-amber-500/40 bg-amber-500/8 shadow-lg shadow-amber-500/10',
             },
             {
               filter: 'received',
               icon: PackageCheck,
               iconColor: 'text-emerald-400',
-              iconBg: 'from-emerald-500/20 to-emerald-600/20',
+              accentColor: 'bg-emerald-500',
               count: purchaseOrders.filter(po => po.status === 'received').length,
               label: 'Mottagna',
-              activeClass: 'border-emerald-500/40 bg-emerald-500/10',
+              activeClass: 'border-emerald-500/40 bg-emerald-500/8 shadow-lg shadow-emerald-500/10',
             },
-          ].map(({ filter, icon: Icon, iconColor, iconBg, count, label, activeClass }) => (
+          ].map(({ filter, icon: Icon, iconColor, accentColor, count, label, activeClass }) => (
             <button
               key={filter}
               onClick={() => setStatusFilter(filter)}
               className={cn(
-                "p-4 rounded-xl border text-left transition-all duration-200",
+                "relative p-4 rounded-xl border text-left transition-all duration-200 overflow-hidden",
                 statusFilter === filter
                   ? activeClass
-                  : "bg-white/3 border-white/8 hover:bg-white/6 hover:border-white/15"
+                  : "bg-white/3 border-white/8 hover:bg-white/5 hover:border-white/15"
               )}
             >
-              <div className={cn("w-9 h-9 rounded-lg bg-gradient-to-br flex items-center justify-center mb-3", iconBg)}>
+              {statusFilter === filter && (
+                <div className={cn("absolute top-0 left-0 w-1 h-full rounded-l-xl", accentColor)} />
+              )}
+              <div className="flex items-center justify-between mb-3">
                 <Icon className={cn("w-4 h-4", iconColor)} />
+                {statusFilter === filter && <div className={cn("w-1.5 h-1.5 rounded-full", accentColor)} />}
               </div>
               <p className="text-2xl font-bold text-white tracking-tight">{count}</p>
               <p className="text-xs text-white/40 mt-0.5">{label}</p>
