@@ -405,7 +405,13 @@ export default function PurchaseOrdersPage() {
 
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 flex-shrink-0 ml-3">
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0 ml-3">
+                          {po.fortnox_project_number && (
+                            <div className="flex items-center gap-1.5 bg-blue-500/15 border border-blue-500/30 rounded-lg px-2.5 py-1">
+                              <span className="text-xs text-blue-400/70">Projekt</span>
+                              <span className="text-sm font-bold text-blue-200">{po.fortnox_project_number}</span>
+                            </div>
+                          )}
                           {po.total_cost && (
                             <div className="text-right">
                               <div className="text-base font-bold text-white">{po.total_cost.toLocaleString('sv-SE')}<span className="text-xs font-normal text-white/30 ml-1">kr</span></div>
