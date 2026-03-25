@@ -744,7 +744,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             {poItems.length > 0 ? (
               <div className="space-y-3">
-                <div className="grid grid-cols-[130px_130px_1fr_90px_80px_90px_auto] gap-3 px-3 py-2 text-xs font-medium text-slate-500">
+                <div className="grid grid-cols-[110px_110px_minmax(160px,1fr)_90px_80px_90px_auto] gap-3 px-3 py-2 text-xs font-medium text-slate-500">
                   <div>Artikelnr (SKU)</div>
                   <div>Batchnummer</div>
                   <div>Benämning</div>
