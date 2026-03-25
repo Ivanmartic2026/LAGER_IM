@@ -224,6 +224,13 @@ Deno.serve(async (req) => {
             <div class="supplier-box">
               <div class="supplier-label">Supplier</div>
               <div class="supplier-name">${po.supplier_name}</div>
+              ${supplier && (supplier.contact_person || supplier.email || supplier.phone) ? `
+                <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 4px;">
+                  ${supplier.contact_person ? `<div style="font-size: 13px; color: #444444;">Kontaktperson: <strong>${supplier.contact_person}</strong></div>` : ''}
+                  ${supplier.email ? `<div style="font-size: 13px; color: #444444;">Email: <strong>${supplier.email}</strong></div>` : ''}
+                  ${supplier.phone ? `<div style="font-size: 13px; color: #444444;">Telefon: <strong>${supplier.phone}</strong></div>` : ''}
+                </div>
+              ` : ''}
             </div>
 
             <table>
