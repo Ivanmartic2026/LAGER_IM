@@ -450,6 +450,23 @@ export default function PurchaseOrdersPage() {
                               {format(new Date(po.order_date), "d MMM yyyy", { locale: sv })}
                             </span>
                           )}
+                          {po.delivery_terms && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
+                              {po.delivery_terms}
+                            </span>
+                          )}
+                          {po.mode_of_transport && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-teal-500/10 border border-teal-500/20 text-teal-300">
+                              {{
+                                air_freight_express: '✈ Air Express',
+                                air_freight_economy: '✈ Air Economy',
+                                sea_freight: '🚢 Sea Freight',
+                                rail_transport: '🚂 Rail',
+                                road_transport: '🚛 Road (Truck)',
+                                courier: '📦 Courier',
+                              }[po.mode_of_transport] || po.mode_of_transport}
+                            </span>
+                          )}
                           {po.notes && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-white/5 text-white/30 max-w-xs truncate">
                               {po.notes}
