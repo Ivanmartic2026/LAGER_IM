@@ -658,6 +658,25 @@ export default function InventoryPage() {
               <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.onRepair}</p>
               <p className="text-sm text-white/50">På reparation</p>
             </motion.button>
+
+            <motion.button
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              onClick={() => setStatusFilter(statusFilter === 'on_purchase_order' ? 'all' : 'on_purchase_order')}
+              className={cn(
+                "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
+                statusFilter === 'on_purchase_order'
+                  ? "bg-amber-500/20 border-amber-500/40 shadow-lg shadow-amber-500/10"
+                  : "bg-[#3a3d42]/60 border-[#5a5d62]/50 hover:bg-[#3a3d42]/80 hover:border-[#7B7F85] hover:shadow-xl hover:shadow-amber-500/10"
+              )}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-600/30 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-amber-500/30 transition-all duration-300">
+                  <Truck className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform duration-300" />
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{stats.onPurchaseOrder}</p>
+              <p className="text-sm text-white/50">På inköp</p>
+            </motion.button>
           </div>
 
           {/* Bulk Actions Toolbar */}
