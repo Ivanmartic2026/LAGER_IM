@@ -254,11 +254,18 @@ Deno.serve(async (req) => {
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px;">
               <div style="background: #fafafa; padding: 15px; border: 1px solid #e0e0e0;">
                 <div class="info-label">Delivery Terms</div>
-                <div class="info-value">As agreed</div>
+                <div class="info-value">${po.delivery_terms || 'As agreed'}</div>
               </div>
               <div style="background: #fafafa; padding: 15px; border: 1px solid #e0e0e0;">
-                <div class="info-label">Shipping</div>
-                <div class="info-value">As agreed</div>
+                <div class="info-label">Mode of Transport</div>
+                <div class="info-value">${{
+                  air_freight_express: 'Air Freight – Express',
+                  air_freight_economy: 'Air Freight – Economy',
+                  sea_freight: 'Sea Freight',
+                  rail_transport: 'Rail Transport',
+                  road_transport: 'Road Transport (Truck)',
+                  courier: 'Courier (DHL, FedEx, UPS)'
+                }[po.mode_of_transport] || (po.mode_of_transport || 'As agreed')}</div>
               </div>
               <div style="background: #fafafa; padding: 15px; border: 1px solid #e0e0e0;">
                 <div class="info-label">Warranty</div>
