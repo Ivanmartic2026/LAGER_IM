@@ -419,7 +419,8 @@ export default function InventoryPage() {
         article.batch_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         article.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesStatus = statusFilter === "all" || article.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || 
+        (statusFilter === "on_purchase_order" ? !!incomingQuantities[article.id] : article.status === statusFilter);
       const matchesWarehouse = warehouseFilter === "all" || article.warehouse === warehouseFilter;
       const matchesStorageType = storageTypeFilter === "all" || article.storage_type === storageTypeFilter;
       const matchesCategory = categoryFilter === "all" || article.category === categoryFilter;
