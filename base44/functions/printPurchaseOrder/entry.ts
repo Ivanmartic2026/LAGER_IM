@@ -23,6 +23,12 @@ Deno.serve(async (req) => {
       purchase_order_id: purchaseOrderId 
     });
 
+    let supplier = null;
+    if (po.supplier_id) {
+      const suppliers = await base44.asServiceRole.entities.Supplier.filter({ id: po.supplier_id });
+      supplier = suppliers[0] || null;
+    }
+
     let totalCost = 0;
     const itemsHtml = items.map(item => {
       const itemTotal = item.quantity_ordered * (item.unit_price || 0);
