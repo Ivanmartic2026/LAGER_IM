@@ -281,7 +281,7 @@ Deno.serve(async (req) => {
 
                     ${record.image_urls && record.image_urls.length > 0 ? `
                       <div style="margin-top: 12px;">
-                        <div style="font-size: 11px; text-transform: uppercase; color: #666666; font-weight: 500; letter-spacing: 0.8px; margin-bottom: 8px;">BILDER (${record.image_urls.length} st)</div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: #666666; font-weight: 500; letter-spacing: 0.8px; margin-bottom: 8px;">IMAGES (${record.image_urls.length})</div>
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
                           ${record.image_urls.map(url => `
                             <div style="width: 100%; height: 120px; background: #e5e7eb; border: 1px solid #d1d5db; border-radius: 4px; overflow: hidden;">
