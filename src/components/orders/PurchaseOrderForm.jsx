@@ -310,13 +310,15 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           }
         }
         
-        // Fill in PO details
+        // Fill in PO details (including invoice number and file url)
         setFormData(prev => ({
           ...prev,
           po_number: data.invoice_number || prev.po_number,
+          invoice_number: data.invoice_number || prev.invoice_number,
           supplier_id: supplierId || prev.supplier_id,
           supplier_name: supplierName || prev.supplier_name,
-          order_date: data.invoice_date || prev.order_date
+          order_date: data.invoice_date || prev.order_date,
+          // invoice_file_url is already set above
         }));
 
         // Add items
