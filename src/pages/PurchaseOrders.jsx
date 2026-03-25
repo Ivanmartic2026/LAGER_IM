@@ -438,17 +438,41 @@ export default function PurchaseOrdersPage() {
                     {/* Details */}
                     <div className="p-5">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        {po.expected_delivery_date && (
-                          <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-900/50">
-                            <Calendar className="w-5 h-5 text-blue-400 flex-shrink-0" />
-                            <div>
-                              <div className="text-xs text-slate-500 mb-0.5">Förväntad leverans</div>
-                              <div className="text-sm font-medium text-white">
-                                {format(new Date(po.expected_delivery_date), "d MMM yyyy", { locale: sv })}
+                        {po.expected_delivery_date && (() => {
+                          const eta = new Date(po.expected_delivery_date);
+                          const today = new Date();
+                          today.setHours(0,0,0,0);
+                          eta.setHours(0,0,0,0);
+                          const daysLeft = Math.round((eta - today) / (1000 * 60 * 60 * 24));
+                          const isOverdue = daysLeft < 0;
+                          const isToday = daysLeft === 0;
+                          return (
+                            <div className={cn(
+                              "flex items-center gap-3 p-3 rounded-lg",
+                              isOverdue ? "bg-red-500/10 border border-red-500/20" :
+                              isToday ? "bg-emerald-500/10 border border-emerald-500/20" :
+                              daysLeft <= 7 ? "bg-amber-500/10 border border-amber-500/20" :
+                              "bg-slate-900/50"
+                            )}>
+                              <Calendar className={cn("w-5 h-5 flex-shrink-0",
+                                isOverdue ? "text-red-400" : isToday ? "text-emerald-400" : daysLeft <= 7 ? "text-amber-400" : "text-blue-400"
+                              )} />
+                              <div>
+                                <div className="text-xs text-slate-500 mb-0.5">Ankommer till lager</div>
+                                <div className="text-sm font-medium text-white">
+                                  {format(new Date(po.expected_delivery_date), "d MMM yyyy", { locale: sv })}
+                                </div>
+                                <div className={cn("text-xs font-semibold mt-0.5",
+                                  isOverdue ? "text-red-400" : isToday ? "text-emerald-400" : daysLeft <= 7 ? "text-amber-400" : "text-blue-300"
+                                )}>
+                                  {isOverdue ? `${Math.abs(daysLeft)} dagar försenad` :
+                                   isToday ? "Ankommer idag!" :
+                                   `${daysLeft} dagar kvar`}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          );
+                        })()}
                         
                         {itemsCount > 0 && (
                           <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-900/50">
