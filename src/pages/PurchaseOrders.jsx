@@ -402,6 +402,12 @@ export default function PurchaseOrdersPage() {
                               <Truck className="w-3.5 h-3.5 text-white/40" />
                               <span className="truncate">{po.supplier_name}</span>
                             </div>
+                            {po.fortnox_project_number && (
+                              <div className="flex items-center gap-1.5 mt-1">
+                                <span className="text-xs text-white/40">Projekt:</span>
+                                <span className="text-xs font-bold text-blue-300 tracking-wide">{po.fortnox_project_number}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-3 flex-shrink-0 ml-3">
