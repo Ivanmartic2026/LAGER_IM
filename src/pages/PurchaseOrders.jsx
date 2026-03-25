@@ -398,8 +398,8 @@ export default function PurchaseOrdersPage() {
                                 {statusLabels[po.status]}
                               </Badge>
                             </div>
-                            <div className="flex items-center gap-1.5 text-white/35 text-xs mt-0.5">
-                              <Truck className="w-3 h-3" />
+                            <div className="flex items-center gap-1.5 text-white/80 text-sm font-semibold mt-0.5">
+                              <Truck className="w-3.5 h-3.5 text-white/40" />
                               <span className="truncate">{po.supplier_name}</span>
                             </div>
                           </div>
