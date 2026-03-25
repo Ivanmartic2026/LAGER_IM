@@ -6,64 +6,64 @@ import { toast } from 'sonner';
 import { Upload, FileText, ExternalLink, CheckCircle2, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { sv } from 'date-fns/locale';
 
 const PHASES = [
   {
     key: 'production',
-    label: 'Produktion',
+    label: 'Production',
     emoji: '🏭',
-    description: 'Kvalitetsdokument, testprotokoll, produktionsfoton',
+    description: 'QC reports, test protocols, production photos, batch documents',
     color: 'amber',
     docTypes: [
-      { value: 'quality_report', label: 'Kvalitetsrapport' },
-      { value: 'test_protocol', label: 'Testprotokoll' },
-      { value: 'qc_photos', label: 'QC-foton' },
-      { value: 'other', label: 'Övrigt' },
+      { value: 'quality_report', label: 'QC Report' },
+      { value: 'test_protocol', label: 'Test Protocol' },
+      { value: 'qc_photos', label: 'QC Photos / Videos' },
+      { value: 'other', label: 'Other Production Document' },
     ]
   },
   {
     key: 'ready_for_shipment',
-    label: 'Klar för leverans',
+    label: 'Ready for Shipment',
     emoji: '📦',
-    description: 'Packing list, commercial invoice, certifikat',
+    description: 'Commercial Invoice, Packing List, HS Code, Certificates',
     color: 'blue',
     docTypes: [
-      { value: 'packing_list', label: 'Packing List' },
       { value: 'commercial_invoice', label: 'Commercial Invoice' },
-      { value: 'ce_certificate', label: 'CE-certifikat' },
-      { value: 'rohs_certificate', label: 'RoHS-certifikat' },
-      { value: 'other_certificate', label: 'Annat certifikat' },
-      { value: 'qc_photos', label: 'QC-foton / rapport' },
-      { value: 'other', label: 'Övrigt' },
+      { value: 'packing_list', label: 'Packing List' },
+      { value: 'customs_document', label: 'HS Code Declaration' },
+      { value: 'ce_certificate', label: 'CE Certificate' },
+      { value: 'rohs_certificate', label: 'RoHS Certificate' },
+      { value: 'other_certificate', label: 'Other Certificate' },
+      { value: 'other', label: 'Other' },
     ]
   },
   {
     key: 'in_transit',
-    label: 'Under transport',
+    label: 'In Transit',
     emoji: '🚢',
-    description: 'Bill of Lading, AWB, spårningsinformation',
+    description: 'Bill of Lading (B/L), Airway Bill (AWB), tracking information',
     color: 'violet',
     docTypes: [
-      { value: 'bill_of_lading', label: 'Bill of Lading' },
+      { value: 'bill_of_lading', label: 'Bill of Lading (B/L)' },
       { value: 'airway_bill', label: 'Airway Bill (AWB)' },
-      { value: 'other', label: 'Övrigt' },
+      { value: 'other', label: 'Other Shipping Document' },
     ]
   },
 ];
 
 const DOC_TYPE_LABELS = {
-  quality_report: 'Kvalitetsrapport',
-  test_protocol: 'Testprotokoll',
+  quality_report: 'QC Report',
+  test_protocol: 'Test Protocol',
   packing_list: 'Packing List',
   commercial_invoice: 'Commercial Invoice',
-  ce_certificate: 'CE-certifikat',
-  rohs_certificate: 'RoHS-certifikat',
-  other_certificate: 'Annat certifikat',
-  qc_photos: 'QC-foton',
-  bill_of_lading: 'Bill of Lading',
+  customs_document: 'HS Code Declaration',
+  ce_certificate: 'CE Certificate',
+  rohs_certificate: 'RoHS Certificate',
+  other_certificate: 'Other Certificate',
+  qc_photos: 'QC Photos / Videos',
+  bill_of_lading: 'Bill of Lading (B/L)',
   airway_bill: 'Airway Bill (AWB)',
-  other: 'Övrigt',
+  other: 'Other',
 };
 
 const COLORS = {
@@ -96,9 +96,9 @@ export default function SupplierDocumentUploadHub({ purchaseOrder }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supplier-po-documents', purchaseOrder.id] });
-      toast.success('Dokument uppladdat!');
+      toast.success('Document uploaded successfully!');
     },
-    onError: () => toast.error('Kunde inte ladda upp dokumentet. Försök igen.'),
+    onError: () => toast.error('Upload failed. Please try again.'),
   });
 
   const deleteMutation = useMutation({
@@ -109,7 +109,7 @@ export default function SupplierDocumentUploadHub({ purchaseOrder }) {
   const handleFileUpload = async (e, phase) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const docType = selectedDocType[phase] || phase === 'production' ? (selectedDocType[phase] || 'quality_report') : (selectedDocType[phase] || 'other');
+    const docType = selectedDocType[phase] || 'other';
     await uploadMutation.mutateAsync({ file, phase, docType });
     e.target.value = '';
   };
@@ -119,24 +119,30 @@ export default function SupplierDocumentUploadHub({ purchaseOrder }) {
 
   return (
     <div className="space-y-6">
-      {/* Summary */}
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+        <h3 className="font-semibold text-blue-900 mb-1">Upload Documents</h3>
+        <p className="text-sm text-blue-700">
+          Upload all required documents before shipment. All information must match the Purchase Order. IMvision will review and approve your documents.
+        </p>
+      </div>
+
       {totalDocs > 0 && (
-        <div className="flex items-center gap-4 p-4 bg-slate-100 rounded-xl">
+        <div className="flex items-center gap-4 p-4 bg-gray-100 rounded-xl">
           <div className="text-center">
-            <div className="text-2xl font-bold text-slate-800">{totalDocs}</div>
-            <div className="text-xs text-slate-500">Uppladdat</div>
+            <div className="text-2xl font-bold text-gray-800">{totalDocs}</div>
+            <div className="text-xs text-gray-500">Uploaded</div>
           </div>
-          <div className="w-px h-10 bg-slate-300" />
+          <div className="w-px h-10 bg-gray-300" />
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">{approvedDocs}</div>
-            <div className="text-xs text-slate-500">Godkänt</div>
+            <div className="text-xs text-gray-500">Approved</div>
           </div>
           {approvedDocs < totalDocs && (
             <>
-              <div className="w-px h-10 bg-slate-300" />
+              <div className="w-px h-10 bg-gray-300" />
               <div className="text-center">
                 <div className="text-2xl font-bold text-amber-600">{totalDocs - approvedDocs}</div>
-                <div className="text-xs text-slate-500">Väntar granskning</div>
+                <div className="text-xs text-gray-500">Pending Review</div>
               </div>
             </>
           )}
@@ -158,22 +164,21 @@ export default function SupplierDocumentUploadHub({ purchaseOrder }) {
                   <h3 className={cn('font-bold text-lg', c.text)}>{phase.label}</h3>
                   {phaseDocs.length > 0 && (
                     <Badge className={cn('text-xs border', c.badge)}>
-                      {phaseDocs.length} dokument
+                      {phaseDocs.length} {phaseDocs.length === 1 ? 'document' : 'documents'}
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-slate-500">{phase.description}</p>
+                <p className="text-sm text-gray-500">{phase.description}</p>
               </div>
             </div>
 
-            {/* Upload controls */}
             <div className="flex items-center gap-2 mb-4">
               <select
                 value={selectedDocType[phase.key] || ''}
                 onChange={(e) => setSelectedDocType(prev => ({ ...prev, [phase.key]: e.target.value }))}
-                className="flex-1 text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-500"
+                className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-500"
               >
-                <option value="">Välj dokumenttyp...</option>
+                <option value="">Select document type...</option>
                 {phase.docTypes.map(dt => (
                   <option key={dt.value} value={dt.value}>{dt.label}</option>
                 ))}
@@ -184,7 +189,7 @@ export default function SupplierDocumentUploadHub({ purchaseOrder }) {
                 className="hidden"
                 onChange={(e) => handleFileUpload(e, phase.key)}
                 disabled={isUploading}
-                accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.docx,.doc"
+                accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.docx,.doc,.mp4,.mov"
               />
               <label
                 htmlFor={inputId}
@@ -199,57 +204,47 @@ export default function SupplierDocumentUploadHub({ purchaseOrder }) {
                 ) : (
                   <Upload className="w-4 h-4" />
                 )}
-                Ladda upp
+                Upload
               </label>
             </div>
 
-            {/* Uploaded docs */}
             {phaseDocs.length === 0 ? (
-              <div className="text-center py-6 border-2 border-dashed border-slate-300 rounded-lg">
-                <Upload className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-400">Inga dokument uppladdade för denna fas ännu</p>
+              <div className="text-center py-6 border-2 border-dashed border-gray-300 rounded-lg">
+                <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">No documents uploaded for this phase yet</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {phaseDocs.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-white border border-slate-200 shadow-sm"
-                  >
-                    <FileText className="w-5 h-5 text-slate-400 flex-shrink-0" />
+                  <div key={doc.id} className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 shadow-sm">
+                    <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate">
+                      <p className="text-sm font-medium text-gray-800 truncate">
                         {doc.file_name || DOC_TYPE_LABELS[doc.document_type]}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-slate-400">{DOC_TYPE_LABELS[doc.document_type]}</span>
+                        <span className="text-xs text-gray-400">{DOC_TYPE_LABELS[doc.document_type]}</span>
                         {doc.created_date && (
-                          <span className="text-xs text-slate-400">· {format(new Date(doc.created_date), 'd MMM yyyy', { locale: sv })}</span>
+                          <span className="text-xs text-gray-400">· {format(new Date(doc.created_date), 'd MMM yyyy')}</span>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {doc.is_approved ? (
-                        <span className="flex items-center gap-1 text-xs text-green-600 font-medium px-2 py-1 bg-green-100 rounded-full">
+                        <span className="flex items-center gap-1 text-xs text-green-700 font-medium px-2 py-1 bg-green-100 rounded-full border border-green-200">
                           <CheckCircle2 className="w-3 h-3" />
-                          Godkänt
+                          Approved
                         </span>
                       ) : (
-                        <span className="text-xs text-amber-600 px-2 py-1 bg-amber-100 rounded-full">Väntar granskning</span>
+                        <span className="text-xs text-amber-700 px-2 py-1 bg-amber-100 rounded-full border border-amber-200">Pending Review</span>
                       )}
-                      <a
-                        href={doc.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-all"
-                      >
+                      <a href={doc.file_url} target="_blank" rel="noopener noreferrer"
+                        className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-all">
                         <ExternalLink className="w-4 h-4" />
                       </a>
                       <button
-                        onClick={() => {
-                          if (confirm('Ta bort detta dokument?')) deleteMutation.mutate(doc.id);
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all"
+                        onClick={() => { if (confirm('Remove this document?')) deleteMutation.mutate(doc.id); }}
+                        className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
