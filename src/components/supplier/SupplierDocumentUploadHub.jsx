@@ -65,6 +65,8 @@ const DOC_TYPE_LABELS = {
   qc_photos: 'QC Photos / Videos',
   bill_of_lading: 'Bill of Lading (B/L)',
   airway_bill: 'Airway Bill (AWB)',
+  rcfgx_file: 'RCFGX File',
+  nova_card_file: 'Nova Card File',
   other: 'Other',
 };
 
