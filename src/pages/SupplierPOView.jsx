@@ -15,35 +15,18 @@ export default function SupplierPOView() {
   const urlParams = new URLSearchParams(window.location.search);
   const poToken = urlParams.get('token');
 
-  const { data: purchaseOrder, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['supplier-po', poToken],
     queryFn: async () => {
-      const orders = await base44.entities.PurchaseOrder.filter({ 
-        supplier_portal_token: poToken 
-      });
-      return orders[0] || null;
+      const response = await base44.functions.invoke('getSupplierPO', { token: poToken });
+      return response.data;
     },
     enabled: !!poToken
   });
 
-  const { data: items = [] } = useQuery({
-    queryKey: ['supplier-po-items', purchaseOrder?.id],
-    queryFn: () => base44.entities.PurchaseOrderItem.filter({ 
-      purchase_order_id: purchaseOrder.id 
-    }),
-    enabled: !!purchaseOrder?.id
-  });
-
-  const { data: supplier } = useQuery({
-    queryKey: ['supplier', purchaseOrder?.supplier_id],
-    queryFn: async () => {
-      const suppliers = await base44.entities.Supplier.filter({ 
-        id: purchaseOrder.supplier_id 
-      });
-      return suppliers[0] || null;
-    },
-    enabled: !!purchaseOrder?.supplier_id
-  });
+  const purchaseOrder = data?.purchaseOrder || null;
+  const items = data?.items || [];
+  const supplier = data?.supplier || null;
 
   if (isLoading) {
     return (
