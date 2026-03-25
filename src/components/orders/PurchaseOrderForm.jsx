@@ -23,6 +23,8 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
      rm_system_url: purchaseOrder?.rm_system_url || '',
      invoice_file_url: purchaseOrder?.invoice_file_url || '',
      invoice_number: purchaseOrder?.invoice_number || '',
+     delivery_terms: purchaseOrder?.delivery_terms || '',
+     mode_of_transport: purchaseOrder?.mode_of_transport || '',
    });
 
   const [poItems, setPOItems] = useState([]);
