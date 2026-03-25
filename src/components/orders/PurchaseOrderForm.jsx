@@ -797,9 +797,10 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                       <div>
                         <Input
                           type="number"
-                          min="1"
+                          min="0"
+                          step="any"
                           value={item.quantity_ordered}
-                          onChange={(e) => handleUpdateItem(index, 'quantity_ordered', parseInt(e.target.value) || 1)}
+                          onChange={(e) => handleUpdateItem(index, 'quantity_ordered', parseFloat(e.target.value) || 0)}
                           className="bg-slate-800 border-slate-700 text-white text-sm h-9"
                         />
                       </div>
