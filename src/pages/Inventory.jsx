@@ -52,7 +52,10 @@ export default function InventoryPage() {
   const getStoredState = () => {
     try {
       const stored = localStorage.getItem('inventory_state');
-      return stored ? JSON.parse(stored) : {};
+      const parsed = stored ? JSON.parse(stored) : {};
+      // Never restore on_purchase_order filter from cache - it causes empty lists
+      if (parsed.statusFilter === 'on_purchase_order') parsed.statusFilter = 'all';
+      return parsed;
     } catch {
       return {};
     }
@@ -63,7 +66,7 @@ export default function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState(storedState.searchQuery || "");
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [viewMode, setViewMode] = useState(storedState.viewMode || "grid");
-  const [statusFilter, setStatusFilter] = useState(storedState.statusFilter || initialStatus);
+  const [statusFilter, setStatusFilter] = useState(initialStatus !== 'all' ? initialStatus : (storedState.statusFilter || 'all'));
   const [warehouseFilter, setWarehouseFilter] = useState(storedState.warehouseFilter || "all");
   const [storageTypeFilter, setStorageTypeFilter] = useState(storedState.storageTypeFilter || "all");
   const [categoryFilter, setCategoryFilter] = useState(storedState.categoryFilter || "all");
