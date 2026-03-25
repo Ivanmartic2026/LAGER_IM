@@ -249,9 +249,12 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
     const loadingToast = toast.loading('Skannar faktura...');
 
     try {
-      // Upload file
+      // Upload file and save URL permanently
       toast.loading('Laddar upp faktura...', { id: loadingToast });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      // Save the original file URL immediately in form state
+      setFormData(prev => ({ ...prev, invoice_file_url: file_url }));
 
       // Extract data with AI
       toast.loading('AI analyserar faktura...', { id: loadingToast });
