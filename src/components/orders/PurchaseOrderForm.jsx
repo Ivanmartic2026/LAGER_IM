@@ -20,7 +20,9 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
      order_date: purchaseOrder?.order_date || new Date().toISOString().split('T')[0],
      notes: purchaseOrder?.notes || '',
      rm_system_id: purchaseOrder?.rm_system_id || '',
-     rm_system_url: purchaseOrder?.rm_system_url || ''
+     rm_system_url: purchaseOrder?.rm_system_url || '',
+     invoice_file_url: purchaseOrder?.invoice_file_url || '',
+     invoice_number: purchaseOrder?.invoice_number || '',
    });
 
   const [poItems, setPOItems] = useState([]);
