@@ -530,19 +530,13 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex-1">
-              <label className="text-sm font-medium text-slate-300 mb-2 block">
-                Anteckningar
+          {/* Invoice upload section */}
+          <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-amber-400" />
+                Fakturadokument (originalformat)
               </label>
-              <Textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Interna anteckningar..."
-                className="bg-slate-800 border-slate-700 text-white h-20"
-              />
-            </div>
-            <div>
               <input
                 ref={invoiceInputRef}
                 type="file"
@@ -555,7 +549,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                 size="sm"
                 onClick={() => invoiceInputRef.current?.click()}
                 disabled={isScanningInvoice}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 hover:from-purple-500 hover:to-blue-500 text-white h-20 whitespace-normal"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 hover:from-purple-500 hover:to-blue-500 text-white"
               >
                 {isScanningInvoice ? (
                   <>
@@ -565,10 +559,45 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 mr-2" />
-                    Skanna faktura
+                    {formData.invoice_file_url ? 'Byt faktura' : 'Skanna & ladda upp faktura'}
                   </>
                 )}
               </Button>
+            </div>
+
+            {formData.invoice_file_url && (
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <span className="text-sm text-emerald-300 flex-1 truncate">Faktura uppladdad och sparad</span>
+                <button
+                  type="button"
+                  onClick={() => window.open(formData.invoice_file_url, '_blank')}
+                  className="text-emerald-400 hover:text-emerald-300"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">Fakturanummer</label>
+                <Input
+                  value={formData.invoice_number}
+                  onChange={(e) => setFormData({ ...formData, invoice_number: e.target.value })}
+                  placeholder="T.ex. INV-2025-001"
+                  className="bg-slate-900 border-slate-700 text-white text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">Anteckningar</label>
+                <Textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Interna anteckningar..."
+                  className="bg-slate-900 border-slate-700 text-white h-9 text-sm resize-none"
+                />
+              </div>
             </div>
           </div>
 
