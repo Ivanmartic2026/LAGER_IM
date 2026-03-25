@@ -309,31 +309,7 @@ export default function PurchaseOrdersPage() {
               className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 focus:bg-white/8 transition-all"
             />
           </div>
-          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide flex-wrap">
-            {[
-              { value: "all", label: "Alla" },
-              { value: "draft", label: "Utkast" },
-              { value: "sent", label: "Skickad" },
-              { value: "confirmed", label: "Bekräftad" },
-              { value: "in_production", label: "Produktion" },
-              { value: "shipped", label: "I transit" },
-              { value: "ready_for_reception", label: "Klar" },
-              { value: "received", label: "Mottagen" },
-            ].map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => setStatusFilter(value)}
-                className={cn(
-                  "whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border",
-                  statusFilter === value
-                    ? "bg-blue-600 text-white border-blue-500 shadow-sm shadow-blue-500/30"
-                    : "bg-white/5 text-white/40 border-white/8 hover:bg-white/10 hover:text-white/70"
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+
         </div>
 
         {/* Divider */}
