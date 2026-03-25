@@ -134,6 +134,22 @@ export default function SupplierPOView() {
                 <div className="text-slate-700 bg-slate-50 p-3 rounded">{purchaseOrder.notes}</div>
               </div>
             )}
+
+            {purchaseOrder.invoice_file_url && (
+              <div>
+                <div className="text-sm text-slate-500 mb-2">Originalfaktura</div>
+                <a
+                  href={purchaseOrder.invoice_file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors text-sm font-medium"
+                >
+                  <FileText className="w-4 h-4" />
+                  {purchaseOrder.invoice_number ? `Faktura ${purchaseOrder.invoice_number}` : 'Visa originalfaktura'}
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            )}
           </CardContent>
         </Card>
 
