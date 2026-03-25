@@ -216,7 +216,7 @@ Deno.serve(async (req) => {
             </div>
 
             <div class="supplier-box">
-              <div class="supplier-label">Leverantör</div>
+              <div class="supplier-label">Supplier</div>
               <div class="supplier-name">${po.supplier_name}</div>
             </div>
 
