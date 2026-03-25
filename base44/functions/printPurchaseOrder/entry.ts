@@ -233,7 +233,7 @@ Deno.serve(async (req) => {
               <tbody>
                 ${itemsHtml}
                 <tr class="total-row">
-                  <td colspan="4" style="text-align: right;">TOTALT:</td>
+                  <td colspan="4" style="text-align: right;">TOTAL:</td>
                   <td style="text-align: right;">${totalCost.toLocaleString('sv-SE')} kr</td>
                 </tr>
               </tbody>
