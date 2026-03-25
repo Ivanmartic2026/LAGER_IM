@@ -223,11 +223,11 @@ Deno.serve(async (req) => {
             <table>
               <thead>
                 <tr>
-                  <th>Artikel</th>
+                  <th>Article</th>
                   <th>Batch</th>
-                  <th style="text-align: center;">Antal</th>
-                  <th style="text-align: right;">Pris</th>
-                  <th style="text-align: right;">Summa</th>
+                  <th style="text-align: center;">Qty</th>
+                  <th style="text-align: right;">Price</th>
+                  <th style="text-align: right;">Total</th>
                 </tr>
               </thead>
               <tbody>
