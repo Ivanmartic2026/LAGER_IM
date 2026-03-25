@@ -241,7 +241,7 @@ Deno.serve(async (req) => {
 
             ${po.notes ? `
               <div class="notes">
-                <div class="notes-label">Anteckningar</div>
+                <div class="notes-label">Notes</div>
                 <div class="notes-text">${po.notes}</div>
               </div>
             ` : ''}
