@@ -331,8 +331,8 @@ function BatchTraceabilitySection() {
   return (
     <div className="space-y-5">
       <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
-        <h3 className="font-semibold text-purple-900 mb-1">Batch & Traceability Requirements</h3>
-        <p className="text-sm text-purple-700">All products must be traceable back to their production batch. This is mandatory for all IMvision purchase orders.</p>
+        <h3 className="font-semibold text-purple-900 mb-1">Batch & Files Requirements</h3>
+        <p className="text-sm text-purple-700">All products must be traceable back to their production batch. Required configuration files must be provided for all applicable products.</p>
       </div>
       <div className="space-y-2">
         {requirements.map((req, i) => (
@@ -343,9 +343,9 @@ function BatchTraceabilitySection() {
         ))}
       </div>
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-        <div className="font-semibold text-gray-900 mb-2 text-sm">Required Documents — Upload to "5. Upload Documents"</div>
+        <div className="font-semibold text-gray-900 mb-2 text-sm">Required Files — Upload to "5. Upload Documents"</div>
         <div className="flex flex-wrap gap-2">
-          {['Production Records', 'Batch Labels / Photos', 'Traceability Documents'].map(e => (
+          {['Production Records', 'Batch Labels / Photos', 'RCFGX File', 'Nova Card File'].map(e => (
             <span key={e} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium border border-purple-200">{e}</span>
           ))}
         </div>
