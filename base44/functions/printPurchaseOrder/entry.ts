@@ -267,8 +267,8 @@ Deno.serve(async (req) => {
 
                     ${record.has_discrepancy ? `
                       <div style="margin-top: 12px; padding: 12px; background: #fee2e2; border: 1px solid #ef4444; border-radius: 4px;">
-                        <div style="font-size: 11px; text-transform: uppercase; color: #991b1b; font-weight: 600; letter-spacing: 0.8px; margin-bottom: 4px;">⚠ AVVIKELSE</div>
-                        <div style="font-size: 13px; color: #991b1b;">${record.discrepancy_reason || 'Ingen anledning angiven'}</div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: #991b1b; font-weight: 600; letter-spacing: 0.8px; margin-bottom: 4px;">⚠ DISCREPANCY</div>
+                        <div style="font-size: 13px; color: #991b1b;">${record.discrepancy_reason || 'No reason given'}</div>
                       </div>
                     ` : ''}
 
