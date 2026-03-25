@@ -490,7 +490,7 @@ export default function PurchaseOrdersPage() {
                           <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={() => { setSelectedPOForEmail(po); setEmailModalOpen(true); }}>
                             <Mail className="w-3 h-3" />Email
                           </button>
-                          <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={() => printPOMutation.mutate(po.id)} disabled={printPOMutation.isPending}>
+                          <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={() => printPOMutation.mutate(po)} disabled={printPOMutation.isPending}>
                             <Printer className="w-3 h-3" />Skriv ut
                           </button>
                           {po.status === 'received' && (
