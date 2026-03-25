@@ -367,15 +367,15 @@ export default function PurchaseOrdersPage() {
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="text-sm font-bold text-white tracking-tight">
+                              <h3 className="text-base font-extrabold text-white tracking-tight">
                                 {po.po_number || `PO #${po.id.slice(0, 8)}`}
                               </h3>
                               <Badge className={cn("text-xs border px-1.5 py-0", statusColors[po.status])}>
                                 {statusLabels[po.status]}
                               </Badge>
                             </div>
-                            <div className="flex items-center gap-1.5 text-white/80 text-sm font-semibold mt-0.5">
-                              <Truck className="w-3.5 h-3.5 text-white/40" />
+                            <div className="flex items-center gap-1.5 text-white/50 text-xs mt-0.5">
+                              <Truck className="w-3 h-3 text-white/30" />
                               <span className="truncate">{po.supplier_name}</span>
                             </div>
 
