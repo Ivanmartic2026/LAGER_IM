@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Package, MapPin, Calendar, Hash, Factory, Ruler, 
   Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2, History,
-  DollarSign, Warehouse, Tag, Check, X, ShoppingCart, Copy, Camera, MessageSquare, Sparkles, FileText, Loader2, ChevronDown
+  DollarSign, Warehouse, Tag, Check, X, ShoppingCart, Copy, Camera, MessageSquare, Sparkles, FileText, Loader2, ChevronDown, ExternalLink
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
