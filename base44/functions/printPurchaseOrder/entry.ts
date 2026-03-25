@@ -302,7 +302,7 @@ Deno.serve(async (req) => {
           </div>
 
           <div class="footer">
-            Genererad: ${new Date().toLocaleString('sv-SE')}
+            Generated: ${new Date().toLocaleString('sv-SE')}
           </div>
         </div>
       </body>
