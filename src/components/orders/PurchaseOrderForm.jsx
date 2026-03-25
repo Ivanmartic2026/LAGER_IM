@@ -83,23 +83,27 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
       // Create articles for custom items and map IDs
       const updatedPoItems = [];
       for (const item of poItems) {
-        let finalArticleId = item.article_id;
-        
-        // If this is a custom article without an article_id, create it
-        if (item.is_custom && !item.article_id) {
-          const newArticle = await base44.entities.Article.create({
-            name: item.article_name,
-            sku: item.article_sku || null,
-            batch_number: item.article_batch_number || null,
-            supplier_id: formData.supplier_id || null,
-            supplier_name: formData.supplier_name || null,
-            unit_cost: item.unit_price || 0,
-            stock_qty: 0,
-            status: 'out_of_stock',
-            storage_type: 'company_owned'
-          });
-          finalArticleId = newArticle.id;
-        }
+      let finalArticleId = item.article_id;
+
+      // If this is a custom article without an article_id, create it
+      if (item.is_custom && !item.article_id) {
+        const newArticle = await base44.entities.Article.create({
+          name: item.article_name,
+          sku: item.article_sku || null,
+          batch_number: item.article_batch_number || null,
+          supplier_id: formData.supplier_id || null,
+          supplier_name: formData.supplier_name || null,
+          unit_cost: item.unit_price || 0,
+          stock_qty: 0,
+          status: 'out_of_stock',
+          storage_type: 'company_owned',
+          // Koppla artikeln till inköpsordern och originalfakturan
+          source_purchase_order_id: savedPO.id,
+          source_invoice_url: data.invoice_file_url || null,
+          source_invoice_number: data.invoice_number || null,
+        });
+        finalArticleId = newArticle.id;
+      }
         
         updatedPoItems.push({
           ...item,
