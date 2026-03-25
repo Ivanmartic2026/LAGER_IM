@@ -320,7 +320,10 @@ function QualityCheckSection() {
   );
 }
 
-function BatchTraceabilitySection() {
+function BatchTraceabilitySection({ purchaseOrder }) {
+  const queryClient = useQueryClient();
+  const [selectedDocType, setSelectedDocType] = useState('rcfgx_file');
+
   const requirements = [
     'Each batch must be assigned a unique batch number',
     'Products and outer cartons must be clearly labeled with batch numbers',
@@ -328,6 +331,53 @@ function BatchTraceabilitySection() {
     'Full traceability back to production must be possible',
     'Batch numbers must be entered in "1. Confirm Order" section',
   ];
+
+  const fileTypes = [
+    { value: 'rcfgx_file', label: 'RCFGX File' },
+    { value: 'nova_card_file', label: 'Nova Card File' },
+    { value: 'other', label: 'Other Batch Document' },
+  ];
+
+  const { data: documents = [] } = useQuery({
+    queryKey: ['batch-files', purchaseOrder.id],
+    queryFn: () => base44.entities.ArticleDocument.filter({ purchase_order_id: purchaseOrder.id }),
+  });
+
+  const batchDocs = documents.filter(d => ['rcfgx_file', 'nova_card_file', 'other'].includes(d.document_type) && d.document_phase === 'production');
+
+  const uploadMutation = useMutation({
+    mutationFn: async ({ file, docType }) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      return base44.entities.ArticleDocument.create({
+        purchase_order_id: purchaseOrder.id,
+        document_type: docType,
+        document_phase: 'production',
+        file_url,
+        file_name: file.name,
+        uploaded_by_supplier: true,
+        is_approved: false,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['batch-files', purchaseOrder.id] });
+      toast.success('File uploaded!');
+    },
+    onError: () => toast.error('Upload failed. Please try again.'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.ArticleDocument.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['batch-files', purchaseOrder.id] }),
+  });
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadMutation.mutateAsync({ file, docType: selectedDocType });
+    e.target.value = '';
+  };
+
+  const DOC_LABELS = { rcfgx_file: 'RCFGX File', nova_card_file: 'Nova Card File', other: 'Other' };
 
   return (
     <div className="space-y-5">
@@ -343,13 +393,63 @@ function BatchTraceabilitySection() {
           </div>
         ))}
       </div>
-      <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-        <div className="font-semibold text-gray-900 mb-2 text-sm">Required Files — Upload to "5. Upload Documents"</div>
-        <div className="flex flex-wrap gap-2">
-          {['Production Records', 'Batch Labels / Photos', 'RCFGX File', 'Nova Card File'].map(e => (
-            <span key={e} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium border border-purple-200">{e}</span>
-          ))}
+
+      {/* Upload section */}
+      <div className="p-5 bg-purple-50 border-2 border-purple-200 rounded-xl space-y-4">
+        <div className="font-semibold text-purple-900 text-sm">Upload Batch & Configuration Files</div>
+        <div className="flex items-center gap-2">
+          <select
+            value={selectedDocType}
+            onChange={(e) => setSelectedDocType(e.target.value)}
+            className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-purple-500"
+          >
+            {fileTypes.map(ft => (
+              <option key={ft.value} value={ft.value}>{ft.label}</option>
+            ))}
+          </select>
+          <input id="batch-file-upload" type="file" className="hidden" onChange={handleFileUpload} disabled={uploadMutation.isPending} />
+          <label
+            htmlFor="batch-file-upload"
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer transition-all bg-purple-600 hover:bg-purple-500',
+              uploadMutation.isPending && 'opacity-50 cursor-not-allowed'
+            )}
+          >
+            {uploadMutation.isPending ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Upload className="w-4 h-4" />
+            )}
+            Upload
+          </label>
         </div>
+
+        {batchDocs.length === 0 ? (
+          <div className="text-center py-5 border-2 border-dashed border-purple-300 rounded-lg">
+            <Upload className="w-7 h-7 text-purple-300 mx-auto mb-1" />
+            <p className="text-sm text-purple-400">No files uploaded yet</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {batchDocs.map((doc) => (
+              <div key={doc.id} className="flex items-center gap-3 p-3 rounded-lg bg-white border border-purple-200">
+                <FileText className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">{doc.file_name || DOC_LABELS[doc.document_type]}</p>
+                  <p className="text-xs text-gray-400">{DOC_LABELS[doc.document_type] || doc.document_type}</p>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-gray-400 hover:text-gray-700 rounded hover:bg-gray-100">
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                  <button onClick={() => { if (confirm('Remove this file?')) deleteMutation.mutate(doc.id); }} className="p-1.5 text-gray-400 hover:text-red-500 rounded hover:bg-red-50">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
