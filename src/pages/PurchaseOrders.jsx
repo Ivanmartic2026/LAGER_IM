@@ -86,8 +86,18 @@ export default function PurchaseOrdersPage() {
   });
 
   const printPOMutation = useMutation({
-    mutationFn: async (poId) => {
-      const response = await base44.functions.invoke('printPurchaseOrder', { purchaseOrderId: poId });
+    mutationFn: async (po) => {
+      let token = po.supplier_portal_token;
+      if (!token) {
+        token = crypto.randomUUID().replace(/-/g, '');
+        await base44.entities.PurchaseOrder.update(po.id, { supplier_portal_token: token });
+        queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+      }
+      const portalUrl = `${window.location.origin}/SupplierPOView?po=${po.id}&token=${token}`;
+      const response = await base44.functions.invoke('printPurchaseOrder', { 
+        purchaseOrderId: po.id,
+        supplierPortalUrl: portalUrl
+      });
       return response.data;
     },
     onSuccess: async (htmlContent) => {
