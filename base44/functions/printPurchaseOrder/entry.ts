@@ -248,7 +248,7 @@ Deno.serve(async (req) => {
 
             ${receivingRecords.length > 0 ? `
               <div style="margin-top: 40px; padding-top: 40px; border-top: 2px solid #000000;">
-                <h2 style="font-size: 24px; margin: 0 0 25px 0; font-weight: 600; letter-spacing: -0.5px;">FÖLJESEDEL & MOTTAGNING</h2>
+                <h2 style="font-size: 24px; margin: 0 0 25px 0; font-weight: 600; letter-spacing: -0.5px;">DELIVERY NOTE & RECEIVING</h2>
                 
                 ${receivingRecords.map(record => `
                   <div style="margin-bottom: 25px; padding: 25px; background: #fafafa; border-left: 3px solid ${record.has_discrepancy ? '#ef4444' : record.quality_check_passed ? '#10b981' : '#000000'};">
