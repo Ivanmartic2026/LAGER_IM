@@ -586,7 +586,7 @@ export default function InventoryPage() {
           </div>
 
           {/* Stat Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
             <motion.button
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
               onClick={() => setStatusFilter('all')}
