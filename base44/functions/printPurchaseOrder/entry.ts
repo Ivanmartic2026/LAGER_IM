@@ -293,7 +293,7 @@ Deno.serve(async (req) => {
                     ` : ''}
 
                     <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid #e0e0e0; font-size: 11px; color: #666666;">
-                      Mottagen av ${record.received_by} • ${new Date(record.created_date).toLocaleString('sv-SE')}
+                      Received by ${record.received_by} • ${new Date(record.created_date).toLocaleString('sv-SE')}
                     </div>
                   </div>
                 `).join('')}
