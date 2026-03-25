@@ -369,135 +369,149 @@ export default function PurchaseOrdersPage() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    className="rounded-xl bg-white/4 border border-white/8 hover:border-white/15 hover:bg-white/6 transition-all duration-200 overflow-hidden"
+                    className="relative rounded-xl bg-[#111118] border border-white/8 hover:border-white/14 transition-all duration-200 overflow-hidden group"
                   >
-                    {/* Card Header */}
-                    <div className="flex items-center justify-between px-5 py-4 border-b border-white/6">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center flex-shrink-0">
-                          <ShoppingCart className="w-4 h-4 text-blue-400" />
+                    {/* Left accent bar based on status */}
+                    <div className={cn("absolute left-0 top-0 bottom-0 w-1 rounded-l-xl", {
+                      "bg-slate-500": po.status === 'draft',
+                      "bg-blue-500": po.status === 'sent',
+                      "bg-cyan-400": po.status === 'confirmed',
+                      "bg-yellow-500": po.status === 'waiting_for_supplier_documentation',
+                      "bg-purple-500": po.status === 'in_production',
+                      "bg-violet-500": po.status === 'shipped',
+                      "bg-amber-500": po.status === 'ready_for_reception',
+                      "bg-emerald-500": po.status === 'received',
+                      "bg-red-500": po.status === 'cancelled',
+                    })} />
+
+                    {/* Main content */}
+                    <div className="pl-4">
+                      {/* Top row: PO info + cost */}
+                      <div className="flex items-center justify-between px-4 py-3.5">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="text-sm font-bold text-white tracking-tight">
+                                {po.po_number || `PO #${po.id.slice(0, 8)}`}
+                              </h3>
+                              <Badge className={cn("text-xs border px-1.5 py-0", statusColors[po.status])}>
+                                {statusLabels[po.status]}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-white/35 text-xs mt-0.5">
+                              <Truck className="w-3 h-3" />
+                              <span className="truncate">{po.supplier_name}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-base font-bold text-white tracking-tight truncate">
-                              {po.po_number || `PO #${po.id.slice(0, 8)}`}
-                            </h3>
-                            <Badge className={cn("text-xs border flex-shrink-0", statusColors[po.status])}>
-                              {statusLabels[po.status]}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-white/40 text-sm mt-0.5">
-                            <Truck className="w-3.5 h-3.5" />
-                            <span className="truncate">{po.supplier_name}</span>
-                          </div>
+                        <div className="flex items-center gap-3 flex-shrink-0 ml-3">
+                          {po.total_cost && (
+                            <div className="text-right">
+                              <div className="text-base font-bold text-white">{po.total_cost.toLocaleString('sv-SE')}<span className="text-xs font-normal text-white/30 ml-1">kr</span></div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      {po.total_cost && (
-                        <div className="text-right flex-shrink-0 ml-4">
-                          <div className="text-xs text-white/30 mb-0.5">Belopp</div>
-                          <div className="text-lg font-bold text-white">{po.total_cost.toLocaleString('sv-SE')} <span className="text-sm font-normal text-white/40">kr</span></div>
-                        </div>
-                      )}
-                    </div>
 
-                    {/* Card Body */}
-                    <div className="px-5 py-4">
-                      {/* Meta info row */}
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {po.expected_delivery_date && (() => {
-                          const eta = new Date(po.expected_delivery_date);
-                          const today = new Date();
-                          today.setHours(0,0,0,0);
-                          eta.setHours(0,0,0,0);
-                          const daysLeft = Math.round((eta - today) / (1000 * 60 * 60 * 24));
-                          const isOverdue = daysLeft < 0;
-                          const isToday = daysLeft === 0;
-                          return (
-                            <span className={cn(
-                              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border",
-                              isOverdue ? "bg-red-500/10 border-red-500/25 text-red-400" :
-                              isToday ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400" :
-                              daysLeft <= 7 ? "bg-amber-500/10 border-amber-500/25 text-amber-400" :
-                              "bg-blue-500/10 border-blue-500/20 text-blue-400"
-                            )}>
-                              <Calendar className="w-3.5 h-3.5" />
-                              {format(new Date(po.expected_delivery_date), "d MMM yyyy", { locale: sv })}
-                              <span className="opacity-70">·</span>
-                              {isOverdue ? `${Math.abs(daysLeft)}d försenad` : isToday ? "Idag!" : `${daysLeft}d kvar`}
+                      {/* Tags row */}
+                      {(po.expected_delivery_date || itemsCount > 0 || po.order_date) && (
+                        <div className="flex flex-wrap gap-1.5 px-4 pb-3">
+                          {po.expected_delivery_date && (() => {
+                            const eta = new Date(po.expected_delivery_date);
+                            const today = new Date();
+                            today.setHours(0,0,0,0);
+                            eta.setHours(0,0,0,0);
+                            const daysLeft = Math.round((eta - today) / (1000 * 60 * 60 * 24));
+                            const isOverdue = daysLeft < 0;
+                            const isToday = daysLeft === 0;
+                            return (
+                              <span className={cn(
+                                "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium",
+                                isOverdue ? "bg-red-500/15 text-red-400" :
+                                isToday ? "bg-emerald-500/15 text-emerald-400" :
+                                daysLeft <= 7 ? "bg-amber-500/15 text-amber-400" :
+                                "bg-blue-500/10 text-blue-400"
+                              )}>
+                                <Calendar className="w-3 h-3" />
+                                {format(new Date(po.expected_delivery_date), "d MMM", { locale: sv })}
+                                <span className="opacity-60 mx-0.5">·</span>
+                                {isOverdue ? `${Math.abs(daysLeft)}d sen` : isToday ? "Idag!" : `${daysLeft}d`}
+                              </span>
+                            );
+                          })()}
+                          {itemsCount > 0 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-white/6 text-white/40">
+                              <Package className="w-3 h-3" />
+                              {itemsCount} artiklar
                             </span>
-                          );
-                        })()}
-                        {itemsCount > 0 && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-purple-500/10 border border-purple-500/20 text-purple-400">
-                            <Package className="w-3.5 h-3.5" />
-                            {itemsCount} artiklar
-                          </span>
-                        )}
-                        {po.order_date && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-white/5 border border-white/10 text-white/40">
-                            <Calendar className="w-3.5 h-3.5" />
-                            Ordnat {format(new Date(po.order_date), "d MMM yyyy", { locale: sv })}
-                          </span>
-                        )}
-                      </div>
-
-                      {po.notes && (
-                        <div className="mb-4 px-3 py-2 rounded-lg bg-white/4 border border-white/8">
-                          <p className="text-xs text-white/40 mb-0.5">Anteckningar</p>
-                          <p className="text-sm text-white/70">{po.notes}</p>
+                          )}
+                          {po.order_date && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-white/5 text-white/30">
+                              {format(new Date(po.order_date), "d MMM yyyy", { locale: sv })}
+                            </span>
+                          )}
+                          {po.notes && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-white/5 text-white/30 max-w-xs truncate">
+                              {po.notes}
+                            </span>
+                          )}
                         </div>
                       )}
 
-                      {/* Actions — separated by a thin line */}
-                      <div className="pt-3 border-t border-white/6 flex flex-wrap gap-1.5">
-                        {(po.status === 'ordered' || po.status === 'partially_received') && (
-                          <Button size="sm" className="h-7 text-xs bg-emerald-600 hover:bg-emerald-500" onClick={() => setReceivingPO(po)}>
-                            <Package className="w-3.5 h-3.5 mr-1.5" />Ta emot
-                          </Button>
-                        )}
-                        {(po.status === 'received' || po.status === 'partially_received') && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => setViewingPO(po)}>
-                            <Eye className="w-3.5 h-3.5 mr-1.5" />Följesedel
-                          </Button>
-                        )}
-                        <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => setDocumentsPO(po)}>
-                          <FileText className="w-3.5 h-3.5 mr-1.5" />Dokument
-                        </Button>
-                        <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={async () => {
-                          let token = po.supplier_portal_token;
-                          if (!token) {
-                            token = crypto.randomUUID().replace(/-/g, '');
-                            await base44.entities.PurchaseOrder.update(po.id, { supplier_portal_token: token });
-                            queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
-                          }
-                          const portalUrl = `${window.location.origin}${createPageUrl('SupplierPOView')}?po=${po.id}&token=${token}`;
-                          navigator.clipboard.writeText(portalUrl);
-                          toast.success('Leverantörslänk kopierad!');
-                        }}>
-                          <Link2 className="w-3.5 h-3.5 mr-1.5" />Lev.länk
-                        </Button>
-                        <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => { setSelectedPOForEmail(po); setEmailModalOpen(true); }}>
-                          <Mail className="w-3.5 h-3.5 mr-1.5" />Email
-                        </Button>
-                        <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => printPOMutation.mutate(po.id)} disabled={printPOMutation.isPending}>
-                          <Printer className="w-3.5 h-3.5 mr-1.5" />Skriv ut
-                        </Button>
-                        {po.status === 'received' && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => exportPOMutation.mutate(po.id)} disabled={exportPOMutation.isPending}>
-                            <Download className="w-3.5 h-3.5 mr-1.5" />Kvitto
-                          </Button>
-                        )}
-                        {po.invoice_file_url && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20" onClick={() => window.open(po.invoice_file_url, '_blank')}>
-                            <FileText className="w-3.5 h-3.5 mr-1.5" />Faktura
-                          </Button>
-                        )}
-                        <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => { setEditingPO(po); setShowForm(true); }}>
-                          Redigera
-                        </Button>
-                        <Button size="sm" variant="outline" className="h-7 text-xs bg-red-500/8 border-red-500/20 text-red-400/80 hover:bg-red-500/15 hover:text-red-400" onClick={() => { if (confirm('Är du säker?')) deletePOMutation.mutate(po.id); }}>
-                          Ta bort
-                        </Button>
+                      {/* Actions */}
+                      <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/6 bg-white/[0.02]">
+                        <div className="flex flex-wrap gap-1">
+                          {(po.status === 'ordered' || po.status === 'partially_received') && (
+                            <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors" onClick={() => setReceivingPO(po)}>
+                              <Package className="w-3 h-3" />Ta emot
+                            </button>
+                          )}
+                          {(po.status === 'received' || po.status === 'partially_received') && (
+                            <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={() => setViewingPO(po)}>
+                              <Eye className="w-3 h-3" />Följesedel
+                            </button>
+                          )}
+                          <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={() => setDocumentsPO(po)}>
+                            <FileText className="w-3 h-3" />Dokument
+                          </button>
+                          <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={async () => {
+                            let token = po.supplier_portal_token;
+                            if (!token) {
+                              token = crypto.randomUUID().replace(/-/g, '');
+                              await base44.entities.PurchaseOrder.update(po.id, { supplier_portal_token: token });
+                              queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+                            }
+                            const portalUrl = `${window.location.origin}${createPageUrl('SupplierPOView')}?po=${po.id}&token=${token}`;
+                            navigator.clipboard.writeText(portalUrl);
+                            toast.success('Leverantörslänk kopierad!');
+                          }}>
+                            <Link2 className="w-3 h-3" />Lev.länk
+                          </button>
+                          <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={() => { setSelectedPOForEmail(po); setEmailModalOpen(true); }}>
+                            <Mail className="w-3 h-3" />Email
+                          </button>
+                          <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={() => printPOMutation.mutate(po.id)} disabled={printPOMutation.isPending}>
+                            <Printer className="w-3 h-3" />Skriv ut
+                          </button>
+                          {po.status === 'received' && (
+                            <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={() => exportPOMutation.mutate(po.id)} disabled={exportPOMutation.isPending}>
+                              <Download className="w-3 h-3" />Kvitto
+                            </button>
+                          )}
+                          {po.invoice_file_url && (
+                            <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-amber-400 hover:bg-amber-500/10 transition-colors" onClick={() => window.open(po.invoice_file_url, '_blank')}>
+                              <FileText className="w-3 h-3" />Faktura
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0 ml-2">
+                          <button className="px-2.5 py-1 rounded-md text-xs text-white/40 hover:text-white hover:bg-white/8 transition-colors" onClick={() => { setEditingPO(po); setShowForm(true); }}>
+                            Redigera
+                          </button>
+                          <button className="px-2.5 py-1 rounded-md text-xs text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors" onClick={() => { if (confirm('Är du säker?')) deletePOMutation.mutate(po.id); }}>
+                            Ta bort
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
