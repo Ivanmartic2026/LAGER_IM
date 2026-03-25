@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Package, FileText, CheckCircle2, Clock, Upload, ExternalLink, ShieldCheck, Layers } from "lucide-react";
+import { Package, FileText, CheckCircle2, Clock, Upload, ExternalLink, ShieldCheck, Layers, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import SupplierPOConfirmation from "@/components/supplier/SupplierPOConfirmation";
 import SupplierDocumentUploadHub from "@/components/supplier/SupplierDocumentUploadHub";
