@@ -137,10 +137,7 @@ export default function PurchaseOrdersPage() {
       return response.data;
     },
     onSuccess: (data) => {
-      // Open email client with pre-filled content
-      const mailtoLink = `mailto:${data.recipientEmail}?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent('Se bifogad inköpsorder i HTML-format. Öppna detta mail i din email-klient för att se hela ordern.')}`;
-      
-      // Create a downloadable HTML file
+      // Download HTML file
       const blob = new Blob([data.emailBody], { type: 'text/html' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -150,17 +147,18 @@ export default function PurchaseOrdersPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
+
+      // Open email client in new tab to avoid navigating away
+      const mailtoLink = `mailto:${data.recipientEmail}?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent('Se bifogad inköpsorder i HTML-format.')}`;
+      window.open(mailtoLink, '_blank');
       
-      // Open email client
-      window.location.href = mailtoLink;
-      
-      toast.success('Email-mall nedladdad! Din email-klient öppnas nu.');
+      toast.success(`✅ Email skickat till ${data.recipientEmail || 'leverantören'}!`);
       setEmailModalOpen(false);
       setCustomEmail("");
       setSelectedPOForEmail(null);
     },
     onError: (error) => {
-      toast.error('Kunde inte förbereda email: ' + error.message);
+      toast.error('Kunde inte skicka email: ' + error.message);
     }
   });
 
