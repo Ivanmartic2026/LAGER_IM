@@ -12,12 +12,14 @@ const PHASES = [
     key: 'production',
     label: 'Production',
     emoji: '🏭',
-    description: 'QC reports, test protocols, production photos, batch documents',
+    description: 'QC reports, test protocols, production photos, batch documents, RCFGX & Nova Card files',
     color: 'amber',
     docTypes: [
       { value: 'quality_report', label: 'QC Report' },
       { value: 'test_protocol', label: 'Test Protocol' },
       { value: 'qc_photos', label: 'QC Photos / Videos' },
+      { value: 'rcfgx_file', label: 'RCFGX File' },
+      { value: 'nova_card_file', label: 'Nova Card File' },
       { value: 'other', label: 'Other Production Document' },
     ]
   },
