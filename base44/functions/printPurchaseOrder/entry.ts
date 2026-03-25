@@ -274,7 +274,7 @@ Deno.serve(async (req) => {
 
                     ${record.notes ? `
                       <div style="margin-top: 12px; padding: 12px; background: white; border: 1px solid #e0e0e0; border-radius: 4px;">
-                        <div style="font-size: 11px; text-transform: uppercase; color: #666666; font-weight: 500; letter-spacing: 0.8px; margin-bottom: 4px;">ANTECKNINGAR</div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: #666666; font-weight: 500; letter-spacing: 0.8px; margin-bottom: 4px;">NOTES</div>
                         <div style="font-size: 13px; color: #333333; line-height: 1.5;">${record.notes}</div>
                       </div>
                     ` : ''}
