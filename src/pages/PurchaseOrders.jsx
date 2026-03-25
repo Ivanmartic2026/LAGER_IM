@@ -212,149 +212,118 @@ export default function PurchaseOrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-6">
+    <div className="min-h-screen bg-[#0a0a0f] p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4 gap-3">
+        <div className="mb-8 pb-6 border-b border-white/8">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 tracking-tight">Purchase Order</h1>
-              <p className="text-white/50">Hantera och spåra dina inköpsordrar</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Purchase Orders</h1>
+              <p className="text-white/40 text-sm mt-1">Hantera och spåra dina inköpsordrar</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <InvoiceScanButton />
               <Button
-                onClick={() => {
-                  setEditingPO(null);
-                  setShowForm(true);
-                }}
-                className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
-                >
+                onClick={() => { setEditingPO(null); setShowForm(true); }}
+                className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/30 transition-all duration-200"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Ny order
-                </Button>
+              </Button>
             </div>
           </div>
+        </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <motion.button
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              onClick={() => setStatusFilter('all')}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          {[
+            {
+              filter: 'all',
+              icon: ShoppingCart,
+              iconColor: 'text-blue-400',
+              iconBg: 'from-blue-500/20 to-blue-600/20',
+              count: purchaseOrders.length,
+              label: 'Totalt ordrar',
+              activeClass: 'border-blue-500/40 bg-blue-500/10',
+            },
+            {
+              filter: 'sent',
+              icon: Truck,
+              iconColor: 'text-cyan-400',
+              iconBg: 'from-cyan-500/20 to-blue-600/20',
+              count: purchaseOrders.filter(po => ['sent','confirmed','in_production','shipped','ready_for_reception','waiting_for_supplier_documentation'].includes(po.status)).length,
+              label: 'Pågående',
+              activeClass: 'border-cyan-500/40 bg-cyan-500/10',
+            },
+            {
+              filter: 'ready_for_reception',
+              icon: Clock,
+              iconColor: 'text-amber-400',
+              iconBg: 'from-amber-500/20 to-amber-600/20',
+              count: purchaseOrders.filter(po => po.status === 'ready_for_reception').length,
+              label: 'Klar för mottagning',
+              activeClass: 'border-amber-500/40 bg-amber-500/10',
+            },
+            {
+              filter: 'received',
+              icon: PackageCheck,
+              iconColor: 'text-emerald-400',
+              iconBg: 'from-emerald-500/20 to-emerald-600/20',
+              count: purchaseOrders.filter(po => po.status === 'received').length,
+              label: 'Mottagna',
+              activeClass: 'border-emerald-500/40 bg-emerald-500/10',
+            },
+          ].map(({ filter, icon: Icon, iconColor, iconBg, count, label, activeClass }) => (
+            <button
+              key={filter}
+              onClick={() => setStatusFilter(filter)}
               className={cn(
-                "p-5 rounded-2xl backdrop-blur-xl border transition-all duration-300 text-left",
-                statusFilter === 'all'
-                  ? "bg-white/10 border-white/30 shadow-lg shadow-white/10"
-                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                "p-4 rounded-xl border text-left transition-all duration-200",
+                statusFilter === filter
+                  ? activeClass
+                  : "bg-white/3 border-white/8 hover:bg-white/6 hover:border-white/15"
               )}
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center">
-                  <ShoppingCart className="w-5 h-5 text-blue-400" />
-                </div>
-                <TrendingUp className="w-4 h-4 text-emerald-400" />
+              <div className={cn("w-9 h-9 rounded-lg bg-gradient-to-br flex items-center justify-center mb-3", iconBg)}>
+                <Icon className={cn("w-4 h-4", iconColor)} />
               </div>
-              <p className="text-3xl font-bold text-white mb-1 tracking-tight">{purchaseOrders.length}</p>
-              <p className="text-sm text-white/50">Totalt ordrar</p>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              onClick={() => setStatusFilter('sent')}
-              className={cn(
-                "p-5 rounded-2xl backdrop-blur-xl border transition-all duration-300 text-left",
-                statusFilter === 'sent'
-                  ? "bg-blue-500/20 border-blue-500/40 shadow-lg shadow-blue-500/10"
-                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
-              )}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/30 to-blue-600/30 flex items-center justify-center">
-                  <Truck className="w-5 h-5 text-cyan-400" />
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-white mb-1 tracking-tight">
-                {purchaseOrders.filter(po => ['sent','confirmed','in_production','shipped','ready_for_reception','waiting_for_supplier_documentation'].includes(po.status)).length}
-              </p>
-              <p className="text-sm text-white/50">Pågående</p>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              onClick={() => setStatusFilter('ready_for_reception')}
-              className={cn(
-                "p-5 rounded-2xl backdrop-blur-xl border transition-all duration-300 text-left",
-                statusFilter === 'ready_for_reception'
-                  ? "bg-amber-500/20 border-amber-500/40 shadow-lg shadow-amber-500/10"
-                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
-              )}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-600/30 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-amber-400" />
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-white mb-1 tracking-tight">
-                {purchaseOrders.filter(po => po.status === 'ready_for_reception').length}
-              </p>
-              <p className="text-sm text-white/50">Klar för mottagning</p>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              onClick={() => setStatusFilter('received')}
-              className={cn(
-                "p-5 rounded-2xl backdrop-blur-xl border transition-all duration-300 text-left",
-                statusFilter === 'received'
-                  ? "bg-emerald-500/20 border-emerald-500/40 shadow-lg shadow-emerald-500/10"
-                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
-              )}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/30 to-emerald-600/30 flex items-center justify-center">
-                  <PackageCheck className="w-5 h-5 text-emerald-400" />
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-white mb-1 tracking-tight">
-                {purchaseOrders.filter(po => po.status === 'received').length}
-              </p>
-              <p className="text-sm text-white/50">Mottagna</p>
-            </motion.button>
-          </div>
+              <p className="text-2xl font-bold text-white tracking-tight">{count}</p>
+              <p className="text-xs text-white/40 mt-0.5">{label}</p>
+            </button>
+          ))}
         </div>
 
         {/* Search & Filters */}
         <div className="flex flex-col md:flex-row gap-3 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Sök ordernummer eller leverantör..."
-              className="pl-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300"
+              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 focus:bg-white/8 transition-all"
             />
           </div>
-          
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide flex-wrap">
             {[
               { value: "all", label: "Alla" },
               { value: "draft", label: "Utkast" },
               { value: "sent", label: "Skickad" },
               { value: "confirmed", label: "Bekräftad" },
-              { value: "in_production", label: "I produktion" },
+              { value: "in_production", label: "Produktion" },
               { value: "shipped", label: "I transit" },
-              { value: "ready_for_reception", label: "Klar för mottagning" },
+              { value: "ready_for_reception", label: "Klar" },
               { value: "received", label: "Mottagen" },
             ].map(({ value, label }) => (
               <button
                 key={value}
                 onClick={() => setStatusFilter(value)}
                 className={cn(
-                  "whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-all border",
+                  "whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border",
                   statusFilter === value
-                    ? "bg-blue-600 text-white border-blue-500"
-                    : "bg-white/5 text-white/50 border-white/10 hover:bg-white/10 hover:text-white"
+                    ? "bg-blue-600 text-white border-blue-500 shadow-sm shadow-blue-500/30"
+                    : "bg-white/5 text-white/40 border-white/8 hover:bg-white/10 hover:text-white/70"
                 )}
               >
                 {label}
@@ -363,28 +332,24 @@ export default function PurchaseOrdersPage() {
           </div>
         </div>
 
+        {/* Divider */}
+        <div className="border-t border-white/6 mb-6" />
+
         {/* Purchase Orders List */}
         {isLoading ? (
           <div className="space-y-2">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse" />
+              <div key={i} className="h-36 rounded-xl bg-white/3 animate-pulse" />
             ))}
           </div>
         ) : filteredPOs.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
-              <ShoppingCart className="w-8 h-8 text-white/30" />
+          <div className="text-center py-20">
+            <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center mx-auto mb-4">
+              <ShoppingCart className="w-7 h-7 text-white/20" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2 tracking-tight">
-              Inga inköpsordrar ännu
-            </h3>
-            <p className="text-white/50 mb-6">
-              Skapa din första Purchase Order för att komma igång
-            </p>
-            <Button
-              onClick={() => setShowForm(true)}
-              className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
-            >
+            <h3 className="text-base font-semibold text-white/70 mb-2">Inga inköpsordrar</h3>
+            <p className="text-sm text-white/30 mb-6">Skapa din första Purchase Order för att komma igång</p>
+            <Button onClick={() => setShowForm(true)} className="bg-blue-600 hover:bg-blue-500">
               <Plus className="w-4 h-4 mr-2" />
               Skapa Purchase Order
             </Button>
@@ -394,48 +359,47 @@ export default function PurchaseOrdersPage() {
             <AnimatePresence>
               {filteredPOs.map((po) => {
                 const itemsCount = getPOItemsCount(po.id);
-                
                 return (
                   <motion.div
                     key={po.id}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="group rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300 overflow-hidden"
-                    >
-                    {/* Header */}
-                    <div className="p-5 border-b border-slate-700/50">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-xl font-bold text-white">
+                    exit={{ opacity: 0, y: -8 }}
+                    className="rounded-xl bg-white/4 border border-white/8 hover:border-white/15 hover:bg-white/6 transition-all duration-200 overflow-hidden"
+                  >
+                    {/* Card Header */}
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-white/6">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center flex-shrink-0">
+                          <ShoppingCart className="w-4 h-4 text-blue-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-base font-bold text-white tracking-tight truncate">
                               {po.po_number || `PO #${po.id.slice(0, 8)}`}
                             </h3>
-                            <Badge className={cn("text-xs border", statusColors[po.status])}>
+                            <Badge className={cn("text-xs border flex-shrink-0", statusColors[po.status])}>
                               {statusLabels[po.status]}
                             </Badge>
                           </div>
-                          
-                          <div className="flex items-center gap-2 text-slate-400">
-                            <Truck className="w-4 h-4" />
-                            <span className="font-medium">{po.supplier_name}</span>
+                          <div className="flex items-center gap-1.5 text-white/40 text-sm mt-0.5">
+                            <Truck className="w-3.5 h-3.5" />
+                            <span className="truncate">{po.supplier_name}</span>
                           </div>
                         </div>
-
-                        {po.total_cost && (
-                          <div className="text-right">
-                            <div className="text-sm text-slate-400 mb-1">Totalt belopp</div>
-                            <div className="text-2xl font-bold text-white">
-                              {po.total_cost.toLocaleString('sv-SE')} kr
-                            </div>
-                          </div>
-                        )}
                       </div>
+                      {po.total_cost && (
+                        <div className="text-right flex-shrink-0 ml-4">
+                          <div className="text-xs text-white/30 mb-0.5">Belopp</div>
+                          <div className="text-lg font-bold text-white">{po.total_cost.toLocaleString('sv-SE')} <span className="text-sm font-normal text-white/40">kr</span></div>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Details */}
-                    <div className="p-5">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    {/* Card Body */}
+                    <div className="px-5 py-4">
+                      {/* Meta info row */}
+                      <div className="flex flex-wrap gap-2 mb-4">
                         {po.expected_delivery_date && (() => {
                           const eta = new Date(po.expected_delivery_date);
                           const today = new Date();
@@ -445,191 +409,89 @@ export default function PurchaseOrdersPage() {
                           const isOverdue = daysLeft < 0;
                           const isToday = daysLeft === 0;
                           return (
-                            <div className={cn(
-                              "flex items-center gap-3 p-3 rounded-lg",
-                              isOverdue ? "bg-red-500/10 border border-red-500/20" :
-                              isToday ? "bg-emerald-500/10 border border-emerald-500/20" :
-                              daysLeft <= 7 ? "bg-amber-500/10 border border-amber-500/20" :
-                              "bg-slate-900/50"
+                            <span className={cn(
+                              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border",
+                              isOverdue ? "bg-red-500/10 border-red-500/25 text-red-400" :
+                              isToday ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400" :
+                              daysLeft <= 7 ? "bg-amber-500/10 border-amber-500/25 text-amber-400" :
+                              "bg-blue-500/10 border-blue-500/20 text-blue-400"
                             )}>
-                              <Calendar className={cn("w-5 h-5 flex-shrink-0",
-                                isOverdue ? "text-red-400" : isToday ? "text-emerald-400" : daysLeft <= 7 ? "text-amber-400" : "text-blue-400"
-                              )} />
-                              <div>
-                                <div className="text-xs text-slate-500 mb-0.5">Ankommer till lager</div>
-                                <div className="text-sm font-medium text-white">
-                                  {format(new Date(po.expected_delivery_date), "d MMM yyyy", { locale: sv })}
-                                </div>
-                                <div className={cn("text-xs font-semibold mt-0.5",
-                                  isOverdue ? "text-red-400" : isToday ? "text-emerald-400" : daysLeft <= 7 ? "text-amber-400" : "text-blue-300"
-                                )}>
-                                  {isOverdue ? `${Math.abs(daysLeft)} dagar försenad` :
-                                   isToday ? "Ankommer idag!" :
-                                   `${daysLeft} dagar kvar`}
-                                </div>
-                              </div>
-                            </div>
+                              <Calendar className="w-3.5 h-3.5" />
+                              {format(new Date(po.expected_delivery_date), "d MMM yyyy", { locale: sv })}
+                              <span className="opacity-70">·</span>
+                              {isOverdue ? `${Math.abs(daysLeft)}d försenad` : isToday ? "Idag!" : `${daysLeft}d kvar`}
+                            </span>
                           );
                         })()}
-                        
                         {itemsCount > 0 && (
-                          <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-900/50">
-                            <Package className="w-5 h-5 text-purple-400 flex-shrink-0" />
-                            <div>
-                              <div className="text-xs text-slate-500 mb-0.5">Artiklar</div>
-                              <div className="text-sm font-medium text-white">
-                                {itemsCount} st
-                              </div>
-                            </div>
-                          </div>
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-purple-500/10 border border-purple-500/20 text-purple-400">
+                            <Package className="w-3.5 h-3.5" />
+                            {itemsCount} artiklar
+                          </span>
                         )}
-
                         {po.order_date && (
-                          <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-900/50">
-                            <Calendar className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                            <div>
-                              <div className="text-xs text-slate-500 mb-0.5">Orderdatum</div>
-                              <div className="text-sm font-medium text-white">
-                                {format(new Date(po.order_date), "d MMM yyyy", { locale: sv })}
-                              </div>
-                            </div>
-                          </div>
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-white/5 border border-white/10 text-white/40">
+                            <Calendar className="w-3.5 h-3.5" />
+                            Ordnat {format(new Date(po.order_date), "d MMM yyyy", { locale: sv })}
+                          </span>
                         )}
                       </div>
 
                       {po.notes && (
-                        <div className="p-3 rounded-lg bg-slate-900/50 border border-slate-700/30 mb-4">
-                          <div className="text-xs text-slate-500 mb-1">Anteckningar</div>
-                          <p className="text-sm text-slate-300">{po.notes}</p>
+                        <div className="mb-4 px-3 py-2 rounded-lg bg-white/4 border border-white/8">
+                          <p className="text-xs text-white/40 mb-0.5">Anteckningar</p>
+                          <p className="text-sm text-white/70">{po.notes}</p>
                         </div>
                       )}
 
-                      {/* Actions */}
-                      <div className="flex flex-wrap gap-2">
+                      {/* Actions — separated by a thin line */}
+                      <div className="pt-3 border-t border-white/6 flex flex-wrap gap-1.5">
                         {(po.status === 'ordered' || po.status === 'partially_received') && (
-                          <Button
-                            size="sm"
-                            className="bg-emerald-600 hover:bg-emerald-500"
-                            onClick={() => setReceivingPO(po)}
-                          >
-                            <Package className="w-4 h-4 mr-2" />
-                            Ta emot
+                          <Button size="sm" className="h-7 text-xs bg-emerald-600 hover:bg-emerald-500" onClick={() => setReceivingPO(po)}>
+                            <Package className="w-3.5 h-3.5 mr-1.5" />Ta emot
                           </Button>
                         )}
-
                         {(po.status === 'received' || po.status === 'partially_received') && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="bg-blue-600/20 border-blue-500/30 text-blue-400 hover:bg-blue-600/30"
-                            onClick={() => setViewingPO(po)}
-                          >
-                            <Eye className="w-4 h-4 md:mr-2" />
-                            <span className="hidden md:inline">Följesedel</span>
+                          <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => setViewingPO(po)}>
+                            <Eye className="w-3.5 h-3.5 mr-1.5" />Följesedel
                           </Button>
                         )}
-                        
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-blue-600/20 border-blue-500/30 text-blue-400 hover:bg-blue-600/30"
-                          onClick={() => setDocumentsPO(po)}
-                        >
-                          <FileText className="w-4 h-4 md:mr-2" />
-                          <span className="hidden md:inline">Dokumentation</span>
+                        <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => setDocumentsPO(po)}>
+                          <FileText className="w-3.5 h-3.5 mr-1.5" />Dokument
                         </Button>
-
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-purple-600/20 border-purple-500/30 text-purple-400 hover:bg-purple-600/30"
-                          onClick={async () => {
-                           let token = po.supplier_portal_token;
-                           if (!token) {
-                             token = crypto.randomUUID().replace(/-/g, '');
-                             await base44.entities.PurchaseOrder.update(po.id, { supplier_portal_token: token });
-                             queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
-                           }
-                           const portalUrl = `${window.location.origin}${createPageUrl('SupplierPOView')}?po=${po.id}&token=${token}`;
-                           navigator.clipboard.writeText(portalUrl);
-                           toast.success('Leverantörslänk kopierad! Dela denna med leverantören.');
-                          }}
-                        >
-                          <Link2 className="w-4 h-4 md:mr-2" />
-                          <span className="hidden md:inline">Leverantörslänk</span>
+                        <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={async () => {
+                          let token = po.supplier_portal_token;
+                          if (!token) {
+                            token = crypto.randomUUID().replace(/-/g, '');
+                            await base44.entities.PurchaseOrder.update(po.id, { supplier_portal_token: token });
+                            queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+                          }
+                          const portalUrl = `${window.location.origin}${createPageUrl('SupplierPOView')}?po=${po.id}&token=${token}`;
+                          navigator.clipboard.writeText(portalUrl);
+                          toast.success('Leverantörslänk kopierad!');
+                        }}>
+                          <Link2 className="w-3.5 h-3.5 mr-1.5" />Lev.länk
                         </Button>
-                        
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-emerald-600/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-600/30"
-                          onClick={() => {
-                            setSelectedPOForEmail(po);
-                            setEmailModalOpen(true);
-                          }}
-                        >
-                          <Mail className="w-4 h-4 md:mr-2" />
-                          <span className="hidden md:inline">Skicka email</span>
+                        <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => { setSelectedPOForEmail(po); setEmailModalOpen(true); }}>
+                          <Mail className="w-3.5 h-3.5 mr-1.5" />Email
                         </Button>
-                        
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-slate-700 border-slate-600 hover:bg-slate-600"
-                          onClick={() => printPOMutation.mutate(po.id)}
-                          disabled={printPOMutation.isPending}
-                        >
-                          <Printer className="w-4 h-4 md:mr-2" />
-                          <span className="hidden md:inline">Skriv ut</span>
+                        <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => printPOMutation.mutate(po.id)} disabled={printPOMutation.isPending}>
+                          <Printer className="w-3.5 h-3.5 mr-1.5" />Skriv ut
                         </Button>
-
                         {po.status === 'received' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="bg-slate-700 border-slate-600 hover:bg-slate-600"
-                            onClick={() => exportPOMutation.mutate(po.id)}
-                            disabled={exportPOMutation.isPending}
-                          >
-                            <Download className="w-4 h-4 md:mr-2" />
-                            <span className="hidden md:inline">Kvitto</span>
+                          <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => exportPOMutation.mutate(po.id)} disabled={exportPOMutation.isPending}>
+                            <Download className="w-3.5 h-3.5 mr-1.5" />Kvitto
                           </Button>
                         )}
-
                         {po.invoice_file_url && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="bg-amber-600/20 border-amber-500/30 text-amber-400 hover:bg-amber-600/30"
-                            onClick={() => window.open(po.invoice_file_url, '_blank')}
-                          >
-                            <FileText className="w-4 h-4 md:mr-2" />
-                            <span className="hidden md:inline">Faktura</span>
+                          <Button size="sm" variant="outline" className="h-7 text-xs bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20" onClick={() => window.open(po.invoice_file_url, '_blank')}>
+                            <FileText className="w-3.5 h-3.5 mr-1.5" />Faktura
                           </Button>
                         )}
-
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-slate-700 border-slate-600 hover:bg-slate-600"
-                          onClick={() => {
-                            setEditingPO(po);
-                            setShowForm(true);
-                          }}
-                        >
+                        <Button size="sm" variant="outline" className="h-7 text-xs bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white" onClick={() => { setEditingPO(po); setShowForm(true); }}>
                           Redigera
                         </Button>
-
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20"
-                          onClick={() => {
-                            if (confirm('Är du säker på att du vill ta bort denna inköpsorder?')) {
-                              deletePOMutation.mutate(po.id);
-                            }
-                          }}
-                        >
+                        <Button size="sm" variant="outline" className="h-7 text-xs bg-red-500/8 border-red-500/20 text-red-400/80 hover:bg-red-500/15 hover:text-red-400" onClick={() => { if (confirm('Är du säker?')) deletePOMutation.mutate(po.id); }}>
                           Ta bort
                         </Button>
                       </div>
