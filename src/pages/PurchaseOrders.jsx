@@ -407,7 +407,7 @@ export default function PurchaseOrdersPage() {
                       </div>
 
                       {/* Tags row */}
-                      {(po.expected_delivery_date || itemsCount > 0 || po.order_date) && (
+                      {(po.expected_delivery_date || itemsCount > 0 || po.order_date || po.delivery_terms || po.mode_of_transport) && (
                         <div className="flex flex-wrap gap-1.5 px-4 pb-3">
                           {po.expected_delivery_date && (() => {
                             const eta = new Date(po.expected_delivery_date);
