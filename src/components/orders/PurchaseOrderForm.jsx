@@ -758,7 +758,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                   return (
                     <div
                       key={index}
-                      className="grid grid-cols-[130px_130px_1fr_90px_80px_90px_auto] gap-2 p-3 rounded-lg bg-slate-800/50 border border-slate-700 items-center"
+                      className="grid grid-cols-[130px_130px_1fr_90px_80px_90px_auto] gap-3 p-4 rounded-lg bg-slate-800/50 border border-slate-700 items-center"
                     >
                       <div>
                         <Input
