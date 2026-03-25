@@ -200,16 +200,16 @@ Deno.serve(async (req) => {
           <div class="content">
             <div class="info-grid">
               <div class="info-item">
-                <div class="info-label">Ordernummer</div>
+                <div class="info-label">Order Number</div>
                 <div class="info-value">${po.po_number || po.id.slice(0, 8)}</div>
               </div>
               <div class="info-item">
-                <div class="info-label">Orderdatum</div>
+                <div class="info-label">Order Date</div>
                 <div class="info-value">${new Date(po.order_date || po.created_date).toLocaleDateString('sv-SE')}</div>
               </div>
               ${po.expected_delivery_date ? `
               <div class="info-item">
-                <div class="info-label">Förväntat leveransdatum</div>
+                <div class="info-label">Expected Delivery Date</div>
                 <div class="info-value">${new Date(po.expected_delivery_date).toLocaleDateString('sv-SE')}</div>
               </div>
               ` : ''}
