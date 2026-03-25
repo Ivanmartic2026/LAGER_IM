@@ -426,16 +426,23 @@ export default function PurchaseOrdersPage() {
                             const isToday = daysLeft === 0;
                             return (
                               <span className={cn(
-                                "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium",
-                                isOverdue ? "bg-red-500/15 text-red-400" :
-                                isToday ? "bg-emerald-500/15 text-emerald-400" :
-                                daysLeft <= 7 ? "bg-amber-500/15 text-amber-400" :
-                                "bg-blue-500/10 text-blue-400"
+                                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border",
+                                isOverdue ? "bg-red-500/15 border-red-500/30 text-red-300" :
+                                isToday ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300" :
+                                daysLeft <= 7 ? "bg-amber-500/15 border-amber-500/30 text-amber-300" :
+                                "bg-blue-500/10 border-blue-500/25 text-blue-300"
                               )}>
-                                <Calendar className="w-3 h-3" />
-                                {format(new Date(po.expected_delivery_date), "d MMM", { locale: sv })}
-                                <span className="opacity-60 mx-0.5">·</span>
-                                {isOverdue ? `${Math.abs(daysLeft)}d sen` : isToday ? "Idag!" : `${daysLeft}d`}
+                                <Calendar className="w-3.5 h-3.5" />
+                                ETA {format(new Date(po.expected_delivery_date), "d MMM yyyy", { locale: sv })}
+                                <span className={cn(
+                                  "ml-0.5 px-1.5 py-0.5 rounded text-xs font-bold",
+                                  isOverdue ? "bg-red-500/30 text-red-200" :
+                                  isToday ? "bg-emerald-500/30 text-emerald-200" :
+                                  daysLeft <= 7 ? "bg-amber-500/30 text-amber-200" :
+                                  "bg-blue-500/20 text-blue-200"
+                                )}>
+                                  {isOverdue ? `${Math.abs(daysLeft)}d sen` : isToday ? "Idag!" : `${daysLeft}d`}
+                                </span>
                               </span>
                             );
                           })()}
