@@ -370,7 +370,7 @@ export default function PurchaseOrdersPage() {
                               <h3 className="text-xl font-extrabold text-white tracking-tight">
                                 {po.po_number || `PO #${po.id.slice(0, 8)}`}
                               </h3>
-                              <Badge className={cn("text-xs border px-1.5 py-0", statusColors[po.status])}>
+                              <Badge className={cn("text-sm font-semibold border px-2.5 py-0.5", statusColors[po.status])}>
                                 {statusLabels[po.status]}
                               </Badge>
                             </div>
