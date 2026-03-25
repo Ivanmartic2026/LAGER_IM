@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
         <div class="container">
           <div class="header">
             <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" alt="IM Vision" class="logo" crossorigin="anonymous" />
-            <h1>INKÖPSORDER</h1>
+            <h1>PURCHASE ORDER</h1>
           </div>
           
           <div class="content">
