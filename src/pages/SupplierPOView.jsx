@@ -233,7 +233,7 @@ export default function SupplierPOView() {
               <QualityCheckSection />
             )}
             {activeTab === 'batch' && (
-              <BatchTraceabilitySection />
+              <BatchTraceabilitySection purchaseOrder={purchaseOrder} />
             )}
             {activeTab === 'upload' && (
               <SupplierDocumentUploadHub purchaseOrder={purchaseOrder} />
