@@ -221,7 +221,24 @@ Deno.serve(async (req) => {
               ` : ''}
             </div>
 
-            <div class="supplier-box">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+              <div style="background: #f5f5f5; padding: 25px; border-left: 3px solid #000000;">
+                <div class="supplier-label">Purchasing Company / Buyer</div>
+                <div style="font-size: 16px; font-weight: 700; color: #000000; margin-bottom: 8px;">IM Vision Group AB</div>
+                <div style="font-size: 13px; color: #444444; line-height: 1.8;">
+                  Herkulesvägen 56<br/>
+                  553 02 Jönköping<br/>
+                  Sweden<br/>
+                  <br/>
+                  Org.nr: 556924-1200<br/>
+                  <br/>
+                  <strong>Ivan Martic</strong><br/>
+                  ivan@imvision.se<br/>
+                  +46 73 913 01 29
+                </div>
+              </div>
+
+              <div class="supplier-box" style="margin-bottom: 0;">
               <div class="supplier-label">Supplier</div>
               <div class="supplier-name">${po.supplier_name}</div>
               ${supplier && (supplier.contact_person || supplier.email || supplier.phone) ? `
