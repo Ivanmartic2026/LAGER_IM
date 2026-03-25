@@ -69,23 +69,21 @@ const AuthenticatedApp = () => {
 function App() {
 
   return (
-    <QueryClientProvider client={queryClientInstance}>
-      <Router>
-        <NavigationTracker />
-        <Routes>
-          {/* Public supplier portal - no auth required */}
-          <Route path="/SupplierPOView" element={<SupplierPOView />} />
-          {/* All other routes require auth */}
-          <Route path="*" element={
-            <AuthProvider>
-              <AuthenticatedApp />
-            </AuthProvider>
-          } />
-        </Routes>
-      </Router>
-      <Toaster />
-      <VisualEditAgent />
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClientInstance}>
+        <Router>
+          <NavigationTracker />
+          <Routes>
+            {/* Public supplier portal - no auth required */}
+            <Route path="/SupplierPOView" element={<SupplierPOView />} />
+            {/* All other routes require auth */}
+            <Route path="*" element={<AuthenticatedApp />} />
+          </Routes>
+        </Router>
+        <Toaster />
+        <VisualEditAgent />
+      </QueryClientProvider>
+    </AuthProvider>
   )
 }
 
