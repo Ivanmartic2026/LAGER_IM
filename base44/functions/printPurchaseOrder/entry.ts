@@ -51,12 +51,26 @@ Deno.serve(async (req) => {
       <head>
         <meta charset="UTF-8">
         <style>
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             padding: 40px;
             background: #ffffff;
             margin: 0;
             min-height: 100vh;
+          }
+          @media print {
+            body { padding: 0; margin: 0; }
+            .container { border: none; }
+            .header { background: #000000 !important; color: white !important; }
+            .logo { filter: brightness(0) invert(1) !important; }
+            h1 { color: white !important; }
+            th { background: #000000 !important; color: white !important; }
+            .total-row td { background: #000000 !important; color: white !important; }
           }
           .container {
             max-width: 900px;
