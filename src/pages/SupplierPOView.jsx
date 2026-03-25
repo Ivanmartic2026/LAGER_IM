@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, FileText, CheckCircle2, Clock, Upload } from "lucide-react";
+import { Package, FileText, CheckCircle2, Clock, Upload, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import SupplierPOConfirmation from "@/components/supplier/SupplierPOConfirmation";
