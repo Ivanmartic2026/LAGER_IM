@@ -13,7 +13,7 @@ const TABS = [
   { key: 'confirm', label: '1. Confirm Order', icon: CheckCircle2 },
   { key: 'documents', label: '2. Documents', icon: FileText },
   { key: 'quality', label: '3. Quality Check', icon: ShieldCheck },
-  { key: 'batch', label: '4. Batch & Traceability', icon: Layers },
+  { key: 'batch', label: '4. Batch & Files', icon: Layers },
   { key: 'upload', label: '5. Upload Documents', icon: Upload },
 ];
 
