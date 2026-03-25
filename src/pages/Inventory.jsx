@@ -14,7 +14,7 @@ import {
   Grid3X3, List, Plus, SlidersHorizontal, Sparkles,
   ClipboardList, Download, Upload, ArrowUpDown, MapPin,
   CheckSquare, Trash2, Edit2, X, Database, Printer,
-  ChevronDown, MoreHorizontal, TrendingDown, AlertCircle, Wrench, ArrowUpCircle, ChevronUp
+  ChevronDown, MoreHorizontal, TrendingDown, AlertCircle, Wrench, ArrowUpCircle, ChevronUp, Truck
 } from "lucide-react";
 import {
   DropdownMenu,
