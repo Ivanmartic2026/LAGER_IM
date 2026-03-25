@@ -509,6 +509,49 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             <div>
               <label className="text-sm font-medium text-slate-300 mb-2 block">
+                Delivery Terms (Incoterms)
+              </label>
+              <Select
+                value={formData.delivery_terms}
+                onValueChange={(value) => setFormData({ ...formData, delivery_terms: value })}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Välj leveransvillkor..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="EXW">EXW – Ex Works</SelectItem>
+                  <SelectItem value="FOB">FOB – Free On Board</SelectItem>
+                  <SelectItem value="CIF">CIF – Cost, Insurance & Freight</SelectItem>
+                  <SelectItem value="DAP">DAP – Delivered At Place</SelectItem>
+                  <SelectItem value="DDP">DDP – Delivered Duty Paid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                Mode of Transport
+              </label>
+              <Select
+                value={formData.mode_of_transport}
+                onValueChange={(value) => setFormData({ ...formData, mode_of_transport: value })}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Välj transportsätt..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="air_freight_express">Air Freight – Express</SelectItem>
+                  <SelectItem value="air_freight_economy">Air Freight – Economy</SelectItem>
+                  <SelectItem value="sea_freight">Sea Freight</SelectItem>
+                  <SelectItem value="rail_transport">Rail Transport</SelectItem>
+                  <SelectItem value="road_transport">Road Transport (Truck)</SelectItem>
+                  <SelectItem value="courier">Courier (DHL, FedEx, UPS, etc.)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
                 RM-system ID
               </label>
               <Input
