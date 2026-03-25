@@ -248,6 +248,22 @@ Deno.serve(async (req) => {
                   ${supplier.phone ? `<div style="font-size: 13px; color: #444444;">Telefon: <strong>${supplier.phone}</strong></div>` : ''}
                 </div>
               ` : ''}
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px;">
+              <div style="background: #fafafa; padding: 15px; border: 1px solid #e0e0e0;">
+                <div class="info-label">Delivery Terms</div>
+                <div class="info-value">As agreed</div>
+              </div>
+              <div style="background: #fafafa; padding: 15px; border: 1px solid #e0e0e0;">
+                <div class="info-label">Shipping</div>
+                <div class="info-value">As agreed</div>
+              </div>
+              <div style="background: #fafafa; padding: 15px; border: 1px solid #e0e0e0;">
+                <div class="info-label">Warranty</div>
+                <div class="info-value">As per manufacturer's warranty</div>
+              </div>
             </div>
 
             <table>
