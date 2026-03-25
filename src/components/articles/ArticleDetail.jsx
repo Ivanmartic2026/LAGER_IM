@@ -1443,26 +1443,70 @@ export default function ArticleDetail({
               Uppladdade filer
             </h3>
 
-            {/* Source invoice link */}
-            {article.source_invoice_url && (
-              <div className="mb-4 p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <FileText className="w-5 h-5 text-purple-400 flex-shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-purple-300">Originalfaktura (inköpskälla)</p>
-                    <p className="text-sm text-white font-medium truncate">
-                      {article.source_invoice_number || 'Faktura'}
-                    </p>
+            {/* Source invoice + PO link */}
+            {(article.source_invoice_url || linkedPurchaseOrder) && (
+              <div className="mb-4 space-y-2">
+                {article.source_invoice_url && (
+                  <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <FileText className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-purple-300">Originalfaktura (inköpskälla)</p>
+                        <p className="text-sm text-white font-medium truncate">
+                          {article.source_invoice_number || 'Faktura'}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={article.source_invoice_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 text-xs font-medium transition-colors"
+                    >
+                      Öppna
+                    </a>
                   </div>
-                </div>
-                <a
-                  href={article.source_invoice_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 text-xs font-medium transition-colors"
-                >
-                  Öppna
-                </a>
+                )}
+                {linkedPurchaseOrder?.invoice_file_url && linkedPurchaseOrder.invoice_file_url !== article.source_invoice_url && (
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <FileText className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-amber-300">Faktura från inköpsorder</p>
+                        <p className="text-sm text-white font-medium truncate">
+                          {linkedPurchaseOrder.invoice_number || linkedPurchaseOrder.po_number || 'PO Faktura'}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={linkedPurchaseOrder.invoice_file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 text-xs font-medium transition-colors"
+                    >
+                      Öppna
+                    </a>
+                  </div>
+                )}
+                {linkedPurchaseOrder && (
+                  <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <ShoppingCart className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-blue-300">Kopplad inköpsorder</p>
+                        <p className="text-sm text-white font-medium truncate">
+                          {linkedPurchaseOrder.po_number || `PO #${linkedPurchaseOrder.id.slice(0,8)}`} · {linkedPurchaseOrder.supplier_name}
+                        </p>
+                      </div>
+                    </div>
+                    <Link
+                      to={createPageUrl('PurchaseOrders')}
+                      className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 text-xs font-medium transition-colors"
+                    >
+                      Visa PO
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
 
