@@ -292,6 +292,14 @@ Deno.serve(async (req) => {
               </div>
             ` : ''}
 
+            ${supplierPortalUrl ? `
+              <div style="margin-top: 30px; padding: 20px 25px; background: #f0f7ff; border: 1px solid #2563eb; border-left: 4px solid #2563eb;">
+                <div style="font-size: 11px; text-transform: uppercase; color: #1d4ed8; font-weight: 600; letter-spacing: 0.8px; margin-bottom: 8px;">📎 Supplier Portal — Upload Documents & Confirm Order</div>
+                <div style="font-size: 13px; color: #1e40af; margin-bottom: 6px;">Use the link below to confirm this order, upload shipping documents, batch numbers and production reports:</div>
+                <a href="${supplierPortalUrl}" style="font-size: 13px; color: #2563eb; word-break: break-all;">${supplierPortalUrl}</a>
+              </div>
+            ` : ''}
+
             ${receivingRecords.length > 0 ? `
               <div style="margin-top: 40px; padding-top: 40px; border-top: 2px solid #000000;">
                 <h2 style="font-size: 24px; margin: 0 0 25px 0; font-weight: 600; letter-spacing: -0.5px;">DELIVERY NOTE & RECEIVING</h2>
