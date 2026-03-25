@@ -460,7 +460,7 @@ export default function InventoryPage() {
     lowStock: articles.filter(a => a.status === "low_stock").length,
     outOfStock: articles.filter(a => a.status === "out_of_stock").length,
     onRepair: articles.filter(a => a.status === "on_repair").length,
-    onPurchaseOrder: Object.keys(incomingQuantities).length
+    onPurchaseOrder: articles.filter(a => !!incomingQuantities[a.id] || a.status === 'in_transit').length
   };
 
   // Save state to localStorage when filters change
