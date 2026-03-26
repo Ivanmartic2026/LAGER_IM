@@ -116,12 +116,14 @@ export default function InventoryPage() {
   const updateArticleMutation = useMutation({
     mutationFn: async ({ id, data }) => {
       const updatedArticle = await base44.entities.Article.update(id, data);
-      // Sync sku and article_name to linked PurchaseOrderItems
+      // Sync sku, article_name, and supplier to linked PurchaseOrderItems
       const linkedItems = await base44.entities.PurchaseOrderItem.filter({ article_id: id });
       if (linkedItems.length > 0) {
         const syncData = {};
         if (data.sku !== undefined) syncData.article_sku = data.sku;
         if (data.name !== undefined) syncData.article_name = data.name;
+        if (data.supplier_name !== undefined) syncData.supplier_name = data.supplier_name;
+        if (data.supplier_id !== undefined) syncData.supplier_id = data.supplier_id;
         if (Object.keys(syncData).length > 0) {
           await Promise.all(linkedItems.map(item => base44.entities.PurchaseOrderItem.update(item.id, syncData)));
         }
