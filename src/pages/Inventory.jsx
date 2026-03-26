@@ -1081,9 +1081,9 @@ export default function InventoryPage() {
                             )}
                             {incomingQuantities[article.id] && (
                               <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-xs font-medium">
-                                🚚 På inköp ({incomingQuantities[article.id].quantity} st)
+                                🚚 ETA ({incomingQuantities[article.id].quantity} st)
                                 {incomingQuantities[article.id].dates.length > 0 && 
-                                  ` · ETA ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
+                                  ` · ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
                                 }
                               </Badge>
                             )}
@@ -1152,7 +1152,7 @@ export default function InventoryPage() {
                       {incomingQuantities[article.id] ? (
                         <div className="flex-shrink-0 flex flex-col items-center gap-0.5 bg-amber-500/15 border border-amber-500/40 rounded-xl px-3 py-1.5 whitespace-nowrap">
                           <div className="flex items-center gap-1 text-amber-300 text-[11px] font-semibold uppercase tracking-wider">
-                            <span>🚚 På inköp</span>
+                            <span>🚚 ETA</span>
                           </div>
                           <span className="text-amber-200 font-bold text-xs">
                             {incomingQuantities[article.id].quantity} st
