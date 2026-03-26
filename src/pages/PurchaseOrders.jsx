@@ -116,7 +116,7 @@ export default function PurchaseOrdersPage() {
     mutationFn: async ({ poId, emailTo }) => {
       const response = await base44.functions.invoke('sendPurchaseOrderEmail', { 
         purchaseOrderId: poId,
-        emailTo 
+        supplierEmail: emailTo || undefined
       });
       return response.data;
     },
