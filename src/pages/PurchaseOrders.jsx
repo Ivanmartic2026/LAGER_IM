@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { 
 Search, Plus, ShoppingCart, Download, Calendar,
 Truck, Package, User, Printer, Mail, Eye, X, CheckCircle2, AlertCircle, Link2, Copy, FileText,
-TrendingUp, Clock, PackageCheck
+TrendingUp, Clock, PackageCheck, Send
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -32,6 +32,8 @@ export default function PurchaseOrdersPage() {
   const [receivingPO, setReceivingPO] = useState(null);
   const [viewingPO, setViewingPO] = useState(null);
   const [documentsPO, setDocumentsPO] = useState(null);
+  const [accountingModalPO, setAccountingModalPO] = useState(null);
+  const [accountingEmail, setAccountingEmail] = useState("");
   
   const queryClient = useQueryClient();
 
@@ -494,6 +496,9 @@ export default function PurchaseOrdersPage() {
                               <FileText className="w-3 h-3" />Faktura
                             </button>
                           )}
+                          <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-emerald-400 hover:bg-emerald-500/10 transition-colors" onClick={() => setAccountingModalPO(po)}>
+                            <Send className="w-3 h-3" />Till ekonomi
+                          </button>
                         </div>
                         <div className="flex gap-1 flex-shrink-0 ml-2">
                           <button className="px-2.5 py-1 rounded-md text-xs text-white/40 hover:text-white hover:bg-white/8 transition-colors" onClick={() => { setEditingPO(po); setShowForm(true); }}>
@@ -640,6 +645,95 @@ export default function PurchaseOrdersPage() {
                     )}
                   </Button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Accounting Package Modal */}
+        {accountingModalPO && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6"
+            >
+              <h3 className="text-xl font-bold text-white mb-1">Skicka till ekonomi</h3>
+              <p className="text-sm text-slate-400 mb-5">
+                Skickar ett samlat paket med PO-detaljer och leverantörsfaktura.
+              </p>
+
+              <div className="mb-4 p-3 rounded-lg bg-white/5 border border-white/10 space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Order</span>
+                  <span className="text-white font-semibold">{accountingModalPO.po_number || `PO-${accountingModalPO.id.slice(0,8)}`}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Leverantör</span>
+                  <span className="text-white">{accountingModalPO.supplier_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Belopp</span>
+                  <span className="text-white font-semibold">{(accountingModalPO.total_cost || 0).toLocaleString('sv-SE')} {accountingModalPO.invoice_currency || 'SEK'}</span>
+                </div>
+                {accountingModalPO.invoice_file_url ? (
+                  <div className="flex items-center gap-1.5 text-amber-400 text-xs pt-1">
+                    <FileText className="w-3.5 h-3.5" />
+                    Leverantörsfaktura finns uppladdad ✓
+                  </div>
+                ) : (
+                  <div className="text-red-400 text-xs pt-1">⚠️ Ingen leverantörsfaktura uppladdad</div>
+                )}
+              </div>
+
+              <div className="mb-5">
+                <label className="text-sm font-medium text-slate-300 mb-2 block">Email till ekonomi *</label>
+                <Input
+                  type="email"
+                  value={accountingEmail}
+                  onChange={(e) => setAccountingEmail(e.target.value)}
+                  placeholder="ekonomi@foretag.se"
+                  className="bg-slate-800 border-slate-700 text-white"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); }}
+                  className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
+                >
+                  Avbryt
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (!accountingEmail) { toast.error("Ange en email-adress"); return; }
+                    const t = toast.loading("Skickar till ekonomi...");
+                    try {
+                      await base44.functions.invoke('sendAccountingPackage', {
+                        purchaseOrderId: accountingModalPO.id,
+                        accountingEmail
+                      });
+                      toast.success(`Ekonomipaket skickat till ${accountingEmail}!`, { id: t });
+                      setAccountingModalPO(null);
+                      setAccountingEmail("");
+                    } catch (err) {
+                      toast.error("Kunde inte skicka: " + err.message, { id: t });
+                    }
+                  }}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-500"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Skicka paket
+                </Button>
               </div>
             </motion.div>
           </motion.div>
