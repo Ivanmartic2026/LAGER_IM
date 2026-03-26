@@ -34,8 +34,16 @@ export default function PurchaseOrdersPage() {
   const [documentsPO, setDocumentsPO] = useState(null);
   const [accountingModalPO, setAccountingModalPO] = useState(null);
   const [accountingEmail, setAccountingEmail] = useState("");
+  const [accountingCc, setAccountingCc] = useState("");
   const [accountingNote, setAccountingNote] = useState("");
   const [accountingSent, setAccountingSent] = useState(false);
+
+  const QUICK_EMAILS = [
+    { name: "Frida Jansson", email: "frida.jansson@finec.se" },
+    { name: "Ivan Martic", email: "ivan@imvision.se" },
+    { name: "Joakim Hyltse", email: "joakim.hyltse@finec.se" },
+    { name: "Josefine Johansson", email: "josefine@imvision.se" },
+  ];
   
   const queryClient = useQueryClient();
 
@@ -659,7 +667,7 @@ export default function PurchaseOrdersPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingNote(""); setAccountingSent(false); }}
+            onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingCc(""); setAccountingNote(""); setAccountingSent(false); }}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -680,7 +688,7 @@ export default function PurchaseOrdersPage() {
                     <span className="text-white font-medium">{accountingEmail}</span>
                   </p>
                   <Button
-                    onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingNote(""); setAccountingSent(false); }}
+                    onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingCc(""); setAccountingNote(""); setAccountingSent(false); }}
                     className="bg-emerald-600 hover:bg-emerald-500 w-full"
                   >
                     Stäng
@@ -716,6 +724,26 @@ export default function PurchaseOrdersPage() {
                     )}
                   </div>
 
+                  <div className="mb-3">
+                    <label className="text-sm font-medium text-slate-300 mb-2 block">Snabbval mottagare</label>
+                    <div className="flex flex-wrap gap-2">
+                      {QUICK_EMAILS.map(({ name, email }) => (
+                        <button
+                          key={email}
+                          onClick={() => setAccountingEmail(email)}
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors",
+                            accountingEmail === email
+                              ? "bg-emerald-600 border-emerald-500 text-white"
+                              : "bg-slate-800 border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white"
+                          )}
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="mb-4">
                     <label className="text-sm font-medium text-slate-300 mb-2 block">Email till ekonomi *</label>
                     <Input
@@ -723,6 +751,37 @@ export default function PurchaseOrdersPage() {
                       value={accountingEmail}
                       onChange={(e) => setAccountingEmail(e.target.value)}
                       placeholder="ekonomi@foretag.se"
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="text-sm font-medium text-slate-300 mb-2 block">Kopia (CC) <span className="text-slate-500 font-normal">— valfritt</span></label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {QUICK_EMAILS.filter(q => q.email !== accountingEmail).map(({ name, email }) => (
+                        <button
+                          key={email}
+                          onClick={() => setAccountingCc(prev => {
+                            const emails = prev ? prev.split(',').map(e => e.trim()).filter(Boolean) : [];
+                            if (emails.includes(email)) return emails.filter(e => e !== email).join(', ');
+                            return [...emails, email].join(', ');
+                          })}
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors",
+                            accountingCc.includes(email)
+                              ? "bg-blue-600 border-blue-500 text-white"
+                              : "bg-slate-800 border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white"
+                          )}
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                    <Input
+                      type="text"
+                      value={accountingCc}
+                      onChange={(e) => setAccountingCc(e.target.value)}
+                      placeholder="cc@foretag.se, annan@foretag.se"
                       className="bg-slate-800 border-slate-700 text-white"
                     />
                   </div>
@@ -741,7 +800,7 @@ export default function PurchaseOrdersPage() {
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
-                      onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingNote(""); setAccountingSent(false); }}
+                      onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingCc(""); setAccountingNote(""); setAccountingSent(false); }}
                       className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
                     >
                       Avbryt
@@ -754,6 +813,7 @@ export default function PurchaseOrdersPage() {
                           await base44.functions.invoke('sendAccountingPackage', {
                             purchaseOrderId: accountingModalPO.id,
                             accountingEmail,
+                            ccEmails: accountingCc ? accountingCc.split(',').map(e => e.trim()).filter(Boolean) : undefined,
                             note: accountingNote || undefined
                           });
                           toast.dismiss(t);

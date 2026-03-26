@@ -216,7 +216,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { purchaseOrderId, accountingEmail, note } = await req.json();
+    const { purchaseOrderId, accountingEmail, ccEmails, note } = await req.json();
 
     if (!purchaseOrderId || !accountingEmail) {
       return Response.json({ error: 'Missing purchaseOrderId or accountingEmail' }, { status: 400 });
@@ -338,12 +338,27 @@ Deno.serve(async (req) => {
 </body>
 </html>`;
 
+    // Send to main recipient
     await base44.integrations.Core.SendEmail({
       to: accountingEmail,
       subject: `Ekonomipaket: ${poNum} – ${po.supplier_name}`,
       body: emailBody,
       from_name: 'IMvision Lager'
     });
+
+    // Send CC copies
+    if (ccEmails && ccEmails.length > 0) {
+      for (const ccEmail of ccEmails) {
+        if (ccEmail && ccEmail !== accountingEmail) {
+          await base44.integrations.Core.SendEmail({
+            to: ccEmail,
+            subject: `[Kopia] Ekonomipaket: ${poNum} – ${po.supplier_name}`,
+            body: emailBody,
+            from_name: 'IMvision Lager'
+          });
+        }
+      }
+    }
 
     return Response.json({ success: true });
   } catch (error) {
