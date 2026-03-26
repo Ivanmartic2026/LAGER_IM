@@ -156,6 +156,7 @@ async function generatePOHtml(base44, purchaseOrderId) {
       <table>
         <thead>
           <tr>
+            <th>SKU</th>
             <th>Article</th>
             <th>Batch</th>
             <th style="text-align: center;">Qty</th>
@@ -238,15 +239,16 @@ Deno.serve(async (req) => {
     const { file_url: poDocUrl } = await base44.integrations.Core.UploadFile({ file: htmlFile });
 
     // Build email items table
-    const itemsTableRows = items.map(item => `
-      <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;">${item.article_name || '—'}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:center;">${item.article_batch_number || '—'}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:center;">${item.quantity_ordered}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;">${(item.unit_price || 0).toLocaleString('sv-SE')} ${currency}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:600;">${((item.unit_price || 0) * item.quantity_ordered).toLocaleString('sv-SE')} ${currency}</td>
-      </tr>
-    `).join('');
+     const itemsTableRows = items.map(item => `
+       <tr>
+         <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;font-family:monospace;font-weight:600;">${item.article_sku || '—'}</td>
+         <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;">${item.article_name || '—'}</td>
+         <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:center;">${item.article_batch_number || '—'}</td>
+         <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:center;">${item.quantity_ordered}</td>
+         <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;">${(item.unit_price || 0).toLocaleString('sv-SE')} ${currency}</td>
+         <td style="padding:8px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:600;">${((item.unit_price || 0) * item.quantity_ordered).toLocaleString('sv-SE')} ${currency}</td>
+       </tr>
+     `).join('');
 
     const invoiceButtonHtml = po.invoice_file_url ? `
       <a href="${po.invoice_file_url}" style="display:inline-block;background:#d97706;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;white-space:nowrap;">📎 Leverantörsfaktura</a>
@@ -303,14 +305,15 @@ Deno.serve(async (req) => {
       <h2 style="font-size:16px;color:#1e293b;margin:0 0 12px;">Orderrader</h2>
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
         <thead>
-          <tr style="background:#f1f5f9;">
-            <th style="padding:10px 12px;text-align:left;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Benämning</th>
-            <th style="padding:10px 12px;text-align:center;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Batch</th>
-            <th style="padding:10px 12px;text-align:center;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Antal</th>
-            <th style="padding:10px 12px;text-align:right;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Enhetspris</th>
-            <th style="padding:10px 12px;text-align:right;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Summa</th>
-          </tr>
-        </thead>
+           <tr style="background:#f1f5f9;">
+             <th style="padding:10px 12px;text-align:left;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">SKU</th>
+             <th style="padding:10px 12px;text-align:left;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Benämning</th>
+             <th style="padding:10px 12px;text-align:center;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Batch</th>
+             <th style="padding:10px 12px;text-align:center;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Antal</th>
+             <th style="padding:10px 12px;text-align:right;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Enhetspris</th>
+             <th style="padding:10px 12px;text-align:right;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Summa</th>
+           </tr>
+         </thead>
         <tbody>${itemsTableRows}</tbody>
         <tfoot>
           <tr style="background:#1e293b;">

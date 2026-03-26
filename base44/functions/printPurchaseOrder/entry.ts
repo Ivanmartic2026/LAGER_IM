@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
       
       return `
         <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; font-family: monospace; font-weight: 600;">${item.article_sku || 'N/A'}</td>
           <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">${item.article_name || 'N/A'}</td>
           <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">${item.article_batch_number || '-'}</td>
           <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity_ordered}</td>
@@ -288,21 +289,22 @@ Deno.serve(async (req) => {
             </div>
 
             <table>
-              <thead>
-                <tr>
-                  <th>Article</th>
-                  <th>Batch</th>
-                  <th style="text-align: center;">Qty</th>
-                  <th style="text-align: right;">Price</th>
-                  <th style="text-align: right;">Total</th>
-                </tr>
-              </thead>
+               <thead>
+                 <tr>
+                   <th>SKU</th>
+                   <th>Article</th>
+                   <th>Batch</th>
+                   <th style="text-align: center;">Qty</th>
+                   <th style="text-align: right;">Price</th>
+                   <th style="text-align: right;">Total</th>
+                 </tr>
+               </thead>
               <tbody>
                 ${itemsHtml}
                 <tr class="total-row">
-                  <td colspan="4" style="text-align: right;">TOTAL:</td>
-                  <td style="text-align: right;">${totalCost.toLocaleString('sv-SE')} kr</td>
-                </tr>
+                   <td colspan="5" style="text-align: right;">TOTAL:</td>
+                   <td style="text-align: right;">${totalCost.toLocaleString('sv-SE')} kr</td>
+                 </tr>
               </tbody>
             </table>
 
