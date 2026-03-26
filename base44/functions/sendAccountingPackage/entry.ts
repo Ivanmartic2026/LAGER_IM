@@ -230,7 +230,7 @@ Deno.serve(async (req) => {
     const { html, po } = result;
     const items = await base44.asServiceRole.entities.PurchaseOrderItem.filter({ purchase_order_id: purchaseOrderId });
 
-    const currency = po.invoice_currency || 'SEK';
+    const currency = 'SEK';
     const poNum = po.po_number || `PO-${purchaseOrderId.slice(0, 8)}`;
 
     // Upload PO HTML document (opens in browser, prints as PDF)
