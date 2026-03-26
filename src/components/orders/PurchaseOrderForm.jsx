@@ -123,6 +123,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           purchase_order_id: savedPO.id,
           article_id: item.article_id || null,
           article_name: article?.name || item.article_name,
+          article_sku: article?.sku || item.article_sku,
           article_batch_number: article?.batch_number || item.article_batch_number,
           quantity_ordered: item.quantity_ordered,
           quantity_received: item.quantity_received || 0,
@@ -234,6 +235,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
       setPOItems([...poItems, {
         article_id: article.id,
         article_name: article.name,
+        article_sku: article.sku,
         article_batch_number: article.batch_number,
         quantity_ordered: quantity,
         quantity_received: 0,
@@ -355,7 +357,8 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           const newItems = data.items.map(item => ({
             article_id: null,
             article_name: item.description || '',
-            article_batch_number: item.article_number || '',
+            article_sku: item.article_number || '',
+            article_batch_number: '',
             quantity_ordered: item.quantity || 1,
             quantity_received: 0,
             unit_price: item.unit_price || 0,
