@@ -834,8 +834,8 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                           type="number"
                           min="0"
                           step="0.01"
-                          value={item.unit_price || 0}
-                          onChange={(e) => handleUpdateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                          value={item.unit_price ?? ''}
+                          onChange={(e) => handleUpdateItem(index, 'unit_price', e.target.value === '' ? 0 : parseFloat(e.target.value))}
                           className="bg-slate-800 border-slate-700 text-white text-sm h-9"
                         />
                       </div>
