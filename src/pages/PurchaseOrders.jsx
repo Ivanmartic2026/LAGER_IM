@@ -34,6 +34,8 @@ export default function PurchaseOrdersPage() {
   const [documentsPO, setDocumentsPO] = useState(null);
   const [accountingModalPO, setAccountingModalPO] = useState(null);
   const [accountingEmail, setAccountingEmail] = useState("");
+  const [accountingNote, setAccountingNote] = useState("");
+  const [accountingSent, setAccountingSent] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -657,7 +659,7 @@ export default function PurchaseOrdersPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); }}
+            onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingNote(""); setAccountingSent(false); }}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -666,75 +668,108 @@ export default function PurchaseOrdersPage() {
               onClick={(e) => e.stopPropagation()}
               className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6"
             >
-              <h3 className="text-xl font-bold text-white mb-1">Skicka till ekonomi</h3>
-              <p className="text-sm text-slate-400 mb-5">
-                Skickar ett samlat paket med PO-detaljer och leverantörsfaktura.
-              </p>
-
-              <div className="mb-4 p-3 rounded-lg bg-white/5 border border-white/10 space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Order</span>
-                  <span className="text-white font-semibold">{accountingModalPO.po_number || `PO-${accountingModalPO.id.slice(0,8)}`}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Leverantör</span>
-                  <span className="text-white">{accountingModalPO.supplier_name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Belopp</span>
-                  <span className="text-white font-semibold">{(accountingModalPO.total_cost || 0).toLocaleString('sv-SE')} {accountingModalPO.invoice_currency || 'SEK'}</span>
-                </div>
-                {accountingModalPO.invoice_file_url ? (
-                  <div className="flex items-center gap-1.5 text-amber-400 text-xs pt-1">
-                    <FileText className="w-3.5 h-3.5" />
-                    Leverantörsfaktura finns uppladdad ✓
+              {accountingSent ? (
+                /* Confirmation view */
+                <div className="text-center py-4">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-400" />
                   </div>
-                ) : (
-                  <div className="text-red-400 text-xs pt-1">⚠️ Ingen leverantörsfaktura uppladdad</div>
-                )}
-              </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Skickat!</h3>
+                  <p className="text-slate-400 text-sm mb-6">
+                    Ekonomipaketet har skickats till<br />
+                    <span className="text-white font-medium">{accountingEmail}</span>
+                  </p>
+                  <Button
+                    onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingNote(""); setAccountingSent(false); }}
+                    className="bg-emerald-600 hover:bg-emerald-500 w-full"
+                  >
+                    Stäng
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-xl font-bold text-white mb-1">Skicka till ekonomi</h3>
+                  <p className="text-sm text-slate-400 mb-5">
+                    Skickar ett samlat paket med PO-detaljer och leverantörsfaktura.
+                  </p>
 
-              <div className="mb-5">
-                <label className="text-sm font-medium text-slate-300 mb-2 block">Email till ekonomi *</label>
-                <Input
-                  type="email"
-                  value={accountingEmail}
-                  onChange={(e) => setAccountingEmail(e.target.value)}
-                  placeholder="ekonomi@foretag.se"
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
+                  <div className="mb-4 p-3 rounded-lg bg-white/5 border border-white/10 space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Order</span>
+                      <span className="text-white font-semibold">{accountingModalPO.po_number || `PO-${accountingModalPO.id.slice(0,8)}`}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Leverantör</span>
+                      <span className="text-white">{accountingModalPO.supplier_name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Belopp</span>
+                      <span className="text-white font-semibold">{(accountingModalPO.total_cost || 0).toLocaleString('sv-SE')} {accountingModalPO.invoice_currency || 'SEK'}</span>
+                    </div>
+                    {accountingModalPO.invoice_file_url ? (
+                      <div className="flex items-center gap-1.5 text-amber-400 text-xs pt-1">
+                        <FileText className="w-3.5 h-3.5" />
+                        Leverantörsfaktura finns uppladdad ✓
+                      </div>
+                    ) : (
+                      <div className="text-red-400 text-xs pt-1">⚠️ Ingen leverantörsfaktura uppladdad</div>
+                    )}
+                  </div>
 
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); }}
-                  className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
-                >
-                  Avbryt
-                </Button>
-                <Button
-                  onClick={async () => {
-                    if (!accountingEmail) { toast.error("Ange en email-adress"); return; }
-                    const t = toast.loading("Skickar till ekonomi...");
-                    try {
-                      await base44.functions.invoke('sendAccountingPackage', {
-                        purchaseOrderId: accountingModalPO.id,
-                        accountingEmail
-                      });
-                      toast.success(`Ekonomipaket skickat till ${accountingEmail}!`, { id: t });
-                      setAccountingModalPO(null);
-                      setAccountingEmail("");
-                    } catch (err) {
-                      toast.error("Kunde inte skicka: " + err.message, { id: t });
-                    }
-                  }}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500"
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Skicka paket
-                </Button>
-              </div>
+                  <div className="mb-4">
+                    <label className="text-sm font-medium text-slate-300 mb-2 block">Email till ekonomi *</label>
+                    <Input
+                      type="email"
+                      value={accountingEmail}
+                      onChange={(e) => setAccountingEmail(e.target.value)}
+                      placeholder="ekonomi@foretag.se"
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+
+                  <div className="mb-5">
+                    <label className="text-sm font-medium text-slate-300 mb-2 block">Meddelande (valfritt)</label>
+                    <textarea
+                      value={accountingNote}
+                      onChange={(e) => setAccountingNote(e.target.value)}
+                      placeholder="Skriv ett meddelande till ekonomiavdelningen..."
+                      rows={3}
+                      className="w-full px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50 resize-none"
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingNote(""); setAccountingSent(false); }}
+                      className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
+                    >
+                      Avbryt
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        if (!accountingEmail) { toast.error("Ange en email-adress"); return; }
+                        const t = toast.loading("Skickar till ekonomi...");
+                        try {
+                          await base44.functions.invoke('sendAccountingPackage', {
+                            purchaseOrderId: accountingModalPO.id,
+                            accountingEmail,
+                            note: accountingNote || undefined
+                          });
+                          toast.dismiss(t);
+                          setAccountingSent(true);
+                        } catch (err) {
+                          toast.error("Kunde inte skicka: " + err.message, { id: t });
+                        }
+                      }}
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-500"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Skicka paket
+                    </Button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}

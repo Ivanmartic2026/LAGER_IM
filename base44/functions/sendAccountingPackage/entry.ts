@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { purchaseOrderId, accountingEmail } = await req.json();
+    const { purchaseOrderId, accountingEmail, note } = await req.json();
 
     if (!purchaseOrderId || !accountingEmail) {
       return Response.json({ error: 'Missing purchaseOrderId or accountingEmail' }, { status: 400 });
@@ -103,6 +103,11 @@ Deno.serve(async (req) => {
           </tr>
         </tfoot>
       </table>
+
+      ${note ? `<div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:24px;">
+        <p style="margin:0 0 4px;font-weight:600;font-size:12px;color:#15803d;text-transform:uppercase;">Meddelande från avsändaren</p>
+        <p style="margin:0;font-size:13px;color:#166534;">${note}</p>
+      </div>` : ''}
 
       ${po.notes ? `<div style="background:#f8fafc;border-left:4px solid #3b82f6;padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:24px;">
         <p style="margin:0;font-size:13px;color:#475569;">${po.notes}</p>
