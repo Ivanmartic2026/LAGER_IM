@@ -98,7 +98,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           batch_number: item.article_batch_number || null,
           supplier_id: formData.supplier_id || null,
           supplier_name: formData.supplier_name || null,
-          unit_cost: item.unit_price || 0,
+          unit_cost: item.unit_price != null ? item.unit_price : 0,
           stock_qty: 0,
           status: 'out_of_stock',
           storage_type: 'company_owned',
@@ -121,12 +121,12 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
         const article = articles.find(a => a.id === item.article_id);
         const itemData = {
           purchase_order_id: savedPO.id,
-          article_id: item.article_id,
+          article_id: item.article_id || null,
           article_name: article?.name || item.article_name,
           article_batch_number: article?.batch_number || item.article_batch_number,
           quantity_ordered: item.quantity_ordered,
           quantity_received: item.quantity_received || 0,
-          unit_price: item.unit_price || 0,
+          unit_price: item.unit_price != null ? item.unit_price : 0,
           status: item.status || 'pending'
         };
 

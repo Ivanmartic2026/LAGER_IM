@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
       transit_expected_date: po?.expected_delivery_date || po?.confirmed_delivery_date || null,
       transit_notes: po ? `PO: ${po.po_number || po.id.slice(0,8)} | Leverantör: ${po.supplier_name}` : null,
       batch_number: poItem.article_batch_number || null,
-      unit_cost: poItem.unit_price || null,
+      unit_cost: poItem.unit_price != null ? poItem.unit_price : null,
       notes: `Automatiskt skapad från inköpsorder. PO-ID: ${poItem.purchase_order_id}`,
     });
 
