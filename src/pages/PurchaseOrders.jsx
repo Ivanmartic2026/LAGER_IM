@@ -724,6 +724,17 @@ export default function PurchaseOrdersPage() {
                     )}
                   </div>
 
+                  <div className="mb-5">
+                    <label className="text-sm font-medium text-slate-300 mb-2 block">Meddelande (valfritt)</label>
+                    <textarea
+                      value={accountingNote}
+                      onChange={(e) => setAccountingNote(e.target.value)}
+                      placeholder="Skriv ett meddelande till ekonomiavdelningen..."
+                      rows={3}
+                      className="w-full px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50 resize-none"
+                    />
+                  </div>
+
                   <div className="mb-3">
                     <label className="text-sm font-medium text-slate-300 mb-2 block">Snabbval mottagare</label>
                     <div className="flex flex-wrap gap-2">
@@ -783,17 +794,6 @@ export default function PurchaseOrdersPage() {
                       onChange={(e) => setAccountingCc(e.target.value)}
                       placeholder="cc@foretag.se, annan@foretag.se"
                       className="bg-slate-800 border-slate-700 text-white"
-                    />
-                  </div>
-
-                  <div className="mb-5">
-                    <label className="text-sm font-medium text-slate-300 mb-2 block">Meddelande (valfritt)</label>
-                    <textarea
-                      value={accountingNote}
-                      onChange={(e) => setAccountingNote(e.target.value)}
-                      placeholder="Skriv ett meddelande till ekonomiavdelningen..."
-                      rows={3}
-                      className="w-full px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50 resize-none"
                     />
                   </div>
 
