@@ -346,8 +346,7 @@ Deno.serve(async (req) => {
     const ccList = (ccEmails || []).filter(e => e && e !== accountingEmail);
 
     const resendPayload = {
-      from: 'IMvision Lager <onboarding@resend.dev>',
-      reply_to: 'ivan@imvision.se',
+      from: 'IMvision Lager <noreply@imvision.se>',
       to: [accountingEmail],
       cc: ccList.length > 0 ? ccList : undefined,
       subject: `Ekonomipaket: ${poNum} – ${po.supplier_name}`,
