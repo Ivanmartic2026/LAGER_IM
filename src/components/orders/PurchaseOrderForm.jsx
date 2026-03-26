@@ -56,11 +56,14 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
     enabled: !!purchaseOrder?.id,
   });
 
+  const [itemsLoaded, setItemsLoaded] = useState(false);
+
   useEffect(() => {
-    if (existingItems.length > 0) {
+    if (existingItems.length > 0 && !itemsLoaded) {
       setPOItems(existingItems);
+      setItemsLoaded(true);
     }
-  }, [existingItems.length]);
+  }, [existingItems.length, itemsLoaded]);
 
   const savePOMutation = useMutation({
     mutationFn: async (data) => {
