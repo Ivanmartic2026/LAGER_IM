@@ -833,19 +833,22 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                   <div></div>
                 </div>
                 {poItems.map((item, index) => {
-                  const itemTotal = item.quantity_ordered * (item.unit_price || 0);
-                  return (
+                   const itemTotal = item.quantity_ordered * (item.unit_price || 0);
+                   // Get latest article data if article_id exists
+                   const currentArticle = item.article_id ? articles.find(a => a.id === item.article_id) : null;
+                   const displaySku = currentArticle?.sku || item.article_sku || '';
+                   return (
                     <div
                       key={index}
                       className="grid grid-cols-[110px_110px_minmax(160px,1fr)_90px_80px_90px_auto] gap-3 p-4 rounded-lg bg-slate-800/50 border border-slate-700 items-center"
                     >
                       <div className="flex gap-1 items-center">
-                        <Input
-                          value={item.article_sku || ''}
-                          onChange={(e) => handleUpdateItem(index, 'article_sku', e.target.value)}
-                          placeholder="SKU/Artikelnr"
-                          className="bg-slate-800 border-slate-700 text-white text-sm h-9 flex-1"
-                        />
+                         <Input
+                           value={displaySku}
+                           onChange={(e) => handleUpdateItem(index, 'article_sku', e.target.value)}
+                           placeholder="SKU/Artikelnr"
+                           className="bg-slate-800 border-slate-700 text-white text-sm h-9 flex-1"
+                         />
                         <button
                           type="button"
                           title="Auto-generera SKU"
