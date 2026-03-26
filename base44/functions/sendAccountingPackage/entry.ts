@@ -262,8 +262,7 @@ Deno.serve(async (req) => {
   <div style="max-width:700px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
     
     <div style="background:#1e293b;padding:32px 40px;">
-      <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">Ekonomipaket – Inköpsorder</h1>
-      <p style="color:#94a3b8;margin:8px 0 0;">Skickat av ${user.full_name}</p>
+      <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">Inköpsorder från IM Vision Group AB</h1>
     </div>
 
     <div style="padding:32px 40px;">
