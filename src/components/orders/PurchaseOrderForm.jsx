@@ -138,10 +138,15 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
         // Update article's transit_expected_date so ETA shows in Inventory
         if (item.article_id && data.expected_delivery_date) {
-          await base44.entities.Article.update(item.article_id, {
-            transit_expected_date: data.expected_delivery_date,
-            status: 'in_transit'
-          });
+          try {
+            await base44.entities.Article.update(item.article_id, {
+              transit_expected_date: data.expected_delivery_date,
+              status: 'in_transit'
+            });
+          } catch (e) {
+            // Article may have been deleted externally - skip silently
+            console.warn('Could not update article', item.article_id, e.message);
+          }
         }
       }
 
