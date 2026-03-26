@@ -69,7 +69,9 @@ Deno.serve(async (req) => {
     <!-- Header -->
     <div style="padding:40px 48px;text-align:center;border-bottom:1px solid #f5f5f7;">
       <h1 style="margin:0;font-size:28px;font-weight:700;color:#1d1d1f;letter-spacing:-0.5px;">Purchase Order</h1>
-      <p style="margin:8px 0 0;font-size:15px;color:#86868b;">Order #${poNum}</p>
+      <p style="margin:8px 0 0;font-size:13px;color:#86868b;">From IM Vision Group AB</p>
+      <p style="margin:12px 0 0;font-size:15px;color:#0071e3;font-weight:600;">Order #${poNum}</p>
+      ${po.supplier_name ? `<p style="margin:8px 0 0;font-size:15px;color:#1d1d1f;font-weight:500;">→ ${po.supplier_name}</p>` : ''}
     </div>
 
     <!-- Main Content -->
