@@ -29,6 +29,7 @@ export default function PurchaseOrdersPage() {
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [selectedPOForEmail, setSelectedPOForEmail] = useState(null);
   const [customEmail, setCustomEmail] = useState("");
+  const [supplierPortalUrl, setSupplierPortalUrl] = useState("");
   const [receivingPO, setReceivingPO] = useState(null);
   const [viewingPO, setViewingPO] = useState(null);
   const [documentsPO, setDocumentsPO] = useState(null);
@@ -490,7 +491,17 @@ export default function PurchaseOrdersPage() {
                           }}>
                             <Link2 className="w-3 h-3" />Lev.länk
                           </button>
-                          <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={() => { setSelectedPOForEmail(po); setEmailModalOpen(true); }}>
+                          <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={async () => { 
+                            let token = po.supplier_portal_token;
+                            if (!token) {
+                              token = crypto.randomUUID().replace(/-/g, '');
+                              await base44.entities.PurchaseOrder.update(po.id, { supplier_portal_token: token });
+                              queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+                            }
+                            setSelectedPOForEmail(po);
+                            setSupplierPortalUrl(`${window.location.origin}${createPageUrl('SupplierPOView')}?po=${po.id}&token=${token}`);
+                            setEmailModalOpen(true);
+                          }}>
                             <Mail className="w-3 h-3" />Email
                           </button>
                           <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-white/50 hover:text-white hover:bg-white/8 transition-colors" onClick={() => printPOMutation.mutate(po)} disabled={printPOMutation.isPending}>
@@ -582,83 +593,98 @@ export default function PurchaseOrdersPage() {
         )}
 
         {/* Email Modal */}
-        {emailModalOpen && selectedPOForEmail && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => {
-              setEmailModalOpen(false);
-              setCustomEmail("");
-              setSelectedPOForEmail(null);
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6"
-            >
-              <h3 className="text-xl font-bold text-white mb-4">Skicka Purchase Order via email</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-slate-300 mb-2 block">
-                    Email-adress
-                  </label>
-                  <Input
-                    type="email"
-                    value={customEmail}
-                    onChange={(e) => setCustomEmail(e.target.value)}
-                    placeholder="Ange email eller lämna tomt för leverantörens email"
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                  <p className="text-xs text-slate-500 mt-2">
-                    Lämna tomt för att skicka till leverantörens registrerade email
-                  </p>
-                </div>
+         {emailModalOpen && selectedPOForEmail && (
+           <motion.div
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             exit={{ opacity: 0 }}
+             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+             onClick={() => {
+               setEmailModalOpen(false);
+               setCustomEmail("");
+               setSelectedPOForEmail(null);
+               setSupplierPortalUrl("");
+             }}
+           >
+             <motion.div
+               initial={{ scale: 0.95, opacity: 0 }}
+               animate={{ scale: 1, opacity: 1 }}
+               exit={{ scale: 0.95, opacity: 0 }}
+               onClick={(e) => e.stopPropagation()}
+               className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6"
+             >
+               <h3 className="text-xl font-bold text-white mb-4">Skicka PO till leverantör</h3>
+               <p className="text-sm text-slate-400 mb-4">Emailet inkluderar länken till leverantörsportalen där de kan bekräfta ordern och ladda upp dokument.</p>
 
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setEmailModalOpen(false);
-                      setCustomEmail("");
-                      setSelectedPOForEmail(null);
-                    }}
-                    className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
-                  >
-                    Avbryt
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      sendEmailMutation.mutate({
-                        poId: selectedPOForEmail.id,
-                        emailTo: customEmail || undefined
-                      });
-                    }}
-                    disabled={sendEmailMutation.isPending}
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-500"
-                  >
-                    {sendEmailMutation.isPending ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                        Skickar...
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="w-4 h-4 mr-2" />
-                        Skicka
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
+               <div className="space-y-4">
+                 <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                   <p className="text-xs text-green-400 font-medium">✓ Leverantörslänk läggs automatiskt till emailet</p>
+                 </div>
+
+                 <div>
+                   <label className="text-sm font-medium text-slate-300 mb-2 block">
+                     Email-adress
+                   </label>
+                   <Input
+                     type="email"
+                     value={customEmail}
+                     onChange={(e) => setCustomEmail(e.target.value)}
+                     placeholder="Ange email eller lämna tomt för leverantörens email"
+                     className="bg-slate-800 border-slate-700 text-white"
+                   />
+                   <p className="text-xs text-slate-500 mt-2">
+                     Lämna tomt för att skicka till leverantörens registrerade email
+                   </p>
+                 </div>
+
+                 <div className="flex gap-3 pt-4">
+                   <Button
+                     variant="outline"
+                     onClick={() => {
+                       setEmailModalOpen(false);
+                       setCustomEmail("");
+                       setSelectedPOForEmail(null);
+                       setSupplierPortalUrl("");
+                     }}
+                     className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
+                   >
+                     Avbryt
+                   </Button>
+                   <Button
+                     onClick={async () => {
+                       const email = customEmail || selectedPOForEmail.supplier_id;
+                       if (!email && !customEmail) {
+                         toast.error("Ange email eller se till att leverantören har en registrerad email");
+                         return;
+                       }
+                       const t = toast.loading("Skickar...");
+                       try {
+                         await base44.functions.invoke('sendPOToSupplier', {
+                           purchaseOrderId: selectedPOForEmail.id,
+                           emailTo: customEmail || undefined,
+                           supplierPortalUrl: supplierPortalUrl
+                         });
+                         toast.dismiss(t);
+                         toast.success("Email skickat till leverantören!");
+                         setEmailModalOpen(false);
+                         setCustomEmail("");
+                         setSelectedPOForEmail(null);
+                         setSupplierPortalUrl("");
+                       } catch (err) {
+                         toast.error("Kunde inte skicka: " + err.message, { id: t });
+                       }
+                     }}
+                     disabled={!customEmail && !selectedPOForEmail?.supplier_id}
+                     className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50"
+                   >
+                     <Mail className="w-4 h-4 mr-2" />
+                     Skicka
+                   </Button>
+                 </div>
+               </div>
+             </motion.div>
+           </motion.div>
+         )}
 
         {/* Accounting Package Modal */}
         {accountingModalPO && (
