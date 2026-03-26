@@ -120,7 +120,7 @@ export default function InventoryPage() {
       const linkedItems = await base44.entities.PurchaseOrderItem.filter({ article_id: id });
       if (linkedItems.length > 0) {
         const syncData = {};
-        if (data.sku !== undefined) syncData.article_batch_number = data.sku;
+        if (data.sku !== undefined) syncData.article_sku = data.sku;
         if (data.name !== undefined) syncData.article_name = data.name;
         if (Object.keys(syncData).length > 0) {
           await Promise.all(linkedItems.map(item => base44.entities.PurchaseOrderItem.update(item.id, syncData)));
