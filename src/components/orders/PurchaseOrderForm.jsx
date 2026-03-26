@@ -420,7 +420,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-auto"
+        className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-auto"
       >
         <div className="sticky top-0 bg-slate-900 border-b border-slate-700 p-6 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white">
