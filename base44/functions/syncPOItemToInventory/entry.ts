@@ -62,22 +62,26 @@ Deno.serve(async (req) => {
               return Response.json({ success: true, action: 'deleted_cancelled_article' });
             }
           } else {
+            // Always sync unit_cost when unit_price is set on the PO item
+            const updatePayload = {};
+            if (poItem.unit_price != null) {
+              updatePayload.unit_cost = poItem.unit_price;
+            }
+
             const newStatus = statusMap[po.status];
             if (newStatus && po.status !== 'received') {
-              // Only update transit notes and ETA if not yet received
+              // Only update transit notes and ETA if not yet received, and only for PO-created articles
               const article = await base44.asServiceRole.entities.Article.get(poItem.article_id).catch(() => null);
               if (article && article.source_purchase_order_id === poItem.purchase_order_id) {
-                const updatePayload = {
-                  status: newStatus,
-                  transit_expected_date: po.expected_delivery_date || po.confirmed_delivery_date || null,
-                  transit_notes: `PO: ${po.po_number || po.id.slice(0,8)} | Leverantör: ${po.supplier_name}`,
-                  stock_qty: poItem.quantity_ordered || 0,
-                };
-                if (poItem.unit_price != null) {
-                  updatePayload.unit_cost = poItem.unit_price;
-                }
-                await base44.asServiceRole.entities.Article.update(poItem.article_id, updatePayload);
+                updatePayload.status = newStatus;
+                updatePayload.transit_expected_date = po.expected_delivery_date || po.confirmed_delivery_date || null;
+                updatePayload.transit_notes = `PO: ${po.po_number || po.id.slice(0,8)} | Leverantör: ${po.supplier_name}`;
+                updatePayload.stock_qty = poItem.quantity_ordered || 0;
               }
+            }
+
+            if (Object.keys(updatePayload).length > 0) {
+              await base44.asServiceRole.entities.Article.update(poItem.article_id, updatePayload);
             }
           }
         }
