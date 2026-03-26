@@ -115,10 +115,22 @@ export default function InventoryPage() {
 
   const updateArticleMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      return base44.entities.Article.update(id, data);
+      const updatedArticle = await base44.entities.Article.update(id, data);
+      // Sync sku and article_name to linked PurchaseOrderItems
+      const linkedItems = await base44.entities.PurchaseOrderItem.filter({ article_id: id });
+      if (linkedItems.length > 0) {
+        const syncData = {};
+        if (data.sku !== undefined) syncData.article_batch_number = data.sku;
+        if (data.name !== undefined) syncData.article_name = data.name;
+        if (Object.keys(syncData).length > 0) {
+          await Promise.all(linkedItems.map(item => base44.entities.PurchaseOrderItem.update(item.id, syncData)));
+        }
+      }
+      return updatedArticle;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
+      queryClient.invalidateQueries({ queryKey: ['purchaseOrderItems'] });
       setEditingArticle(null);
       toast.success("Artikel uppdaterad");
     }
