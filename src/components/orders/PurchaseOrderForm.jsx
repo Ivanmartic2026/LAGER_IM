@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { X, Plus, Trash2, Package, FileText, Sparkles, Edit2, CheckCircle2, ExternalLink } from "lucide-react";
+import { X, Plus, Trash2, Package, FileText, Sparkles, Edit2, CheckCircle2, ExternalLink, Zap } from "lucide-react";
 
 export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [formData, setFormData] = useState({
@@ -249,6 +249,19 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
     setPOItems(poItems.map((item, i) => 
       i === index ? { ...item, [field]: value } : item
     ));
+  };
+
+  const generateSku = (item, index) => {
+    const name = item.article_name || '';
+    const words = name.replace(/[^a-zA-Z0-9\s]/g, '').trim().toUpperCase().split(/\s+/).filter(w => w.length > 0);
+    const namePart = words.slice(0, 3).map(w => w.substring(0, 4)).join('-');
+    const batchSuffix = item.article_batch_number?.length >= 4 ? `-${item.article_batch_number.slice(-4)}` : '';
+    const prefix = '90';
+    const baseSku = `${prefix}-${namePart}${batchSuffix}`;
+    // Check for duplicates among current items
+    const siblings = poItems.filter((it, i) => i !== index && it.article_sku?.startsWith(baseSku));
+    const sku = siblings.length > 0 ? `${baseSku}-${String(siblings.length + 1).padStart(2, '0')}` : baseSku;
+    handleUpdateItem(index, 'article_sku', sku);
   };
 
   const handleInvoiceScan = async (e) => {
@@ -813,13 +826,21 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                       key={index}
                       className="grid grid-cols-[110px_110px_minmax(160px,1fr)_90px_80px_90px_auto] gap-3 p-4 rounded-lg bg-slate-800/50 border border-slate-700 items-center"
                     >
-                      <div>
+                      <div className="flex gap-1 items-center">
                         <Input
                           value={item.article_sku || ''}
                           onChange={(e) => handleUpdateItem(index, 'article_sku', e.target.value)}
                           placeholder="SKU/Artikelnr"
-                          className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                          className="bg-slate-800 border-slate-700 text-white text-sm h-9 flex-1"
                         />
+                        <button
+                          type="button"
+                          title="Auto-generera SKU"
+                          onClick={() => generateSku(item, index)}
+                          className="h-9 w-9 flex-shrink-0 flex items-center justify-center rounded-md bg-slate-700 hover:bg-amber-500/20 hover:text-amber-400 text-slate-400 border border-slate-600 transition-colors"
+                        >
+                          <Zap className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                       <div>
                         <Input
