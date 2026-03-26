@@ -338,26 +338,33 @@ Deno.serve(async (req) => {
 </body>
 </html>`;
 
-    // Send to main recipient
-    await base44.integrations.Core.SendEmail({
-      to: accountingEmail,
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+    if (!RESEND_API_KEY) {
+      return Response.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 });
+    }
+
+    const ccList = (ccEmails || []).filter(e => e && e !== accountingEmail);
+
+    const resendPayload = {
+      from: 'IMvision Lager <noreply@imvision.se>',
+      to: [accountingEmail],
+      cc: ccList.length > 0 ? ccList : undefined,
       subject: `Ekonomipaket: ${poNum} – ${po.supplier_name}`,
-      body: emailBody,
-      from_name: 'IMvision Lager'
+      html: emailBody,
+    };
+
+    const resendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(resendPayload),
     });
 
-    // Send CC copies
-    if (ccEmails && ccEmails.length > 0) {
-      for (const ccEmail of ccEmails) {
-        if (ccEmail && ccEmail !== accountingEmail) {
-          await base44.integrations.Core.SendEmail({
-            to: ccEmail,
-            subject: `[Kopia] Ekonomipaket: ${poNum} – ${po.supplier_name}`,
-            body: emailBody,
-            from_name: 'IMvision Lager'
-          });
-        }
-      }
+    if (!resendRes.ok) {
+      const err = await resendRes.text();
+      return Response.json({ error: `Resend error: ${err}` }, { status: 500 });
     }
 
     return Response.json({ success: true });
