@@ -895,6 +895,7 @@ export default function InventoryPage() {
                         <SelectItem value="all">Alla typer</SelectItem>
                         <SelectItem value="company_owned">Företagsägt</SelectItem>
                         <SelectItem value="customer_owned">Kundägt</SelectItem>
+                        <SelectItem value="installation_register">Anläggninsregister</SelectItem>
                       </SelectContent>
                     </Select>
 
