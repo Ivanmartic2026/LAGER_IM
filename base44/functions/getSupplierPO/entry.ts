@@ -23,6 +23,21 @@ Deno.serve(async (req) => {
       purchase_order_id: purchaseOrder.id 
     });
 
+    // Enrich items with article_sku from Article if not already set
+    const enrichedItems = await Promise.all(items.map(async (item) => {
+      if (!item.article_sku && item.article_id) {
+        try {
+          const articles = await base44.asServiceRole.entities.Article.filter({ id: item.article_id });
+          if (articles.length > 0) {
+            return { ...item, article_sku: articles[0].sku };
+          }
+        } catch (e) {
+          console.warn('Could not fetch article SKU:', e.message);
+        }
+      }
+      return item;
+    }));
+
     let supplier = null;
     if (purchaseOrder.supplier_id) {
       const suppliers = await base44.asServiceRole.entities.Supplier.filter({ 
@@ -31,7 +46,7 @@ Deno.serve(async (req) => {
       supplier = suppliers[0] || null;
     }
 
-    return Response.json({ purchaseOrder, items, supplier });
+    return Response.json({ purchaseOrder, items: enrichedItems, supplier });
 
   } catch (error) {
     console.error('Error:', error);
