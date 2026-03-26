@@ -25,6 +25,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
      invoice_number: purchaseOrder?.invoice_number || '',
      delivery_terms: purchaseOrder?.delivery_terms || '',
      mode_of_transport: purchaseOrder?.mode_of_transport || '',
+     payment_terms: purchaseOrder?.payment_terms || '',
    });
 
   const [poItems, setPOItems] = useState([]);
@@ -580,6 +581,25 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                   <SelectItem value="rail_transport">Rail Transport</SelectItem>
                   <SelectItem value="road_transport">Road Transport (Truck)</SelectItem>
                   <SelectItem value="courier">Courier (DHL, FedEx, UPS, etc.)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                Betalningsvillkor
+              </label>
+              <Select
+                value={formData.payment_terms}
+                onValueChange={(value) => setFormData({ ...formData, payment_terms: value })}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Välj betalningsvillkor..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="20_percent">20% betalning</SelectItem>
+                  <SelectItem value="50_percent">50% betalning</SelectItem>
+                  <SelectItem value="100_percent">100% betalning</SelectItem>
                 </SelectContent>
               </Select>
             </div>
