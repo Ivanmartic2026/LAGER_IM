@@ -283,8 +283,8 @@ Deno.serve(async (req) => {
                 }[po.mode_of_transport] || (po.mode_of_transport || 'As agreed')}</div>
               </div>
               <div style="background: #fafafa; padding: 15px; border: 1px solid #e0e0e0;">
-                <div class="info-label">Warranty</div>
-                <div class="info-value">As per manufacturer's warranty</div>
+                <div class="info-label">Payment Terms</div>
+                <div class="info-value" style="color: ${po.payment_terms ? '#1e40af' : '#666666'}; font-weight: ${po.payment_terms ? '600' : '400'};">${po.payment_terms ? po.payment_terms.replace('_percent', '%').replace('_', ' ').toUpperCase() : 'As agreed'}</div>
               </div>
             </div>
 
