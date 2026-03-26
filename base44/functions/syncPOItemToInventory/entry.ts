@@ -67,12 +67,16 @@ Deno.serve(async (req) => {
               // Only update transit notes and ETA if not yet received
               const article = await base44.asServiceRole.entities.Article.get(poItem.article_id).catch(() => null);
               if (article && article.source_purchase_order_id === poItem.purchase_order_id) {
-                await base44.asServiceRole.entities.Article.update(poItem.article_id, {
+                const updatePayload = {
                   status: newStatus,
                   transit_expected_date: po.expected_delivery_date || po.confirmed_delivery_date || null,
                   transit_notes: `PO: ${po.po_number || po.id.slice(0,8)} | Leverantör: ${po.supplier_name}`,
                   stock_qty: poItem.quantity_ordered || 0,
-                });
+                };
+                if (poItem.unit_price != null) {
+                  updatePayload.unit_cost = poItem.unit_price;
+                }
+                await base44.asServiceRole.entities.Article.update(poItem.article_id, updatePayload);
               }
             }
           }
