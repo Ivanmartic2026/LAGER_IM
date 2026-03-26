@@ -123,8 +123,8 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           purchase_order_id: savedPO.id,
           article_id: item.article_id || null,
           article_name: article?.name || item.article_name,
-          article_sku: article?.sku || item.article_sku,
-          article_batch_number: article?.batch_number || item.article_batch_number,
+          article_sku: item.article_sku || article?.sku,
+          article_batch_number: item.article_batch_number || article?.batch_number,
           quantity_ordered: item.quantity_ordered,
           quantity_received: item.quantity_received || 0,
           unit_price: item.unit_price != null ? item.unit_price : 0,
@@ -137,10 +137,14 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           await base44.entities.PurchaseOrderItem.create(itemData);
         }
 
-        // Update article's transit_expected_date and unit_cost so ETA and price shows in Inventory
+        // Sync article SKU back to Inventory and update other fields
         if (item.article_id) {
           try {
             const articleUpdate = {};
+            // Sync SKU if changed in PO
+            if (item.article_sku && item.article_sku !== article?.sku) {
+              articleUpdate.sku = item.article_sku;
+            }
             if (data.expected_delivery_date) {
               articleUpdate.transit_expected_date = data.expected_delivery_date;
               articleUpdate.status = 'in_transit';
