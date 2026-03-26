@@ -136,15 +136,21 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           await base44.entities.PurchaseOrderItem.create(itemData);
         }
 
-        // Update article's transit_expected_date so ETA shows in Inventory
-        if (item.article_id && data.expected_delivery_date) {
+        // Update article's transit_expected_date and unit_cost so ETA and price shows in Inventory
+        if (item.article_id) {
           try {
-            await base44.entities.Article.update(item.article_id, {
-              transit_expected_date: data.expected_delivery_date,
-              status: 'in_transit'
-            });
+            const articleUpdate = {};
+            if (data.expected_delivery_date) {
+              articleUpdate.transit_expected_date = data.expected_delivery_date;
+              articleUpdate.status = 'in_transit';
+            }
+            if (item.unit_price != null && item.unit_price !== undefined) {
+              articleUpdate.unit_cost = item.unit_price;
+            }
+            if (Object.keys(articleUpdate).length > 0) {
+              await base44.entities.Article.update(item.article_id, articleUpdate);
+            }
           } catch (e) {
-            // Article may have been deleted externally - skip silently
             console.warn('Could not update article', item.article_id, e.message);
           }
         }
