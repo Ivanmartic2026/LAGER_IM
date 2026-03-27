@@ -200,7 +200,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                 <div>
                   <Label className="text-slate-300">
                     Article Number
-                    <span className="text-xs text-slate-400 ml-2">(Genereras automatiskt)</span>
+                    <span className="text-xs text-slate-400 ml-2">(Auto-generated)</span>
                   </Label>
                   <div className="flex gap-2">
                     <Input
@@ -251,6 +251,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                 </div>
                 <div>
                   <Label className="text-slate-300">Batch ID</Label>
+
                   <Input
                     value={formData.batch_number}
                     onChange={(e) => handleChange('batch_number', e.target.value)}

@@ -861,7 +861,7 @@ export default function ArticleDetail({
               {editingBasicInfo ? (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Benämning *</label>
+                    <label className="text-xs text-slate-400 mb-1 block">Product Name *</label>
                     <Input
                       type="text"
                       value={basicInfoData.name}
@@ -871,7 +871,7 @@ export default function ArticleDetail({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Batch Nummer</label>
+                    <label className="text-xs text-slate-400 mb-1 block">Batch ID</label>
                     <Input
                       type="text"
                       value={basicInfoData.batch_number}
@@ -922,9 +922,9 @@ export default function ArticleDetail({
                 </div>
               ) : (
                 <div className="space-y-0">
-                  <InfoRow icon={Package} label="Benämning" value={article.name} />
+                  <InfoRow icon={Package} label="Product Name" value={article.name} />
                   {article.batch_number && (
-                    <InfoRow icon={Hash} label="Batch Nummer" value={article.batch_number} />
+                    <InfoRow icon={Hash} label="Batch ID" value={article.batch_number} />
                   )}
                   {article.manufacturer && (
                     <InfoRow icon={Factory} label="Manufacturer" value={article.manufacturer} />
