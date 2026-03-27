@@ -52,23 +52,28 @@ Deno.serve(async (req) => {
 
     const { order_id, customer_number, your_order_number, delivery_date, order_rows } = await req.json();
 
-    if (!order_id || !customer_number || !your_order_number || !order_rows) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    // Only customer_number and order_rows are truly required
+    if (!customer_number || !order_rows || order_rows.length === 0) {
+      return Response.json({ error: 'Missing required fields: customer_number and order_rows' }, { status: 400 });
     }
 
     const accessToken = await getFortnoxToken(base44);
 
     const fortnoxOrderData = {
       CustomerNumber: customer_number,
-      YourOrderNumber: your_order_number,
       DeliveryDate: delivery_date || new Date().toISOString().split('T')[0],
       OrderRows: order_rows.map(r => ({
-        ArticleNumber: r.article_number,
+        ArticleNumber: r.article_number || '',
         Description: r.description || '',
         OrderedQuantity: r.quantity || 0,
-        Price: r.price || 0
+        Price: r.price !== undefined ? r.price : 0
       }))
     };
+
+    // YourOrderNumber is optional, only set if provided
+    if (your_order_number) {
+      fortnoxOrderData.YourOrderNumber = your_order_number;
+    }
 
     const response = await fetch(`${FORTNOX_API_BASE}/orders`, {
       method: 'POST',

@@ -28,17 +28,23 @@ export default function FortnoxSyncButton({ order, orderItems, onSyncSuccess }) 
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const order_rows = (orderItems || []).map(item => ({
-        article_number: item.article_sku || item.article_id || 'UNKNOWN',
-        description: item.article_name || 'Item',
-        quantity: item.quantity_picked || item.quantity_ordered || 0,
-        price: 0
-      }));
+      // Fetch full article data to get prices and SKUs
+      const articles = await base44.entities.Article.list();
+      
+      const order_rows = (orderItems || []).map(item => {
+        const article = articles.find(a => a.id === item.article_id);
+        return {
+          article_number: article?.sku || article?.fortnox_article_number || item.article_id || 'UNKNOWN',
+          description: item.article_name || 'Item',
+          quantity: item.quantity_picked || item.quantity_ordered || 0,
+          price: article?.sales_price || article?.price || 0
+        };
+      });
 
       const result = await base44.functions.invoke('fortnoxOrderSync', {
         order_id: order.id,
         customer_number: order.fortnox_customer_number,
-        your_order_number: order.order_number,
+        your_order_number: order.order_number || `ORD-${order.id.slice(0, 8)}`,
         delivery_date: order.delivery_date || new Date().toISOString().split('T')[0],
         order_rows
       });
