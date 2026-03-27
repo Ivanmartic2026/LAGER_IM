@@ -44,7 +44,7 @@ export default function WarehousesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['warehouses'] });
       setShowForm(false);
-      toast.success("Lagerställe skapat");
+      toast.success("Warehouse created");
     }
   });
 
@@ -54,7 +54,7 @@ export default function WarehousesPage() {
       queryClient.invalidateQueries({ queryKey: ['warehouses'] });
       setEditingWarehouse(null);
       setShowForm(false);
-      toast.success("Lagerställe uppdaterat");
+      toast.success("Warehouse updated");
     }
   });
 
@@ -62,7 +62,7 @@ export default function WarehousesPage() {
     mutationFn: (id) => base44.entities.Warehouse.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['warehouses'] });
-      toast.success("Lagerställe borttaget");
+      toast.success("Warehouse deleted");
     }
   });
 
@@ -84,11 +84,11 @@ export default function WarehousesPage() {
     const warehouseArticles = articles.filter(a => a.warehouse === warehouse.name);
     
     if (warehouseShelves.length > 0 || warehouseArticles.length > 0) {
-      toast.error("Kan inte ta bort lager som har hyllor eller artiklar");
+      toast.error("Cannot delete a warehouse that has shelves or articles");
       return;
     }
     
-    if (confirm(`Är du säker på att du vill ta bort ${warehouse.name}?`)) {
+    if (confirm(`Are you sure you want to delete ${warehouse.name}?`)) {
       deleteWarehouseMutation.mutate(warehouse.id);
     }
   };
@@ -129,8 +129,8 @@ export default function WarehousesPage() {
                 <Warehouse className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white tracking-tight">Lagerställen</h1>
-                <p className="text-sm text-white/50">{warehouses.length} lager</p>
+                <h1 className="text-2xl font-bold text-white tracking-tight">Warehouses</h1>
+                <p className="text-sm text-white/50">{warehouses.length} warehouses</p>
               </div>
             </div>
             
@@ -142,7 +142,7 @@ export default function WarehousesPage() {
               className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Nytt lagerställe
+              New Warehouse
             </Button>
           </div>
 
@@ -152,7 +152,7 @@ export default function WarehousesPage() {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Sök lagerställe..."
+              placeholder="Search warehouse..."
               className="pl-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300"
             />
           </div>
@@ -171,12 +171,12 @@ export default function WarehousesPage() {
               <Warehouse className="w-8 h-8 text-white/30" />
             </div>
             <h3 className="text-lg font-semibold text-white mb-2 tracking-tight">
-              {searchQuery ? "Inga lagerställen hittades" : "Inga lagerställen ännu"}
+              {searchQuery ? "No warehouses found" : "No warehouses yet"}
             </h3>
             <p className="text-white/50 mb-6">
               {searchQuery 
-                ? "Prova ett annat sökord" 
-                : "Börja med att skapa ditt första lagerställe"}
+                ? "Try a different search term" 
+                : "Start by creating your first warehouse"}
             </p>
             {!searchQuery && (
               <Button
@@ -184,7 +184,7 @@ export default function WarehousesPage() {
                 className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Skapa lagerställe
+                Create Warehouse
               </Button>
             )}
           </div>
@@ -221,7 +221,7 @@ export default function WarehousesPage() {
                             )}
                             {!warehouse.is_active && (
                               <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30">
-                                Inaktiv
+                                Inactive
                               </Badge>
                             )}
                           </div>
@@ -229,11 +229,11 @@ export default function WarehousesPage() {
                           <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
                             <div className="flex items-center gap-1.5">
                               <MapPin className="w-4 h-4" />
-                              <span>{warehouseShelves.length} hyllor</span>
+                              <span>{warehouseShelves.length} shelves</span>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <Warehouse className="w-4 h-4" />
-                              <span>{warehouseArticles.length} artiklar</span>
+                              <span>{warehouseArticles.length} articles</span>
                             </div>
                             {warehouse.address && (
                               <span>{warehouse.address}</span>
@@ -250,7 +250,7 @@ export default function WarehousesPage() {
                           className="bg-blue-600 hover:bg-blue-500 text-white border-0"
                         >
                           <Map className="w-4 h-4 mr-2" />
-                          Schema
+                          Layout
                         </Button>
                         <Button
                           onClick={() => setSelectedWarehouse(warehouse)}
@@ -259,7 +259,7 @@ export default function WarehousesPage() {
                           className="bg-slate-700/50 border-slate-600 hover:bg-slate-700 text-white"
                         >
                           <MapPin className="w-4 h-4 mr-2" />
-                          Hyllor
+                          Shelves
                         </Button>
                         <Button
                           onClick={() => handleEdit(warehouse)}
