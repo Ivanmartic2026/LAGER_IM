@@ -972,164 +972,58 @@ export default function InventoryPage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {/* Header Row - Desktop Only */}
-            <div className="hidden md:flex px-4 py-2 gap-4 text-xs font-medium text-white/40 uppercase tracking-wider border-b border-white/10 items-center">
-              {/* Checkbox */}
-              <div className="w-[40px] flex-shrink-0 flex items-center">
-                <Checkbox
-                  checked={selectedArticleIds.length === filteredArticles.length && filteredArticles.length > 0}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedArticleIds(filteredArticles.map(a => a.id));
-                    } else {
-                      setSelectedArticleIds([]);
-                    }
-                  }}
-                />
+            {/* Desktop Table - scrollable */}
+            <div className="hidden md:block overflow-x-auto rounded-2xl">
+              {/* Header Row */}
+              <div className="flex px-4 py-2 text-xs font-medium text-white/40 uppercase tracking-wider border-b border-white/10 items-center" style={{minWidth: '900px'}}>
+                <div className="w-10 flex-shrink-0 flex items-center">
+                  <Checkbox
+                    checked={selectedArticleIds.length === filteredArticles.length && filteredArticles.length > 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedArticleIds(filteredArticles.map(a => a.id));
+                      } else {
+                        setSelectedArticleIds([]);
+                      }
+                    }}
+                  />
+                </div>
+                <div className="w-16 flex-shrink-0"></div>
+                <div className="w-16 flex-shrink-0 text-center">Stock</div>
+                <div className="w-28 flex-shrink-0 ml-2">ETA</div>
+                <div className="flex-1 min-w-0 ml-2">Product Name</div>
+                <div className="w-32 flex-shrink-0 ml-2">Location</div>
+                <div className="w-44 flex-shrink-0 ml-2">Article Number</div>
+                <div className="w-36 flex-shrink-0 ml-2">Batch ID</div>
               </div>
-              {/* Image placeholder */}
-              <div className="w-[64px] flex-shrink-0"></div>
-              {/* Stock */}
-              <div className="w-[80px] flex-shrink-0 text-center">Stock</div>
-              {/* ETA */}
-              <div className="w-[130px] flex-shrink-0">ETA</div>
-              {/* Name */}
-              <div className="flex-1 min-w-0" style={{minWidth: '280px'}}>Product Name</div>
-              {/* Location */}
-              <div className="w-[150px] flex-shrink-0">Location</div>
-              {/* Article Number */}
-              <div className="w-[220px] flex-shrink-0">Article Number</div>
-              {/* Batch ID */}
-              <div className="w-[200px] flex-shrink-0">Batch ID</div>
-            </div>
 
-            <AnimatePresence>
-              {filteredArticles.map((article) => {
-                const hasLowStock = article.stock_qty <= (article.min_stock_level || 5);
-                const imageUrl = article.image_urls?.[0] || article.image_url;
-
-                return (
-                  <motion.div
-                    key={article.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    onClick={() => setSelectedArticle(article)}
-                    className={cn(
-                      "group p-3 md:p-4 rounded-2xl cursor-pointer transition-all backdrop-blur-xl border active:scale-[0.98] duration-300 hover:shadow-2xl hover:shadow-white/5",
-                      article.status === 'in_transit'
-                        ? "bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/15 hover:border-blue-500/50"
-                        : article.status === 'on_its_way_home'
-                        ? "bg-violet-500/10 border-violet-500/30 hover:bg-violet-500/15 hover:border-violet-500/50"
-                        : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
-                    )}
-                  >
-                    {/* Mobile Layout */}
-                    <div className="md:hidden">
-                      <div className="flex items-start gap-3 mb-2">
+              <AnimatePresence>
+                {filteredArticles.map((article) => {
+                  const hasLowStock = article.stock_qty <= (article.min_stock_level || 5);
+                  const imageUrl = article.image_urls?.[0] || article.image_url;
+                  return (
+                    <motion.div
+                      key={article.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      onClick={() => setSelectedArticle(article)}
+                      style={{minWidth: '900px'}}
+                      className={cn(
+                        "flex items-center px-4 py-3 my-1 rounded-2xl cursor-pointer transition-all backdrop-blur-xl border active:scale-[0.98] duration-300 hover:shadow-2xl hover:shadow-white/5",
+                        article.status === 'in_transit'
+                          ? "bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/15 hover:border-blue-500/50"
+                          : article.status === 'on_its_way_home'
+                          ? "bg-violet-500/10 border-violet-500/30 hover:bg-violet-500/15 hover:border-violet-500/50"
+                          : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
+                      )}
+                    >
+                      <div className="w-10 flex-shrink-0">
                         <Checkbox
                           checked={selectedArticleIds.includes(article.id)}
                           onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedArticleIds(prev => [...prev, article.id]);
-                            } else {
-                              setSelectedArticleIds(prev => prev.filter(id => id !== article.id));
-                            }
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className="mt-1"
-                        />
-                        {imageUrl ? (
-                          <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-slate-900/50">
-                            <img 
-                              src={imageUrl} 
-                              alt={article.name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
-                            <Package className="w-5 h-5 text-white/30" />
-                          </div>
-                        )}
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2 tracking-tight">
-                              {article.customer_name || article.name}
-                            </h3>
-                            <div className={cn(
-                              "text-lg font-bold leading-none flex-shrink-0",
-                              article.stock_qty <= 0 ? "text-red-400" : 
-                              hasLowStock ? "text-amber-400" : "text-white"
-                            )}>
-                              {article.stock_qty || 0}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 text-xs text-white/50 mb-1">
-                            {article.batch_number && (
-                              <span className="font-mono">#{article.batch_number}</span>
-                            )}
-                            {article.supplier_name && (
-                              <>
-                                <span>•</span>
-                                <span className="truncate">{article.supplier_name}</span>
-                              </>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {article.shelf_address && (
-                              <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30 text-xs">
-                                <MapPin className="w-3 h-3 mr-1" />
-                                {article.shelf_address}
-                              </Badge>
-                            )}
-                            {incomingQuantities[article.id] && (
-                              <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-xs font-medium">
-                                🚚 ETA ({incomingQuantities[article.id].quantity} st)
-                                {incomingQuantities[article.id].dates.length > 0 && 
-                                  ` · ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
-                                }
-                              </Badge>
-                            )}
-                            {article.status !== 'active' && (
-                              <Badge className={cn(
-                                "text-xs border",
-                                article.status === 'low_stock' ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
-                                article.status === 'out_of_stock' ? "bg-red-500/20 text-red-400 border-red-500/30" :
-                                article.status === 'on_repair' ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
-                                article.status === 'in_transit' ? "bg-blue-500/20 text-blue-300 border-blue-500/30" :
-                                article.status === 'on_its_way_home' ? "bg-violet-500/20 text-violet-400 border-violet-500/30" :
-                                "bg-slate-500/20 text-slate-400 border-slate-500/30"
-                                )}>
-                                {article.status === 'low_stock' ? 'Lågt' :
-                                 article.status === 'out_of_stock' ? 'Slut' :
-                                 article.status === 'on_repair' ? 'Rep.' : 
-                                 article.status === 'in_transit' ? '🚢 I produktion' :
-                                 article.status === 'on_its_way_home' ? '✈️ På väg hem' :
-                                 article.status === 'discontinued' ? 'Utgått' : article.status}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Desktop Layout */}
-                    <div className="hidden md:flex items-center gap-4">
-                      {/* Checkbox */}
-                      <div className="w-[40px] flex-shrink-0">
-                        <Checkbox
-                          checked={selectedArticleIds.includes(article.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedArticleIds(prev => [...prev, article.id]);
-                            } else {
-                              setSelectedArticleIds(prev => prev.filter(id => id !== article.id));
-                            }
+                            if (checked) setSelectedArticleIds(prev => [...prev, article.id]);
+                            else setSelectedArticleIds(prev => prev.filter(id => id !== article.id));
                           }}
                           onClick={(e) => e.stopPropagation()}
                         />
@@ -1145,18 +1039,18 @@ export default function InventoryPage() {
                         </div>
                       )}
                       {/* Stock */}
-                      <div className="w-[80px] flex-shrink-0 text-center">
+                      <div className="w-16 flex-shrink-0 text-center ml-0">
                         <div className={cn("text-2xl font-bold leading-none mb-1 tracking-tight", article.stock_qty <= 0 ? "text-red-400" : hasLowStock ? "text-amber-400" : "text-white")}>
                           {article.stock_qty || 0}
                         </div>
                         <div className="text-xs text-white/40">st</div>
                       </div>
                       {/* ETA */}
-                      <div className="w-[130px] flex-shrink-0">
+                      <div className="w-28 flex-shrink-0 ml-2">
                         {incomingQuantities[article.id] ? (
-                          <div className="flex flex-col gap-0.5 bg-amber-500/15 border border-amber-500/40 rounded-xl px-3 py-1.5 whitespace-nowrap">
-                            <div className="text-amber-300 text-[11px] font-semibold uppercase tracking-wider">🚚 ETA</div>
-                            <span className="text-amber-200 font-bold text-xs">
+                          <div className="flex flex-col gap-0.5 bg-amber-500/15 border border-amber-500/40 rounded-xl px-2 py-1.5">
+                            <div className="text-amber-300 text-[10px] font-semibold uppercase tracking-wider">🚚 ETA</div>
+                            <span className="text-amber-200 font-bold text-xs truncate">
                               {incomingQuantities[article.id].quantity} st
                               {incomingQuantities[article.id].dates.length > 0 && 
                                 ` · ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
@@ -1164,15 +1058,15 @@ export default function InventoryPage() {
                             </span>
                           </div>
                         ) : article.transit_expected_date ? (
-                          <div className="flex flex-col gap-0.5 bg-blue-600/20 border border-blue-500/30 rounded-xl px-3 py-1.5 whitespace-nowrap">
-                            <div className="text-blue-300 text-[11px] font-semibold uppercase tracking-wider">ETA</div>
+                          <div className="flex flex-col gap-0.5 bg-blue-600/20 border border-blue-500/30 rounded-xl px-2 py-1.5">
+                            <div className="text-blue-300 text-[10px] font-semibold uppercase tracking-wider">ETA</div>
                             <span className="text-white font-bold text-xs">{format(new Date(article.transit_expected_date), "d MMM", { locale: sv })}</span>
                           </div>
                         ) : <span className="text-xs text-white/20">—</span>}
                       </div>
                       {/* Name */}
-                      <div className="flex-1 min-w-0" style={{minWidth: '280px'}}>
-                        <div className="font-semibold text-white text-base mb-1 truncate tracking-tight">{article.customer_name || article.name}</div>
+                      <div className="flex-1 min-w-0 ml-2">
+                        <div className="font-semibold text-white text-sm mb-0.5 truncate tracking-tight">{article.customer_name || article.name}</div>
                         {article.supplier_name && (
                           <div className="text-xs text-white/50 truncate">
                             {article.supplier_name}{article.series && ` • ${article.series}`}{article.pitch_value && ` • ${article.pitch_value}`}
@@ -1180,31 +1074,114 @@ export default function InventoryPage() {
                         )}
                       </div>
                       {/* Location */}
-                      <div className="w-[150px] flex-shrink-0">
+                      <div className="w-32 flex-shrink-0 ml-2">
                         {article.shelf_address ? (
-                          <div className="flex items-center gap-1.5">
-                            <MapPin className="w-4 h-4 text-white/40 flex-shrink-0" />
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
                             <span className="text-sm font-medium text-white truncate">{Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}</span>
                           </div>
-                        ) : (
-                          <span className="text-xs text-white/20">—</span>
-                        )}
+                        ) : <span className="text-xs text-white/20">—</span>}
                       </div>
                       {/* Article Number */}
-                      <div className="w-[220px] flex-shrink-0">
+                      <div className="w-44 flex-shrink-0 ml-2">
                         {article.sku ? (
-                          <span className="text-sm font-mono text-blue-400">{article.sku}</span>
-                        ) : (
-                          <span className="text-xs text-white/20">—</span>
-                        )}
+                          <span className="text-sm font-mono text-blue-400 truncate block">{article.sku}</span>
+                        ) : <span className="text-xs text-white/20">—</span>}
                       </div>
                       {/* Batch ID */}
-                      <div className="w-[200px] flex-shrink-0">
+                      <div className="w-36 flex-shrink-0 ml-2">
                         {article.batch_number ? (
-                          <span className="text-sm font-medium text-white">{article.batch_number}</span>
-                        ) : (
-                          <span className="text-xs text-white/20">—</span>
-                        )}
+                          <span className="text-sm font-medium text-white truncate block">{article.batch_number}</span>
+                        ) : <span className="text-xs text-white/20">—</span>}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+
+            {/* Mobile Layout */}
+            <AnimatePresence>
+              {filteredArticles.map((article) => {
+                const hasLowStock = article.stock_qty <= (article.min_stock_level || 5);
+                const imageUrl = article.image_urls?.[0] || article.image_url;
+                return (
+                  <motion.div
+                    key={article.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    onClick={() => setSelectedArticle(article)}
+                    className={cn(
+                      "md:hidden p-3 rounded-2xl cursor-pointer transition-all backdrop-blur-xl border active:scale-[0.98] duration-300",
+                      article.status === 'in_transit'
+                        ? "bg-blue-500/10 border-blue-500/30"
+                        : article.status === 'on_its_way_home'
+                        ? "bg-violet-500/10 border-violet-500/30"
+                        : "bg-white/5 border-white/10"
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={selectedArticleIds.includes(article.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) setSelectedArticleIds(prev => [...prev, article.id]);
+                          else setSelectedArticleIds(prev => prev.filter(id => id !== article.id));
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-1"
+                      />
+                      {imageUrl ? (
+                        <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-slate-900/50">
+                          <img src={imageUrl} alt={article.name} className="w-full h-full object-cover" loading="lazy" />
+                        </div>
+                      ) : (
+                        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
+                          <Package className="w-5 h-5 text-white/30" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2 tracking-tight">
+                            {article.customer_name || article.name}
+                          </h3>
+                          <div className={cn("text-lg font-bold leading-none flex-shrink-0", article.stock_qty <= 0 ? "text-red-400" : hasLowStock ? "text-amber-400" : "text-white")}>
+                            {article.stock_qty || 0}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-white/50 mb-1">
+                          {article.batch_number && <span className="font-mono">#{article.batch_number}</span>}
+                          {article.supplier_name && <><span>•</span><span className="truncate">{article.supplier_name}</span></>}
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {article.shelf_address && (
+                            <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30 text-xs">
+                              <MapPin className="w-3 h-3 mr-1" />{article.shelf_address}
+                            </Badge>
+                          )}
+                          {incomingQuantities[article.id] && (
+                            <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-xs font-medium">
+                              🚚 ETA ({incomingQuantities[article.id].quantity} st)
+                            </Badge>
+                          )}
+                          {article.status !== 'active' && (
+                            <Badge className={cn("text-xs border",
+                              article.status === 'low_stock' ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
+                              article.status === 'out_of_stock' ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                              article.status === 'on_repair' ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
+                              article.status === 'in_transit' ? "bg-blue-500/20 text-blue-300 border-blue-500/30" :
+                              article.status === 'on_its_way_home' ? "bg-violet-500/20 text-violet-400 border-violet-500/30" :
+                              "bg-slate-500/20 text-slate-400 border-slate-500/30"
+                            )}>
+                              {article.status === 'low_stock' ? 'Lågt' :
+                               article.status === 'out_of_stock' ? 'Slut' :
+                               article.status === 'on_repair' ? 'Rep.' :
+                               article.status === 'in_transit' ? '🚢 I produktion' :
+                               article.status === 'on_its_way_home' ? '✈️ På väg hem' :
+                               article.status === 'discontinued' ? 'Utgått' : article.status}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </motion.div>
