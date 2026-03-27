@@ -973,8 +973,9 @@ export default function InventoryPage() {
         ) : (
           <div className="space-y-2">
             {/* Header Row - Desktop Only */}
-            <div className="hidden md:grid px-4 py-2 grid-cols-[40px_80px_80px_minmax(120px,150px)_minmax(200px,1fr)_minmax(180px,220px)_minmax(200px,250px)] gap-4 text-xs font-medium text-white/40 uppercase tracking-wider border-b border-white/10">
-              <div className="flex items-center">
+            <div className="hidden md:flex px-4 py-2 gap-4 text-xs font-medium text-white/40 uppercase tracking-wider border-b border-white/10 items-center">
+              {/* Checkbox */}
+              <div className="w-[40px] flex-shrink-0 flex items-center">
                 <Checkbox
                   checked={selectedArticleIds.length === filteredArticles.length && filteredArticles.length > 0}
                   onCheckedChange={(checked) => {
@@ -986,13 +987,20 @@ export default function InventoryPage() {
                   }}
                 />
               </div>
-              <div></div>
-              <div>Stock</div>
-              <div>ETA</div>
-              <div>Location</div>
-              <div>Name</div>
-              <div>Article Number</div>
-              <div>Batch ID</div>
+              {/* Image placeholder */}
+              <div className="w-[64px] flex-shrink-0"></div>
+              {/* Stock */}
+              <div className="w-[80px] flex-shrink-0 text-center">Stock</div>
+              {/* ETA */}
+              <div className="w-[130px] flex-shrink-0">ETA</div>
+              {/* Location */}
+              <div className="w-[150px] flex-shrink-0">Location</div>
+              {/* Name */}
+              <div className="flex-1 min-w-0">Name</div>
+              {/* Article Number */}
+              <div className="w-[220px] flex-shrink-0">Article Number</div>
+              {/* Batch ID */}
+              <div className="w-[200px] flex-shrink-0">Batch ID</div>
             </div>
 
             <AnimatePresence>
@@ -1112,118 +1120,92 @@ export default function InventoryPage() {
 
                     {/* Desktop Layout */}
                     <div className="hidden md:flex items-center gap-4">
-                      <Checkbox
-                        checked={selectedArticleIds.includes(article.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedArticleIds(prev => [...prev, article.id]);
-                          } else {
-                            setSelectedArticleIds(prev => prev.filter(id => id !== article.id));
-                          }
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      />
+                      {/* Checkbox */}
+                      <div className="w-[40px] flex-shrink-0">
+                        <Checkbox
+                          checked={selectedArticleIds.includes(article.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedArticleIds(prev => [...prev, article.id]);
+                            } else {
+                              setSelectedArticleIds(prev => prev.filter(id => id !== article.id));
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      {/* Image */}
                       {imageUrl ? (
                         <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-slate-900/50">
-                          <img 
-                            src={imageUrl} 
-                            alt={article.name}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
+                          <img src={imageUrl} alt={article.name} className="w-full h-full object-cover" loading="lazy" />
                         </div>
                       ) : (
                         <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-white/5 flex items-center justify-center">
                           <Package className="w-6 h-6 text-white/30" />
                         </div>
                       )}
-
-                      <div className="w-20 text-center flex-shrink-0">
-                        <div className={cn(
-                          "text-2xl font-bold leading-none mb-1 tracking-tight",
-                          article.stock_qty <= 0 ? "text-red-400" : 
-                          hasLowStock ? "text-amber-400" : "text-white"
-                        )}>
+                      {/* Stock */}
+                      <div className="w-[80px] flex-shrink-0 text-center">
+                        <div className={cn("text-2xl font-bold leading-none mb-1 tracking-tight", article.stock_qty <= 0 ? "text-red-400" : hasLowStock ? "text-amber-400" : "text-white")}>
                           {article.stock_qty || 0}
                         </div>
                         <div className="text-xs text-white/40">st</div>
                       </div>
-
-                      {incomingQuantities[article.id] ? (
-                        <div className="flex-shrink-0 flex flex-col items-center gap-0.5 bg-amber-500/15 border border-amber-500/40 rounded-xl px-3 py-1.5 whitespace-nowrap">
-                          <div className="flex items-center gap-1 text-amber-300 text-[11px] font-semibold uppercase tracking-wider">
-                            <span>🚚 ETA</span>
+                      {/* ETA */}
+                      <div className="w-[130px] flex-shrink-0">
+                        {incomingQuantities[article.id] ? (
+                          <div className="flex flex-col gap-0.5 bg-amber-500/15 border border-amber-500/40 rounded-xl px-3 py-1.5 whitespace-nowrap">
+                            <div className="text-amber-300 text-[11px] font-semibold uppercase tracking-wider">🚚 ETA</div>
+                            <span className="text-amber-200 font-bold text-xs">
+                              {incomingQuantities[article.id].quantity} st
+                              {incomingQuantities[article.id].dates.length > 0 && 
+                                ` · ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
+                              }
+                            </span>
                           </div>
-                          <span className="text-amber-200 font-bold text-xs">
-                            {incomingQuantities[article.id].quantity} st
-                            {incomingQuantities[article.id].dates.length > 0 && 
-                              ` · ${format(new Date(Math.min(...incomingQuantities[article.id].dates.map(d => new Date(d)))), "d MMM", { locale: sv })}`
-                            }
-                          </span>
-                        </div>
-                      ) : article.transit_expected_date ? (
-                        <div className="flex-shrink-0 flex flex-col items-center gap-0.5 bg-blue-600/20 border border-blue-500/30 rounded-xl px-3 py-1.5 whitespace-nowrap">
-                          <div className="flex items-center gap-1 text-blue-300 text-[11px] font-semibold uppercase tracking-wider">
-                            <span>ETA</span>
+                        ) : article.transit_expected_date ? (
+                          <div className="flex flex-col gap-0.5 bg-blue-600/20 border border-blue-500/30 rounded-xl px-3 py-1.5 whitespace-nowrap">
+                            <div className="text-blue-300 text-[11px] font-semibold uppercase tracking-wider">ETA</div>
+                            <span className="text-white font-bold text-xs">{format(new Date(article.transit_expected_date), "d MMM", { locale: sv })}</span>
                           </div>
-                          <span className="text-white font-bold text-xs">
-                            {format(new Date(article.transit_expected_date), "d MMM", { locale: sv })}
-                          </span>
-                        </div>
-                      ) : null}
-
-                      <div className="flex-1 min-w-0 grid grid-cols-[minmax(120px,150px)_minmax(200px,1fr)_minmax(180px,220px)_minmax(200px,250px)] gap-4">
-                         <div className="min-w-0 flex items-center">
-                           {article.shelf_address ? (
-                             <div className="flex items-center gap-1.5">
-                               <MapPin className="w-4 h-4 text-white/40 flex-shrink-0" />
-                               <span className="text-sm font-medium text-white truncate">
-                                 {article.shelf_address}
-                               </span>
-                             </div>
-                           ) : (
-                             <span className="text-xs text-white/20">—</span>
-                           )}
-                         </div>
-
-                         <div className="min-w-0">
-                           <div className="font-semibold text-white text-sm mb-1 truncate tracking-tight">
-                             {article.customer_name || article.name}
-                           </div>
-                           {article.supplier_name && (
-                             <div className="text-xs text-white/50 truncate">
-                               {article.supplier_name}
-                               {article.series && ` • ${article.series}`}
-                               {article.pitch_value && ` • ${article.pitch_value}`}
-                             </div>
-                           )}
-                         </div>
-
-                         <div className="flex-shrink-0">
-                           {article.sku ? (
-                             <div className="text-sm font-mono text-blue-400 whitespace-nowrap">
-                               {article.sku}
-                             </div>
-                           ) : article.batch_number ? (
-                             <div className="text-sm font-mono text-white/50 whitespace-nowrap">
-                               #{article.batch_number}
-                             </div>
-                           ) : (
-                             <span className="text-xs text-white/20">—</span>
-                           )}
-                         </div>
-
-                         <div className="min-w-0 flex items-center">
-                           {article.batch_number ? (
-                             <span className="text-sm font-medium text-white truncate">
-                               {article.batch_number}
-                             </span>
-                           ) : (
-                             <span className="text-xs text-white/20">—</span>
-                           )}
-                         </div>
-
-                         </div>
+                        ) : <span className="text-xs text-white/20">—</span>}
+                      </div>
+                      {/* Location */}
+                      <div className="w-[150px] flex-shrink-0">
+                        {article.shelf_address ? (
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-4 h-4 text-white/40 flex-shrink-0" />
+                            <span className="text-sm font-medium text-white truncate">{Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-white/20">—</span>
+                        )}
+                      </div>
+                      {/* Name */}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-white text-sm mb-1 truncate tracking-tight">{article.customer_name || article.name}</div>
+                        {article.supplier_name && (
+                          <div className="text-xs text-white/50 truncate">
+                            {article.supplier_name}{article.series && ` • ${article.series}`}{article.pitch_value && ` • ${article.pitch_value}`}
+                          </div>
+                        )}
+                      </div>
+                      {/* Article Number */}
+                      <div className="w-[220px] flex-shrink-0">
+                        {article.sku ? (
+                          <span className="text-sm font-mono text-blue-400">{article.sku}</span>
+                        ) : (
+                          <span className="text-xs text-white/20">—</span>
+                        )}
+                      </div>
+                      {/* Batch ID */}
+                      <div className="w-[200px] flex-shrink-0">
+                        {article.batch_number ? (
+                          <span className="text-sm font-medium text-white">{article.batch_number}</span>
+                        ) : (
+                          <span className="text-xs text-white/20">—</span>
+                        )}
+                      </div>
                     </div>
                   </motion.div>
                 );
