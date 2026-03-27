@@ -779,7 +779,7 @@ export default function ArticleDetail({
             className="flex items-center justify-center gap-2 text-sm font-medium text-white/50 data-[state=active]:text-white data-[state=active]:bg-white/10 rounded-lg px-4 py-2.5 transition-all hover:text-white/70 hover:bg-white/5"
           >
             <MessageSquare className="w-4 h-4" />
-            <span className="hidden sm:inline">Kommentarer</span>
+            <span className="hidden sm:inline">Notes</span>
           </TabsTrigger>
           {linkedPurchaseOrder && (
             <TabsTrigger 

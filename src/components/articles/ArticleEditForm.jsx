@@ -842,9 +842,9 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
               </div>
             </div>
 
-            {/* Anteckningar */}
+            {/* Notes */}
             <div>
-              <Label className="text-slate-300">Anteckningar</Label>
+              <Label className="text-slate-300">Notes</Label>
               <Textarea
                 value={formData.notes}
                 onChange={(e) => handleChange('notes', e.target.value)}
