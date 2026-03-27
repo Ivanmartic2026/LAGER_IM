@@ -67,7 +67,7 @@ const SelectContent = React.forwardRef(({ className, children, position = "poppe
         <SelectPrimitive.Content
           ref={ref}
           className={cn(
-            "fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-hidden rounded-t-3xl border-t bg-slate-900 text-white shadow-2xl",
+            "fixed bottom-0 left-0 right-0 z-[300] max-h-[80vh] overflow-hidden rounded-t-3xl border-t bg-slate-900 text-white shadow-2xl",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
             className
