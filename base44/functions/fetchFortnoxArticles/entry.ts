@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 const CLIENT_ID = 'mp08u6gAFPz2';
 const CLIENT_SECRET = 'GjAMHv9Mm7wZW356pZmLdkkBlie0QaPg';
+const TENANT_ID = '211766';
 const FORTNOX_API_BASE = 'https://api.fortnox.se/3';
 
 async function getFortnoxToken() {
@@ -11,6 +12,7 @@ async function getFortnoxToken() {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': 'Basic ' + credentials,
+      'TenantId': TENANT_ID
     },
     body: 'grant_type=client_credentials&scope=article'
   });
