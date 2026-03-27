@@ -48,19 +48,20 @@ async function syncArticles(accessToken, articles) {
   for (const article of articles) {
     try {
       const articleData = {
-        ArticleNumber: article.sku || `ART-${article.id}`,
-        Description: article.name,
-        PurchasePrice: article.unit_cost || 0,
-        Type: article.storage_type === 'company_owned' ? 'STOCK' : 'SERVICE',
-        Manufacturer: article.manufacturer || '',
-        ManufacturerArticleNumber: article.supplier_product_code || '',
-        Height: article.dimensions_height_mm || 0,
-        Depth: article.dimensions_depth_mm || 0,
-        Note: article.transit_notes || ''
+        ArticleNumber: article.ArticleNumber || article.sku || `ART-${article.id}`,
+        Description: article.Description || article.name,
+        PurchasePrice: article.PurchasePrice !== undefined ? article.PurchasePrice : (article.unit_cost || 0),
+        SalesPrice: article.SalesPrice || article.unit_cost || 0,
+        Type: article.Type || (article.storage_type === 'company_owned' ? 'STOCK' : 'SERVICE'),
+        Manufacturer: article.Manufacturer || article.manufacturer || '',
+        ManufacturerArticleNumber: article.ManufacturerArticleNumber || article.supplier_product_code || '',
+        Height: article.Height || article.dimensions_height_mm || 0,
+        Depth: article.Depth || article.dimensions_depth_mm || 0,
+        Note: article.Note || article.transit_notes || ''
       };
 
-      if (article.min_stock_level) {
-        articleData.StockWarning = article.min_stock_level;
+      if (article.StockWarning !== undefined || article.min_stock_level) {
+        articleData.StockWarning = article.StockWarning || article.min_stock_level;
       }
 
       const response = await fetch(`${FORTNOX_API_BASE}/articles/${articleData.ArticleNumber}`, {
