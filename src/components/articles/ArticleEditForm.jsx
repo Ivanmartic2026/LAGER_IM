@@ -533,7 +533,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   )}
                 </div>
                 <div className="md:col-span-2">
-                  <Label className="text-slate-300">Lagerplatser</Label>
+                  <Label className="text-slate-300">Locations</Label>
                   {!formData.warehouse ? (
                     <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 text-sm text-slate-500">
                       Välj lagerställe först

@@ -1062,11 +1062,11 @@ export default function ArticleDetail({
             </div>
           </div>
 
-          {/* Lagerplats & Teknisk */}
+          {/* Location & Teknisk */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-white">Lagerplats</h3>
+                <h3 className="font-semibold text-white">Location</h3>
                 {!editingLocation ? (
                   <button
                     onClick={(e) => {
@@ -1110,7 +1110,7 @@ export default function ArticleDetail({
                           });
                           Object.assign(article, updatedData);
                           setEditingLocation(false);
-                          toast.success('Lagerplats uppdaterad');
+                          toast.success('Location uppdaterad');
                         } catch (error) {
                           toast.error('Kunde inte uppdatera lagerplats');
                         }
@@ -1150,7 +1150,7 @@ export default function ArticleDetail({
                     <InfoRow icon={Warehouse} label="Lagerställe" value={article.warehouse} />
                   )}
                   {article.shelf_address && (
-                    <InfoRow icon={MapPin} label="Lagerplats" value={article.shelf_address} />
+                    <InfoRow icon={MapPin} label="Location" value={article.shelf_address} />
                   )}
                 </div>
               )}
