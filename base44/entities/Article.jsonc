@@ -1,0 +1,226 @@
+{
+  "name": "Article",
+  "type": "object",
+  "properties": {
+    "sku": {
+      "type": "string",
+      "description": "Artikelnummer"
+    },
+    "name": {
+      "type": "string",
+      "description": "Ben\u00e4mning"
+    },
+    "supplier_id": {
+      "type": "string",
+      "description": "Referens till leverant\u00f6r"
+    },
+    "supplier_name": {
+      "type": "string",
+      "description": "Leverant\u00f6rens namn (f\u00f6r enklare s\u00f6kning)"
+    },
+    "unit_cost": {
+      "type": "number",
+      "description": "Enhetskostnad"
+    },
+    "supplier_product_code": {
+      "type": "string",
+      "description": "Leverant\u00f6rens produktkod"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Cabinet",
+        "LED Module",
+        "Power Supply",
+        "Receiving Card",
+        "Control Processor",
+        "Computer",
+        "Cable",
+        "Accessory",
+        "Other"
+      ],
+      "description": "Typ av artikel"
+    },
+    "storage_type": {
+      "type": "string",
+      "enum": [
+        "company_owned",
+        "customer_owned",
+        "rental_stock",
+        "installation_register",
+        "till\u00f6ko_ekonomi"
+      ],
+      "description": "Lagertyp"
+    },
+    "dimensions_width_mm": {
+      "type": "number",
+      "description": "Bredd (mm)"
+    },
+    "dimensions_height_mm": {
+      "type": "number",
+      "description": "H\u00f6jd (mm)"
+    },
+    "dimensions_depth_mm": {
+      "type": "number",
+      "description": "Djup (mm)"
+    },
+    "weight_g": {
+      "type": "number",
+      "description": "Vikt (g)"
+    },
+    "stock_qty": {
+      "type": "number",
+      "description": "I lager (antal)"
+    },
+    "reserved_stock_qty": {
+      "type": "number",
+      "default": 0,
+      "description": "Reserverat f\u00f6r p\u00e5g\u00e5ende ordrar"
+    },
+    "warehouse": {
+      "type": "string",
+      "description": "Lagerst\u00e4lle"
+    },
+    "shelf_address": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lagerplatser"
+    },
+    "batch_number": {
+      "type": "string",
+      "description": "Batch nummer"
+    },
+    "pixel_pitch_mm": {
+      "type": "number",
+      "description": "Pixel Pitch (mm)"
+    },
+    "customer_name": {
+      "type": "string",
+      "description": "Kundnamn/Marknadsnamn"
+    },
+    "pitch_value": {
+      "type": "string",
+      "description": "Pixel pitch v\u00e4rde (t.ex. P1.95, P2.6)"
+    },
+    "series": {
+      "type": "string",
+      "enum": [
+        "Indoor",
+        "Outdoor",
+        "UltraBright",
+        "QP4",
+        "Other"
+      ],
+      "description": "Produktserie/anv\u00e4ndning"
+    },
+    "product_version": {
+      "type": "string",
+      "description": "Produktversion"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Tillverkare"
+    },
+    "manufacturing_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Tillverkningsdatum"
+    },
+    "brightness_nits": {
+      "type": "number",
+      "description": "Ljusstyrka i nits"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "low_stock",
+        "out_of_stock",
+        "discontinued",
+        "on_repair",
+        "in_transit",
+        "on_its_way_home",
+        "unknown_delivery",
+        "pending_verification"
+      ],
+      "default": "active",
+      "description": "Artikelstatus"
+    },
+    "transit_notes": {
+      "type": "string",
+      "description": "Anteckningar om transit/transport"
+    },
+    "transit_expected_date": {
+      "type": "string",
+      "format": "date",
+      "description": "F\u00f6rv\u00e4ntat ankomstdatum f\u00f6r transit"
+    },
+    "image_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Bilder p\u00e5 artikeln/etiketten"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    },
+    "min_stock_level": {
+      "type": "number",
+      "description": "Minsta lagerniv\u00e5 f\u00f6r varning"
+    },
+    "repair_notes": {
+      "type": "string",
+      "description": "Anledning till reparation"
+    },
+    "repair_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum n\u00e4r artikel skickades p\u00e5 reparation"
+    },
+    "cfg_file_url": {
+      "type": "string",
+      "description": "L\u00e4nk till CFG-konfigurationsfil"
+    },
+    "unknown_delivery_reference": {
+      "type": "string",
+      "description": "Referensnummer f\u00f6r ok\u00e4nd inleverans"
+    },
+    "delivery_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum f\u00f6r inleverans"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Vem som utreder den ok\u00e4nda leveransen (email)"
+    },
+    "ai_extracted_data": {
+      "type": "object",
+      "description": "Ursprunglig AI-extraherad data fr\u00e5n scanning"
+    },
+    "ai_confidence_scores": {
+      "type": "object",
+      "description": "AI confidence scores f\u00f6r extraherade f\u00e4lt"
+    },
+    "source_invoice_url": {
+      "type": "string",
+      "description": "L\u00e4nk till originalfaktura som artikeln skapades fr\u00e5n"
+    },
+    "source_invoice_number": {
+      "type": "string",
+      "description": "Fakturanummer som artikeln skapades fr\u00e5n"
+    },
+    "source_purchase_order_id": {
+      "type": "string",
+      "description": "Referens till ink\u00f6psorder som artikeln skapades fr\u00e5n"
+    }
+  },
+  "required": [
+    "name",
+    "storage_type"
+  ]
+}
