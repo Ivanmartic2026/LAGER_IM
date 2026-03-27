@@ -17,6 +17,7 @@ export default function FortnoxSyncPage() {
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [syncResult, setSyncResult] = useState(null);
   const [mode, setMode] = useState('manual'); // 'manual' or 'suppliers'
+  const [syncingArticleId, setSyncingArticleId] = useState(null);
 
   useEffect(() => {
     fetchArticles();
@@ -128,6 +129,41 @@ export default function FortnoxSyncPage() {
     } catch (error) {
       console.error('Error updating article:', error);
       toast.error('Kunde inte uppdatera artikel');
+    }
+  };
+
+  const handleSyncSingleArticle = (article) => {
+    setConfirmDialog({
+      type: 'singleArticle',
+      article: article,
+      count: 1,
+      label: 'artikel'
+    });
+  };
+
+  const executeSingleSync = async () => {
+    if (!confirmDialog?.article) return;
+    
+    setSyncingArticleId(confirmDialog.article.id);
+    try {
+      const result = await base44.functions.invoke('fortnoxSyncV2', {
+        syncType: 'articles',
+        articles: [confirmDialog.article]
+      });
+
+      if (result.data.success) {
+        await base44.entities.Article.update(confirmDialog.article.id, { fortnox_synced: true });
+        await fetchArticles();
+        toast.success('Artikel synkad framgångsrikt!');
+      } else {
+        toast.error(`Synkronisering misslyckades: ${result.data.error}`);
+      }
+    } catch (error) {
+      console.error('Sync error:', error);
+      toast.error('Synkronisering misslyckades');
+    } finally {
+      setSyncingArticleId(null);
+      setConfirmDialog(null);
     }
   };
 
@@ -249,6 +285,7 @@ export default function FortnoxSyncPage() {
                         <th className="p-3 text-left text-white/70">Lager-saldo</th>
                         <th className="p-3 text-left text-white/70">Status</th>
                         <th className="p-3 text-left text-white/70">Auto-synk</th>
+                        <th className="p-3 text-left text-white/70">Åtgärder</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -288,7 +325,27 @@ export default function FortnoxSyncPage() {
                               {article.fortnox_synced ? 'Aktiv' : 'Inaktiv'}
                             </button>
                           </td>
-                        </tr>
+                          <td className="p-3">
+                            <button
+                              onClick={() => handleSyncSingleArticle(article)}
+                              disabled={syncingArticleId === article.id || article.fortnox_synced}
+                              className={`px-3 py-1 rounded text-xs font-medium transition-all whitespace-nowrap ${
+                                article.fortnox_synced
+                                  ? 'bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50'
+                                  : 'bg-blue-600/30 text-blue-300 hover:bg-blue-600/50'
+                              }`}
+                            >
+                              {syncingArticleId === article.id ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 inline mr-1 animate-spin" />
+                                  Synkar...
+                                </>
+                              ) : (
+                                <>Synka →</>
+                              )}
+                            </button>
+                          </td>
+                          </tr>
                       ))}
                     </tbody>
                   </table>
@@ -401,23 +458,26 @@ export default function FortnoxSyncPage() {
             <p className="text-white/70">
               Vill du synka {confirmDialog?.count} {confirmDialog?.label} till Fortnox?
             </p>
+            {confirmDialog?.article && (
+              <p className="text-sm text-white/50 mt-2">{confirmDialog.article.sku} - {confirmDialog.article.name}</p>
+            )}
           </div>
 
           <DialogFooter className="gap-3">
             <Button
               variant="outline"
               onClick={() => setConfirmDialog(null)}
-              disabled={syncing}
+              disabled={syncing || syncingArticleId}
               className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
             >
               Avbryt
             </Button>
             <Button
-              onClick={() => confirmDialog && executeSync(confirmDialog.type)}
-              disabled={syncing}
+              onClick={() => confirmDialog?.type === 'singleArticle' ? executeSingleSync() : executeSync(confirmDialog?.type)}
+              disabled={syncing || syncingArticleId}
               className="bg-blue-600 hover:bg-blue-500 text-white"
             >
-              {syncing ? (
+              {syncing || syncingArticleId ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Synkar...
