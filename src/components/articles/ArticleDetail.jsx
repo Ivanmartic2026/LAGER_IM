@@ -880,7 +880,7 @@ export default function ArticleDetail({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Tillverkare</label>
+                    <label className="text-xs text-slate-400 mb-1 block">Manufacturer</label>
                     <Select
                       value={basicInfoData.manufacturer}
                       onValueChange={(value) => setBasicInfoData({...basicInfoData, manufacturer: value})}
@@ -927,7 +927,7 @@ export default function ArticleDetail({
                     <InfoRow icon={Hash} label="Batch Nummer" value={article.batch_number} />
                   )}
                   {article.manufacturer && (
-                    <InfoRow icon={Factory} label="Tillverkare" value={article.manufacturer} />
+                    <InfoRow icon={Factory} label="Manufacturer" value={article.manufacturer} />
                   )}
                   {article.category && (
                     <InfoRow icon={Tag} label="Typ av artikel" value={article.category} />
@@ -1263,7 +1263,7 @@ export default function ArticleDetail({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Tillverkare</label>
+                    <label className="text-xs text-slate-400 mb-1 block">Manufacturer</label>
                     <Input
                       type="text"
                       value={technicalData.manufacturer}
@@ -1296,7 +1296,7 @@ export default function ArticleDetail({
                     <InfoRow icon={Grid3X3} label="Ljusstyrka" value={`${article.brightness_nits} nits`} />
                   )}
                   {article.manufacturer && (
-                    <InfoRow icon={Factory} label="Tillverkare" value={article.manufacturer} />
+                    <InfoRow icon={Factory} label="Manufacturer" value={article.manufacturer} />
                   )}
                   {article.manufacturing_date && !isNaN(new Date(article.manufacturing_date).getTime()) && (
                     <InfoRow icon={Calendar} label="Tillverkningsdatum" value={
@@ -1329,7 +1329,7 @@ export default function ArticleDetail({
                   <InfoRow icon={Grid3X3} label="Ljusstyrka" value={`${article.brightness_nits} nits`} />
                 )}
                 {article.manufacturer && (
-                  <InfoRow icon={Factory} label="Tillverkare" value={article.manufacturer} />
+                  <InfoRow icon={Factory} label="Manufacturer" value={article.manufacturer} />
                 )}
                 {article.manufacturing_date && !isNaN(new Date(article.manufacturing_date).getTime()) && (
                   <InfoRow icon={Calendar} label="Tillverkningsdatum" value={
