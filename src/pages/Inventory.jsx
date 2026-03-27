@@ -892,11 +892,12 @@ export default function InventoryPage() {
                         <SelectValue placeholder="Lagertyp" />
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                        <SelectItem value="all">Alla typer</SelectItem>
-                        <SelectItem value="company_owned">Företagsägt</SelectItem>
-                        <SelectItem value="customer_owned">Kundägt</SelectItem>
-                        <SelectItem value="installation_register">Anläggninsregister</SelectItem>
-                        <SelectItem value="tillö_ekonomi">Tillö Ekonomi</SelectItem>
+                      <SelectItem value="all">Alla typer</SelectItem>
+                      <SelectItem value="company_owned">Företagsägt</SelectItem>
+                      <SelectItem value="customer_owned">Kundägt</SelectItem>
+                      <SelectItem value="rental_stock">Hyrlager</SelectItem>
+                      <SelectItem value="installation_register">Anläggsningsregister</SelectItem>
+                      <SelectItem value="tillöko_ekonomi">Tillöko Ekonomi</SelectItem>
                       </SelectContent>
                     </Select>
 
@@ -1341,6 +1342,9 @@ export default function InventoryPage() {
             <SelectItem value={null}>Ingen ändring</SelectItem>
             <SelectItem value="company_owned">Företagsägt</SelectItem>
             <SelectItem value="customer_owned">Kundägt</SelectItem>
+            <SelectItem value="rental_stock">Hyrlager</SelectItem>
+            <SelectItem value="installation_register">Anläggsningsregister</SelectItem>
+            <SelectItem value="tillöko_ekonomi">Tillöko Ekonomi</SelectItem>
             </SelectContent>
             </Select>
             </div>

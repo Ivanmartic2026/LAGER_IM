@@ -411,6 +411,8 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                       <SelectItem value="company_owned">Company-owned stock</SelectItem>
                       <SelectItem value="customer_owned">Customer-owned stock</SelectItem>
                       <SelectItem value="rental_stock">Rental stock</SelectItem>
+                      <SelectItem value="installation_register">Installation register</SelectItem>
+                      <SelectItem value="tillöko_ekonomi">Tillöko Ekonomi</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
