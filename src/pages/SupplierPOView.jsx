@@ -173,7 +173,7 @@ export default function SupplierPOView() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium text-gray-900">{item.article_name}</div>
-                      {item.article_sku && <div className="text-gray-400 text-xs mt-0.5">SKU: <span className="font-mono">{item.article_sku}</span></div>}
+                      {item.article_sku && <div className="text-gray-400 text-xs mt-0.5">Article Number: <span className="font-mono">{item.article_sku}</span></div>}
                       <div className="text-gray-500 mt-0.5">
                         Ordered: <span className="font-medium">{item.quantity_ordered} pcs</span>
                         {item.quantity_confirmed && item.quantity_confirmed !== item.quantity_ordered && (

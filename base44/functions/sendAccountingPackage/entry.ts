@@ -156,8 +156,8 @@ async function generatePOHtml(base44, purchaseOrderId) {
       <table>
         <thead>
           <tr>
-            <th>SKU</th>
-            <th>Article</th>
+          <th>Article Number</th>
+          <th>Article</th>
             <th>Batch</th>
             <th style="text-align: center;">Qty</th>
             <th style="text-align: right;">Price</th>
@@ -306,7 +306,7 @@ Deno.serve(async (req) => {
       <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
         <thead>
            <tr style="background:#f1f5f9;">
-             <th style="padding:10px 12px;text-align:left;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">SKU</th>
+             <th style="padding:10px 12px;text-align:left;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Article Number</th>
              <th style="padding:10px 12px;text-align:left;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Benämning</th>
              <th style="padding:10px 12px;text-align:center;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Batch</th>
              <th style="padding:10px 12px;text-align:center;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Antal</th>
