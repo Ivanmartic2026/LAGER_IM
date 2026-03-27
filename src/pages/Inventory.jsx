@@ -996,7 +996,7 @@ export default function InventoryPage() {
               {/* Location */}
               <div className="w-[150px] flex-shrink-0">Location</div>
               {/* Name */}
-              <div className="flex-1 min-w-0">Product Name</div>
+              <div className="flex-1 min-w-0" style={{minWidth: '280px'}}>Product Name</div>
               {/* Article Number */}
               <div className="w-[220px] flex-shrink-0">Article Number</div>
               {/* Batch ID */}
@@ -1182,7 +1182,7 @@ export default function InventoryPage() {
                         )}
                       </div>
                       {/* Name */}
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0" style={{minWidth: '280px'}}>
                         <div className="font-semibold text-white text-base mb-1 truncate tracking-tight">{article.customer_name || article.name}</div>
                         {article.supplier_name && (
                           <div className="text-xs text-white/50 truncate">
