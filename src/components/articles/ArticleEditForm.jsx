@@ -405,10 +405,10 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
 
             {/* Mått & Vikt */}
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Mått & Vikt</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Dimensions & Weight</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Bredd (mm)</Label>
+                  <Label className="text-slate-300">Width (mm)</Label>
                   <Input
                     type="number"
                     step="0.1"
@@ -419,7 +419,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Höjd (mm)</Label>
+                  <Label className="text-slate-300">Height (mm)</Label>
                   <Input
                     type="number"
                     step="0.1"
@@ -430,7 +430,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Djup (mm)</Label>
+                  <Label className="text-slate-300">Depth (mm)</Label>
                   <Input
                     type="number"
                     step="0.1"
@@ -441,7 +441,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Vikt (g)</Label>
+                  <Label className="text-slate-300">Weight (g)</Label>
                   <Input
                     type="number"
                     step="0.1"
