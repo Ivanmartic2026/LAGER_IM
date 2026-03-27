@@ -225,9 +225,8 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      type: syncType,
-      succeeded: result.succeeded,
-      failed: result.failed
+      synced: result.succeeded,
+      errors: []
     });
   } catch (error) {
     console.error('Fortnox sync error:', error);
