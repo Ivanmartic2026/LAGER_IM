@@ -10,7 +10,7 @@ async function getFortnoxToken() {
     client_id: CLIENT_ID,
     client_secret: CLIENT_SECRET,
     grant_type: 'client_credentials',
-    scope: 'articles articles:read'
+    scope: 'article'
   });
 
   const response = await fetch(FORTNOX_TOKEN_URL, {
