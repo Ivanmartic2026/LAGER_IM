@@ -46,6 +46,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'WEBHOOK_URL is not configured' }, { status: 500 });
     }
 
+    // Log incoming event for debugging
+
     const body = await req.json();
     const { event, data, old_data } = body;
 
