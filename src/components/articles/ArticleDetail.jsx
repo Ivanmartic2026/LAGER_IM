@@ -898,7 +898,7 @@ export default function ArticleDetail({
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Typ av artikel</label>
+                    <label className="text-xs text-slate-400 mb-1 block">Category</label>
                     <Select
                       value={basicInfoData.category}
                       onValueChange={(value) => setBasicInfoData({...basicInfoData, category: value})}
@@ -930,7 +930,7 @@ export default function ArticleDetail({
                     <InfoRow icon={Factory} label="Manufacturer" value={article.manufacturer} />
                   )}
                   {article.category && (
-                    <InfoRow icon={Tag} label="Typ av artikel" value={article.category} />
+                    <InfoRow icon={Tag} label="Category" value={article.category} />
                   )}
                 </div>
               )}

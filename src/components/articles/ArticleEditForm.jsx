@@ -319,7 +319,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Typ av artikel</Label>
+                  <Label className="text-slate-300">Category</Label>
                   <Select value={formData.category} onValueChange={(value) => handleChange('category', value)}>
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                       <SelectValue placeholder="Välj kategori" />
