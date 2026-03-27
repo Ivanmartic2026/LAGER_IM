@@ -553,8 +553,8 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                       <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                         <SelectValue placeholder="Välj lagerställe" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-[60vh]">
-                        {warehouses.map((warehouse) => (
+                      <SelectContent className="max-h-[60vh]" style={{ zIndex: 300 }} onCloseAutoFocus={(e) => e.preventDefault()}>
+                       {warehouses.map((warehouse) => (
                           <SelectItem key={warehouse.id} value={warehouse.name}>
                             {warehouse.code ? `${warehouse.code} - ${warehouse.name}` : warehouse.name}
                           </SelectItem>
@@ -801,7 +801,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                       <SelectValue placeholder="Välj status" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent style={{ zIndex: 300 }} onCloseAutoFocus={(e) => e.preventDefault()}>
                       <SelectItem value="active">✅ Aktiv / I lager</SelectItem>
                       <SelectItem value="in_transit">🚢 In Production / I transit</SelectItem>
                       <SelectItem value="low_stock">⚠️ Lågt lager</SelectItem>
