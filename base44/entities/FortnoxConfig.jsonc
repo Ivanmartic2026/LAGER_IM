@@ -1,0 +1,21 @@
+{
+  "name": "FortnoxConfig",
+  "type": "object",
+  "properties": {
+    "access_token": {
+      "type": "string",
+      "description": "Fortnox OAuth access token"
+    },
+    "refresh_token": {
+      "type": "string",
+      "description": "Fortnox OAuth refresh token"
+    },
+    "token_expires_at": {
+      "type": "number",
+      "description": "Timestamp when access token expires (milliseconds)"
+    }
+  },
+  "required": [
+    "refresh_token"
+  ]
+}
