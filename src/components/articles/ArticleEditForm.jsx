@@ -408,12 +408,10 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                       <SelectValue placeholder="Select stock type" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[60vh]" onCloseAutoFocus={(e) => e.preventDefault()}>
-                      <SelectItem value="company_owned">Company-owned stock</SelectItem>
-                      <SelectItem value="customer_owned">Customer-owned stock</SelectItem>
-                      <SelectItem value="rental_stock">Rental stock</SelectItem>
-                      <SelectItem value="installation_register">Installation register</SelectItem>
-                      <SelectItem value="tillöko_ekonomi">Tillöko Ekonomi</SelectItem>
-                    </SelectContent>
+                       <SelectItem value="company_owned">Company-owned stock</SelectItem>
+                       <SelectItem value="customer_owned">Customer-owned stock</SelectItem>
+                       <SelectItem value="rental_stock">Rental stock</SelectItem>
+                     </SelectContent>
                   </Select>
                 </div>
               </div>

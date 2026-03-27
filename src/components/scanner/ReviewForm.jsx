@@ -26,9 +26,7 @@ const CATEGORY_OPTIONS = [
 const STORAGE_TYPE_OPTIONS = [
   { value: "company_owned", label: "Företagsägt lager" },
   { value: "customer_owned", label: "Kundägt lager" },
-  { value: "rental_stock", label: "Hyrlager" },
-  { value: "installation_register", label: "Anläggsningsregister" },
-  { value: "tillöko_ekonomi", label: "Tillöko Ekonomi" }
+  { value: "rental_stock", label: "Hyrlager" }
 ];
 
 const FIELD_LABELS = {
