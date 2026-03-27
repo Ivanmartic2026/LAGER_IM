@@ -21,11 +21,18 @@ async function getFortnoxToken() {
     },
     body: body.toString()
   });
+  const responseText = await response.text();
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error('Token request failed: ' + (error.error_description || error.error || JSON.stringify(error)));
+    let errorMsg;
+    try {
+      const errorData = JSON.parse(responseText);
+      errorMsg = errorData.error_description || errorData.error || responseText;
+    } catch {
+      errorMsg = responseText || 'HTTP ' + response.status;
+    }
+    throw new Error('Token request failed (HTTP ' + response.status + '): ' + errorMsg);
   }
-  const data = await response.json();
+  const data = JSON.parse(responseText);
   return data.access_token;
 }
 
