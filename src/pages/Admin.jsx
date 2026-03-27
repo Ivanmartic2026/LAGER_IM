@@ -151,6 +151,15 @@ export default function AdminPage() {
       color: "from-slate-600 to-slate-700",
       iconBg: "bg-slate-500/20",
       iconColor: "text-slate-400"
+    },
+    {
+      name: "FortnoxSync",
+      label: "Fortnox Synkronisering",
+      description: "Synka artiklar, leverantörer och inköpsorder till Fortnox",
+      icon: Settings,
+      color: "from-blue-600 to-blue-700",
+      iconBg: "bg-blue-500/20",
+      iconColor: "text-blue-400"
     }
   ];
 

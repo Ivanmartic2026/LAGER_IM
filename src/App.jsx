@@ -9,6 +9,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import SupplierPOView from '@/pages/SupplierPOView';
+import FortnoxSync from '@/pages/FortnoxSync';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -76,6 +77,12 @@ function App() {
           <Routes>
             {/* Public supplier portal - no auth required */}
             <Route path="/SupplierPOView" element={<SupplierPOView />} />
+            {/* Fortnox Sync - admin only */}
+            <Route path="/FortnoxSync" element={
+              <LayoutWrapper currentPageName="FortnoxSync">
+                <FortnoxSync />
+              </LayoutWrapper>
+            } />
             {/* All other routes require auth */}
             <Route path="*" element={<AuthenticatedApp />} />
           </Routes>
