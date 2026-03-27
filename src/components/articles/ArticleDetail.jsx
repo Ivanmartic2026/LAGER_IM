@@ -663,7 +663,7 @@ export default function ArticleDetail({
               <p className="text-2xl md:text-3xl font-bold text-white">{article.stock_qty || 0}</p>
             </div>
             <div className="p-3 md:p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
-              <p className="text-xs md:text-sm text-slate-400 mb-1">Min. nivå</p>
+              <p className="text-xs md:text-sm text-slate-400 mb-1">Safety Stock</p>
               <p className="text-2xl md:text-3xl font-bold text-white">{article.min_stock_level || "—"}</p>
             </div>
             {article.status === 'on_repair' && article.repair_notes && (

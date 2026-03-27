@@ -614,7 +614,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   )}
                 </div>
                 <div>
-                  <Label className="text-slate-300">Min. lagernivå</Label>
+                  <Label className="text-slate-300">Safety Stock</Label>
                   <Input
                     type="number"
                     inputMode="numeric"
