@@ -457,7 +457,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
             {/* Lagerplats */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Lagerplats</h3>
+                <h3 className="text-lg font-semibold text-white">Warehouse Locations</h3>
                 {formData.dimensions_width_mm && formData.dimensions_height_mm && formData.dimensions_depth_mm && formData.stock_qty > 0 && (
                   <Button
                     type="button"
@@ -555,7 +555,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   )}
                 </div>
                 <div className="md:col-span-2">
-                  <Label className="text-slate-300">Locations</Label>
+                  <Label className="text-slate-300">Select Location</Label>
                   {!formData.warehouse ? (
                     <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 text-sm text-slate-500">
                       Välj lagerställe först
