@@ -49,6 +49,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [supplierSearch, setSupplierSearch] = useState('');
   const [shelfSearch, setShelfSearch] = useState('');
+  const [safetyStockManual, setSafetyStockManual] = useState(!!article.min_stock_level);
 
   // Fetch warehouses, shelves, and suppliers
   const { data: warehouses = [] } = useQuery({
@@ -93,7 +94,15 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
   );
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      // Auto-calculate safety stock at 5% of stock_qty if not manually set
+      if (field === 'stock_qty' && !safetyStockManual) {
+        const qty = parseFloat(value) || 0;
+        updated.min_stock_level = qty > 0 ? Math.ceil(qty * 0.05) : '';
+      }
+      return updated;
+    });
   };
 
   const handleImageUpload = async (e) => {
@@ -637,13 +646,22 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   )}
                 </div>
                 <div>
-                  <Label className="text-slate-300">Safety Stock</Label>
+                  <div className="flex items-center justify-between mb-1">
+                    <Label className="text-slate-300">Safety Stock</Label>
+                    {!safetyStockManual && formData.stock_qty > 0 && (
+                      <span className="text-xs text-blue-400">Auto (5%)</span>
+                    )}
+                  </div>
                   <Input
                     type="number"
                     inputMode="numeric"
                     value={formData.min_stock_level}
-                    onChange={(e) => handleChange('min_stock_level', e.target.value)}
+                    onChange={(e) => {
+                      setSafetyStockManual(true);
+                      handleChange('min_stock_level', e.target.value);
+                    }}
                     className="bg-slate-800 border-slate-700 text-white"
+                    placeholder={formData.stock_qty > 0 ? `Auto: ${Math.ceil(formData.stock_qty * 0.05)}` : ''}
                   />
                 </div>
               </div>
