@@ -251,13 +251,29 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                 </div>
                 <div>
                   <Label className="text-slate-300">Batch ID</Label>
-
-                  <Input
-                    value={formData.batch_number}
-                    onChange={(e) => handleChange('batch_number', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                    placeholder="Batch-123"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      value={formData.batch_number}
+                      onChange={(e) => handleChange('batch_number', e.target.value)}
+                      className="bg-slate-800 border-slate-700 text-white flex-1"
+                      placeholder="Batch-123"
+                    />
+                    {!formData.batch_number && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const year = new Date().getFullYear().toString().slice(-2);
+                          const month = String(new Date().getMonth() + 1).padStart(2, '0');
+                          const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+                          handleChange('batch_number', `B${year}${month}-${rand}`);
+                        }}
+                        className="bg-slate-700 border-slate-600 hover:bg-slate-600 whitespace-nowrap"
+                      >
+                        Generera
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <Label className="text-slate-300">Supplier</Label>
