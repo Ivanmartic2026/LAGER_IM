@@ -667,31 +667,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
               </div>
             </div>
 
-            {/* Teknisk info */}
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Teknisk info</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-slate-300">Pixel Pitch (mm)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    inputMode="decimal"
-                    value={formData.pixel_pitch_mm}
-                    onChange={(e) => handleChange('pixel_pitch_mm', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-                <div>
-                  <Label className="text-slate-300">Product Code</Label>
-                  <Input
-                    value={formData.supplier_product_code}
-                    onChange={(e) => handleChange('supplier_product_code', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-              </div>
-            </div>
+
 
             {/* Tilläggsinfo */}
             <div>
