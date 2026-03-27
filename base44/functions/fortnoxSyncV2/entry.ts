@@ -68,10 +68,15 @@ async function syncArticles(accessToken, articles) {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ Article: articleData })
+        body: JSON.stringify({
+          Article: {
+            Description: articleData.Description,
+            SalesPrice: articleData.SalesPrice,
+            PurchasePrice: articleData.PurchasePrice
+          }
+        })
       });
 
       if (response.ok) {
