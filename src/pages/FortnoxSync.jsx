@@ -191,6 +191,139 @@ function FortnoxConnectionPanel({ onConnected }) {
   );
 }
 
+function FortnoxConnectionPanelInline() {
+  const [fortnoxConnected, setFortnoxConnected] = useState(null);
+  const [pastedCode, setPastedCode] = useState('');
+  const [connectionLoading, setConnectionLoading] = useState(true);
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        setConnectionLoading(true);
+        const configs = await base44.entities.FortnoxConfig.list();
+        setFortnoxConnected(configs.length > 0 && configs[0].refresh_token ? true : false);
+      } catch (error) {
+        console.error('Error checking connection:', error);
+        setFortnoxConnected(false);
+      } finally {
+        setConnectionLoading(false);
+      }
+    };
+
+    checkConnection();
+
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+    if (code && state === 'fortnox_connect') {
+      base44.functions.invoke('fortnoxExchangeCode', { code }).then(() => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        checkConnection();
+      }).catch((err) => {
+        console.error('Auto-save code error:', err);
+      });
+    }
+  }, []);
+
+  const handleAuthorize = () => {
+    window.open('https://apps.fortnox.se/oauth-v1/auth?client_id=mp08u6gAFPz2&redirect_uri=https%3A%2F%2Flager-ai-7d26cc74.base44.app%2FFortnoxSync&scope=article&state=fortnox_connect&access_type=offline&response_type=code', '_blank');
+  };
+
+  const handleSaveCode = async () => {
+    if (!pastedCode.trim()) {
+      toast.error('Ange en kod');
+      return;
+    }
+    setConnectionLoading(true);
+    try {
+      const result = await base44.functions.invoke('fortnoxExchangeCode', { code: pastedCode.trim() });
+      if (result.data.success) {
+        toast.success('Anslutning sparad!');
+        setPastedCode('');
+        setFortnoxConnected(true);
+      } else {
+        toast.error(`Fel: ${result.data.error}`);
+      }
+    } catch (error) {
+      console.error('Error saving code:', error);
+      toast.error('Kunde inte spara anslutning');
+    } finally {
+      setConnectionLoading(false);
+    }
+  };
+
+  if (connectionLoading) {
+    return (
+      <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center">
+        <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (fortnoxConnected) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-6 rounded-2xl bg-green-500/10 backdrop-blur-xl border border-green-500/20"
+      >
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 text-green-400" />
+          <p className="font-semibold text-green-400">Ansluten till Fortnox</p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-6 rounded-2xl bg-amber-500/10 backdrop-blur-xl border border-amber-500/20 space-y-4"
+    >
+      <div>
+        <p className="font-semibold text-amber-400">Fortnox ar inte anslutet</p>
+        <p className="text-sm text-amber-400/70 mt-1">Du behover ansluta for att synka artiklar.</p>
+      </div>
+
+      <Button
+        onClick={handleAuthorize}
+        className="w-full bg-blue-600 hover:bg-blue-500 text-white"
+      >
+        <Link2 className="w-4 h-4 mr-2" />
+        Anslut till Fortnox
+      </Button>
+
+      <div className="border-t border-amber-500/20 pt-4 space-y-3">
+        <p className="text-sm text-amber-400/80">Klistra in koden fran URL:en (code=XXXX) har:</p>
+        <div className="flex gap-2">
+          <Input
+            placeholder="Klistra in kod har..."
+            value={pastedCode}
+            onChange={(e) => setPastedCode(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSaveCode()}
+            className="bg-slate-800 border-slate-700 text-white"
+          />
+          <Button
+            onClick={handleSaveCode}
+            disabled={connectionLoading || !pastedCode.trim()}
+            className="bg-green-600 hover:bg-green-500 text-white whitespace-nowrap"
+          >
+            {connectionLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Sparar...
+              </>
+            ) : (
+              'Spara anslutning'
+            )}
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function FortnoxSyncPage() {
   const [articles, setArticles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -706,8 +839,8 @@ export default function FortnoxSyncPage() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            {/* Connection Status Panel */}
-            <FortnoxConnectionPanel />
+            {/* Connection Panel */}
+            <FortnoxConnectionPanelInline />
 
             {/* Search and Controls */}
             <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
