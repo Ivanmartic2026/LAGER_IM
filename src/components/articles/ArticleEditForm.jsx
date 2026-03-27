@@ -349,6 +349,17 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   />
                 </div>
                 <div>
+                  <Label className="text-slate-300">Stock Quantity</Label>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    value={formData.stock_qty}
+                    onChange={(e) => handleChange('stock_qty', e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-white"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
                   <Label className="text-slate-300">Category</Label>
                   <Select value={formData.category} onValueChange={(value) => handleChange('category', value)}>
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
