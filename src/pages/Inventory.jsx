@@ -987,12 +987,12 @@ export default function InventoryPage() {
                 />
               </div>
               <div></div>
-              <div>Saldo</div>
+              <div>Stock</div>
               <div>ETA</div>
-              <div>Hyllplats</div>
-              <div>Benämning</div>
-              <div>Artikelnummer</div>
-              <div>Batchnummer</div>
+              <div>Location</div>
+              <div>Name</div>
+              <div>Article Number</div>
+              <div>Batch ID</div>
             </div>
 
             <AnimatePresence>
