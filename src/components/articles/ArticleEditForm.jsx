@@ -199,7 +199,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-slate-300">
-                    Artikelnummer
+                    Article Number
                     <span className="text-xs text-slate-400 ml-2">(Genereras automatiskt)</span>
                   </Label>
                   <div className="flex gap-2">
@@ -240,7 +240,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   </div>
                 </div>
                 <div>
-                  <Label className="text-slate-300">Benämning *</Label>
+                  <Label className="text-slate-300">Product Name *</Label>
                   <Input
                     value={formData.name}
                     onChange={(e) => handleChange('name', e.target.value)}
