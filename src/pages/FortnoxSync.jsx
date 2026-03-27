@@ -411,7 +411,7 @@ export default function FortnoxSyncPage() {
 
       if (result.data.success) {
         setSyncResult(result.data);
-        toast.success(`${result.data.succeeded} artiklar synkade framgångsrikt!`);
+        toast.success(`${result.data.synced} artiklar synkade framgångsrikt!`);
         
         // Markera artiklar som synkade
         if (type === 'articles') {
@@ -423,7 +423,7 @@ export default function FortnoxSyncPage() {
         }
       } else {
         setSyncResult(result.data);
-        toast.error(`Synkronisering misslyckades: ${result.data.error}`);
+        toast.error(`Synkronisering misslyckades: ${result.data.error || result.data.errors?.[0]}`);
       }
     } catch (error) {
       console.error('Sync error:', error);
@@ -815,11 +815,11 @@ export default function FortnoxSyncPage() {
                       {syncResult.success ? 'Synkronisering slutförd' : 'Synkronisering misslyckades'}
                     </h3>
                     <div className="space-y-1 text-sm text-white/70">
-                      {syncResult.succeeded > 0 && (
-                        <p>✓ {syncResult.succeeded} artiklar synkade framgångsrikt</p>
+                      {syncResult.synced > 0 && (
+                        <p>✓ {syncResult.synced} artiklar synkade framgångsrikt</p>
                       )}
-                      {syncResult.failed > 0 && (
-                        <p>✗ {syncResult.failed} artiklar misslyckades</p>
+                      {syncResult.errors && syncResult.errors.length > 0 && (
+                        <p className="text-red-400">{syncResult.errors.join(', ')}</p>
                       )}
                       {syncResult.error && (
                         <p className="text-red-400">{syncResult.error}</p>
