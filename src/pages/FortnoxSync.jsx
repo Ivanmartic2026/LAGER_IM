@@ -5,166 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { AlertCircle, CheckCircle2, XCircle, Loader2, Settings, Package, ShoppingCart, Users, Download, Link2, Unlink2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, XCircle, Loader2, Settings, Package, ShoppingCart, Users, Download } from "lucide-react";
 import { toast } from "sonner";
-
-function FortnoxConnectionPanel() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [codeInput, setCodeInput] = useState('');
-  const [savingCode, setSavingCode] = useState(false);
-
-  useEffect(() => {
-    checkConnection();
-  }, []);
-
-  const checkConnection = async () => {
-    try {
-      setLoading(true);
-      const configs = await base44.entities.FortnoxConfig.list();
-      setIsConnected(configs.length > 0 && configs[0].refresh_token);
-    } catch (error) {
-      console.error('Error checking connection:', error);
-      setIsConnected(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAuthorize = () => {
-    const authUrl = 'https://apps.fortnox.se/oauth-v1/auth?client_id=mp08u6gAFPz2&redirect_uri=https%3A%2F%2Flager-ai-7d26cc74.base44.app%2FFortnoxSync&scope=article&state=fortnox_connect&access_type=offline&response_type=code';
-    window.open(authUrl, '_blank');
-  };
-
-  const handleSaveCode = async () => {
-    if (!codeInput.trim()) {
-      toast.error('Ange en kod');
-      return;
-    }
-
-    setSavingCode(true);
-    try {
-      const result = await base44.functions.invoke('fortnoxExchangeCode', { code: codeInput.trim() });
-      if (result.data.success) {
-        toast.success('Anslutning sparad!');
-        setCodeInput('');
-        await checkConnection();
-      } else {
-        toast.error(`Fel: ${result.data.error}`);
-      }
-    } catch (error) {
-      console.error('Error saving code:', error);
-      toast.error('Kunde inte spara anslutning');
-    } finally {
-      setSavingCode(false);
-    }
-  };
-
-  const handleDisconnect = async () => {
-    try {
-      const configs = await base44.entities.FortnoxConfig.list();
-      if (configs.length > 0) {
-        await base44.entities.FortnoxConfig.delete(configs[0].id);
-        toast.success('Anslutning borttagen');
-        setIsConnected(false);
-      }
-    } catch (error) {
-      console.error('Error disconnecting:', error);
-      toast.error('Kunde inte ta bort anslutning');
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center">
-        <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
-      </div>
-    );
-  }
-
-  if (isConnected) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="p-6 rounded-2xl bg-green-500/10 backdrop-blur-xl border border-green-500/20"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-green-400" />
-            </div>
-            <div>
-              <p className="font-semibold text-green-400">Ansluten till Fortnox</p>
-              <p className="text-sm text-green-400/70">Du kan nu importera artiklar från Fortnox</p>
-            </div>
-          </div>
-          <Button
-            onClick={handleDisconnect}
-            variant="outline"
-            className="bg-red-600/20 border-red-500/30 hover:bg-red-600/30 text-red-400"
-          >
-            <Unlink2 className="w-4 h-4 mr-2" />
-            Koppla från
-          </Button>
-        </div>
-      </motion.div>
-    );
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-6 rounded-2xl bg-amber-500/10 backdrop-blur-xl border border-amber-500/20 space-y-4"
-    >
-      <div className="flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <p className="font-semibold text-amber-400">Appen är inte ansluten till Fortnox</p>
-          <p className="text-sm text-amber-400/70 mt-1">Klicka på knappen nedan för att auktorisera.</p>
-        </div>
-      </div>
-
-      <Button
-        onClick={handleAuthorize}
-        className="w-full bg-blue-600 hover:bg-blue-500 text-white"
-      >
-        <Link2 className="w-4 h-4 mr-2" />
-        Anslut till Fortnox
-      </Button>
-
-      <div className="border-t border-amber-500/20 pt-4 space-y-3">
-        <p className="text-sm text-amber-400/80">
-          Efter att du godkänt i Fortnox, kopiera koden från webbadressen (<span className="font-mono">code=XXXX</span>) och klistra in här:
-        </p>
-        <div className="flex gap-2">
-          <Input
-            placeholder="Klistra in kod här..."
-            value={codeInput}
-            onChange={(e) => setCodeInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSaveCode()}
-            className="bg-slate-800 border-slate-700 text-white"
-          />
-          <Button
-            onClick={handleSaveCode}
-            disabled={savingCode || !codeInput.trim()}
-            className="bg-green-600 hover:bg-green-500 text-white whitespace-nowrap"
-          >
-            {savingCode ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Sparar...
-              </>
-            ) : (
-              'Spara anslutning'
-            )}
-          </Button>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
 
 export default function FortnoxSyncPage() {
   const [articles, setArticles] = useState([]);
@@ -499,12 +341,7 @@ export default function FortnoxSyncPage() {
             Synka Inköpsorder
           </button>
           <button
-            onClick={() => {
-              setMode('fortnoxImport');
-              if (fortnoxArticles.length === 0) {
-                fetchFortnoxArticles();
-              }
-            }}
+            onClick={() => setMode('fortnoxImport')}
             className={`px-6 py-3 rounded-lg font-medium transition-all ${
               mode === 'fortnoxImport'
                 ? 'bg-blue-600 text-white'
@@ -686,9 +523,6 @@ export default function FortnoxSyncPage() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            {/* Connection Status Panel */}
-            <FortnoxConnectionPanel />
-
             {/* Search and Controls */}
             <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
               <div className="flex gap-4 mb-4">
