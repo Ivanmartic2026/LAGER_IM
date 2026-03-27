@@ -250,7 +250,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Batch nummer</Label>
+                  <Label className="text-slate-300">Batch ID</Label>
                   <Input
                     value={formData.batch_number}
                     onChange={(e) => handleChange('batch_number', e.target.value)}

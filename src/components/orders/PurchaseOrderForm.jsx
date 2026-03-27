@@ -733,7 +733,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                     />
                   </div>
                   <div>
-                    <div className="text-xs text-slate-500 mb-1">Batchnummer</div>
+                    <div className="text-xs text-slate-500 mb-1">Batch ID</div>
                     <Input
                       value={customBatchNumber}
                       onChange={(e) => setCustomBatchNumber(e.target.value)}
@@ -845,7 +845,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
               <div className="space-y-3">
                 <div className="grid grid-cols-[110px_110px_minmax(160px,1fr)_90px_80px_90px_auto] gap-3 px-3 py-2 text-xs font-medium text-slate-500">
                   <div>Article Number</div>
-                  <div>Batchnummer</div>
+                  <div>Batch ID</div>
                   <div>Benämning</div>
                   <div>Enhetspris</div>
                   <div>Antal</div>
@@ -882,8 +882,8 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                         <Input
                           value={item.article_batch_number || ''}
                           onChange={(e) => handleUpdateItem(index, 'article_batch_number', e.target.value)}
-                          placeholder="Batchnr"
-                          className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                          placeholder="Batch ID"
+                              className="bg-slate-800 border-slate-700 text-white text-sm h-9"
                         />
                       </div>
                       <div>

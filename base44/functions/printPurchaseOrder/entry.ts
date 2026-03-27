@@ -293,7 +293,7 @@ Deno.serve(async (req) => {
                  <tr>
                    <th>Article Number</th>
                    <th>Article</th>
-                   <th>Batch</th>
+                   <th>Batch ID</th>
                    <th style="text-align: center;">Qty</th>
                    <th style="text-align: right;">Price</th>
                    <th style="text-align: right;">Total</th>
