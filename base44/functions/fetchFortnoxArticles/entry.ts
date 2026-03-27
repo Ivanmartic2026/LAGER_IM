@@ -7,19 +7,16 @@ const CLIENT_SECRET = 'jCAiY13645iCfRljftcvAES3BZNL1W5Z';
 const TENANT_ID = '211766';
 
 async function getFortnoxToken() {
-  const body = new URLSearchParams({
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    grant_type: 'client_credentials',
-    scope: 'article'
-  });
+  // Fortnox requires Basic Auth: base64(CLIENT_ID:CLIENT_SECRET)
+  const credentials = btoa(CLIENT_ID + ':' + CLIENT_SECRET);
   const response = await fetch(FORTNOX_TOKEN_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + credentials,
       'TenantId': TENANT_ID
     },
-    body: body.toString()
+    body: 'grant_type=client_credentials&scope=article'
   });
   const responseText = await response.text();
   if (!response.ok) {
