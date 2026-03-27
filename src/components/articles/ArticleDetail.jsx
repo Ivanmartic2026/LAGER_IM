@@ -1126,7 +1126,7 @@ export default function ArticleDetail({
               {editingLocation ? (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Lagerställe</label>
+                    <label className="text-xs text-slate-400 mb-1 block">Warehouse</label>
                     <Input
                       type="text"
                       value={locationData.warehouse}
@@ -1147,7 +1147,7 @@ export default function ArticleDetail({
               ) : (
                 <div className="space-y-0">
                   {article.warehouse && (
-                    <InfoRow icon={Warehouse} label="Lagerställe" value={article.warehouse} />
+                    <InfoRow icon={Warehouse} label="Warehouse" value={article.warehouse} />
                   )}
                   {article.shelf_address && (
                     <InfoRow icon={MapPin} label="Location" value={article.shelf_address} />
@@ -1272,7 +1272,7 @@ export default function ArticleDetail({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Tillverkningsdatum</label>
+                    <label className="text-xs text-slate-400 mb-1 block">Manufacture Date</label>
                     <Input
                       type="date"
                       value={technicalData.manufacturing_date}
@@ -1299,8 +1299,8 @@ export default function ArticleDetail({
                     <InfoRow icon={Factory} label="Manufacturer" value={article.manufacturer} />
                   )}
                   {article.manufacturing_date && !isNaN(new Date(article.manufacturing_date).getTime()) && (
-                    <InfoRow icon={Calendar} label="Tillverkningsdatum" value={
-                      format(new Date(article.manufacturing_date), "d MMM yyyy", { locale: sv })
+                    <InfoRow icon={Calendar} label="Manufacture Date" value={
+                    format(new Date(article.manufacturing_date), "d MMM yyyy", { locale: sv })
                     } />
                   )}
                 </div>
@@ -1332,7 +1332,7 @@ export default function ArticleDetail({
                   <InfoRow icon={Factory} label="Manufacturer" value={article.manufacturer} />
                 )}
                 {article.manufacturing_date && !isNaN(new Date(article.manufacturing_date).getTime()) && (
-                  <InfoRow icon={Calendar} label="Tillverkningsdatum" value={
+                  <InfoRow icon={Calendar} label="Manufacture Date" value={
                     format(new Date(article.manufacturing_date), "d MMM yyyy", { locale: sv })
                   } />
                 )}
@@ -1342,7 +1342,7 @@ export default function ArticleDetail({
 
           {article.notes && (
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-              <h3 className="font-semibold text-white mb-3">Anteckningar</h3>
+              <h3 className="font-semibold text-white mb-3">Notes</h3>
               <p className="text-slate-300">{article.notes}</p>
             </div>
           )}

@@ -259,7 +259,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Leverantör</Label>
+                  <Label className="text-slate-300">Supplier</Label>
                   <Select 
                     value={formData.supplier_id} 
                     onValueChange={(value) => {
@@ -307,7 +307,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-slate-300">Enhetskostnad</Label>
+                  <Label className="text-slate-300">Unit Price</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -338,7 +338,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-slate-300">Lagertyp *</Label>
+                  <Label className="text-slate-300">Stock Type *</Label>
                   <Select 
                     value={formData.storage_type} 
                     onValueChange={(value) => handleChange('storage_type', value)}
@@ -505,7 +505,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Lagerställe</Label>
+                  <Label className="text-slate-300">Warehouse</Label>
                   {warehouses.length === 0 ? (
                     <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-sm text-amber-300">
                       Inga lagerställen skapade. Gå till Lagerställen-sidan för att skapa ett.
@@ -642,7 +642,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Produktkod</Label>
+                  <Label className="text-slate-300">Product Code</Label>
                   <Input
                     value={formData.supplier_product_code}
                     onChange={(e) => handleChange('supplier_product_code', e.target.value)}
@@ -691,7 +691,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <Label className="text-slate-300">Tillverkningsdatum</Label>
+                  <Label className="text-slate-300">Manufacture Date</Label>
                   <Input
                     type="date"
                     value={formData.manufacturing_date}
@@ -813,7 +813,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
               <h3 className="text-lg font-semibold text-white mb-4">Status</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Artikelstatus</Label>
+                  <Label className="text-slate-300">Status</Label>
                   <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                       <SelectValue placeholder="Välj status" />
