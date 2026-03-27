@@ -679,40 +679,6 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
             <div>
               <h3 className="text-lg font-semibold text-white mb-4">Tilläggsinfo</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                <div>
-                  <Label className="text-slate-300">Serie</Label>
-                  <Select value={formData.series} onValueChange={(value) => handleChange('series', value)}>
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                      <SelectValue placeholder="Välj serie" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[60vh]" onCloseAutoFocus={(e) => e.preventDefault()}>
-                      <SelectItem value="Indoor">Indoor</SelectItem>
-                      <SelectItem value="Outdoor">Outdoor</SelectItem>
-                      <SelectItem value="UltraBright">UltraBright</SelectItem>
-                      <SelectItem value="QP4">QP4</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-slate-300">Version</Label>
-                  <Input
-                    value={formData.product_version}
-                    onChange={(e) => handleChange('product_version', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-                <div>
-                  <Label className="text-slate-300">Ljusstyrka (nits)</Label>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    value={formData.brightness_nits}
-                    onChange={(e) => handleChange('brightness_nits', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
                 <div className="md:col-span-2">
                   <Label className="text-slate-300">Manufacture Date</Label>
                   <Input
