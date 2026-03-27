@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { AlertCircle, CheckCircle2, XCircle, Loader2, Settings, Package, ShoppingCart, Users } from "lucide-react";
+import { AlertCircle, CheckCircle2, XCircle, Loader2, Settings, Package, ShoppingCart, Users, Download } from "lucide-react";
 import { toast } from "sonner";
 
 export default function FortnoxSyncPage() {
@@ -16,8 +16,13 @@ export default function FortnoxSyncPage() {
   const [syncing, setSyncing] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [syncResult, setSyncResult] = useState(null);
-  const [mode, setMode] = useState('manual'); // 'manual' or 'suppliers'
+  const [mode, setMode] = useState('manual'); // 'manual', 'suppliers', 'purchaseOrders', 'fortnoxImport'
   const [syncingArticleId, setSyncingArticleId] = useState(null);
+  const [fortnoxArticles, setFortnoxArticles] = useState([]);
+  const [fortnoxLoading, setFortnoxLoading] = useState(false);
+  const [fortnoxSearchTerm, setFortnoxSearchTerm] = useState('');
+  const [selectedFortnoxArticles, setSelectedFortnoxArticles] = useState(new Set());
+  const [importingArticles, setImportingArticles] = useState(new Set());
 
   useEffect(() => {
     fetchArticles();
@@ -167,6 +172,114 @@ export default function FortnoxSyncPage() {
     }
   };
 
+  const fetchFortnoxArticles = async () => {
+    setFortnoxLoading(true);
+    try {
+      const result = await base44.functions.invoke('fetchFortnoxArticles', {});
+      if (result.data.success) {
+        const fortnoxArts = result.data.articles || [];
+        const localSkus = new Set(articles.map(a => a.sku?.toLowerCase()));
+        
+        const enrichedFortnoxArticles = fortnoxArts.map(art => ({
+          ...art,
+          existsInLagerAI: localSkus.has(art.ArticleNumber?.toLowerCase())
+        }));
+        
+        setFortnoxArticles(enrichedFortnoxArticles);
+      } else {
+        toast.error(`Kunde inte hämta Fortnox-artiklar: ${result.data.error}`);
+      }
+    } catch (error) {
+      console.error('Error fetching Fortnox articles:', error);
+      toast.error('Kunde inte hämta Fortnox-artiklar');
+    } finally {
+      setFortnoxLoading(false);
+    }
+  };
+
+  const importFortnoxArticle = async (fortnoxArticle) => {
+    setImportingArticles(prev => new Set([...prev, fortnoxArticle.ArticleNumber]));
+    try {
+      await base44.entities.Article.create({
+        sku: fortnoxArticle.ArticleNumber,
+        name: fortnoxArticle.Description || fortnoxArticle.ArticleNumber,
+        unit_cost: fortnoxArticle.PurchasePrice || 0,
+        storage_type: 'company_owned',
+        status: 'active'
+      });
+      
+      await fetchArticles();
+      setFortnoxArticles(prev => 
+        prev.map(a => 
+          a.ArticleNumber === fortnoxArticle.ArticleNumber 
+            ? { ...a, existsInLagerAI: true }
+            : a
+        )
+      );
+      setSelectedFortnoxArticles(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(fortnoxArticle.ArticleNumber);
+        return newSet;
+      });
+      toast.success(`${fortnoxArticle.ArticleNumber} importerad!`);
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error('Kunde inte importera artikel');
+    } finally {
+      setImportingArticles(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(fortnoxArticle.ArticleNumber);
+        return newSet;
+      });
+    }
+  };
+
+  const importSelectedFortnoxArticles = async () => {
+    if (selectedFortnoxArticles.size === 0) {
+      toast.error('Välj minst en artikel att importera');
+      return;
+    }
+
+    setImportingArticles(selectedFortnoxArticles);
+    try {
+      const articlesToImport = fortnoxArticles
+        .filter(a => selectedFortnoxArticles.has(a.ArticleNumber) && !a.existsInLagerAI)
+        .map(a => ({
+          sku: a.ArticleNumber,
+          name: a.Description || a.ArticleNumber,
+          unit_cost: a.PurchasePrice || 0,
+          storage_type: 'company_owned',
+          status: 'active'
+        }));
+
+      await Promise.all(articlesToImport.map(art => base44.entities.Article.create(art)));
+      
+      await fetchArticles();
+      setFortnoxArticles(prev =>
+        prev.map(a =>
+          selectedFortnoxArticles.has(a.ArticleNumber)
+            ? { ...a, existsInLagerAI: true }
+            : a
+        )
+      );
+      setSelectedFortnoxArticles(new Set());
+      toast.success(`${articlesToImport.length} artiklar importerade!`);
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error('Kunde inte importera artiklar');
+    } finally {
+      setImportingArticles(new Set());
+    }
+  };
+
+  const filteredFortnoxArticles = fortnoxArticles.filter(article =>
+    !fortnoxSearchTerm ||
+    article.ArticleNumber?.toLowerCase().includes(fortnoxSearchTerm.toLowerCase()) ||
+    article.Description?.toLowerCase().includes(fortnoxSearchTerm.toLowerCase())
+  );
+
+  const missingFromLagerAI = filteredFortnoxArticles.filter(a => !a.existsInLagerAI);
+
   return (
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
@@ -226,6 +339,22 @@ export default function FortnoxSyncPage() {
           >
             <ShoppingCart className="w-4 h-4 inline mr-2" />
             Synka Inköpsorder
+          </button>
+          <button
+            onClick={() => {
+              setMode('fortnoxImport');
+              if (fortnoxArticles.length === 0) {
+                fetchFortnoxArticles();
+              }
+            }}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              mode === 'fortnoxImport'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white/5 border border-white/10 text-white/50 hover:text-white'
+            }`}
+          >
+            <Download className="w-4 h-4 inline mr-2" />
+            Fortnox → Lager AI
           </button>
         </motion.div>
 
@@ -389,6 +518,146 @@ export default function FortnoxSyncPage() {
                 </div>
               </motion.div>
             )}
+          </motion.div>
+        )}
+
+        {/* Fortnox Import Mode */}
+        {mode === 'fortnoxImport' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            {/* Search and Controls */}
+            <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+              <div className="flex gap-4 mb-4">
+                <Input
+                  placeholder="Sök artikelnummer eller beskrivning..."
+                  value={fortnoxSearchTerm}
+                  onChange={(e) => setFortnoxSearchTerm(e.target.value)}
+                  className="flex-1 bg-slate-800 border-slate-700 text-white"
+                />
+                <Button
+                  onClick={fetchFortnoxArticles}
+                  disabled={fortnoxLoading}
+                  variant="outline"
+                  className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white whitespace-nowrap"
+                >
+                  {fortnoxLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Laddar...
+                    </>
+                  ) : (
+                    'Uppdatera från Fortnox'
+                  )}
+                </Button>
+                <Button
+                  onClick={importSelectedFortnoxArticles}
+                  disabled={selectedFortnoxArticles.size === 0 || fortnoxLoading || importingArticles.size > 0}
+                  className="bg-blue-600 hover:bg-blue-500 text-white whitespace-nowrap"
+                >
+                  Importera {selectedFortnoxArticles.size > 0 ? `${selectedFortnoxArticles.size} ` : ''}valda
+                </Button>
+              </div>
+
+              {/* Fortnox Articles Table */}
+              {fortnoxLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
+                </div>
+              ) : fortnoxArticles.length === 0 ? (
+                <div className="text-center py-12 text-white/50">
+                  Klicka "Uppdatera från Fortnox" för att hämta artiklar
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="p-3 text-left">
+                          <Checkbox
+                            checked={selectedFortnoxArticles.size === missingFromLagerAI.length && missingFromLagerAI.length > 0}
+                            onChange={() => {
+                              if (selectedFortnoxArticles.size === missingFromLagerAI.length && missingFromLagerAI.length > 0) {
+                                setSelectedFortnoxArticles(new Set());
+                              } else {
+                                setSelectedFortnoxArticles(new Set(missingFromLagerAI.map(a => a.ArticleNumber)));
+                              }
+                            }}
+                          />
+                        </th>
+                        <th className="p-3 text-left text-white/70">Artikelnummer</th>
+                        <th className="p-3 text-left text-white/70">Beskrivning</th>
+                        <th className="p-3 text-left text-white/70">Pris</th>
+                        <th className="p-3 text-left text-white/70">Status</th>
+                        <th className="p-3 text-left text-white/70">Åtgärder</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredFortnoxArticles.map((article) => (
+                        <tr key={article.ArticleNumber} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                          <td className="p-3">
+                            {!article.existsInLagerAI && (
+                              <Checkbox
+                                checked={selectedFortnoxArticles.has(article.ArticleNumber)}
+                                onChange={() => {
+                                  const newSet = new Set(selectedFortnoxArticles);
+                                  if (newSet.has(article.ArticleNumber)) {
+                                    newSet.delete(article.ArticleNumber);
+                                  } else {
+                                    newSet.add(article.ArticleNumber);
+                                  }
+                                  setSelectedFortnoxArticles(newSet);
+                                }}
+                              />
+                            )}
+                          </td>
+                          <td className="p-3 text-white font-mono">{article.ArticleNumber}</td>
+                          <td className="p-3 text-white/80">{article.Description}</td>
+                          <td className="p-3 text-white/80">{article.PurchasePrice || 0} SEK</td>
+                          <td className="p-3">
+                            {article.existsInLagerAI ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs">
+                                <CheckCircle2 className="w-3 h-3" /> Finns i Lager AI
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs">
+                                Saknas i Lager AI
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {!article.existsInLagerAI && (
+                              <button
+                                onClick={() => importFortnoxArticle(article)}
+                                disabled={importingArticles.has(article.ArticleNumber)}
+                                className="px-3 py-1 rounded text-xs font-medium transition-all bg-blue-600/30 text-blue-300 hover:bg-blue-600/50"
+                              >
+                                {importingArticles.has(article.ArticleNumber) ? (
+                                  <>
+                                    <Loader2 className="w-3 h-3 inline mr-1 animate-spin" />
+                                    Importerar...
+                                  </>
+                                ) : (
+                                  'Importera'
+                                )}
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {fortnoxArticles.length > 0 && (
+                <div className="mt-4 p-3 rounded-lg bg-slate-800/50 text-sm text-white/70">
+                  Totalt: {fortnoxArticles.length} artiklar i Fortnox • Saknas i Lager AI: {missingFromLagerAI.length}
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
 
