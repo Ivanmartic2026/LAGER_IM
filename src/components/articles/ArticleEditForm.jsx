@@ -192,7 +192,7 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
       >
         {/* Header */}
         <div className="p-6 border-b border-slate-700 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">Redigera artikel</h2>
+          <h2 className="text-xl font-bold text-white">Edit Product</h2>
           <Button
             variant="ghost"
             size="icon"
