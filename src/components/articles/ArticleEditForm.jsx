@@ -360,6 +360,25 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                   />
                 </div>
                 <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <Label className="text-slate-300">Safety Stock</Label>
+                    {!safetyStockManual && formData.stock_qty > 0 && (
+                      <span className="text-xs text-blue-400">Auto (5%)</span>
+                    )}
+                  </div>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    value={formData.min_stock_level}
+                    onChange={(e) => {
+                      setSafetyStockManual(true);
+                      handleChange('min_stock_level', e.target.value);
+                    }}
+                    className="bg-slate-800 border-slate-700 text-white"
+                    placeholder={formData.stock_qty > 0 ? `Auto: ${Math.ceil(formData.stock_qty * 0.05)}` : ''}
+                  />
+                </div>
+                <div>
                   <Label className="text-slate-300">Category</Label>
                   <Select value={formData.category} onValueChange={(value) => handleChange('category', value)}>
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
@@ -655,25 +674,6 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                       </Button>
                     </div>
                   )}
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <Label className="text-slate-300">Safety Stock</Label>
-                    {!safetyStockManual && formData.stock_qty > 0 && (
-                      <span className="text-xs text-blue-400">Auto (5%)</span>
-                    )}
-                  </div>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    value={formData.min_stock_level}
-                    onChange={(e) => {
-                      setSafetyStockManual(true);
-                      handleChange('min_stock_level', e.target.value);
-                    }}
-                    className="bg-slate-800 border-slate-700 text-white"
-                    placeholder={formData.stock_qty > 0 ? `Auto: ${Math.ceil(formData.stock_qty * 0.05)}` : ''}
-                  />
                 </div>
               </div>
             </div>
