@@ -175,7 +175,7 @@ export default function FortnoxSyncPage() {
   const fetchFortnoxArticles = async () => {
     setFortnoxLoading(true);
     try {
-      const result = await base44.functions.invoke('fetchFortnoxArticles', {});
+      const result = await base44.functions.fetchFortnoxArticles({});
       if (result.data.success) {
         const fortnoxArts = result.data.articles || [];
         const localSkus = new Set(articles.map(a => a.sku?.toLowerCase()));
