@@ -797,7 +797,7 @@ export default function ArticleDetail({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-white">Artikelinformation</h3>
+                <h3 className="font-semibold text-white">Article Information</h3>
                 {!editingBasicInfo ? (
                   <button
                     onClick={(e) => {
@@ -938,7 +938,7 @@ export default function ArticleDetail({
 
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-white">Mått & Vikt</h3>
+                <h3 className="font-semibold text-white">Dimensions & Weight</h3>
                 {!editingDimensions ? (
                   <button
                     onClick={(e) => {
@@ -1045,16 +1045,16 @@ export default function ArticleDetail({
                 </div>
               ) : (
                 <div className="space-y-0">
-                  <InfoRow icon={Ruler} label="Bredd" value={
+                  <InfoRow icon={Ruler} label="Width" value={
                     article.dimensions_width_mm ? `${article.dimensions_width_mm} mm` : null
                   } />
-                  <InfoRow icon={Ruler} label="Höjd" value={
+                  <InfoRow icon={Ruler} label="Height" value={
                     article.dimensions_height_mm ? `${article.dimensions_height_mm} mm` : null
                   } />
-                  <InfoRow icon={Ruler} label="Djup" value={
+                  <InfoRow icon={Ruler} label="Depth" value={
                     article.dimensions_depth_mm ? `${article.dimensions_depth_mm} mm` : null
                   } />
-                  <InfoRow icon={Scale} label="Vikt" value={
+                  <InfoRow icon={Scale} label="Weight" value={
                     article.weight_g ? `${article.weight_g} g` : (article.weight_kg ? `${article.weight_kg * 1000} g` : null)
                   } />
                 </div>
@@ -1158,7 +1158,7 @@ export default function ArticleDetail({
 
             <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-white">Teknisk Information</h3>
+                <h3 className="font-semibold text-white">Technical Information</h3>
                 {!editingTechnical ? (
                   <button
                     onClick={(e) => {
