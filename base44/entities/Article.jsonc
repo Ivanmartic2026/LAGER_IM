@@ -46,9 +46,7 @@
       "enum": [
         "company_owned",
         "customer_owned",
-        "rental_stock",
-        "installation_register",
-        "till\u00f6ko_ekonomi"
+        "rental_stock"
       ],
       "description": "Lagertyp"
     },
@@ -217,6 +215,11 @@
     "source_purchase_order_id": {
       "type": "string",
       "description": "Referens till ink\u00f6psorder som artikeln skapades fr\u00e5n"
+    },
+    "fortnox_synced": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om artikeln \u00e4r synkad till Fortnox och kan auto-synkas"
     }
   },
   "required": [

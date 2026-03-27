@@ -3,70 +3,114 @@ import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { AlertCircle, CheckCircle2, XCircle, Loader2, Settings } from "lucide-react";
+import { AlertCircle, CheckCircle2, XCircle, Loader2, Settings, Package, ShoppingCart, Users } from "lucide-react";
 import { toast } from "sonner";
 
 export default function FortnoxSyncPage() {
-  const [credentials, setCredentials] = useState({
-    clientId: 'C84gmzGW0STm',
-    clientSecret: 'jCAiY13645iCfRljftcvAES3BZNL1W5Z'
-  });
-  
-  const [editingCredentials, setEditingCredentials] = useState(false);
-  const [confirmDialog, setConfirmDialog] = useState(null);
+  const [articles, setArticles] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedArticles, setSelectedArticles] = useState(new Set());
+  const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState(null);
   const [syncResult, setSyncResult] = useState(null);
-  const [counts, setCounts] = useState({ articles: 0, suppliers: 0, purchaseOrders: 0 });
+  const [mode, setMode] = useState('manual'); // 'manual' or 'suppliers'
 
   useEffect(() => {
-    fetchCounts();
+    fetchArticles();
   }, []);
 
-  const fetchCounts = async () => {
+  const fetchArticles = async () => {
     try {
-      const [articles, suppliers, orders] = await Promise.all([
-        base44.entities.Article.list(),
-        base44.entities.Supplier.list(),
-        base44.entities.PurchaseOrder.list()
-      ]);
-      setCounts({
-        articles: articles.length,
-        suppliers: suppliers.filter(s => s.is_active !== false).length,
-        purchaseOrders: orders.length
-      });
+      setLoading(true);
+      const data = await base44.entities.Article.list();
+      setArticles(data.sort((a, b) => (a.sku || '').localeCompare(b.sku || '')));
     } catch (error) {
-      console.error('Error fetching counts:', error);
+      console.error('Error fetching articles:', error);
+      toast.error('Kunde inte hämta artiklar');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSync = async (type) => {
+  const filteredArticles = articles.filter(article =>
+    !searchTerm || 
+    article.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    article.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    article.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const toggleArticle = (id) => {
+    const newSet = new Set(selectedArticles);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedArticles(newSet);
+  };
+
+  const toggleAllArticles = () => {
+    if (selectedArticles.size === filteredArticles.length) {
+      setSelectedArticles(new Set());
+    } else {
+      setSelectedArticles(new Set(filteredArticles.map(a => a.id)));
+    }
+  };
+
+  const handleSyncSelected = async () => {
+    if (selectedArticles.size === 0) {
+      toast.error('Välj minst en artikel');
+      return;
+    }
+
+    setConfirmDialog({
+      type: 'articles',
+      count: selectedArticles.size,
+      label: 'artiklar'
+    });
+  };
+
+  const executeSync = async (type) => {
     setSyncing(true);
     setSyncResult(null);
-    
+
     try {
-      const result = await base44.functions.invoke('fortnoxSync', {
+      const articlesToSync = type === 'articles' 
+        ? articles.filter(a => selectedArticles.has(a.id))
+        : [];
+
+      const result = await base44.functions.invoke('fortnoxSyncV2', {
         syncType: type,
-        clientId: credentials.clientId,
-        clientSecret: credentials.clientSecret
+        articles: articlesToSync
       });
-      
-      setSyncResult(result.data);
+
       if (result.data.success) {
-        toast.success(`${type === 'articles' ? 'Artiklar' : type === 'suppliers' ? 'Leverantörer' : 'Inköpsorder'} synkade framgångsrikt!`);
+        setSyncResult(result.data);
+        toast.success(`${result.data.succeeded} artiklar synkade framgångsrikt!`);
+        
+        // Markera artiklar som synkade
+        if (type === 'articles') {
+          for (const articleId of selectedArticles) {
+            await base44.entities.Article.update(articleId, { fortnox_synced: true });
+          }
+          await fetchArticles();
+          setSelectedArticles(new Set());
+        }
       } else {
+        setSyncResult(result.data);
         toast.error(`Synkronisering misslyckades: ${result.data.error}`);
       }
     } catch (error) {
-      console.error(`Sync error for ${type}:`, error);
+      console.error('Sync error:', error);
       toast.error('Synkronisering misslyckades');
       setSyncResult({
         success: false,
         error: error.message,
-        type,
         succeeded: 0,
-        failed: 0
+        failed: selectedArticles.size
       });
     } finally {
       setSyncing(false);
@@ -74,24 +118,22 @@ export default function FortnoxSyncPage() {
     }
   };
 
-  const openConfirmDialog = (type) => {
-    const count = type === 'articles' ? counts.articles : type === 'suppliers' ? counts.suppliers : counts.purchaseOrders;
-    const labels = {
-      articles: 'Artiklar',
-      suppliers: 'Leverantörer',
-      purchaseOrders: 'Inköpsorder'
-    };
-    
-    setConfirmDialog({
-      type,
-      count,
-      label: labels[type]
-    });
+  const toggleAutoSync = async (articleId, currentValue) => {
+    try {
+      await base44.entities.Article.update(articleId, { 
+        fortnox_synced: !currentValue 
+      });
+      await fetchArticles();
+      toast.success(currentValue ? 'Auto-synk inaktiverad' : 'Auto-synk aktiverad');
+    } catch (error) {
+      console.error('Error updating article:', error);
+      toast.error('Kunde inte uppdatera artikel');
+    }
   };
 
   return (
     <div className="min-h-screen bg-black p-4 md:p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         
         {/* Header */}
         <motion.div
@@ -105,137 +147,224 @@ export default function FortnoxSyncPage() {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Fortnox Synkronisering</h1>
-              <p className="text-sm text-white/50">Synka data mellan appen och Fortnox</p>
+              <p className="text-sm text-white/50">Synka artiklar mellan appen och Fortnox</p>
             </div>
           </div>
         </motion.div>
 
-        {/* Credentials Section */}
+        {/* Mode Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Fortnox Inställningar</h2>
-            <Button
-              onClick={() => setEditingCredentials(!editingCredentials)}
-              variant="outline"
-              size="sm"
-              className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
-            >
-              {editingCredentials ? 'Spara' : 'Redigera'}
-            </Button>
-          </div>
-
-          {editingCredentials ? (
-            <div className="space-y-4">
-              <div>
-                <Label className="text-slate-300 mb-2 block">Client ID</Label>
-                <Input
-                  value={credentials.clientId}
-                  onChange={(e) => setCredentials({...credentials, clientId: e.target.value})}
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-              <div>
-                <Label className="text-slate-300 mb-2 block">Client Secret</Label>
-                <Input
-                  type="password"
-                  value={credentials.clientSecret}
-                  onChange={(e) => setCredentials({...credentials, clientSecret: e.target.value})}
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2 text-sm text-slate-400">
-              <p>Client ID är konfigurerad</p>
-              <p>Client Secret är konfigurerad</p>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Sync Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+          className="mb-6 flex gap-2"
         >
           <button
-            onClick={() => openConfirmDialog('articles')}
-            disabled={syncing}
-            className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => setMode('manual')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              mode === 'manual'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white/5 border border-white/10 text-white/50 hover:text-white'
+            }`}
           >
-            <div className="mb-3 w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-              <span className="text-blue-400 font-semibold">📦</span>
-            </div>
-            <h3 className="text-white font-semibold mb-1">Synca Artiklar</h3>
-            <p className="text-sm text-white/50">{counts.articles} artiklar</p>
+            <Package className="w-4 h-4 inline mr-2" />
+            Synka Artiklar
           </button>
-
           <button
-            onClick={() => openConfirmDialog('suppliers')}
-            disabled={syncing}
-            className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => setMode('suppliers')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              mode === 'suppliers'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white/5 border border-white/10 text-white/50 hover:text-white'
+            }`}
           >
-            <div className="mb-3 w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-              <span className="text-green-400 font-semibold">🏭</span>
-            </div>
-            <h3 className="text-white font-semibold mb-1">Synca Leverantörer</h3>
-            <p className="text-sm text-white/50">{counts.suppliers} leverantörer</p>
+            <Users className="w-4 h-4 inline mr-2" />
+            Synka Leverantörer
           </button>
-
           <button
-            onClick={() => openConfirmDialog('purchaseOrders')}
-            disabled={syncing}
-            className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => setMode('purchaseOrders')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              mode === 'purchaseOrders'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white/5 border border-white/10 text-white/50 hover:text-white'
+            }`}
           >
-            <div className="mb-3 w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-              <span className="text-purple-400 font-semibold">📋</span>
-            </div>
-            <h3 className="text-white font-semibold mb-1">Synca Inköpsorder</h3>
-            <p className="text-sm text-white/50">{counts.purchaseOrders} order</p>
+            <ShoppingCart className="w-4 h-4 inline mr-2" />
+            Synka Inköpsorder
           </button>
         </motion.div>
 
-        {/* Sync Result */}
-        {syncResult && (
+        {/* Manual Article Sync Mode */}
+        {mode === 'manual' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-6 rounded-2xl backdrop-blur-xl border ${
-              syncResult.success
-                ? 'bg-green-500/10 border-green-500/20'
-                : 'bg-red-500/10 border-red-500/20'
-            }`}
+            className="space-y-4"
           >
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-green-500/20">
-                {syncResult.success ? (
-                  <CheckCircle2 className="w-6 h-6 text-green-400" />
-                ) : (
-                  <XCircle className="w-6 h-6 text-red-400" />
-                )}
+            {/* Search and Controls */}
+            <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+              <div className="flex gap-4 mb-4">
+                <Input
+                  placeholder="Sök på SKU, namn eller leverantör..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 bg-slate-800 border-slate-700 text-white"
+                />
+                <Button
+                  onClick={toggleAllArticles}
+                  variant="outline"
+                  className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white whitespace-nowrap"
+                >
+                  {selectedArticles.size === filteredArticles.length && filteredArticles.length > 0
+                    ? 'Avmarkera alla'
+                    : 'Välj alla'}
+                </Button>
+                <Button
+                  onClick={handleSyncSelected}
+                  disabled={selectedArticles.size === 0 || syncing}
+                  className="bg-blue-600 hover:bg-blue-500 text-white whitespace-nowrap"
+                >
+                  Skicka {selectedArticles.size > 0 ? `${selectedArticles.size} ` : ''}till Fortnox
+                </Button>
               </div>
-              <div className="flex-1">
-                <h3 className={`font-semibold mb-2 ${syncResult.success ? 'text-green-400' : 'text-red-400'}`}>
-                  {syncResult.success ? 'Synkronisering slutförd' : 'Synkronisering misslyckades'}
-                </h3>
-                <div className="space-y-1 text-sm text-white/70">
-                  {syncResult.succeeded > 0 && (
-                    <p>✓ {syncResult.succeeded} items synkade framgångsrikt</p>
-                  )}
-                  {syncResult.failed > 0 && (
-                    <p>✗ {syncResult.failed} items misslyckades</p>
-                  )}
-                  {syncResult.error && (
-                    <p className="text-red-400">{syncResult.error}</p>
-                  )}
+
+              {/* Articles Table */}
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
                 </div>
-              </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="p-3 text-left">
+                          <Checkbox
+                            checked={selectedArticles.size === filteredArticles.length && filteredArticles.length > 0}
+                            onChange={toggleAllArticles}
+                          />
+                        </th>
+                        <th className="p-3 text-left text-white/70">SKU</th>
+                        <th className="p-3 text-left text-white/70">Artikelnamn</th>
+                        <th className="p-3 text-left text-white/70">Leverantör</th>
+                        <th className="p-3 text-left text-white/70">Lager-saldo</th>
+                        <th className="p-3 text-left text-white/70">Status</th>
+                        <th className="p-3 text-left text-white/70">Auto-synk</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredArticles.map((article) => (
+                        <tr key={article.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                          <td className="p-3">
+                            <Checkbox
+                              checked={selectedArticles.has(article.id)}
+                              onChange={() => toggleArticle(article.id)}
+                            />
+                          </td>
+                          <td className="p-3 text-white font-mono">{article.sku || '-'}</td>
+                          <td className="p-3 text-white/80">{article.name}</td>
+                          <td className="p-3 text-white/80">{article.supplier_name || '-'}</td>
+                          <td className="p-3 text-white/80">{article.stock_qty || 0} st</td>
+                          <td className="p-3">
+                            {article.fortnox_synced ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs">
+                                <CheckCircle2 className="w-3 h-3" /> Synkad
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-500/20 text-slate-400 text-xs">
+                                Ej synkad
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <button
+                              onClick={() => toggleAutoSync(article.id, article.fortnox_synced)}
+                              className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                                article.fortnox_synced
+                                  ? 'bg-blue-600/30 text-blue-300 hover:bg-blue-600/50'
+                                  : 'bg-slate-700/30 text-slate-400 hover:bg-slate-700/50 cursor-not-allowed'
+                              } ${!article.fortnox_synced ? 'opacity-50' : ''}`}
+                              disabled={!article.fortnox_synced}
+                            >
+                              {article.fortnox_synced ? 'Aktiv' : 'Inaktiv'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
+
+            {/* Sync Result */}
+            {syncResult && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-6 rounded-2xl backdrop-blur-xl border ${
+                  syncResult.success
+                    ? 'bg-green-500/10 border-green-500/20'
+                    : 'bg-red-500/10 border-red-500/20'
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  {syncResult.success ? (
+                    <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
+                  ) : (
+                    <XCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
+                  )}
+                  <div className="flex-1">
+                    <h3 className={`font-semibold mb-2 ${syncResult.success ? 'text-green-400' : 'text-red-400'}`}>
+                      {syncResult.success ? 'Synkronisering slutförd' : 'Synkronisering misslyckades'}
+                    </h3>
+                    <div className="space-y-1 text-sm text-white/70">
+                      {syncResult.succeeded > 0 && (
+                        <p>✓ {syncResult.succeeded} artiklar synkade framgångsrikt</p>
+                      )}
+                      {syncResult.failed > 0 && (
+                        <p>✗ {syncResult.failed} artiklar misslyckades</p>
+                      )}
+                      {syncResult.error && (
+                        <p className="text-red-400">{syncResult.error}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+
+        {/* Suppliers/Orders Modes */}
+        {(mode === 'suppliers' || mode === 'purchaseOrders') && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10"
+          >
+            <p className="text-white/70 mb-4">
+              {mode === 'suppliers' 
+                ? 'Synka alla leverantörer till Fortnox'
+                : 'Synka alla inköpsorder till Fortnox'}
+            </p>
+            <Button
+              onClick={() => setConfirmDialog({
+                type: mode,
+                count: mode === 'suppliers' ? 'alla' : 'alla',
+                label: mode === 'suppliers' ? 'leverantörer' : 'inköpsorder'
+              })}
+              disabled={syncing}
+              className="bg-blue-600 hover:bg-blue-500 text-white"
+            >
+              {syncing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Synkar...
+                </>
+              ) : (
+                `Synka ${mode === 'suppliers' ? 'Leverantörer' : 'Inköpsorder'}`
+              )}
+            </Button>
           </motion.div>
         )}
 
@@ -247,16 +376,15 @@ export default function FortnoxSyncPage() {
           className="mt-6 p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10"
         >
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-              <AlertCircle className="w-5 h-5 text-blue-400" />
-            </div>
+            <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-1" />
             <div>
-              <h3 className="font-semibold text-white mb-2">Om Synkronisering</h3>
-              <p className="text-sm text-white/50 leading-relaxed">
-                Synkroniseringen använder Fortnox REST API med OAuth2 client credentials. 
-                Du måste bekräfta varje synkronisering innan den körs. Synkade items uppdateras 
-                baserat på deras SKU/artikel-nummer.
-              </p>
+              <h3 className="font-semibold text-white mb-2">Så fungerar synkroniseringen</h3>
+              <ul className="text-sm text-white/50 space-y-1 list-disc list-inside">
+                <li><strong>Läge 1:</strong> Välj artiklar manuellt och synka dem. De markeras då som "Synkad".</li>
+                <li><strong>Läge 2:</strong> Synkade artiklar får auto-synk aktiverat automatiskt och uppdateras till Fortnox när stock, pris eller andra viktiga fält ändras.</li>
+                <li>Du kan stänga av auto-synk per artikel via toggle-knappen.</li>
+                <li>Leverantörer och inköpsorder synkas manuellt via separata knappar.</li>
+              </ul>
             </div>
           </div>
         </motion.div>
@@ -271,7 +399,7 @@ export default function FortnoxSyncPage() {
           
           <div className="py-4">
             <p className="text-white/70">
-              Vill du synka <span className="font-semibold text-white">{confirmDialog?.count}</span> {confirmDialog?.label?.toLowerCase()} till Fortnox?
+              Vill du synka {confirmDialog?.count} {confirmDialog?.label} till Fortnox?
             </p>
           </div>
 
@@ -285,7 +413,7 @@ export default function FortnoxSyncPage() {
               Avbryt
             </Button>
             <Button
-              onClick={() => confirmDialog && handleSync(confirmDialog.type)}
+              onClick={() => confirmDialog && executeSync(confirmDialog.type)}
               disabled={syncing}
               className="bg-blue-600 hover:bg-blue-500 text-white"
             >
@@ -295,7 +423,7 @@ export default function FortnoxSyncPage() {
                   Synkar...
                 </>
               ) : (
-                'Ja, synca'
+                'Ja, synka'
               )}
             </Button>
           </DialogFooter>
