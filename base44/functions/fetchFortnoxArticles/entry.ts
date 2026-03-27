@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-const CLIENT_ID = 'C84gmzGW0STm';
-const CLIENT_SECRET = 'jCAiY13645iCfRljftcvAES3BZNL1W5Z';
+const CLIENT_ID = 'mp08u6gAFPz2';
+const CLIENT_SECRET = 'GjAMHv9Mm7wZW356pZmLdkkBlie0QaPg';
 const FORTNOX_API_BASE = 'https://api.fortnox.se/3';
 
 async function getFortnoxToken(base44) {

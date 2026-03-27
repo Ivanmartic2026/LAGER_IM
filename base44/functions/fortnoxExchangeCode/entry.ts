@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-const CLIENT_ID = 'C84gmzGW0STm';
-const CLIENT_SECRET = 'jCAiY13645iCfRljftcvAES3BZNL1W5Z';
+const CLIENT_ID = 'mp08u6gAFPz2';
+const CLIENT_SECRET = 'GjAMHv9Mm7wZW356pZmLdkkBlie0QaPg';
 const REDIRECT_URI = 'https://lager-ai-7d26cc74.base44.app/FortnoxSync';
 
 Deno.serve(async (req) => {
