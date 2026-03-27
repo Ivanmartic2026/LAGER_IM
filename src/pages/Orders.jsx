@@ -22,6 +22,8 @@ import { sv } from "date-fns/locale";
 import OrderForm from "@/components/orders/OrderForm";
 import OrderDetailModal from "@/components/orders/OrderDetailModal";
 import InvoiceModal from "@/components/orders/InvoiceModal";
+import FortnoxCustomerSelect from "@/components/orders/FortnoxCustomerSelect";
+import FortnoxSyncButton from "@/components/orders/FortnoxSyncButton";
 import PullToRefresh from "@/components/utils/PullToRefresh";
 
 export default function OrdersPage() {
@@ -866,17 +868,23 @@ export default function OrdersPage() {
                           <span className="hidden md:inline">Skicka</span>
                         </Button>
 
+                        <FortnoxSyncButton 
+                          order={order} 
+                          orderItems={orderItems.filter(item => item.order_id === order.id)}
+                          onSyncSuccess={() => refetch()}
+                        />
+
                         {order.status === 'picked' && !order.fortnox_invoiced && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30"
-                            onClick={() => setInvoiceModalOrder(order)}
-                          >
-                            <FileText className="w-4 h-4 mr-2" />
-                            Fakturera
-                          </Button>
-                        )}
+                           <Button
+                             size="sm"
+                             variant="outline"
+                             className="bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30"
+                             onClick={() => setInvoiceModalOrder(order)}
+                           >
+                             <FileText className="w-4 h-4 mr-2" />
+                             Fakturera
+                           </Button>
+                         )}
 
                         {order.status === 'picked' && (
                           <Button

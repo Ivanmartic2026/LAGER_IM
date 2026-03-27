@@ -1,0 +1,198 @@
+{
+  "name": "Order",
+  "type": "object",
+  "properties": {
+    "order_number": {
+      "type": "string",
+      "description": "Ordernummer"
+    },
+    "customer_name": {
+      "type": "string",
+      "description": "Kundnamn"
+    },
+    "customer_reference": {
+      "type": "string",
+      "description": "Kundreferens"
+    },
+    "fortnox_customer_number": {
+      "type": "string",
+      "description": "Fortnox kundnummer"
+    },
+    "rm_system_id": {
+      "type": "string",
+      "description": "ID/referens i RM-systemet"
+    },
+    "rm_system_url": {
+      "type": "string",
+      "description": "L\u00e4nk till ordern i RM-systemet"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready_to_pick",
+        "picking",
+        "picked",
+        "in_production",
+        "production_completed",
+        "delivered",
+        "cancelled"
+      ],
+      "default": "draft",
+      "description": "Operativ orderstatus"
+    },
+    "financial_status": {
+      "type": "string",
+      "enum": [
+        "unbilled",
+        "pending_billing",
+        "billed"
+      ],
+      "default": "unbilled",
+      "description": "Ekonomisk status \u2013 faktureringsl\u00e4ge"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal",
+      "description": "Prioritet"
+    },
+    "delivery_date": {
+      "type": "string",
+      "format": "date",
+      "description": "\u00d6nskat leveransdatum"
+    },
+    "delivery_address": {
+      "type": "string",
+      "description": "Leveransadress"
+    },
+    "delivery_method": {
+      "type": "string",
+      "enum": [
+        "truck",
+        "courier",
+        "pickup",
+        "air_freight",
+        "sea_freight",
+        "other"
+      ],
+      "description": "Leveranss\u00e4tt"
+    },
+    "shipping_company": {
+      "type": "string",
+      "description": "Spedit\u00f6r/transportf\u00f6retag"
+    },
+    "tracking_number": {
+      "type": "string",
+      "description": "Sp\u00e5rningsnummer f\u00f6r leveransen"
+    },
+    "shipped_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Datum n\u00e4r ordern skickades"
+    },
+    "site_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Kopplade siter (SiteReport-IDs eller site-namn)"
+    },
+    "site_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Kopplade sitenamn (f\u00f6r enklare visning)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    },
+    "picked_by": {
+      "type": "string",
+      "description": "Plockad av (anv\u00e4ndarens email)"
+    },
+    "picked_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Plockdatum"
+    },
+    "picking_started_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r plockningen startades"
+    },
+    "picking_started_by": {
+      "type": "string",
+      "description": "Vem som startade plockningen (email)"
+    },
+    "production_started_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r produktionen (hos oss) startade"
+    },
+    "production_completed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r produktionen (hos oss) avslutades"
+    },
+    "needs_ordering": {
+      "type": "boolean",
+      "default": false,
+      "description": "Kr\u00e4ver best\u00e4llning"
+    },
+    "ordering_completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Best\u00e4llning genomf\u00f6rd"
+    },
+    "ordering_notes": {
+      "type": "string",
+      "description": "Best\u00e4llningsanteckningar"
+    },
+    "fortnox_invoiced": {
+      "type": "boolean",
+      "default": false,
+      "description": "Ordern \u00e4r fakturerad i Fortnox"
+    },
+    "fortnox_invoice_number": {
+      "type": "string",
+      "description": "Fakturanummer fr\u00e5n Fortnox"
+    },
+    "fortnox_order_id": {
+      "type": "string",
+      "description": "Fortnox ordernummer"
+    },
+    "fortnox_document_number": {
+      "type": "string",
+      "description": "Fortnox dokumentnummer"
+    },
+    "invoiced_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Datum n\u00e4r ordern fakturerades"
+    },
+    "invoiced_by": {
+      "type": "string",
+      "description": "Vem som markerade ordern som fakturerad (email)"
+    },
+    "is_incomplete": {
+      "type": "boolean",
+      "default": false,
+      "description": "Order \u00e4r ofullst\u00e4ndig och kan beh\u00f6va kompletteras"
+    },
+    "cancellation_reason": {
+      "type": "string",
+      "description": "Anledning till avbokning/annullering"
+    }
+  },
+  "required": [
+    "customer_name"
+  ]
+}

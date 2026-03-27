@@ -9,12 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { X, Plus, Trash2, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
+import FortnoxCustomerSelect from "@/components/orders/FortnoxCustomerSelect";
 
 export default function OrderForm({ order, onClose }) {
   const [formData, setFormData] = useState({
     order_number: order?.order_number || '',
     customer_name: order?.customer_name || '',
     customer_reference: order?.customer_reference || '',
+    fortnox_customer_number: order?.fortnox_customer_number || '',
     rm_system_id: order?.rm_system_id || '',
     rm_system_url: order?.rm_system_url || '',
     status: order?.status || 'draft',
@@ -228,6 +230,20 @@ export default function OrderForm({ order, onClose }) {
                 placeholder="Kundnamn"
                 className="bg-slate-800 border-slate-700 text-white"
                 required
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                Fortnox Kund
+              </label>
+              <FortnoxCustomerSelect
+                value={formData.fortnox_customer_number}
+                onSelect={(customer) => setFormData({
+                  ...formData,
+                  fortnox_customer_number: customer.CustomerNumber,
+                  customer_name: customer.Name
+                })}
               />
             </div>
 
