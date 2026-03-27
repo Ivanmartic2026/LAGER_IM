@@ -993,10 +993,10 @@ export default function InventoryPage() {
               <div className="w-[80px] flex-shrink-0 text-center">Stock</div>
               {/* ETA */}
               <div className="w-[130px] flex-shrink-0">ETA</div>
-              {/* Location */}
-              <div className="w-[150px] flex-shrink-0">Location</div>
               {/* Name */}
               <div className="flex-1 min-w-0" style={{minWidth: '280px'}}>Product Name</div>
+              {/* Location */}
+              <div className="w-[150px] flex-shrink-0">Location</div>
               {/* Article Number */}
               <div className="w-[220px] flex-shrink-0">Article Number</div>
               {/* Batch ID */}
@@ -1170,6 +1170,15 @@ export default function InventoryPage() {
                           </div>
                         ) : <span className="text-xs text-white/20">—</span>}
                       </div>
+                      {/* Name */}
+                      <div className="flex-1 min-w-0" style={{minWidth: '280px'}}>
+                        <div className="font-semibold text-white text-base mb-1 truncate tracking-tight">{article.customer_name || article.name}</div>
+                        {article.supplier_name && (
+                          <div className="text-xs text-white/50 truncate">
+                            {article.supplier_name}{article.series && ` • ${article.series}`}{article.pitch_value && ` • ${article.pitch_value}`}
+                          </div>
+                        )}
+                      </div>
                       {/* Location */}
                       <div className="w-[150px] flex-shrink-0">
                         {article.shelf_address ? (
@@ -1179,15 +1188,6 @@ export default function InventoryPage() {
                           </div>
                         ) : (
                           <span className="text-xs text-white/20">—</span>
-                        )}
-                      </div>
-                      {/* Name */}
-                      <div className="flex-1 min-w-0" style={{minWidth: '280px'}}>
-                        <div className="font-semibold text-white text-base mb-1 truncate tracking-tight">{article.customer_name || article.name}</div>
-                        {article.supplier_name && (
-                          <div className="text-xs text-white/50 truncate">
-                            {article.supplier_name}{article.series && ` • ${article.series}`}{article.pitch_value && ` • ${article.pitch_value}`}
-                          </div>
                         )}
                       </div>
                       {/* Article Number */}
