@@ -77,7 +77,11 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
   // Filter shelves based on selected warehouse
   const availableShelves = formData.warehouse 
     ? shelves.filter(s => {
-        const warehouse = warehouses.find(w => w.name === formData.warehouse);
+        const warehouse = warehouses.find(w => 
+          w.name === formData.warehouse || 
+          w.id === formData.warehouse ||
+          w.code === formData.warehouse
+        );
         return warehouse && s.warehouse_id === warehouse.id;
       })
     : [];
@@ -558,7 +562,8 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     </div>
                   ) : availableShelves.length === 0 ? (
                     <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-sm text-amber-300">
-                      Inga hyllor i detta lagerställe. Lägg till hyllor på Lagerställen-sidan.
+                      Inga hyllor hittades för detta lagerställe. Kontrollera att hyllor är skapade under Warehouses.
+                      <div className="mt-1 text-xs text-amber-400/70">Warehouse: "{formData.warehouse}"</div>
                     </div>
                   ) : (
                     <div className="space-y-2">
