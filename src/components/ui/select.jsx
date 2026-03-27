@@ -127,10 +127,6 @@ const SelectItem = React.forwardRef(({ className, children, ...props }, ref) => 
       "md:py-1.5 md:px-2 md:text-sm md:rounded-sm md:cursor-default", // Desktop styles
       className
     )}
-    onPointerDown={(e) => {
-      // Ensure the item is clickable on mobile
-      e.currentTarget.click();
-    }}
     {...props}>
     <SelectPrimitive.ItemText className="flex-1">{children}</SelectPrimitive.ItemText>
     <SelectPrimitive.ItemIndicator className="ml-2">
