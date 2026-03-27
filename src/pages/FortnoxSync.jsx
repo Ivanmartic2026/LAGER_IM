@@ -427,12 +427,13 @@ export default function FortnoxSyncPage() {
       }
     } catch (error) {
       console.error('Sync error:', error);
-      toast.error('Synkronisering misslyckades');
+      const errorMsg = error.response?.data?.error || error.message || 'Okänt fel';
+      toast.error(`Synkronisering misslyckades: ${errorMsg}`);
       setSyncResult({
         success: false,
-        error: error.message,
-        succeeded: 0,
-        failed: selectedArticles.size
+        error: errorMsg,
+        synced: 0,
+        errors: [errorMsg]
       });
     } finally {
       setSyncing(false);
@@ -481,7 +482,8 @@ export default function FortnoxSyncPage() {
       }
     } catch (error) {
       console.error('Sync error:', error);
-      toast.error('Synkronisering misslyckades');
+      const errorMsg = error.response?.data?.error || error.message || 'Okänt fel';
+      toast.error(`Synkronisering misslyckades: ${errorMsg}`);
     } finally {
       setSyncingArticleId(null);
       setConfirmDialog(null);
