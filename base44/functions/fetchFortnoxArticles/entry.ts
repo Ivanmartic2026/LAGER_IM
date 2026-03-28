@@ -31,10 +31,26 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     const accessToken = await getFortnoxToken(base44);
-    const response = await fetch(FORTNOX_API_BASE + '/articles?limit=10000', { headers: { 'Authorization': 'Bearer ' + accessToken, 'Accept': 'application/json' } });
-    if (!response.ok) { const errText = await response.text(); throw new Error('Articles failed (' + response.status + '): ' + errText); }
-    const data = await response.json();
-    return Response.json({ success: true, articles: data.Articles || [] });
+
+    let allArticles = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const response = await fetch(`${FORTNOX_API_BASE}/articles?limit=500&page=${page}`, {
+        headers: { 'Authorization': 'Bearer ' + accessToken, 'Accept': 'application/json' }
+      });
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error('Articles failed (' + response.status + '): ' + errText);
+      }
+      const data = await response.json();
+      allArticles = [...allArticles, ...(data.Articles || [])];
+      totalPages = parseInt(data.MetaInformation?.['@TotalPages'] || '1');
+      page++;
+    } while (page <= totalPages);
+
+    return Response.json({ success: true, articles: allArticles });
   } catch (error) {
     console.error('fetchFortnoxArticles error:', error.message);
     return Response.json({ success: false, error: error.message }, { status: 500 });
