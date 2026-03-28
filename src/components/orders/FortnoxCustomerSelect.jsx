@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,25 @@ export default function FortnoxCustomerSelect({ value, onSelect, disabled }) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const containerRef = useRef(null);
 
   useEffect(() => {
     if (open && customers.length === 0) {
       fetchCustomers();
     }
+  }, [open]);
+
+  // Stäng dropdown vid klick utanför
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [open]);
 
   const fetchCustomers = async () => {
@@ -42,11 +56,12 @@ export default function FortnoxCustomerSelect({ value, onSelect, disabled }) {
   );
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full" ref={containerRef}>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         disabled={disabled}
-        className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-left flex items-center justify-between hover:border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-left flex items-center justify-between hover:border-slate-500 transition-colors"
       >
         <span>{selectedCustomer ? selectedCustomer.Name : 'Välj kund...'}</span>
         <ChevronDown className="w-4 h-4" />
@@ -63,7 +78,7 @@ export default function FortnoxCustomerSelect({ value, onSelect, disabled }) {
             />
           </div>
 
-          <div className="max-h-48 overflow-y-auto">
+          <div className="max-h-64 overflow-y-auto">
             {loading ? (
               <div className="p-4 flex items-center justify-center">
                 <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
@@ -75,6 +90,7 @@ export default function FortnoxCustomerSelect({ value, onSelect, disabled }) {
             ) : (
               filteredCustomers.map((customer) => (
                 <button
+                  type="button"
                   key={customer.CustomerNumber}
                   onClick={() => {
                     onSelect(customer);
