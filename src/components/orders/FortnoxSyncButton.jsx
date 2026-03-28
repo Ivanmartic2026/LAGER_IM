@@ -56,15 +56,16 @@ export default function FortnoxSyncButton({ order, orderItems, onSyncSuccess }) 
           financial_status: 'billed'
         });
 
-        toast.success(`Order skickad till Fortnox (#{result.data.fortnox_order_id})`);
+        toast.success(`✓ Order skickad till Fortnox! (Order #${result.data.fortnox_order_id})`);
         setConfirmOpen(false);
         if (onSyncSuccess) onSyncSuccess();
       } else {
-        toast.error(`Synkronisering misslyckades: ${result.data.error}`);
+        toast.error(`Fel: ${result.data.error || 'Kunde inte skicka till Fortnox'}`);
       }
     } catch (error) {
       console.error('Sync error:', error);
-      toast.error('Kunde inte synka order till Fortnox');
+      const errMsg = error.response?.data?.error || error.message || 'Okänt fel';
+      toast.error(`Fel: ${errMsg}`);
     } finally {
       setSyncing(false);
     }
