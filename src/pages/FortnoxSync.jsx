@@ -195,6 +195,8 @@ function FortnoxConnectionPanelInline() {
   const [fortnoxConnected, setFortnoxConnected] = useState(null);
   const [pastedCode, setPastedCode] = useState('');
   const [connectionLoading, setConnectionLoading] = useState(true);
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
 
   useEffect(() => {
     const checkConnection = async () => {
@@ -252,6 +254,22 @@ function FortnoxConnectionPanelInline() {
     }
   };
 
+  const handleDisconnect = async () => {
+    setDisconnecting(true);
+    try {
+      const configs = await base44.entities.FortnoxConfig.list();
+      await Promise.all(configs.map(c => base44.entities.FortnoxConfig.delete(c.id)));
+      setFortnoxConnected(false);
+      setConfirmDisconnect(false);
+      toast.success('Anslutning borttagen');
+    } catch (error) {
+      console.error('Error disconnecting:', error);
+      toast.error('Kunde inte koppla från');
+    } finally {
+      setDisconnecting(false);
+    }
+  };
+
   if (connectionLoading) {
     return (
       <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center">
@@ -262,16 +280,56 @@ function FortnoxConnectionPanelInline() {
 
   if (fortnoxConnected) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="p-6 rounded-2xl bg-green-500/10 backdrop-blur-xl border border-green-500/20"
-      >
-        <div className="flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 text-green-400" />
-          <p className="font-semibold text-green-400">Ansluten till Fortnox</p>
-        </div>
-      </motion.div>
+      <>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-6 rounded-2xl bg-green-500/10 backdrop-blur-xl border border-green-500/20"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+              <p className="font-semibold text-green-400">Ansluten till Fortnox</p>
+            </div>
+            <Button
+              onClick={() => setConfirmDisconnect(true)}
+              variant="outline"
+              className="bg-red-600/20 border-red-500/30 hover:bg-red-600/30 text-red-400"
+            >
+              <Unlink2 className="w-4 h-4 mr-2" />
+              Koppla från
+            </Button>
+          </div>
+        </motion.div>
+
+        <Dialog open={confirmDisconnect} onOpenChange={setConfirmDisconnect}>
+          <DialogContent className="bg-slate-900 border-slate-700 max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-white">Koppla från Fortnox?</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-white/70">Detta tar bort den sparade anslutningen. Du kan återansluta med nya OAuth-behörigheter efteråt.</p>
+            </div>
+            <DialogFooter className="gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setConfirmDisconnect(false)}
+                disabled={disconnecting}
+                className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
+              >
+                Avbryt
+              </Button>
+              <Button
+                onClick={handleDisconnect}
+                disabled={disconnecting}
+                className="bg-red-600 hover:bg-red-500 text-white"
+              >
+                {disconnecting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Kopplar från...</> : 'Ja, koppla från'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 
