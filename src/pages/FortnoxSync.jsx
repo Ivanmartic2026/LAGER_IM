@@ -769,11 +769,11 @@ export default function FortnoxSyncPage() {
                   <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-6">
+                  <table className="min-w-full text-sm">
                     <thead>
                       <tr className="border-b border-white/10">
-                        <th className="p-3 text-left">
+                        <th className="p-3 text-left pl-6">
                           <Checkbox
                             checked={selectedArticles.size === filteredArticles.length && filteredArticles.length > 0}
                             onChange={toggleAllArticles}
@@ -945,11 +945,11 @@ export default function FortnoxSyncPage() {
                   Klicka "Uppdatera från Fortnox" för att hämta artiklar
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-6">
+                  <table className="min-w-full text-sm">
                     <thead>
                       <tr className="border-b border-white/10">
-                        <th className="p-3 text-left">
+                        <th className="p-3 text-left pl-6">
                           <Checkbox
                             checked={selectedFortnoxArticles.size === missingFromLagerAI.length && missingFromLagerAI.length > 0}
                             onChange={() => {
