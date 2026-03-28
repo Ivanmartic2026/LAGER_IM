@@ -51,26 +51,36 @@ Deno.serve(async (req) => {
     }
 
     const accessToken = await getFortnoxToken(base44);
-    
-    const response = await fetch(`${FORTNOX_API_BASE}/customers?limit=500`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Accept': 'application/json'
+
+    const limit = 500;
+    let offset = 0;
+    const allCustomers = [];
+
+    while (true) {
+      const response = await fetch(`${FORTNOX_API_BASE}/customers?limit=${limit}&offset=${offset}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Fortnox API error: ${response.status} - ${error}`);
       }
-    });
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Fortnox API error: ${response.status} - ${error}`);
+      const data = await response.json();
+      const page = data.Customers || [];
+      allCustomers.push(...page);
+
+      if (page.length < limit) break;
+      offset += limit;
     }
-
-    const data = await response.json();
-    const customers = data.Customers || [];
 
     return Response.json({
       success: true,
-      customers: customers.map(c => ({
+      customers: allCustomers.map(c => ({
         CustomerNumber: c.CustomerNumber,
         Name: c.Name,
         Email: c.Email || '',
