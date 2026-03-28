@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 export default function FortnoxSyncButton({ order, orderItems, onSyncSuccess }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState(null);
 
   if (!order.fortnox_customer_number) {
     return null;
@@ -57,15 +58,21 @@ export default function FortnoxSyncButton({ order, orderItems, onSyncSuccess }) 
         });
 
         toast.success(`✓ Order skickad till Fortnox! (Order #${result.data.fortnox_order_id})`);
+        setSyncMessage({ type: 'success', text: 'Order skickad till Fortnox!' });
+        setTimeout(() => setSyncMessage(null), 4000);
         setConfirmOpen(false);
         if (onSyncSuccess) onSyncSuccess();
       } else {
         toast.error(`Fel: ${result.data.error || 'Kunde inte skicka till Fortnox'}`);
+        setSyncMessage({ type: 'error', text: 'Fel: ' + (result.data.error || 'Kunde inte skicka till Fortnox') });
+        setTimeout(() => setSyncMessage(null), 6000);
       }
     } catch (error) {
       console.error('Sync error:', error);
       const errMsg = error.response?.data?.error || error.message || 'Okänt fel';
       toast.error(`Fel: ${errMsg}`);
+      setSyncMessage({ type: 'error', text: 'Fel: ' + errMsg });
+      setTimeout(() => setSyncMessage(null), 6000);
     } finally {
       setSyncing(false);
     }
@@ -77,6 +84,11 @@ export default function FortnoxSyncButton({ order, orderItems, onSyncSuccess }) 
 
   return (
     <>
+      {syncMessage && (
+        <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-white font-medium shadow-lg ${syncMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+          {syncMessage.text}
+        </div>
+      )}
       <Button
         onClick={() => setConfirmOpen(true)}
         size="sm"
