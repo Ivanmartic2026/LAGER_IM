@@ -1107,8 +1107,9 @@ export default function OrdersPage() {
         {/* Order Detail Modal */}
         {selectedOrder && (
           <OrderDetailModal
-            order={selectedOrder}
+            order={orders.find(o => o.id === selectedOrder.id) || selectedOrder}
             onClose={() => setSelectedOrder(null)}
+            onSyncSuccess={() => refetch()}
           />
         )}
 

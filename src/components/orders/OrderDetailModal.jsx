@@ -14,8 +14,9 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import FortnoxSyncButton from "@/components/orders/FortnoxSyncButton";
 
-export default function OrderDetailModal({ order, onClose }) {
+export default function OrderDetailModal({ order, onClose, onSyncSuccess }) {
   const [editMode, setEditMode] = useState(false);
   const [needsOrdering, setNeedsOrdering] = useState(order.needs_ordering || false);
   const [orderingCompleted, setOrderingCompleted] = useState(order.ordering_completed || false);
@@ -403,6 +404,11 @@ export default function OrderDetailModal({ order, onClose }) {
             Skapad {format(new Date(order.created_date), "d MMM yyyy HH:mm", { locale: sv })}
           </div>
           <div className="flex gap-2">
+            <FortnoxSyncButton 
+              order={order} 
+              orderItems={orderItems}
+              onSyncSuccess={onSyncSuccess || (() => {})}
+            />
             {order.status === 'picked' && (
               <Button
                 onClick={() => exportOrderMutation.mutate(order.id)}

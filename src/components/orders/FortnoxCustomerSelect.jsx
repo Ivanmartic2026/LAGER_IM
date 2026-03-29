@@ -63,7 +63,7 @@ export default function FortnoxCustomerSelect({ value, onSelect, disabled }) {
         disabled={disabled}
         className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-left flex items-center justify-between hover:border-slate-500 transition-colors"
       >
-        <span>{selectedCustomer ? selectedCustomer.Name : 'Välj kund...'}</span>
+        <span>{selectedCustomer ? selectedCustomer.Name : value ? `Kund #${value}` : 'Välj kund...'}</span>
         <ChevronDown className="w-4 h-4" />
       </button>
 
