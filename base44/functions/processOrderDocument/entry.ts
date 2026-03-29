@@ -90,6 +90,17 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Check for duplicate order
+    if (extractedData.order_number) {
+      const existingOrders = await base44.asServiceRole.entities.Order.filter({ order_number: extractedData.order_number });
+      if (existingOrders && existingOrders.length > 0) {
+        return Response.json({
+          success: false,
+          error: `Order ${extractedData.order_number} finns redan i systemet.`,
+        }, { status: 409 });
+      }
+    }
+
     // Create Order
     const newOrder = await base44.asServiceRole.entities.Order.create({
       order_number: extractedData.order_number,
