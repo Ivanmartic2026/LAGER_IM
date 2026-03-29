@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// Select used for Status and Priority dropdowns below
 import { toast } from "sonner";
 import { X, Plus, Trash2, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,9 +28,21 @@ export default function OrderForm({ order, onClose }) {
   });
 
   const [orderItems, setOrderItems] = useState([]);
-  const [selectedArticle, setSelectedArticle] = useState('');
+  const [selectedArticle, setSelectedArticle] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [articleSearch, setArticleSearch] = useState('');
+  const [articleDropdownOpen, setArticleDropdownOpen] = useState(false);
+  const articleDropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (articleDropdownRef.current && !articleDropdownRef.current.contains(e.target)) {
+        setArticleDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const queryClient = useQueryClient();
 
@@ -127,13 +140,13 @@ export default function OrderForm({ order, onClose }) {
       return;
     }
 
-    const article = articles.find(a => a.id === selectedArticle);
+    const article = articles.find(a => a.id === selectedArticle.id);
     if (!article) return;
 
-    const existingItem = orderItems.find(item => item.article_id === selectedArticle);
+    const existingItem = orderItems.find(item => item.article_id === selectedArticle.id);
     if (existingItem) {
       setOrderItems(orderItems.map(item => 
-        item.article_id === selectedArticle
+        item.article_id === selectedArticle.id
           ? { ...item, quantity_ordered: item.quantity_ordered + quantity }
           : item
       ));
@@ -149,7 +162,8 @@ export default function OrderForm({ order, onClose }) {
       }]);
     }
 
-    setSelectedArticle('');
+    setSelectedArticle(null);
+    setArticleSearch('');
     setQuantity(1);
   };
 
@@ -369,43 +383,56 @@ export default function OrderForm({ order, onClose }) {
             </label>
 
             <div className="flex gap-2 mb-3">
-              <Select value={selectedArticle} onValueChange={(value) => {
-                setSelectedArticle(value);
-                setArticleSearch('');
-              }}>
-                <SelectTrigger className="flex-1 bg-slate-800 border-slate-700 text-white">
-                  <SelectValue placeholder="Välj artikel..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <div className="p-2 border-b border-slate-700 sticky top-0 bg-slate-900 z-10">
-                    <Input
-                      placeholder="Sök artikelnamn, SKU, batch..."
-                      value={articleSearch}
-                      onChange={(e) => setArticleSearch(e.target.value)}
-                      className="h-9 bg-slate-800 border-slate-700 text-white"
-                      onClick={(e) => e.stopPropagation()}
-                    />
+              <div className="relative flex-1" ref={articleDropdownRef}>
+                <Input
+                  placeholder={selectedArticle ? (selectedArticle.customer_name || selectedArticle.name) : "Sök artikel..."}
+                  value={articleSearch}
+                  onChange={(e) => {
+                    setArticleSearch(e.target.value);
+                    setSelectedArticle(null);
+                    setArticleDropdownOpen(true);
+                  }}
+                  onFocus={() => setArticleDropdownOpen(true)}
+                  className="bg-slate-800 border-slate-700 text-white"
+                />
+                {selectedArticle && !articleSearch && (
+                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                    <span className="text-white text-sm">{selectedArticle.customer_name || selectedArticle.name}</span>
                   </div>
-                  {filteredArticles.length === 0 ? (
-                    <div className="p-4 text-center text-slate-400 text-sm">
-                      Ingen artikel hittades
-                    </div>
-                  ) : (
-                    filteredArticles.map((article) => {
-                      const available = (article.stock_qty || 0) - (article.reserved_stock_qty || 0);
-                      return (
-                        <SelectItem key={article.id} value={article.id}>
-                          {article.customer_name || article.name} ({article.batch_number || 'N/A'}) - 
-                          Tillgängligt: <span className={available > 0 ? "text-green-400 font-semibold" : "text-red-400 font-semibold"}>{available}</span> 
-                          {article.reserved_stock_qty > 0 && (
-                            <span className="text-amber-400 text-xs ml-1">({article.reserved_stock_qty} reserverat)</span>
-                          )}
-                        </SelectItem>
-                      );
-                    })
-                  )}
-                </SelectContent>
-              </Select>
+                )}
+                {articleDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                    {filteredArticles.length === 0 ? (
+                      <div className="p-4 text-center text-slate-400 text-sm">Ingen artikel hittades</div>
+                    ) : (
+                      filteredArticles.map((article) => {
+                        const available = (article.stock_qty || 0) - (article.reserved_stock_qty || 0);
+                        return (
+                          <button
+                            key={article.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedArticle(article);
+                              setArticleSearch('');
+                              setArticleDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 hover:bg-slate-700 transition-colors border-b border-slate-700/50 last:border-0"
+                          >
+                            <div className="text-white text-sm font-medium">{article.customer_name || article.name}</div>
+                            <div className="text-xs text-slate-400 flex gap-3">
+                              {article.batch_number && <span>Batch: {article.batch_number}</span>}
+                              {article.sku && <span>SKU: {article.sku}</span>}
+                              <span className={available > 0 ? "text-green-400" : "text-red-400"}>
+                                Tillgängligt: {available}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
 
               <Input
                 type="number"
