@@ -224,17 +224,19 @@ export default function OrdersPage() {
       toast.loading("Analyserar orderdokument med AI...", { id: uploadToastId });
       
       const response = await base44.functions.invoke('processOrderDocument', { file_url });
+      const data = response.data;
 
-      if (response.data.success) {
-        toast.success(response.data.message, { id: uploadToastId });
+      if (data.success) {
+        toast.success(data.message || "Order skapad framgångsrikt!", { id: uploadToastId, duration: 6000 });
         queryClient.invalidateQueries({ queryKey: ['orders'] });
         queryClient.invalidateQueries({ queryKey: ['orderItems'] });
       } else {
-        toast.error(response.data.error || "Kunde inte bearbeta orderdokumentet.", { id: uploadToastId });
+        toast.error(`Fel: ${data.error || data.details || "Kunde inte bearbeta orderdokumentet."}`, { id: uploadToastId, duration: 8000 });
       }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Misslyckades: " + error.message, { id: uploadToastId });
+      const errMsg = error.response?.data?.error || error.response?.data?.details || error.message || "Okänt fel";
+      toast.error(`Misslyckades: ${errMsg}`, { id: uploadToastId, duration: 8000 });
     } finally {
       setIsUploadingDocument(false);
       if (fileInputRef.current) {
