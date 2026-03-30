@@ -83,7 +83,10 @@ export default function FindPage() {
       article.name?.toLowerCase().includes(query) ||
       article.batch_number?.toLowerCase().includes(query) ||
       article.manufacturer?.toLowerCase().includes(query) ||
-      article.shelf_address?.toLowerCase().includes(query)
+      (Array.isArray(article.shelf_address) 
+        ? article.shelf_address.join(', ') 
+        : article.shelf_address || ''
+      ).toLowerCase().includes(query)
     );
 
     // Apply status filter
