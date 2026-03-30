@@ -18,6 +18,7 @@ import { sv } from "date-fns/locale";
 import { toast } from "sonner";
 import LabelDownloader from "@/components/labels/LabelDownloader";
 import QuickWithdrawalModal from "@/components/withdrawal/QuickWithdrawalModal";
+import PODashboard from "@/components/dashboard/PODashboard";
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -592,6 +593,9 @@ export default function HomePage() {
             </Link>
           )}
         </div>
+
+        {/* PO Dashboard */}
+        <PODashboard />
 
         {/* Inkommande Site-rapporter */}
         {siteReports.length > 0 && (
