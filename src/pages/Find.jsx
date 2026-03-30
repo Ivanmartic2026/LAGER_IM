@@ -54,12 +54,13 @@ export default function FindPage() {
     queryFn: () => base44.entities.Article.list(),
   });
 
-  // Check for articleId in URL on mount
+  // Check for articleId in URL on mount - only once
   const hasInitialized = useRef(false);
   useEffect(() => {
     if (hasInitialized.current || articles.length === 0) return;
-    
-    const params = new URLSearchParams(window.location.hash.split('?')[1]);
+    hasInitialized.current = true;
+
+    const params = new URLSearchParams(window.location.search);
     const articleId = params.get('articleId');
     
     if (articleId) {
@@ -67,7 +68,6 @@ export default function FindPage() {
       if (article) {
         setSelectedArticle(article);
         setScanResult("found");
-        hasInitialized.current = true;
       }
     }
   }, [articles]);
@@ -780,7 +780,9 @@ VIKTIGT: batch_number ska vara det EXAKTA numret från etiketten, inte ett appro
                     </div>
                     
                     <div className="text-7xl md:text-8xl font-bold text-white mb-4 tracking-tight">
-                      {selectedArticle.shelf_address}
+                      {Array.isArray(selectedArticle.shelf_address) 
+                        ? selectedArticle.shelf_address.join(', ') 
+                        : selectedArticle.shelf_address}
                     </div>
                     
                     {selectedArticle.warehouse && (

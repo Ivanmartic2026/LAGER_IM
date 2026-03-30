@@ -9,6 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Token krävs' }, { status: 400 });
     }
 
+    // Use service role to bypass auth - this is a public supplier portal endpoint
     const orders = await base44.asServiceRole.entities.PurchaseOrder.filter({ 
       supplier_portal_token: token 
     });
@@ -26,13 +27,9 @@ Deno.serve(async (req) => {
     // Enrich items with article_sku from Article if not already set
     const enrichedItems = await Promise.all(items.map(async (item) => {
       if (!item.article_sku && item.article_id) {
-        try {
-          const articles = await base44.asServiceRole.entities.Article.filter({ id: item.article_id });
-          if (articles.length > 0) {
-            return { ...item, article_sku: articles[0].sku };
-          }
-        } catch (e) {
-          console.warn('Could not fetch article SKU:', e.message);
+        const articles = await base44.asServiceRole.entities.Article.filter({ id: item.article_id });
+        if (articles.length > 0) {
+          return { ...item, article_sku: articles[0].sku };
         }
       }
       return item;
@@ -49,7 +46,7 @@ Deno.serve(async (req) => {
     return Response.json({ purchaseOrder, items: enrichedItems, supplier });
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('getSupplierPO error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
