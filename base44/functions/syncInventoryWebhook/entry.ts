@@ -37,13 +37,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const webhookUrl = Deno.env.get('WEBHOOK_URL');
     const webhookToken = Deno.env.get('WEBHOOK_TOKEN');
 
@@ -55,12 +48,10 @@ Deno.serve(async (req) => {
     const { event, data, old_data, changed_fields } = body;
 
     const payload = {
-      event: {
-        type: event.type,
-        entity: event.entity_name,
-        entity_id: event.entity_id,
-        timestamp: new Date().toISOString()
-      },
+      event_type: event?.type,
+      entity: event?.entity_name,
+      entity_id: event?.entity_id,
+      timestamp: new Date().toISOString(),
       data: data || null,
       old_data: old_data || null,
       changed_fields: changed_fields || null
@@ -89,8 +80,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Webhook delivered: Article ${event.type} (${event.entity_id})`);
-    return Response.json({ success: true, entity: event.entity_name, type: event.type });
+    console.log(`Webhook delivered: Article ${event?.type} (${event?.entity_id})`);
+    return Response.json({ success: true, entity: event?.entity_name, type: event?.type });
 
   } catch (error) {
     console.error('syncInventoryWebhook error:', error.message);
