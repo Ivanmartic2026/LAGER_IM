@@ -184,7 +184,7 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
           onDragLeave={handleDragLeave}
           onClick={() => selectedType && !isUploading && fileInputRef.current?.click()}
           className={cn(
-            "relative border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer",
+            "relative border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all cursor-pointer touch-manipulation",
             isDragging && selectedType
               ? "border-blue-500 bg-blue-50 scale-[1.01]"
               : selectedType
@@ -257,37 +257,39 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
                   <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{phaseLabel}</div>
                   <div className="space-y-2">
                     {phaseDocs.map((doc) => (
-                      <div key={doc.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all group">
+                      <div key={doc.id} className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 border border-gray-200 transition-all">
                         <div className={cn(
-                          "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0",
+                          "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5",
                           doc.is_approved ? "bg-green-100" : "bg-blue-50"
                         )}>
                           <FileText className={cn("w-4 h-4", doc.is_approved ? "text-green-600" : "text-blue-500")} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-gray-900 break-words">
                             {doc.file_name || DOC_LABEL_MAP[doc.document_type] || doc.document_type}
                           </p>
-                          <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-gray-400">
                             <span>{DOC_LABEL_MAP[doc.document_type] || doc.document_type}</span>
                             {doc.created_date && <span>· {format(new Date(doc.created_date), 'd MMM yyyy')}</span>}
                           </div>
+                          <div className="flex items-center gap-2 mt-2">
+                            {doc.is_approved ? (
+                              <span className="flex items-center gap-1 text-xs text-green-700 font-semibold px-2 py-0.5 bg-green-50 rounded-full border border-green-200">
+                                <CheckCircle2 className="w-3 h-3" /> Approved
+                              </span>
+                            ) : (
+                              <span className="text-xs text-amber-700 px-2 py-0.5 bg-amber-50 rounded-full border border-amber-200">
+                                Pending review
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {doc.is_approved ? (
-                            <span className="flex items-center gap-1 text-xs text-green-700 font-semibold px-2.5 py-1 bg-green-50 rounded-full border border-green-200">
-                              <CheckCircle2 className="w-3 h-3" /> Approved
-                            </span>
-                          ) : (
-                            <span className="text-xs text-amber-700 px-2.5 py-1 bg-amber-50 rounded-full border border-amber-200">
-                              Pending review
-                            </span>
-                          )}
+                        <div className="flex flex-col items-center gap-1 flex-shrink-0">
                           <a
                             href={doc.file_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all"
+                            className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all touch-manipulation"
                             title="View document"
                           >
                             <ExternalLink className="w-4 h-4" />
@@ -295,7 +297,7 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
                           {!doc.is_approved && (
                             <button
                               onClick={() => { if (confirm('Remove this document?')) deleteMutation.mutate(doc.id); }}
-                              className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                              className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all touch-manipulation"
                               title="Remove document"
                             >
                               <Trash2 className="w-4 h-4" />

@@ -134,7 +134,7 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
                   <div className="flex items-center justify-between">
                     <Label className="text-xs text-gray-600">Batch IDs</Label>
                     {!isConfirmed && (
-                      <Button type="button" size="sm" variant="outline" onClick={() => handleAddBatch(itemIndex)}>
+                      <Button type="button" size="sm" variant="outline" onClick={() => handleAddBatch(itemIndex)} className="touch-manipulation">
                         <Plus className="w-3 h-3 mr-1" />
                         Add Batch
                       </Button>
@@ -145,7 +145,7 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
                   )}
                   {confirmed.supplier_batch_numbers.map((batch, batchIndex) => (
                     <div key={batchIndex} className="p-3 bg-white rounded-lg border border-gray-200 space-y-3">
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <Label className="text-xs text-gray-500">Batch ID</Label>
                           <Input

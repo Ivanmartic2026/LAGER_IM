@@ -248,7 +248,6 @@ export default function SupplierPOView() {
           {/* Step Header */}
           <div className="flex border-b border-gray-200">
             {STEPS.map((step, i) => {
-              const Icon = step.icon;
               const isActive = activeTab === step.key;
               const isDone = (step.key === 'confirm' && isConfirmed) ||
                              (step.key === 'requirements');
@@ -257,32 +256,26 @@ export default function SupplierPOView() {
                   key={step.key}
                   onClick={() => setActiveTab(step.key)}
                   className={cn(
-                    "flex-1 flex flex-col sm:flex-row items-center justify-center gap-1.5 px-3 py-3.5 text-xs sm:text-sm font-medium transition-colors relative",
+                    "flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 text-xs font-medium transition-colors relative min-h-[64px] touch-manipulation",
                     isActive
                       ? "bg-blue-600 text-white"
-                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                      : "text-gray-500 active:bg-gray-100"
                   )}
                 >
                   <div className={cn(
-                    "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold",
+                    "w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold",
                     isActive ? "bg-white/20 text-white" : isDone ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-500"
                   )}>
                     {isDone && !isActive ? <CheckCircle2 className="w-3.5 h-3.5" /> : step.step}
                   </div>
-                  <span className="hidden sm:block">{step.label}</span>
-                  <span className="block sm:hidden text-[10px] leading-tight text-center">
-                    {step.label.split(' ').slice(0, 1).join(' ')}
-                  </span>
-                  {i < STEPS.length - 1 && (
-                    <ChevronRight className={cn("hidden sm:block absolute right-0 w-3.5 h-3.5 top-1/2 -translate-y-1/2", isActive ? "text-white/50" : "text-gray-300")} />
-                  )}
+                  <span className="text-[10px] sm:text-xs leading-tight text-center px-1">{step.label}</span>
                 </button>
               );
             })}
           </div>
 
           {/* Step Content */}
-          <div className="p-5 sm:p-6">
+          <div className="p-4 sm:p-6">
             {activeTab === 'confirm' && (
               <SupplierPOConfirmation purchaseOrder={purchaseOrder} items={items} poToken={poToken} />
             )}
