@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Package, FileText, CheckCircle2, Clock, Upload, ExternalLink, ShieldCheck, Layers, Trash2 } from "lucide-react";
+import { Package, FileText, CheckCircle2, Clock, Upload, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import SupplierPOConfirmation from "@/components/supplier/SupplierPOConfirmation";
 import SupplierDocumentUploadHub from "@/components/supplier/SupplierDocumentUploadHub";
 import { cn } from "@/lib/utils";
 
 const TABS = [
-  { key: 'confirm', label: '1. Confirm Order', icon: CheckCircle2 },
-  { key: 'documents', label: '2. Documents', icon: FileText },
-  { key: 'quality', label: '3. Quality Check', icon: ShieldCheck },
-  { key: 'batch', label: '4. Batch & Files', icon: Layers },
-  { key: 'upload', label: '5. Upload Documents', icon: Upload },
+  { key: 'confirm', label: 'Confirm Order', icon: CheckCircle2 },
+  { key: 'requirements', label: 'Requirements', icon: FileText },
+  { key: 'upload', label: 'Upload Documents', icon: Upload },
 ];
 
 export default function SupplierPOView() {
@@ -228,14 +226,8 @@ export default function SupplierPOView() {
             {activeTab === 'confirm' && (
               <SupplierPOConfirmation purchaseOrder={purchaseOrder} items={items} />
             )}
-            {activeTab === 'documents' && (
-              <DocumentRequirementsSection />
-            )}
-            {activeTab === 'quality' && (
-              <QualityCheckSection />
-            )}
-            {activeTab === 'batch' && (
-              <BatchTraceabilitySection purchaseOrder={purchaseOrder} />
+            {activeTab === 'requirements' && (
+              <RequirementsSection />
             )}
             {activeTab === 'upload' && (
               <SupplierDocumentUploadHub purchaseOrder={purchaseOrder} />
@@ -247,25 +239,27 @@ export default function SupplierPOView() {
   );
 }
 
-function DocumentRequirementsSection() {
-  const required = [
-    { doc: 'Commercial Invoice', note: 'Must match PO exactly — item, quantity, price, currency' },
-    { doc: 'Packing List', note: 'Item by item, including carton dimensions and gross weight' },
-    { doc: 'Bill of Lading (B/L) or Airway Bill (AWB)', note: 'Required before or at shipment' },
-    { doc: 'HS Code Declaration', note: 'Correct HS codes for all product categories' },
-    { doc: 'Certificates (if applicable)', note: 'CE, RoHS, or other certificates as required' },
+function RequirementsSection() {
+  const docs = [
+    { doc: 'QC Report + Photos/Video', note: 'Full quality check must be performed before shipment', icon: '📋' },
+    { doc: 'Commercial Invoice', note: 'Must match PO exactly — item, quantity, price, currency', icon: '🧾' },
+    { doc: 'Packing List', note: 'Item by item, including carton dimensions and gross weight', icon: '📦' },
+    { doc: 'Bill of Lading or Airway Bill', note: 'Required before or at shipment', icon: '🚢' },
+    { doc: 'HS Code Declaration', note: 'Correct HS codes for all product categories', icon: '📑' },
+    { doc: 'RCFGX / Nova Card files', note: 'Configuration files per batch (if applicable)', icon: '💾' },
+    { doc: 'CE / RoHS Certificates', note: 'As required per product', icon: '✅' },
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-        <h3 className="font-semibold text-blue-900 mb-1">Required Documents Before Shipment</h3>
-        <p className="text-sm text-blue-700">All documents must be uploaded before goods are shipped. All information must match the Purchase Order exactly.</p>
+        <h3 className="font-semibold text-blue-900 mb-1">Required Documents</h3>
+        <p className="text-sm text-blue-700">Upload all documents in the "Upload Documents" tab. All info must match the Purchase Order exactly.</p>
       </div>
-      <div className="space-y-3">
-        {required.map((item, i) => (
-          <div key={i} className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{i + 1}</div>
+      <div className="space-y-2">
+        {docs.map((item, i) => (
+          <div key={i} className="flex items-start gap-3 p-4 bg-white rounded-lg border border-gray-200">
+            <span className="text-xl flex-shrink-0">{item.icon}</span>
             <div>
               <div className="font-semibold text-gray-900 text-sm">{item.doc}</div>
               <div className="text-sm text-gray-500 mt-0.5">{item.note}</div>
@@ -274,183 +268,7 @@ function DocumentRequirementsSection() {
         ))}
       </div>
       <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 font-medium">
-        ⚠️ Shipment must not be dispatched until all documents have been uploaded and approved by IMvision.
-      </div>
-    </div>
-  );
-}
-
-function QualityCheckSection() {
-  const checks = [
-    { title: 'Visual Inspection', items: ['Check product appearance and workmanship', 'Verify correct model, color, and labeling', 'No physical damage or defects'] },
-    { title: 'Quantity Verification', items: ['Count must match the confirmed PO quantities', 'Verify packing list against physical goods', 'Report any discrepancies immediately'] },
-    { title: 'Packaging Check', items: ['Outer cartons undamaged and properly sealed', 'Inner packaging adequate for transport', 'Correct labeling on all cartons'] },
-    { title: 'Functional Test', items: ['Test product function as per specification', 'Verify all accessories included', 'Check firmware/software version if applicable'] },
-  ];
-
-  return (
-    <div className="space-y-5">
-      <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-        <h3 className="font-semibold text-green-900 mb-1">Quality Check Requirements</h3>
-        <p className="text-sm text-green-700">A full quality check must be performed before shipment. Upload report, photos, and videos as evidence.</p>
-      </div>
-      <div className="grid sm:grid-cols-2 gap-4">
-        {checks.map((check, i) => (
-          <div key={i} className="p-4 bg-white rounded-lg border border-gray-200">
-            <div className="font-semibold text-gray-900 mb-2 text-sm">{check.title}</div>
-            <ul className="space-y-1">
-              {check.items.map((item, j) => (
-                <li key={j} className="flex items-start gap-2 text-sm text-gray-600">
-                  <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-      <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-        <div className="font-semibold text-gray-900 mb-2 text-sm">Required Evidence — Upload to "5. Upload Documents"</div>
-        <div className="flex flex-wrap gap-2">
-          {['QC Report', 'QC Photos', 'QC Video'].map(e => (
-            <span key={e} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium border border-blue-200">{e}</span>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BatchTraceabilitySection({ purchaseOrder }) {
-  const queryClient = useQueryClient();
-  const [selectedDocType, setSelectedDocType] = useState('rcfgx_file');
-
-  const requirements = [
-    'Each batch must be assigned a unique batch number',
-    'Products and outer cartons must be clearly labeled with batch numbers',
-    'Production documents must be provided per batch',
-    'Full traceability back to production must be possible',
-    'Batch numbers must be entered in "1. Confirm Order" section',
-  ];
-
-  const fileTypes = [
-    { value: 'rcfgx_file', label: 'RCFGX File' },
-    { value: 'nova_card_file', label: 'Nova Card File' },
-    { value: 'other', label: 'Other Batch Document' },
-  ];
-
-  const { data: documents = [] } = useQuery({
-    queryKey: ['batch-files', purchaseOrder.id],
-    queryFn: () => base44.entities.ArticleDocument.filter({ purchase_order_id: purchaseOrder.id }),
-  });
-
-  const batchDocs = documents.filter(d => ['rcfgx_file', 'nova_card_file', 'other'].includes(d.document_type) && d.document_phase === 'production');
-
-  const uploadMutation = useMutation({
-    mutationFn: async ({ file, docType }) => {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      return base44.entities.ArticleDocument.create({
-        purchase_order_id: purchaseOrder.id,
-        document_type: docType,
-        document_phase: 'production',
-        file_url,
-        file_name: file.name,
-        uploaded_by_supplier: true,
-        is_approved: false,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['batch-files', purchaseOrder.id] });
-      toast.success('File uploaded!');
-    },
-    onError: () => toast.error('Upload failed. Please try again.'),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.ArticleDocument.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['batch-files', purchaseOrder.id] }),
-  });
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    await uploadMutation.mutateAsync({ file, docType: selectedDocType });
-    e.target.value = '';
-  };
-
-  const DOC_LABELS = { rcfgx_file: 'RCFGX File', nova_card_file: 'Nova Card File', other: 'Other' };
-
-  return (
-    <div className="space-y-5">
-      <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
-        <h3 className="font-semibold text-purple-900 mb-1">Batch & Files Requirements</h3>
-        <p className="text-sm text-purple-700">All products must be traceable back to their production batch. Required configuration files must be provided for all applicable products.</p>
-      </div>
-      <div className="space-y-2">
-        {requirements.map((req, i) => (
-          <div key={i} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200">
-            <div className="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{i + 1}</div>
-            <span className="text-sm text-gray-700">{req}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Upload section */}
-      <div className="p-5 bg-purple-50 border-2 border-purple-200 rounded-xl space-y-4">
-        <div className="font-semibold text-purple-900 text-sm">Upload Batch & Configuration Files</div>
-        <div className="flex items-center gap-2">
-          <select
-            value={selectedDocType}
-            onChange={(e) => setSelectedDocType(e.target.value)}
-            className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-purple-500"
-          >
-            {fileTypes.map(ft => (
-              <option key={ft.value} value={ft.value}>{ft.label}</option>
-            ))}
-          </select>
-          <input id="batch-file-upload" type="file" className="hidden" onChange={handleFileUpload} disabled={uploadMutation.isPending} />
-          <label
-            htmlFor="batch-file-upload"
-            className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer transition-all bg-purple-600 hover:bg-purple-500',
-              uploadMutation.isPending && 'opacity-50 cursor-not-allowed'
-            )}
-          >
-            {uploadMutation.isPending ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <Upload className="w-4 h-4" />
-            )}
-            Upload
-          </label>
-        </div>
-
-        {batchDocs.length === 0 ? (
-          <div className="text-center py-5 border-2 border-dashed border-purple-300 rounded-lg">
-            <Upload className="w-7 h-7 text-purple-300 mx-auto mb-1" />
-            <p className="text-sm text-purple-400">No files uploaded yet</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {batchDocs.map((doc) => (
-              <div key={doc.id} className="flex items-center gap-3 p-3 rounded-lg bg-white border border-purple-200">
-                <FileText className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">{doc.file_name || DOC_LABELS[doc.document_type]}</p>
-                  <p className="text-xs text-gray-400">{DOC_LABELS[doc.document_type] || doc.document_type}</p>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-gray-400 hover:text-gray-700 rounded hover:bg-gray-100">
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                  <button onClick={() => { if (confirm('Remove this file?')) deleteMutation.mutate(doc.id); }} className="p-1.5 text-gray-400 hover:text-red-500 rounded hover:bg-red-50">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        ⚠️ Do not dispatch shipment until all documents have been uploaded and approved by IMvision.
       </div>
     </div>
   );
