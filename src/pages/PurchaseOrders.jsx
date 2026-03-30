@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { 
 Search, Plus, ShoppingCart, Download, Calendar,
 Truck, Package, User, Printer, Mail, Eye, X, CheckCircle2, AlertCircle, Link2, Copy, FileText,
-TrendingUp, Clock, PackageCheck, Send
+TrendingUp, Clock, PackageCheck, Send, ChevronDown, ChevronRight, ArrowRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -20,6 +20,7 @@ import PurchaseOrderForm from "@/components/orders/PurchaseOrderForm";
 import SimplifiedReceivingForm from "@/components/receiving/SimplifiedReceivingForm";
 import InvoiceScanButton from "@/components/orders/InvoiceScanButton";
 import PODocumentHub from "@/components/purchaseorders/PODocumentHub";
+import POStatusFlow from "@/components/purchaseorders/POStatusFlow";
 
 export default function PurchaseOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -465,6 +466,7 @@ export default function PurchaseOrdersPage() {
                       {/* Actions */}
                       <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/6 bg-white/[0.02]">
                         <div className="flex flex-wrap gap-1">
+                          <POStatusFlow po={po} />
                           {(po.status === 'ordered' || po.status === 'partially_received') && (
                             <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors" onClick={() => setReceivingPO(po)}>
                               <Package className="w-3 h-3" />Ta emot

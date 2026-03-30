@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { 
   Search, Camera, Package, AlertTriangle, Filter, TrendingUp,
   Grid3X3, List, Plus, SlidersHorizontal, Sparkles,
-  ClipboardList, Download, Upload, ArrowUpDown, MapPin,
+  ClipboardList, Download, Upload, ArrowUpDown, MapPin, Building,
   CheckSquare, Trash2, Edit2, X, Database, Printer,
   ChevronDown, MoreHorizontal, TrendingDown, AlertCircle, Wrench, ArrowUpCircle, ChevronUp, Truck
 } from "lucide-react";
@@ -70,6 +70,7 @@ export default function InventoryPage() {
   const [warehouseFilter, setWarehouseFilter] = useState(storedState.warehouseFilter || "all");
   const [storageTypeFilter, setStorageTypeFilter] = useState(storedState.storageTypeFilter || "all");
   const [categoryFilter, setCategoryFilter] = useState(storedState.categoryFilter || "all");
+  const [shelfFilter, setShelfFilter] = useState(storedState.shelfFilter || "");
   const [adjustmentModal, setAdjustmentModal] = useState({ open: false, type: null });
   const [editingArticle, setEditingArticle] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -430,11 +431,17 @@ export default function InventoryPage() {
 
   const filteredArticles = articles
     .filter(article => {
+      const shelfStr = Array.isArray(article.shelf_address)
+        ? article.shelf_address.join(' ')
+        : (article.shelf_address || '');
       const matchesSearch = !searchQuery || 
         article.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         article.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         article.batch_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase());
+        article.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.supplier_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        shelfStr.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesStatus = statusFilter === "all" || 
         (statusFilter === "on_purchase_order" 
@@ -443,8 +450,9 @@ export default function InventoryPage() {
       const matchesWarehouse = warehouseFilter === "all" || article.warehouse === warehouseFilter;
       const matchesStorageType = storageTypeFilter === "all" || article.storage_type === storageTypeFilter;
       const matchesCategory = categoryFilter === "all" || article.category === categoryFilter;
+      const matchesShelf = !shelfFilter || shelfStr.toLowerCase().includes(shelfFilter.toLowerCase());
       
-      return matchesSearch && matchesStatus && matchesWarehouse && matchesStorageType && matchesCategory;
+      return matchesSearch && matchesStatus && matchesWarehouse && matchesStorageType && matchesCategory && matchesShelf;
     })
     .sort((a, b) => {
       switch(sortBy) {
@@ -485,10 +493,11 @@ export default function InventoryPage() {
       statusFilter,
       warehouseFilter,
       storageTypeFilter,
-      categoryFilter
+      categoryFilter,
+      shelfFilter
     };
     localStorage.setItem('inventory_state', JSON.stringify(state));
-  }, [searchQuery, viewMode, statusFilter, warehouseFilter, storageTypeFilter, categoryFilter]);
+  }, [searchQuery, viewMode, statusFilter, warehouseFilter, storageTypeFilter, categoryFilter, shelfFilter]);
 
   // Check URL for article selection and edit mode
   React.useEffect(() => {
@@ -830,7 +839,7 @@ export default function InventoryPage() {
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Sök artikel, batch, SKU..."
+                  placeholder="Sök artikel, batch, SKU, hyllplats, leverantör..."
                   className="pl-10 h-10 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 transition-all text-base"
                 />
               </div>
@@ -840,7 +849,7 @@ export default function InventoryPage() {
                 onClick={() => setFiltersOpen(f => !f)}
                 className={cn(
                   "h-10 px-3 border transition-all",
-                  filtersOpen || warehouseFilter !== 'all' || storageTypeFilter !== 'all' || categoryFilter !== 'all'
+                  filtersOpen || warehouseFilter !== 'all' || storageTypeFilter !== 'all' || categoryFilter !== 'all' || !!shelfFilter
                     ? "bg-blue-600/20 border-blue-500/40 text-blue-400"
                     : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
                 )}
@@ -919,11 +928,21 @@ export default function InventoryPage() {
                       </SelectContent>
                     </Select>
 
-                    {(warehouseFilter !== 'all' || storageTypeFilter !== 'all' || categoryFilter !== 'all') && (
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40" />
+                      <input
+                        value={shelfFilter}
+                        onChange={(e) => setShelfFilter(e.target.value)}
+                        placeholder="Filtrera hyllplats..."
+                        className="pl-9 h-9 w-40 bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/40 rounded-md px-3 focus:outline-none focus:border-blue-500/50"
+                      />
+                    </div>
+
+                    {(warehouseFilter !== 'all' || storageTypeFilter !== 'all' || categoryFilter !== 'all' || shelfFilter) && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => { setWarehouseFilter('all'); setStorageTypeFilter('all'); setCategoryFilter('all'); }}
+                        onClick={() => { setWarehouseFilter('all'); setStorageTypeFilter('all'); setCategoryFilter('all'); setShelfFilter(''); }}
                         className="h-9 text-white/50 hover:text-white hover:bg-white/10 text-sm"
                       >
                         <X className="w-3 h-3 mr-1" />
