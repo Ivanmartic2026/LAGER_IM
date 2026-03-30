@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -14,7 +13,7 @@ import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function SupplierPOConfirmation({ purchaseOrder, items }) {
+export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }) {
   const [confirmedItems, setConfirmedItems] = useState(
     items.map(item => ({
       id: item.id,
@@ -31,24 +30,22 @@ export default function SupplierPOConfirmation({ purchaseOrder, items }) {
 
   const confirmPOMutation = useMutation({
     mutationFn: async (data) => {
-      await base44.entities.PurchaseOrder.update(purchaseOrder.id, {
-        status: 'confirmed',
-        confirmed_date: new Date().toISOString(),
-        confirmed_delivery_date: data.confirmedDate?.toISOString(),
-        supplier_comments: data.supplierComments
+      // Use token-based backend function (no auth required)
+      const response = await base44.functions.invoke('supplierConfirmPO', {
+        token: poToken,
+        confirmedDate: data.confirmedDate?.toISOString(),
+        supplierComments: data.supplierComments,
+        items: data.items,
       });
-      for (const item of data.items) {
-        await base44.entities.PurchaseOrderItem.update(item.id, {
-          quantity_confirmed: item.quantity_confirmed,
-          supplier_batch_numbers: item.supplier_batch_numbers,
-          supplier_comment: item.supplier_comment,
-          status: 'confirmed'
-        });
-      }
+      if (response.data?.error) throw new Error(response.data.error);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supplier-po'] });
       toast.success('Purchase Order confirmed!');
+    },
+    onError: (err) => {
+      toast.error('Could not confirm order: ' + err.message);
     }
   });
 

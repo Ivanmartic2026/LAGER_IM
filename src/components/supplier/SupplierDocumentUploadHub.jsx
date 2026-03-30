@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
-import { Upload, FileText, ExternalLink, CheckCircle2, Trash2, Loader2, Plus } from 'lucide-react';
+import { Upload, FileText, ExternalLink, CheckCircle2, Trash2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -24,45 +24,65 @@ const DOC_TYPES = [
 
 const DOC_LABEL_MAP = Object.fromEntries(DOC_TYPES.map(d => [d.value, d.label]));
 
-export default function SupplierDocumentUploadHub({ purchaseOrder }) {
+export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
   const [selectedType, setSelectedType] = useState('');
-  const [uploadingType, setUploadingType] = useState(null);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data: documents = [] } = useQuery({
     queryKey: ['supplier-po-documents', purchaseOrder.id],
-    queryFn: () => base44.entities.ArticleDocument.filter({ purchase_order_id: purchaseOrder.id }),
+    queryFn: async () => {
+      const res = await base44.functions.invoke('supplierGetDocuments', { action: 'list', token: poToken });
+      return res.data?.documents || [];
+    },
+    enabled: !!poToken,
   });
 
   const uploadMutation = useMutation({
     mutationFn: async ({ file, docType }) => {
       const docDef = DOC_TYPES.find(d => d.value === docType);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      return base44.entities.ArticleDocument.create({
-        purchase_order_id: purchaseOrder.id,
+      // Upload file via the secure supplier upload function
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('token', poToken);
+      const uploadRes = await base44.functions.invoke('supplierUploadFile', formData);
+      const file_url = uploadRes.data?.file_url;
+      if (!file_url) throw new Error('Upload failed');
+
+      // Create document record via backend
+      const res = await base44.functions.invoke('supplierGetDocuments', {
+        action: 'create',
+        token: poToken,
         document_type: docType,
         document_phase: docDef?.phase || 'production',
         file_url,
         file_name: file.name,
-        uploaded_by_supplier: true,
-        is_approved: false,
       });
+      if (res.data?.error) throw new Error(res.data.error);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supplier-po-documents', purchaseOrder.id] });
       toast.success('Document uploaded!');
-      setUploadingType(null);
     },
-    onError: () => {
-      toast.error('Upload failed. Please try again.');
-      setUploadingType(null);
+    onError: (err) => {
+      toast.error('Upload failed: ' + err.message);
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.ArticleDocument.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['supplier-po-documents', purchaseOrder.id] }),
+    mutationFn: async (documentId) => {
+      const res = await base44.functions.invoke('supplierGetDocuments', {
+        action: 'delete',
+        token: poToken,
+        document_id: documentId,
+      });
+      if (res.data?.error) throw new Error(res.data.error);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supplier-po-documents', purchaseOrder.id] });
+      toast.success('Document removed');
+    },
   });
 
   const handleUploadClick = () => {
@@ -76,7 +96,6 @@ export default function SupplierDocumentUploadHub({ purchaseOrder }) {
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadingType(selectedType);
     await uploadMutation.mutateAsync({ file, docType: selectedType });
     e.target.value = '';
   };
@@ -138,7 +157,6 @@ export default function SupplierDocumentUploadHub({ purchaseOrder }) {
           type="file"
           className="hidden"
           onChange={handleFileChange}
-          accept="*"
         />
       </div>
 

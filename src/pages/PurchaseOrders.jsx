@@ -652,18 +652,17 @@ export default function PurchaseOrdersPage() {
                    </Button>
                    <Button
                      onClick={async () => {
-                       const email = customEmail || selectedPOForEmail.supplier_id;
-                       if (!email && !customEmail) {
-                         toast.error("Ange email eller se till att leverantören har en registrerad email");
+                       if (!customEmail) {
+                         toast.error("Ange en email-adress till leverantören");
                          return;
                        }
                        const t = toast.loading("Skickar...");
                        try {
                          await base44.functions.invoke('sendPOToSupplier', {
-                           purchaseOrderId: selectedPOForEmail.id,
-                           emailTo: customEmail || undefined,
-                           supplierPortalUrl: supplierPortalUrl
-                         });
+                               purchaseOrderId: selectedPOForEmail.id,
+                               emailTo: customEmail,
+                               supplierPortalUrl: supplierPortalUrl
+                             });
                          toast.dismiss(t);
                          toast.success("Email skickat till leverantören!");
                          setEmailModalOpen(false);
@@ -674,7 +673,7 @@ export default function PurchaseOrdersPage() {
                          toast.error("Kunde inte skicka: " + err.message, { id: t });
                        }
                      }}
-                     disabled={!customEmail && !selectedPOForEmail?.supplier_id}
+                     disabled={!customEmail}
                      className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50"
                    >
                      <Mail className="w-4 h-4 mr-2" />

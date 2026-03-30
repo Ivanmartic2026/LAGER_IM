@@ -21,6 +21,18 @@ export default function SupplierPOView() {
   const poToken = urlParams.get('token');
   const [activeTab, setActiveTab] = useState('confirm');
 
+  // Show error if no token
+  if (!poToken) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="max-w-md text-center">
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Invalid Link</h1>
+          <p className="text-gray-500">This link is missing a required token. Please use the link provided in your email.</p>
+        </div>
+      </div>
+    );
+  }
+
   const { data, isLoading } = useQuery({
     queryKey: ['supplier-po', poToken],
     queryFn: async () => {
@@ -224,13 +236,13 @@ export default function SupplierPOView() {
 
           <div className="p-6">
             {activeTab === 'confirm' && (
-              <SupplierPOConfirmation purchaseOrder={purchaseOrder} items={items} />
+              <SupplierPOConfirmation purchaseOrder={purchaseOrder} items={items} poToken={poToken} />
             )}
             {activeTab === 'requirements' && (
               <RequirementsSection />
             )}
             {activeTab === 'upload' && (
-              <SupplierDocumentUploadHub purchaseOrder={purchaseOrder} />
+              <SupplierDocumentUploadHub purchaseOrder={purchaseOrder} poToken={poToken} />
             )}
           </div>
         </div>
