@@ -138,7 +138,7 @@ export default function SupplierDocumentUploadHub({ purchaseOrder }) {
           type="file"
           className="hidden"
           onChange={handleFileChange}
-          accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.docx,.doc,.mp4,.mov,.rcfgx"
+          accept="*"
         />
       </div>
 
