@@ -240,6 +240,20 @@ export default function OrdersPage() {
     }
   });
 
+  const createFortnoxProjectMutation = useMutation({
+    mutationFn: async (orderId) => {
+      const response = await base44.functions.invoke('createFortnoxProject', { order_id: orderId });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      toast.success(`Fortnox-projekt skapat: ${data.project_number}`);
+    },
+    onError: (error) => {
+      toast.error('Kunde inte skapa projekt: ' + (error.message || 'Okänt fel'));
+    }
+  });
+
   const handleDocumentUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -939,6 +953,22 @@ export default function OrdersPage() {
                           <Mail className="w-4 h-4 md:mr-2" />
                           <span className="hidden md:inline">Skicka</span>
                         </Button>
+
+                        {!order.fortnox_project_number && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-purple-600/20 border-purple-500/30 text-purple-400 hover:bg-purple-600/30"
+                            onClick={() => {
+                              if (window.confirm(`Vill du skapa ett Fortnox-projekt för order ${order.order_number}?`)) {
+                                createFortnoxProjectMutation.mutate(order.id);
+                              }
+                            }}
+                            disabled={createFortnoxProjectMutation.isPending}
+                          >
+                            Skapa Fortnox Projekt
+                          </Button>
+                        )}
 
                         <FortnoxSyncButton 
                           order={order} 

@@ -57,6 +57,21 @@ export default function OrderDetailModal({ order, onClose, onSyncSuccess }) {
     }
   });
 
+  const createFortnoxProjectMutation = useMutation({
+    mutationFn: async (orderId) => {
+      const response = await base44.functions.invoke('createFortnoxProject', { order_id: orderId });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['orders', order.id] });
+      onSyncSuccess?.();
+      toast.success(`Fortnox-projekt skapat: ${data.project_number}`);
+    },
+    onError: (error) => {
+      toast.error('Kunde inte skapa projekt: ' + (error.message || 'Okänt fel'));
+    }
+  });
+
   const handleSaveOrderingInfo = () => {
     updateOrderMutation.mutate({
       id: order.id,
@@ -409,7 +424,22 @@ export default function OrderDetailModal({ order, onClose, onSyncSuccess }) {
             Skapad {format(new Date(order.created_date), "d MMM yyyy HH:mm", { locale: sv })}
           </div>
           <div className="flex gap-2">
-            <FortnoxSyncButton 
+             {!order.fortnox_project_number && (
+               <Button
+                 size="sm"
+                 variant="outline"
+                 className="bg-purple-600/20 border-purple-500/30 text-purple-400 hover:bg-purple-600/30"
+                 onClick={() => {
+                   if (window.confirm(`Vill du skapa ett Fortnox-projekt för order ${order.order_number}?`)) {
+                     createFortnoxProjectMutation.mutate(order.id);
+                   }
+                 }}
+                 disabled={createFortnoxProjectMutation.isPending}
+               >
+                 Skapa Fortnox Projekt
+               </Button>
+             )}
+             <FortnoxSyncButton 
               order={order} 
               orderItems={orderItems}
               onSyncSuccess={onSyncSuccess || (() => {})}
