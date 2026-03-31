@@ -850,6 +850,14 @@ export default function OrdersPage() {
                             </div>
                           </div>
                         )}
+                        {order.fortnox_order_id && (
+                          <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                            <div className="text-xs text-blue-400/70 mb-1">Fortnox Order</div>
+                            <div className="text-sm font-semibold text-blue-300">
+                              #{order.fortnox_order_id}
+                            </div>
+                          </div>
+                        )}
                         {order.fortnox_invoiced && order.fortnox_invoice_number && (
                           <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30">
                             <div className="text-xs text-green-400/70 mb-1">Fortnox</div>
