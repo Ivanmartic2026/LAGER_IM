@@ -57,14 +57,17 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange }) {
               className="text-sm bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 placeholder:text-white/30 w-full mb-3"
             />
             <div className="space-y-1">
-              <p className="text-white/60 text-sm font-medium">{workOrder.customer_name}</p>
-              {workOrder.delivery_date && (
-                <p className={cn("text-sm flex items-center gap-1", isOverdue ? 'text-red-400' : 'text-white/50')}>
-                  <Clock className="w-4 h-4" />
-                  Leverans: {format(new Date(workOrder.delivery_date), 'd MMMM yyyy', { locale: sv })}
-                </p>
-              )}
-            </div>
+               <p className="text-white/60 text-sm font-medium">{order?.customer_name || workOrder.customer_name}</p>
+               {(order?.delivery_date || workOrder.delivery_date) && (
+                 <p className={cn("text-sm flex items-center gap-1", isOverdue ? 'text-red-400' : 'text-white/50')}>
+                   <Clock className="w-4 h-4" />
+                   Leverans: {format(new Date(order?.delivery_date || workOrder.delivery_date), 'd MMMM yyyy', { locale: sv })}
+                 </p>
+               )}
+               {order?.delivery_address && (
+                 <p className="text-white/50 text-xs mt-2">{order.delivery_address}</p>
+               )}
+             </div>
           </div>
           <Badge className={cn("px-3 py-1 border whitespace-nowrap", stageConfig.color)}>
             {stageConfig.label}
@@ -90,7 +93,9 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange }) {
           { label: 'Status', value: workOrder.status },
           { label: 'Prioritet', value: workOrder.priority || 'Normal' },
           { label: 'Projekt', value: order?.fortnox_project_number || '—' },
-          { label: 'Fortnox Order', value: order?.fortnox_order_id || '—' }
+          { label: 'Fortnox Order', value: order?.fortnox_order_id || '—' },
+          { label: 'Kundreferens', value: order?.customer_reference || '—' },
+          { label: 'Leveranssätt', value: order?.delivery_method || '—' }
         ].map(({ label, value }) => (
           <div key={label} className="p-3 rounded-lg bg-white/5 border border-white/10">
             <p className="text-xs text-white/50 mb-1">{label}</p>
