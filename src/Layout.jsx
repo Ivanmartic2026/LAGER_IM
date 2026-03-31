@@ -1,7 +1,7 @@
 import React, { useEffect, useState as useReactState } from 'react';
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck } from "lucide-react";
+import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck, Clipboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
@@ -54,6 +54,7 @@ function LayoutContent({ children, currentPageName }) {
   const NAV_ITEMS = [
     { name: "Inventory", label: t('nav_inventory', language), icon: Package, module: null },
     { name: "Orders", label: t('nav_orders', language), icon: ShoppingCart, module: "Orders" },
+    { name: "WorkOrders", label: "Arbetsordrar", icon: ClipboardList, module: null },
     { name: "Production", label: t('nav_production', language), icon: Activity, module: "Production" },
     { name: "PurchaseOrders", label: "Purchase Order", icon: ShoppingCart, module: "PurchaseOrders" },
     { name: "SiteReports", label: t('nav_site', language), icon: MapPin, module: "SiteReports" },

@@ -1,0 +1,144 @@
+{
+  "name": "WorkOrder",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "Referens till Order"
+    },
+    "order_number": {
+      "type": "string",
+      "description": "Ordernummer (kopierat fr\u00e5n Order)"
+    },
+    "customer_name": {
+      "type": "string",
+      "description": "Kundnamn (kopierat fr\u00e5n Order)"
+    },
+    "delivery_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Leveransdatum (kopierat fr\u00e5n Order)"
+    },
+    "current_stage": {
+      "type": "string",
+      "enum": [
+        "picking",
+        "production",
+        "delivery",
+        "completed"
+      ],
+      "default": "picking",
+      "description": "Nuvarande fas i arbetsordern"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "\u00d6vergripande status"
+    },
+    "assigned_to_picking": {
+      "type": "string",
+      "description": "Tilldelad plockning (email)"
+    },
+    "assigned_to_picking_name": {
+      "type": "string",
+      "description": "Tilldelad plockning (namn)"
+    },
+    "assigned_to_production": {
+      "type": "string",
+      "description": "Tilldelad produktion (email)"
+    },
+    "assigned_to_production_name": {
+      "type": "string",
+      "description": "Tilldelad produktion (namn)"
+    },
+    "picking_started_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r plockning startades"
+    },
+    "picking_completed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r plockning slutf\u00f6rdes"
+    },
+    "production_started_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r produktion startades"
+    },
+    "production_completed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r produktion slutf\u00f6rdes"
+    },
+    "production_status": {
+      "type": "string",
+      "enum": [
+        "started",
+        "in_progress",
+        "assembled",
+        "tested",
+        "completed"
+      ],
+      "default": "started",
+      "description": "Detaljstatus i produktionen"
+    },
+    "checklist": {
+      "type": "object",
+      "properties": {
+        "assembled": {
+          "type": "boolean",
+          "default": false
+        },
+        "tested": {
+          "type": "boolean",
+          "default": false
+        },
+        "ready_for_delivery": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "description": "Produktionschecklista"
+    },
+    "assembly_images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Bilder fr\u00e5n montering"
+    },
+    "deviations": {
+      "type": "string",
+      "description": "Avvikelser som uppt\u00e4ckts"
+    },
+    "picking_notes": {
+      "type": "string",
+      "description": "Instruktioner f\u00f6r plockning"
+    },
+    "production_notes": {
+      "type": "string",
+      "description": "Instruktioner f\u00f6r produktion"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal",
+      "description": "Prioritet"
+    }
+  },
+  "required": [
+    "order_id"
+  ]
+}
