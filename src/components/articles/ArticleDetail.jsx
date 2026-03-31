@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Package, MapPin, Calendar, Hash, Factory, Ruler, 
   Scale, Grid3X3, ArrowLeft, Edit, Trash2, Plus, Minus, Printer, Wrench, CheckCircle2, History,
-  DollarSign, Warehouse, Tag, Check, X, ShoppingCart, Copy, Camera, MessageSquare, Sparkles, FileText, Loader2, ChevronDown, ExternalLink
+  DollarSign, Warehouse, Tag, Check, X, ShoppingCart, Copy, Camera, MessageSquare, Sparkles, FileText, Loader2, ChevronDown, ExternalLink, ArrowRightLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -22,6 +22,7 @@ import ImageGallery from "./ImageGallery";
 import ProductAssemblyManager from "./ProductAssemblyManager";
 import ArticleComments from "./ArticleComments";
 import LinkToSiteModal from "./LinkToSiteModal";
+import InternalTransferModal from "./InternalTransferModal";
 import PODocumentHub from "@/components/purchaseorders/PODocumentHub";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -38,6 +39,7 @@ export default function ArticleDetail({
   const [repairModalOpen, setRepairModalOpen] = useState(false);
   const [returnFromRepairModalOpen, setReturnFromRepairModalOpen] = useState(false);
   const [linkToSiteModalOpen, setLinkToSiteModalOpen] = useState(false);
+  const [internalTransferOpen, setInternalTransferOpen] = useState(false);
   const [generatingDocument, setGeneratingDocument] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [uploadingFiles, setUploadingFiles] = useState(false);
@@ -1982,6 +1984,13 @@ export default function ArticleDetail({
         isOpen={linkToSiteModalOpen}
         onClose={() => setLinkToSiteModalOpen(false)}
         article={article}
+      />
+
+      <InternalTransferModal
+        isOpen={internalTransferOpen}
+        onClose={() => setInternalTransferOpen(false)}
+        article={article}
+        siblingArticles={siblingArticles}
       />
       </motion.div>
       );
