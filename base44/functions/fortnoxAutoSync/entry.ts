@@ -1,94 +1,70 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-const FORTNOX_TOKEN_URL = 'https://apps.fortnox.se/oauth-v1/token';
-const FORTNOX_API_BASE = 'https://api.fortnox.se/3';
-const CLIENT_ID = 'C84gmzGW0STm';
-const CLIENT_SECRET = 'jCAiY13645iCfRljftcvAES3BZNL1W5Z';
-
-async function getFortnoxToken() {
-  const body = new URLSearchParams({
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    grant_type: 'client_credentials',
-    scope: 'articles suppliers articles:read articles:write suppliers:read suppliers:write'
-  });
-
-  const response = await fetch(FORTNOX_TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Token request failed: ${error.error_description || error.error}`);
-  }
-
-  const data = await response.json();
-  return data.access_token;
-}
-
-async function syncArticleToFortnox(accessToken, article) {
-  const articleData = {
-    ArticleNumber: article.sku || `ART-${article.id}`,
-    Description: article.name,
-    PurchasePrice: article.unit_cost || 0,
-    Type: article.storage_type === 'company_owned' ? 'STOCK' : 'SERVICE',
-    Manufacturer: article.manufacturer || '',
-    ManufacturerArticleNumber: article.supplier_product_code || '',
-    Height: article.dimensions_height_mm || 0,
-    Depth: article.dimensions_depth_mm || 0,
-    Note: article.transit_notes || ''
-  };
-
-  if (article.min_stock_level) {
-    articleData.StockWarning = article.min_stock_level;
-  }
-
-  const response = await fetch(`${FORTNOX_API_BASE}/articles/${articleData.ArticleNumber}`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    },
-    body: JSON.stringify({ Article: articleData })
-  });
-
-  return response.ok;
-}
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { event, data } = await req.json();
+    const { data: { order_id } } = await req.json();
 
-    // Only sync if article is marked as fortnox_synced and critical fields changed
-    if (!data || !data.fortnox_synced) {
-      return Response.json({ skipped: true });
+    // Fetch the order
+    const orders = await base44.asServiceRole.entities.Order.filter({ id: order_id });
+    const order = orders[0];
+    
+    if (!order) return Response.json({ success: false, error: 'Order not found' }, { status: 404 });
+
+    // Check if already synced to Fortnox
+    if (order.fortnox_order_id) {
+      return Response.json({ success: true, message: 'Already synced' });
     }
 
-    const trackedFields = ['stock_qty', 'unit_cost', 'min_stock_level', 'name', 'supplier_name', 'storage_type'];
-    const changedFields = event?.changed_fields || [];
-    const hasTrackedChange = trackedFields.some(field => changedFields.includes(field));
-
-    if (!hasTrackedChange) {
-      return Response.json({ skipped: true });
+    // Check if customer number exists
+    if (!order.fortnox_customer_number) {
+      return Response.json({ success: true, message: 'No customer number' });
     }
 
-    // Get Fortnox token and sync
-    const accessToken = await getFortnoxToken();
-    const success = await syncArticleToFortnox(accessToken, data);
+    // Fetch all order items
+    const orderItems = await base44.asServiceRole.entities.OrderItem.filter({ order_id });
+    
+    // Only sync if there are items
+    if (!orderItems || orderItems.length === 0) {
+      return Response.json({ success: true, message: 'No items yet' });
+    }
 
-    if (success) {
-      console.log(`Auto-synced article ${data.id} to Fortnox`);
+    // Fetch articles for pricing
+    const articles = await base44.asServiceRole.entities.Article.list();
+
+    const order_rows = orderItems.map(item => {
+      const article = articles.find(a => a.id === item.article_id);
+      return {
+        article_number: article?.sku || article?.fortnox_article_number || item.article_id || 'UNKNOWN',
+        description: item.article_name || 'Item',
+        quantity: item.quantity_picked || item.quantity_ordered || 0,
+        price: article?.sales_price || article?.price || 0
+      };
+    });
+
+    // Call Fortnox sync
+    const result = await base44.asServiceRole.functions.invoke('fortnoxOrderSync', {
+      order_id: order.id,
+      customer_number: order.fortnox_customer_number,
+      your_order_number: order.order_number || `ORD-${order.id.slice(0, 8)}`,
+      delivery_date: order.delivery_date || new Date().toISOString().split('T')[0],
+      order_rows
+    });
+
+    if (result.data.success) {
+      // Update order with Fortnox info
+      await base44.asServiceRole.entities.Order.update(order.id, {
+        fortnox_order_id: result.data.fortnox_order_id,
+        fortnox_document_number: result.data.fortnox_document_number,
+        financial_status: 'billed'
+      });
+      
+      return Response.json({ success: true, fortnox_order_id: result.data.fortnox_order_id });
     } else {
-      console.error(`Failed to auto-sync article ${data.id} to Fortnox`);
+      return Response.json({ success: false, error: result.data.error });
     }
-
-    return Response.json({ success });
   } catch (error) {
     console.error('Auto-sync error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 });

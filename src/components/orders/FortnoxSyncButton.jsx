@@ -24,7 +24,7 @@ export default function FortnoxSyncButton({ order, orderItems, onSyncSuccess }) 
     );
   }
 
-  const canSync = (order.status === 'picked' || order.status === 'delivered') && !order.fortnox_order_id;
+  const canSync = order.fortnox_customer_number && !order.fortnox_order_id && orderItems?.length > 0;
 
   const handleSync = async () => {
     setSyncing(true);
