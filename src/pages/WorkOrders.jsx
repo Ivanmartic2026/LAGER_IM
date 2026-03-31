@@ -61,7 +61,7 @@ export default function WorkOrdersPage() {
 
   const stats = {
     picking: workOrders.filter(wo => wo.current_stage === 'picking' && wo.status !== 'completed').length,
-    production: workOrders.filter(wo => wo.current_stage === 'production' && wo.status !== 'completed').length,
+    production: workOrders.filter(wo => (wo.current_stage === 'production' || wo.current_stage === 'picked') && wo.status !== 'completed').length,
     delivery: workOrders.filter(wo => wo.current_stage === 'delivery' && wo.status !== 'completed').length,
     completed: completedOrders.length
   };
