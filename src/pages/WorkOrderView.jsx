@@ -4,27 +4,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  ArrowLeft, Package, Factory, Truck, CheckCircle2,
-  Play, User, Clock, AlertCircle, Camera, Upload,
-  ChevronRight, ClipboardList, FileText, AlertTriangle,
-  Download, Plus, X
-} from "lucide-react";
+import { ArrowLeft, Play, User, Clock, Truck, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 
-const STAGES = [
-  { key: 'picking', label: 'Plockning', icon: Package, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/30' },
-  { key: 'production', label: 'Produktion', icon: Factory, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/30' },
-  { key: 'delivery', label: 'Leverans', icon: Truck, color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500/30' },
-  { key: 'completed', label: 'Klar', icon: CheckCircle2, color: 'text-green-400', bg: 'bg-green-500/20', border: 'border-green-500/30' }
-];
+import WorkOrderHeader from "@/components/workorders/WorkOrderHeader";
+import ProcessFlow from "@/components/workorders/ProcessFlow";
+import ProjectInfo from "@/components/workorders/ProjectInfo";
+import MaterialStatus from "@/components/workorders/MaterialStatus";
+import DocumentSection from "@/components/workorders/DocumentSection";
+import ProductionChecklist from "@/components/workorders/ProductionChecklist";
+import ArticlesList from "@/components/workorders/ArticlesList";
+import NotesSection from "@/components/workorders/NotesSection";
 
 export default function WorkOrderViewPage() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -237,476 +229,63 @@ export default function WorkOrderViewPage() {
     );
   }
 
-  const currentStageIdx = STAGES.findIndex(s => s.key === workOrder.current_stage);
-  const currentStage = STAGES[currentStageIdx] || STAGES[0];
-  const checklist = workOrder.checklist || {};
-  const allChecked = checklist.assembled && checklist.tested && checklist.ready_for_delivery;
-
   return (
     <div className="min-h-screen bg-black p-4 md:p-6">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto space-y-4">
 
         {/* Back */}
         <Link to={createPageUrl('WorkOrders')}>
-          <Button variant="ghost" className="text-white/60 hover:text-white mb-4 -ml-2">
+          <Button variant="ghost" className="text-white/60 hover:text-white -ml-2">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Arbetsordrar
           </Button>
         </Link>
 
-        {/* Header */}
-        <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-xl font-bold text-white">
-                  {workOrder.order_number || `AO-${workOrder.id.slice(0, 6)}`}
-                </h1>
-                {workOrder.name && <span className="text-white/60 text-sm font-normal">— {workOrder.name}</span>}
-              </div>
-              <input
-                type="text"
-                defaultValue={workOrder.name || ''}
-                onBlur={e => e.target.value !== (workOrder.name || '') && handleSaveNotes('name', e.target.value)}
-                placeholder="Lägg till namn på denna arbetsorder..."
-                className="text-xs bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 placeholder:text-white/30 w-full mb-2"
-              />
-              <p className="text-white/60 text-sm">{workOrder.customer_name}</p>
-              {workOrder.delivery_date && (
-                <p className={cn("text-sm mt-1", new Date(workOrder.delivery_date) < new Date() && workOrder.status !== 'completed' ? 'text-red-400' : 'text-white/50')}>
-                  Leverans: {format(new Date(workOrder.delivery_date), 'd MMMM yyyy', { locale: sv })}
-                </p>
-              )}
-            </div>
-            <Badge className={cn("px-3 py-1 border", currentStage.bg, currentStage.border, currentStage.color)}>
-              <currentStage.icon className="w-3.5 h-3.5 mr-1.5" />
-              {currentStage.label}
-            </Badge>
-          </div>
-        </div>
+        {/* Header with Status */}
+        <WorkOrderHeader 
+          workOrder={workOrder} 
+          onNameChange={(name) => handleSaveNotes('name', name)}
+        />
 
-        {/* Stage Progress */}
-        <div className="mb-6 p-4 rounded-2xl bg-white/5 border border-white/10">
-          <div className="flex items-center justify-between">
-            {STAGES.map((stage, idx) => {
-              const isDone = idx < currentStageIdx;
-              const isCurrent = idx === currentStageIdx;
-              const Icon = stage.icon;
-              return (
-                <React.Fragment key={stage.key}>
-                  <div className="flex flex-col items-center gap-1">
-                    <div className={cn(
-                      "w-9 h-9 rounded-xl flex items-center justify-center border transition-all",
-                      isDone ? 'bg-green-500/20 border-green-500/30' :
-                      isCurrent ? `${stage.bg} ${stage.border}` :
-                      'bg-white/5 border-white/10'
-                    )}>
-                      {isDone
-                        ? <CheckCircle2 className="w-4 h-4 text-green-400" />
-                        : <Icon className={cn("w-4 h-4", isCurrent ? stage.color : 'text-white/30')} />
-                      }
-                    </div>
-                    <span className={cn("text-xs", isCurrent ? 'text-white' : isDone ? 'text-green-400/70' : 'text-white/30')}>
-                      {stage.label}
-                    </span>
-                  </div>
-                  {idx < STAGES.length - 1 && (
-                    <div className={cn("flex-1 h-0.5 mx-2 rounded", idx < currentStageIdx ? 'bg-green-500/40' : 'bg-white/10')} />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </div>
-        </div>
+        {/* Process Flow */}
+        <ProcessFlow currentStage={workOrder.current_stage} />
 
-        {/* STAGE: PICKING */}
-        {workOrder.current_stage === 'picking' && (
-          <div className="mb-6 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30">
-            <h2 className="font-bold text-amber-400 mb-3 flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Plockning
-            </h2>
-            {workOrder.status === 'pending' ? (
-              <>
-                <p className="text-white/60 text-sm mb-4">Starta plockning för att börja plocka artiklarna.</p>
-                <Button onClick={handleStartPicking} className="bg-amber-600 hover:bg-amber-500 text-white">
-                  <Play className="w-4 h-4 mr-2" />
-                  Starta plockning
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="text-sm text-amber-400/70 mb-3">
-                  {workOrder.assigned_to_picking_name && (
-                    <span className="flex items-center gap-1 mb-1">
-                      <User className="w-3.5 h-3.5" />
-                      {workOrder.assigned_to_picking_name}
-                    </span>
-                  )}
-                  {workOrder.picking_started_date && (
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      Startad {format(new Date(workOrder.picking_started_date), "d MMM 'kl' HH:mm", { locale: sv })}
-                    </span>
-                  )}
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                  <Button
-                    onClick={() => navigate(createPageUrl(`PickOrder?orderId=${workOrder.order_id}`))}
-                    className="bg-amber-600 hover:bg-amber-500 text-white"
-                  >
-                    <Package className="w-4 h-4 mr-2" />
-                    Öppna plocklista
-                  </Button>
-                  {!workOrder.production_started_date && (
-                    <Button onClick={handleStartProduction} className="bg-blue-600 hover:bg-blue-500 text-white">
-                      <Play className="w-4 h-4 mr-2" />
-                      Starta produktion
-                    </Button>
-                  )}
-                  {order?.status === 'picked' && (
-                    <Button onClick={handlePickingDone} variant="outline" className="border-green-500/40 text-green-400 hover:bg-green-500/10">
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Plockning klar → Produktion
-                    </Button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        )}
+        {/* Project & Instructions */}
+        <ProjectInfo 
+          workOrder={workOrder}
+          onSaveNotes={handleSaveNotes}
+        />
 
-        {/* DRAWINGS & BILL OF MATERIALS */}
-        <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
-          <h2 className="font-bold text-white mb-4 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-blue-400" />
-            Dokumentation
-          </h2>
-          <div className="space-y-3">
-            {/* Ritning */}
-            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
-              <span className="text-white text-sm font-medium">Ritning</span>
-              <div className="flex gap-2">
-                {workOrder.drawing_url ? (
-                  <>
-                    <a href={workOrder.drawing_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-xs hover:underline flex items-center gap-1">
-                      <Download className="w-3 h-3" />
-                      Öppna
-                    </a>
-                    <button onClick={() => updateWOMutation.mutateAsync({ id: workOrderId, data: { drawing_url: null } })} className="text-red-400 hover:text-red-300">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </>
-                ) : (
-                  <label className="text-blue-400 text-xs hover:underline cursor-pointer flex items-center gap-1">
-                    <Plus className="w-3 h-3" />
-                    Ladda upp
-                    <input type="file" className="hidden" onChange={(e) => handleUploadFile('drawing', e)} />
-                  </label>
-                )}
-              </div>
-            </div>
+        {/* Material Status */}
+        <MaterialStatus materials={workOrder.materials_needed} />
 
-            {/* Stycklista */}
-            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
-              <span className="text-white text-sm font-medium">Stycklista (BOM)</span>
-              <div className="flex gap-2">
-                {workOrder.bill_of_materials_url ? (
-                  <>
-                    <a href={workOrder.bill_of_materials_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-xs hover:underline flex items-center gap-1">
-                      <Download className="w-3 h-3" />
-                      Öppna
-                    </a>
-                    <button onClick={() => updateWOMutation.mutateAsync({ id: workOrderId, data: { bill_of_materials_url: null } })} className="text-red-400 hover:text-red-300">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </>
-                ) : (
-                  <label className="text-blue-400 text-xs hover:underline cursor-pointer flex items-center gap-1">
-                    <Plus className="w-3 h-3" />
-                    Ladda upp
-                    <input type="file" className="hidden" onChange={(e) => handleUploadFile('bill_of_materials', e)} />
-                  </label>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Documentation */}
+        <DocumentSection 
+          workOrder={workOrder}
+          onUpload={handleUploadFile}
+          onRemove={(field) => updateWOMutation.mutateAsync({ id: workOrderId, data: { [field]: null } })}
+        />
 
-        {/* MATERIAL STATUS */}
-        <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-white flex items-center gap-2">
-              <Package className="w-5 h-5 text-yellow-400" />
-              Materialstatus
-            </h2>
-            {workOrder.all_materials_ready && (
-              <Badge className="bg-green-500/20 border-green-500/30 text-green-400 border">
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Allt material klart
-              </Badge>
-            )}
-          </div>
-          {workOrder.materials_needed && workOrder.materials_needed.length > 0 ? (
-            <div className="space-y-2">
-              {workOrder.materials_needed.map((material, idx) => {
-                const allInStock = material.in_stock >= material.quantity;
-                return (
-                  <div key={idx} className={cn("p-3 rounded-lg border", allInStock ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20')}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <p className="text-white font-medium text-sm">{material.article_name}</p>
-                        <p className={cn("text-xs mt-1", allInStock ? 'text-green-400' : 'text-red-400')}>
-                          Behövs: {material.quantity} st | I lager: {material.in_stock} st
-                          {material.missing > 0 && ` | Saknas: ${material.missing} st`}
-                        </p>
-                      </div>
-                      {material.needs_purchase && (
-                        <Badge className="bg-red-500/20 border-red-500/30 text-red-400 border whitespace-nowrap">
-                          Måste köpas
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-white/50 text-sm">Ingen materialinformation tillgänglig än</p>
-          )}
-        </div>
+        {/* Production Checklist */}
+        {workOrder.current_stage === 'production' || workOrder.production_started_date ? (
+          <ProductionChecklist
+            workOrder={workOrder}
+            onChecklistChange={handleChecklistChange}
+            onSaveNotes={handleSaveNotes}
+            onImageUpload={handleImageUpload}
+            onCompleteProduction={handleCompleteProduction}
+            uploading={uploadingImages}
+          />
+        ) : null}
 
-        {/* PROCUREMENT NEEDS */}
-        {workOrder.needs_procurement && (
-          <div className="mb-6 p-5 rounded-2xl bg-orange-500/10 border border-orange-500/30">
-            <h2 className="font-bold text-orange-400 mb-3 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
-              Inköpsbehov
-            </h2>
-            <p className="text-white/70 text-sm mb-3">
-              Det finns material som behöver köpas in innan produktion kan startas. Kontrollera materialstatus ovan.
-            </p>
-            <Button className="bg-orange-600 hover:bg-orange-500 text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              Skapa inköpsorder
-            </Button>
-          </div>
-        )}
-
-        {/* QUALITY & TESTING */}
-        <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
-          <h2 className="font-bold text-white mb-4 flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-purple-400" />
-            Kvalitetskontroll & Test
-          </h2>
-          <div className="space-y-3">
-            {/* Kvalitetsrapport */}
-            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
-              <span className="text-white text-sm font-medium">Kvalitetsrapport</span>
-              <div className="flex gap-2">
-                {workOrder.quality_report_url ? (
-                  <>
-                    <a href={workOrder.quality_report_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-xs hover:underline flex items-center gap-1">
-                      <Download className="w-3 h-3" />
-                      Öppna
-                    </a>
-                    <button onClick={() => updateWOMutation.mutateAsync({ id: workOrderId, data: { quality_report_url: null } })} className="text-red-400 hover:text-red-300">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </>
-                ) : (
-                  <label className="text-blue-400 text-xs hover:underline cursor-pointer flex items-center gap-1">
-                    <Plus className="w-3 h-3" />
-                    Ladda upp
-                    <input type="file" className="hidden" onChange={(e) => handleUploadFile('quality_report', e)} />
-                  </label>
-                )}
-              </div>
-            </div>
-
-            {/* Testprotokoll */}
-            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
-              <span className="text-white text-sm font-medium">Testprotokoll</span>
-              <div className="flex gap-2">
-                {workOrder.test_protocol_url ? (
-                  <>
-                    <a href={workOrder.test_protocol_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-xs hover:underline flex items-center gap-1">
-                      <Download className="w-3 h-3" />
-                      Öppna
-                    </a>
-                    <button onClick={() => updateWOMutation.mutateAsync({ id: workOrderId, data: { test_protocol_url: null } })} className="text-red-400 hover:text-red-300">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </>
-                ) : (
-                  <label className="text-blue-400 text-xs hover:underline cursor-pointer flex items-center gap-1">
-                    <Plus className="w-3 h-3" />
-                    Ladda upp
-                    <input type="file" className="hidden" onChange={(e) => handleUploadFile('test_protocol', e)} />
-                  </label>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* STAGE: PRODUCTION */}
-        {(workOrder.current_stage === 'production' || workOrder.production_started_date) && (
-          <div className="mb-6 space-y-4">
-            <div className="p-5 rounded-2xl bg-blue-500/10 border border-blue-500/30">
-              <h2 className="font-bold text-blue-400 mb-3 flex items-center gap-2">
-                <Factory className="w-5 h-5" />
-                Produktion
-              </h2>
-              {!workOrder.production_started_date ? (
-                <>
-                  <p className="text-white/60 text-sm mb-4">Starta produktion när du är redo att börja montera.</p>
-                  <Button onClick={handleStartProduction} className="bg-blue-600 hover:bg-blue-500 text-white">
-                    <Play className="w-4 h-4 mr-2" />
-                    Starta produktion
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <div className="text-sm text-blue-400/70 mb-4">
-                    {workOrder.assigned_to_production_name && (
-                      <span className="flex items-center gap-1 mb-1">
-                        <User className="w-3.5 h-3.5" />
-                        {workOrder.assigned_to_production_name}
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      Startad {format(new Date(workOrder.production_started_date), "d MMM 'kl' HH:mm", { locale: sv })}
-                    </span>
-                  </div>
-
-                  {/* Checklist */}
-                  <div className="space-y-2 mb-4">
-                    {[
-                      { key: 'assembled', label: 'Monterat' },
-                      { key: 'tested', label: 'Testat' },
-                      { key: 'ready_for_delivery', label: 'Redo för leverans' }
-                    ].map(({ key, label }) => (
-                      <label key={key} className="flex items-center gap-3 p-3 rounded-lg bg-white/5 cursor-pointer hover:bg-white/10">
-                        <Checkbox
-                          checked={!!checklist[key]}
-                          onCheckedChange={() => handleChecklistChange(key)}
-                        />
-                        <span className={cn("text-sm font-medium", checklist[key] ? 'text-white' : 'text-white/60')}>
-                          {label}
-                        </span>
-                        {checklist[key] && <CheckCircle2 className="w-4 h-4 text-green-400 ml-auto" />}
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* Avvikelser */}
-                  <div className="mb-4">
-                    <label className="text-xs text-white/50 mb-1 block">Avvikelser / noteringar</label>
-                    <Textarea
-                      defaultValue={workOrder.deviations || ''}
-                      onBlur={e => e.target.value !== (workOrder.deviations || '') && handleSaveNotes('deviations', e.target.value)}
-                      placeholder="Noterade avvikelser..."
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm"
-                      rows={2}
-                    />
-                  </div>
-
-                  {/* Bilder */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-white/50">Monteringsbilder</span>
-                      <label className={cn("text-xs px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white cursor-pointer transition-colors flex items-center gap-1", uploadingImages && "opacity-50")}>
-                        {uploadingImages ? <><div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />Laddar...</> : <><Camera className="w-3 h-3" />Lägg till bild</>}
-                        <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} disabled={uploadingImages} />
-                      </label>
-                    </div>
-                    {workOrder.assembly_images?.length > 0 && (
-                      <div className="flex gap-2 flex-wrap">
-                        {workOrder.assembly_images.map((url, i) => (
-                          <img key={i} src={url} alt="" className="w-16 h-16 rounded-lg object-cover border border-white/10" />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {allChecked && (
-                    <Button onClick={handleCompleteProduction} className="bg-green-600 hover:bg-green-500 text-white">
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Slutför produktion → Leverans
-                    </Button>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* STAGE: DELIVERY */}
-        {workOrder.current_stage === 'delivery' && (
-          <div className="mb-6 p-5 rounded-2xl bg-purple-500/10 border border-purple-500/30">
-            <h2 className="font-bold text-purple-400 mb-3 flex items-center gap-2">
-              <Truck className="w-5 h-5" />
-              Leverans
-            </h2>
-            <p className="text-white/60 text-sm mb-4">Produktion är klar. Ordern är redo att levereras till kund.</p>
-            <Button onClick={handleCompleteDelivery} className="bg-purple-600 hover:bg-purple-500 text-white">
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Markera som levererad
-            </Button>
-          </div>
-        )}
-
-        {/* STAGE: COMPLETED */}
-        {workOrder.current_stage === 'completed' && (
-          <div className="mb-6 p-5 rounded-2xl bg-green-500/10 border border-green-500/30 text-center">
-            <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-3" />
-            <h2 className="font-bold text-green-400 text-lg">Arbetsorder slutförd!</h2>
-            <p className="text-white/50 text-sm mt-1">Alla steg är klara för denna order.</p>
-          </div>
-        )}
-
-        {/* Article List (BOM) */}
-        {orderItems.length > 0 && (
-          <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="font-semibold text-white mb-3 flex items-center gap-2 text-sm">
-              <Package className="w-4 h-4 text-white/60" />
-              Artiklar ({orderItems.length})
-            </h3>
-            <div className="space-y-2">
-              {orderItems.map(item => {
-                const article = articles.find(a => a.id === item.article_id);
-                return (
-                  <div key={item.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5 text-sm">
-                    <div>
-                      <span className="text-white font-medium">{item.article_name}</span>
-                      {article?.shelf_address?.[0] && (
-                        <span className="text-white/40 ml-2 text-xs">{article.shelf_address[0]}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-white/60">{item.quantity_ordered} st</span>
-                      {item.status === 'picked' && <CheckCircle2 className="w-4 h-4 text-green-400" />}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* Articles List */}
+        <ArticlesList items={orderItems} articles={articles} />
 
         {/* Notes */}
-        <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-          <h3 className="font-semibold text-white mb-3 text-sm">Anteckningar</h3>
-          <Textarea
-            defaultValue={workOrder.production_notes || ''}
-            onBlur={e => e.target.value !== (workOrder.production_notes || '') && handleSaveNotes('production_notes', e.target.value)}
-            placeholder="Lägg till anteckningar..."
-            className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm"
-            rows={3}
-          />
-        </div>
+        <NotesSection 
+          notes={workOrder.production_notes || ''}
+          onSaveNotes={handleSaveNotes}
+        />
 
       </div>
     </div>
