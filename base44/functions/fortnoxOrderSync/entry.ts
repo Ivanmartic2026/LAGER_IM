@@ -41,6 +41,47 @@ async function getFortnoxToken(base44) {
   return data.access_token;
 }
 
+async function buildOrderRows(accessToken, orderRows) {
+  const builtRows = [];
+  
+  for (const r of orderRows) {
+    if (r.article_number) {
+      // Try to verify article exists in Fortnox
+      try {
+        const articleResponse = await fetch(`${FORTNOX_API_BASE}/articles/${encodeURIComponent(r.article_number)}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (articleResponse.ok) {
+          // Article exists, use it
+          builtRows.push({
+            ArticleNumber: r.article_number,
+            Description: r.description || '',
+            OrderedQuantity: r.quantity || 0,
+            Price: r.price !== undefined ? r.price : 0
+          });
+          continue;
+        }
+      } catch (e) {
+        // Continue to fallback
+      }
+    }
+    
+    // Article not found or no article_number: use free-text row
+    builtRows.push({
+      Description: r.description || r.article_number || 'Artikel',
+      OrderedQuantity: r.quantity || 0,
+      Price: r.price !== undefined ? r.price : 0
+    });
+  }
+  
+  return builtRows;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -59,15 +100,13 @@ Deno.serve(async (req) => {
 
     const accessToken = await getFortnoxToken(base44);
 
+    // Build rows with fallback to free-text if article not found
+    const builtRows = await buildOrderRows(accessToken, order_rows);
+
     const fortnoxOrderData = {
       CustomerNumber: customer_number,
       DeliveryDate: delivery_date || new Date().toISOString().split('T')[0],
-      OrderRows: order_rows.map(r => ({
-        ArticleNumber: r.article_number || '',
-        Description: r.description || '',
-        OrderedQuantity: r.quantity || 0,
-        Price: r.price !== undefined ? r.price : 0
-      }))
+      OrderRows: builtRows
     };
 
     // YourOrderNumber is optional, only set if provided
@@ -92,10 +131,22 @@ Deno.serve(async (req) => {
 
     const data = JSON.parse(text);
     const fortnoxOrder = data.Order || {};
+    const fortnoxOrderNumber = fortnoxOrder.OrderNumber;
+
+    // Update Lager AI order record with Fortnox order number if order_id provided
+    if (order_id) {
+      try {
+        await base44.asServiceRole.entities.Order.update(order_id, {
+          fortnox_order_id: fortnoxOrderNumber
+        });
+      } catch (e) {
+        console.warn('Failed to update Lager AI order record:', e.message);
+      }
+    }
 
     return Response.json({
       success: true,
-      fortnox_order_id: fortnoxOrder.OrderNumber,
+      fortnox_order_id: fortnoxOrderNumber,
       fortnox_document_number: fortnoxOrder.DocumentNumber
     });
   } catch (error) {
