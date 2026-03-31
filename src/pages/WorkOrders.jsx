@@ -8,12 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Search, Package, Factory, CheckCircle2, Truck,
-  Clock, ArrowRight, AlertCircle, Zap, ClipboardList
+  Clock, ArrowRight, AlertCircle, Zap, ClipboardList, Plus
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import CreateProductionWorkOrderModal from "@/components/workorders/CreateProductionWorkOrderModal";
 
 const STAGE_CONFIG = {
   picking: { label: 'Plockning', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30', icon: Package },
@@ -39,6 +40,7 @@ const PRIORITY_CONFIG = {
 export default function WorkOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const { data: workOrders = [], isLoading } = useQuery({
@@ -70,11 +72,20 @@ export default function WorkOrdersPage() {
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white tracking-tight mb-4 flex items-center gap-2">
-            <ClipboardList className="w-6 h-6 text-blue-400" />
-            Arbetsordrar
-          </h1>
+         <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+              <ClipboardList className="w-6 h-6 text-blue-400" />
+              Arbetsordrar
+            </h1>
+            <Button
+              onClick={() => setCreateModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-500 text-white gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Ny produktion
+            </Button>
+          </div>
 
           {/* Stage Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
@@ -198,6 +209,8 @@ export default function WorkOrdersPage() {
           </div>
         )}
       </div>
+
+      <CreateProductionWorkOrderModal open={createModalOpen} onOpenChange={setCreateModalOpen} />
     </div>
   );
 }
