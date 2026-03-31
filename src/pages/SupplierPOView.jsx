@@ -219,12 +219,12 @@ export default function SupplierPOView() {
           </div>
           <div className="divide-y divide-gray-100">
             {items.map((item, i) => (
-              <div key={item.id} className="px-5 py-4">
+              <div key={item.id} className="px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => item.article_id && window.open(`/Inventory?articleId=${item.article_id}`, '_blank')}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-gray-400 w-5 text-center">{i + 1}</span>
-                      <div className="font-semibold text-gray-900 text-sm">{item.article_name}</div>
+                      <div className="font-semibold text-gray-900 text-sm hover:text-blue-600">{item.article_name}</div>
                     </div>
                     {item.article_sku && (
                       <div className="text-xs text-gray-400 mt-0.5 ml-7">
