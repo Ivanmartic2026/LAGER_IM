@@ -198,6 +198,10 @@
     "cancellation_reason": {
       "type": "string",
       "description": "Anledning till avbokning/annullering"
+    },
+    "source_document_url": {
+      "type": "string",
+      "description": "Originalfil som ordern skapades fr\u00e5n (PDF/bild)"
     }
   },
   "required": [

@@ -109,6 +109,7 @@ Deno.serve(async (req) => {
       priority: 'normal',
       notes: notes.length > 0 ? notes.join('\n') : '',
       is_incomplete: is_incomplete,
+      source_document_url: file_url,
     });
 
     // Create OrderItems
