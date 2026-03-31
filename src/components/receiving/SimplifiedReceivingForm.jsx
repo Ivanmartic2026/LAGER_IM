@@ -190,13 +190,28 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
 
       return results;
     },
-    onSuccess: () => {
+    onSuccess: async (results) => {
       queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
       queryClient.invalidateQueries({ queryKey: ['purchaseOrderItems'] });
       queryClient.invalidateQueries({ queryKey: ['articles'] });
       queryClient.invalidateQueries({ queryKey: ['movements'] });
       toast.success("Leverans mottagen och registrerad!");
-      onComplete?.();
+      onComplete?.(results.receivingRecords);
+
+      // Fire-and-forget Fortnox sync for each receiving record
+      for (const record of results.receivingRecords) {
+        base44.functions.invoke('createFortnoxInboundDelivery', {
+          receiving_record_id: record.id
+        }).then((res) => {
+          if (res?.data?.success) {
+            toast.success(`Fortnox: Inleverans skapad (ID: ${res.data.deliveryId})`);
+          } else {
+            toast.warning(`Fortnox-synk misslyckades för ${record.article_name || record.id}: ${res?.data?.error || 'Okänt fel'}`);
+          }
+        }).catch((err) => {
+          toast.warning(`Fortnox-synk misslyckades för ${record.article_name || record.id}: ${err.message}`);
+        });
+      }
     },
     onError: (error) => {
       toast.error("Kunde inte registrera mottagning: " + error.message);
