@@ -108,16 +108,20 @@ export default function WorkOrderViewPage() {
 
   const handleStartProduction = async () => {
     const user = await base44.auth.me();
+    const updateData = {
+      status: 'in_progress',
+      production_started_date: new Date().toISOString(),
+      assigned_to_production: user.email,
+      assigned_to_production_name: user.full_name,
+      production_status: 'started'
+    };
+    // Only update stage if not currently in picking
+    if (workOrder.current_stage !== 'picking') {
+      updateData.current_stage = 'production';
+    }
     await updateWOMutation.mutateAsync({
       id: workOrderId,
-      data: {
-        status: 'in_progress',
-        current_stage: 'production',
-        production_started_date: new Date().toISOString(),
-        assigned_to_production: user.email,
-        assigned_to_production_name: user.full_name,
-        production_status: 'started'
-      }
+      data: updateData
     });
     await updateOrderMutation.mutateAsync({
       id: workOrder.order_id,
@@ -328,6 +332,12 @@ export default function WorkOrderViewPage() {
                     <Package className="w-4 h-4 mr-2" />
                     Öppna plocklista
                   </Button>
+                  {!workOrder.production_started_date && (
+                    <Button onClick={handleStartProduction} className="bg-blue-600 hover:bg-blue-500 text-white">
+                      <Play className="w-4 h-4 mr-2" />
+                      Starta produktion
+                    </Button>
+                  )}
                   {order?.status === 'picked' && (
                     <Button onClick={handlePickingDone} variant="outline" className="border-green-500/40 text-green-400 hover:bg-green-500/10">
                       <CheckCircle2 className="w-4 h-4 mr-2" />
@@ -341,7 +351,7 @@ export default function WorkOrderViewPage() {
         )}
 
         {/* STAGE: PRODUCTION */}
-        {workOrder.current_stage === 'production' && (
+        {(workOrder.current_stage === 'production' || workOrder.production_started_date) && (
           <div className="mb-6 space-y-4">
             <div className="p-5 rounded-2xl bg-blue-500/10 border border-blue-500/30">
               <h2 className="font-bold text-blue-400 mb-3 flex items-center gap-2">
