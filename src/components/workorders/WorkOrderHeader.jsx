@@ -1,6 +1,6 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Package, Clock } from "lucide-react";
+import { AlertCircle, Package, Clock, MapPin, FileText, Truck } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -56,16 +56,22 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange }) {
               placeholder="Lägg till namn på denna arbetsorder..."
               className="text-sm bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 placeholder:text-white/30 w-full mb-3"
             />
-            <div className="space-y-1">
-               <p className="text-white/60 text-sm font-medium">{order?.customer_name || workOrder.customer_name}</p>
+            <div className="space-y-2">
+               <div className="flex items-center gap-2">
+                 <Package className="w-4 h-4 text-white/50 shrink-0" />
+                 <p className="text-white/60 text-sm font-medium">{order?.customer_name || workOrder.customer_name}</p>
+               </div>
                {(order?.delivery_date || workOrder.delivery_date) && (
-                 <p className={cn("text-sm flex items-center gap-1", isOverdue ? 'text-red-400' : 'text-white/50')}>
-                   <Clock className="w-4 h-4" />
-                   Leverans: {format(new Date(order?.delivery_date || workOrder.delivery_date), 'd MMMM yyyy', { locale: sv })}
-                 </p>
+                 <div className={cn("flex items-center gap-2 text-sm", isOverdue ? 'text-red-400' : 'text-white/50')}>
+                   <Clock className="w-4 h-4 shrink-0" />
+                   <span>{format(new Date(order?.delivery_date || workOrder.delivery_date), 'd MMMM yyyy', { locale: sv })}</span>
+                 </div>
                )}
                {order?.delivery_address && (
-                 <p className="text-white/50 text-xs mt-2">{order.delivery_address}</p>
+                 <div className="flex items-start gap-2 text-white/50 text-sm">
+                   <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                   <span>{order.delivery_address}</span>
+                 </div>
                )}
              </div>
           </div>
@@ -90,15 +96,18 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange }) {
       {/* Meta Info */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Status', value: workOrder.status },
-          { label: 'Prioritet', value: workOrder.priority || 'Normal' },
-          { label: 'Projekt', value: order?.fortnox_project_number || '—' },
-          { label: 'Fortnox Order', value: order?.fortnox_order_id || '—' },
-          { label: 'Kundreferens', value: order?.customer_reference || '—' },
-          { label: 'Leveranssätt', value: order?.delivery_method || '—' }
-        ].map(({ label, value }) => (
+          { label: 'Status', value: workOrder.status, icon: null },
+          { label: 'Prioritet', value: workOrder.priority || 'Normal', icon: null },
+          { label: 'Projekt', value: order?.fortnox_project_number || '—', icon: FileText },
+          { label: 'Fortnox Order', value: order?.fortnox_order_id || '—', icon: FileText },
+          { label: 'Kundreferens', value: order?.customer_reference || '—', icon: FileText },
+          { label: 'Leveranssätt', value: order?.delivery_method || '—', icon: Truck }
+        ].map(({ label, value, icon: Icon }) => (
           <div key={label} className="p-3 rounded-lg bg-white/5 border border-white/10">
-            <p className="text-xs text-white/50 mb-1">{label}</p>
+            <div className="flex items-center gap-1 mb-1">
+              {Icon && <Icon className="w-3 h-3 text-white/50" />}
+              <p className="text-xs text-white/50">{label}</p>
+            </div>
             <p className="text-sm font-medium text-white break-words">{value}</p>
           </div>
         ))}
