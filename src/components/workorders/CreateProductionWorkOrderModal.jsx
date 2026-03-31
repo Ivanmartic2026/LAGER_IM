@@ -34,8 +34,15 @@ export default function CreateProductionWorkOrderModal({ open, onOpenChange }) {
         current_stage: 'production',
         status: 'pending',
         production_notes: data.notes,
+        production_status: 'started',
+        production_started_date: new Date().toISOString(),
         assigned_to_production: user.email,
-        assigned_to_production_name: user.full_name
+        assigned_to_production_name: user.full_name,
+        checklist: {
+          assembled: false,
+          tested: false,
+          ready_for_delivery: false
+        }
       });
     },
     onSuccess: () => {
