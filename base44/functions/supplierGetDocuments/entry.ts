@@ -1,10 +1,9 @@
-import { createClient } from 'npm:@base44/sdk@0.8.23';
-
-const base44 = createClient({ appId: Deno.env.get("BASE44_APP_ID"), serviceRole: true });
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 // Public endpoint - get/upload/delete documents for supplier portal
 Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
     const body = await req.json();
     const { action, token } = body;
 
@@ -13,20 +12,20 @@ Deno.serve(async (req) => {
     }
 
     // Verify token
-    const orders = await base44.entities.PurchaseOrder.filter({ supplier_portal_token: token });
+    const orders = await base44.asServiceRole.entities.PurchaseOrder.filter({ supplier_portal_token: token });
     const po = orders[0];
     if (!po) {
       return Response.json({ error: 'Order not found' }, { status: 404 });
     }
 
     if (action === 'list') {
-      const documents = await base44.entities.ArticleDocument.filter({ purchase_order_id: po.id });
+      const documents = await base44.asServiceRole.entities.ArticleDocument.filter({ purchase_order_id: po.id });
       return Response.json({ documents });
     }
 
     if (action === 'create') {
       const { document_type, document_phase, file_url, file_name } = body;
-      const doc = await base44.entities.ArticleDocument.create({
+      const doc = await base44.asServiceRole.entities.ArticleDocument.create({
         purchase_order_id: po.id,
         document_type,
         document_phase: document_phase || 'production',
@@ -40,11 +39,11 @@ Deno.serve(async (req) => {
 
     if (action === 'delete') {
       const { document_id } = body;
-      const docs = await base44.entities.ArticleDocument.filter({ id: document_id, purchase_order_id: po.id });
+      const docs = await base44.asServiceRole.entities.ArticleDocument.filter({ id: document_id, purchase_order_id: po.id });
       if (docs.length === 0) {
         return Response.json({ error: 'Document not found' }, { status: 404 });
       }
-      await base44.entities.ArticleDocument.delete(document_id);
+      await base44.asServiceRole.entities.ArticleDocument.delete(document_id);
       return Response.json({ success: true });
     }
 
