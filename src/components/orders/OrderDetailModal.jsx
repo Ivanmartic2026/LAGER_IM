@@ -116,13 +116,18 @@ export default function OrderDetailModal({ order, onClose, onSyncSuccess }) {
             <h2 className="text-xl font-bold text-white mb-2">
               {order.order_number || `Order #${order.id.slice(0, 8)}`}
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge className={cn("text-xs", statusColors[order.status])}>
                 {statusLabels[order.status]}
               </Badge>
               {order.priority === 'urgent' && (
                 <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
                   Brådskande
+                </Badge>
+              )}
+              {order.fortnox_project_number && (
+                <Badge className="bg-green-500/30 text-green-300 border-green-500/50 text-xs flex items-center gap-1 font-semibold">
+                  Fortnox Projekt #{order.fortnox_project_number}
                 </Badge>
               )}
             </div>
