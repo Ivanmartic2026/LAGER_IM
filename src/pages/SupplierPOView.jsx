@@ -103,6 +103,12 @@ export default function SupplierPOView() {
                   <Badge className={cn("border text-xs font-semibold", currentStatus.color)}>
                     {currentStatus.label}
                   </Badge>
+                  {purchaseOrder.fortnox_project_number && (
+                    <Badge className="bg-purple-100 text-purple-700 border-purple-300 text-xs font-semibold flex items-center gap-1">
+                      <span className="text-purple-500">✓</span>
+                      Fortnox: {purchaseOrder.fortnox_project_number}
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5" />
