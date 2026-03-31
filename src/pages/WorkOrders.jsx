@@ -42,6 +42,7 @@ export default function WorkOrdersPage() {
   const [stageFilter, setStageFilter] = useState('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: workOrders = [], isLoading } = useQuery({
     queryKey: ['workOrders'],
@@ -167,9 +168,18 @@ export default function WorkOrdersPage() {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="font-semibold text-white text-sm">
-                            {wo.order_number || `AO-${wo.id.slice(0, 6)}`}
-                          </span>
+                          <input
+                            type="text"
+                            defaultValue={wo.name || wo.order_number || `AO-${wo.id.slice(0, 6)}`}
+                            onBlur={e => {
+                              if (e.target.value !== (wo.name || wo.order_number || `AO-${wo.id.slice(0, 6)}`)) {
+                                queryClient.invalidateQueries({ queryKey: ['workOrders'] });
+                                base44.entities.WorkOrder.update(wo.id, { name: e.target.value });
+                              }
+                            }}
+                            onClick={e => e.stopPropagation()}
+                            className="font-semibold text-white text-sm bg-transparent border-b border-white/20 hover:border-white/40 focus:border-white/60 focus:outline-none px-1 py-0 transition-colors"
+                          />
                           <Badge className={cn("text-xs px-2 py-0 border", stage.color)}>
                             {stage.label}
                           </Badge>
