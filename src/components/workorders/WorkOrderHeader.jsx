@@ -49,18 +49,13 @@ export default function WorkOrderHeader({ workOrder, onNameChange }) {
             <h1 className="text-2xl font-bold text-white mb-2">
               {workOrder.order_number || `AO-${workOrder.id.slice(0, 6)}`}
             </h1>
-            <div className="mb-3">
-              <input
-                type="text"
-                defaultValue={workOrder.name || ''}
-                onBlur={e => onNameChange(e.target.value)}
-                placeholder="Lägg till namn på denna arbetsorder..."
-                className="text-sm bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 placeholder:text-white/30 w-full break-words"
-              />
-              {workOrder.name && (
-                <p className="text-xs text-white/40 mt-1 break-words">{workOrder.name}</p>
-              )}
-            </div>
+            <input
+              type="text"
+              defaultValue={workOrder.name || ''}
+              onBlur={e => onNameChange(e.target.value)}
+              placeholder="Lägg till namn på denna arbetsorder..."
+              className="text-sm bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 placeholder:text-white/30 w-full mb-3"
+            />
             <div className="space-y-1">
               <p className="text-white/60 text-sm font-medium">{workOrder.customer_name}</p>
               {workOrder.delivery_date && (
