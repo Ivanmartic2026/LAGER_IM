@@ -970,11 +970,13 @@ export default function OrdersPage() {
                           </Button>
                         )}
 
-                        <FortnoxSyncButton 
-                          order={order} 
-                          orderItems={orderItems.filter(item => item.order_id === order.id)}
-                          onSyncSuccess={() => refetch()}
-                        />
+                        {!order.fortnox_order_id && (
+                          <FortnoxSyncButton 
+                            order={order} 
+                            orderItems={orderItems.filter(item => item.order_id === order.id)}
+                            onSyncSuccess={() => refetch()}
+                          />
+                        )}
 
                         {order.status === 'picked' && (
                           <Button
