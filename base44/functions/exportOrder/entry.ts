@@ -88,6 +88,8 @@ Deno.serve(async (req) => {
 
     addField('Kund', order.customer_name);
     addField('Kundreferens', order.customer_reference);
+    addField('Fortnox Projekt', order.fortnox_project_number);
+    addField('Fortnox Order', order.fortnox_order_id);
     addField('Leveransdatum', order.delivery_date);
     
     if (order.delivery_address) {
