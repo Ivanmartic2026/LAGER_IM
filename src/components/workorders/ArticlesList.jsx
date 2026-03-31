@@ -2,8 +2,10 @@ import React from 'react';
 import { Package, CheckCircle2, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 export default function ArticlesList({ items = [], articles = [] }) {
+  const navigate = useNavigate();
   if (items.length === 0) return null;
 
   return (
@@ -20,9 +22,9 @@ export default function ArticlesList({ items = [], articles = [] }) {
 
           return (
             <div key={item.id} className={cn(
-              "flex items-center justify-between p-3 rounded-lg border",
+              "flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-white/10 transition-colors",
               item.status === 'picked' ? 'bg-green-500/10 border-green-500/20' : 'bg-white/5 border-white/10'
-            )}>
+            )} onClick={() => navigate(`/Inventory/${item.article_id}`)}>
               <div className="flex-1">
                 <p className="text-white font-medium text-sm">{item.article_name}</p>
                 {article?.shelf_address?.[0] && (
