@@ -15,15 +15,15 @@ const STEPS = [
 ];
 
 const STATUS_CONFIG = {
-  draft: { label: 'Draft', color: 'bg-slate-100 text-slate-600 border-slate-300' },
-  sent: { label: 'Sent', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-  confirmed: { label: 'Confirmed ✓', color: 'bg-green-100 text-green-700 border-green-300' },
-  waiting_for_supplier_documentation: { label: 'Awaiting Documentation', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-  in_production: { label: 'In Production', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-  shipped: { label: 'Shipped', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
-  ready_for_reception: { label: 'Ready for Reception', color: 'bg-amber-100 text-amber-700 border-amber-300' },
-  received: { label: 'Received', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
-  cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700 border-red-300' }
+  draft: { label: 'Draft', color: 'bg-slate-900 text-slate-100 border-slate-700', icon: '📝' },
+  sent: { label: 'Sent', color: 'bg-blue-900 text-blue-100 border-blue-700', icon: '📬' },
+  confirmed: { label: 'Confirmed', color: 'bg-green-900 text-green-100 border-green-700', icon: '✓' },
+  waiting_for_supplier_documentation: { label: 'Awaiting Documentation', color: 'bg-amber-900 text-amber-100 border-amber-700', icon: '⏳' },
+  in_production: { label: 'In Production', color: 'bg-purple-900 text-purple-100 border-purple-700', icon: '⚙️' },
+  shipped: { label: 'Shipped', color: 'bg-cyan-900 text-cyan-100 border-cyan-700', icon: '🚚' },
+  ready_for_reception: { label: 'Ready for Reception', color: 'bg-indigo-900 text-indigo-100 border-indigo-700', icon: '📦' },
+  received: { label: 'Received', color: 'bg-emerald-900 text-emerald-100 border-emerald-700', icon: '✅' },
+  cancelled: { label: 'Cancelled', color: 'bg-red-900 text-red-100 border-red-700', icon: '✕' }
 };
 
 export default function SupplierPOView() {
@@ -100,7 +100,8 @@ export default function SupplierPOView() {
                   <h1 className="text-lg font-bold text-gray-900">
                     {purchaseOrder.po_number || `PO-${purchaseOrder.id.slice(0, 8)}`}
                   </h1>
-                  <Badge className={cn("border text-xs font-semibold", currentStatus.color)}>
+                  <Badge className={cn("border text-xs font-semibold flex items-center gap-1.5 px-3 py-1", currentStatus.color)}>
+                    <span className="text-sm">{currentStatus.icon}</span>
                     {currentStatus.label}
                   </Badge>
                   {purchaseOrder.fortnox_project_number && (
