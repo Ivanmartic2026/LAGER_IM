@@ -54,7 +54,7 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange }) {
               defaultValue={workOrder.name || ''}
               onBlur={e => onNameChange(e.target.value)}
               placeholder="Lägg till namn på denna arbetsorder..."
-              className="text-sm bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 placeholder:text-white/30 w-full mb-3"
+              className="text-sm bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 placeholder:text-white/30 w-full mb-3 line-clamp-2 break-words"
             />
             <div className="space-y-2">
                <div className="flex items-center gap-2">
@@ -64,9 +64,13 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange }) {
                {(order?.delivery_date || workOrder.delivery_date) && (
                  <div className={cn("flex items-center gap-2 text-sm", isOverdue ? 'text-red-400' : 'text-white/50')}>
                    <Clock className="w-4 h-4 shrink-0" />
-                   <span>{format(new Date(order?.delivery_date || workOrder.delivery_date), 'd MMMM yyyy', { locale: sv })}</span>
+                   <span>Leverans: {format(new Date(order?.delivery_date || workOrder.delivery_date), 'd MMMM yyyy', { locale: sv })}</span>
                  </div>
                )}
+               <div className="flex items-center gap-2 text-sm text-white/50">
+                 <FileText className="w-4 h-4 shrink-0" />
+                 <span>Status: {workOrder.status}</span>
+               </div>
                {order?.delivery_address && (
                  <div className="flex items-start gap-2 text-white/50 text-sm">
                    <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
