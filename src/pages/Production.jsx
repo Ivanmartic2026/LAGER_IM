@@ -8,16 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Package, Search, Factory, CheckCircle2, 
-  Clock, FileText, ArrowRight, Zap, Play, Trophy
+  Clock, FileText, ArrowRight, Zap, Play, Trophy, Upload
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 export default function ProductionPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['production-orders'],
@@ -57,6 +59,22 @@ export default function ProductionPage() {
     picked: productionOrders.filter(o => o.status === 'picked').length,
     inProduction: productionOrders.filter(o => o.status === 'in_production').length,
     completed: productionOrders.filter(o => o.status === 'production_completed').length
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      toast.success('Fil uppladdad - du kan nu ladda upp den till en specifik arbetsorder');
+    } catch (error) {
+      toast.error('Kunde inte ladda upp fil');
+    } finally {
+      setUploadingFile(false);
+      e.target.value = '';
+    }
   };
 
   return (
@@ -148,16 +166,57 @@ export default function ProductionPage() {
           </div>
 
           {/* Search */}
-          <div className="relative">
+          <div className="relative mb-6">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Sök projekt/order..."
-              className="pl-11 h-11 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300 text-base mt-2"
+              className="pl-11 h-11 bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white placeholder:text-white/40 backdrop-blur-xl transition-all duration-300 text-base"
             />
           </div>
-        </div>
+
+          {/* File Upload Section */}
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-white flex items-center gap-2 mb-1">
+                  <Upload className="w-5 h-5" />
+                  Ladda upp filer till produktion
+                </h3>
+                <p className="text-sm text-white/60">
+                  Ladda upp ritningar, montageinstruktioner och andra dokument
+                </p>
+              </div>
+              <input
+                type="file"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="production-file-upload"
+                disabled={uploadingFile}
+              />
+              <label
+                htmlFor="production-file-upload"
+                className={cn(
+                  "px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium cursor-pointer transition-colors flex items-center gap-2 whitespace-nowrap",
+                  uploadingFile && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                {uploadingFile ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Laddar upp...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    Välj fil
+                  </>
+                )}
+              </label>
+            </div>
+          </div>
+          </div>
 
         {/* Orders List */}
         {isLoading ? (
