@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { appParams } from '@/lib/app-params';
 import { toast } from 'sonner';
 import { Upload, FileText, ExternalLink, Trash2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -58,9 +59,12 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('token', poToken);
-      const uploadRes = await base44.functions.invoke('supplierUploadFile', formData);
-      const file_url = uploadRes.data?.file_url;
-      if (!file_url) throw new Error('Upload failed');
+
+      const fnUrl = `https://api.base44.com/api/apps/${appParams.appId}/functions/supplierUploadFile`;
+      const uploadRes = await fetch(fnUrl, { method: 'POST', body: formData });
+      const uploadData = await uploadRes.json();
+      const file_url = uploadData?.file_url;
+      if (!file_url) throw new Error(uploadData?.error || 'Upload failed');
 
       const docDef = DOC_TYPES.find(d => d.value === selectedType);
       const res = await base44.functions.invoke('supplierGetDocuments', {
