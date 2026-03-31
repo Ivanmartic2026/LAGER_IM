@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -75,6 +75,11 @@ export default function OrdersPage() {
   const { data: warehouses = [] } = useQuery({
     queryKey: ['warehouses'],
     queryFn: () => base44.entities.Warehouse.list(),
+  });
+
+  const { data: workOrders = [] } = useQuery({
+    queryKey: ['workOrders'],
+    queryFn: () => base44.entities.WorkOrder.list(),
   });
 
   const deleteOrderMutation = useMutation({
@@ -189,7 +194,7 @@ export default function OrdersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success('Order skickad till produktion!');
-      navigate(createPageUrl('Production'));
+      navigate(createPageUrl('WorkOrders'));
     }
   });
 
@@ -843,6 +848,19 @@ export default function OrdersPage() {
                           <Eye className="w-4 h-4 mr-2" />
                           Detaljer
                         </Button>
+
+                        {(() => {
+                          const wo = workOrders.find(w => w.order_id === order.id);
+                          if (!wo) return null;
+                          return (
+                            <Link to={createPageUrl(`WorkOrderView?id=${wo.id}`)}>
+                              <Button size="sm" className="bg-blue-700 hover:bg-blue-600">
+                                <ClipboardList className="w-4 h-4 mr-2" />
+                                Arbetsorder
+                              </Button>
+                            </Link>
+                          );
+                        })()}
 
                         {(order.status === 'ready_to_pick' || order.status === 'picking') && (
                           <Link to={`${createPageUrl("PickOrder")}?orderId=${order.id}`}>
