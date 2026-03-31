@@ -3,11 +3,18 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { data: { order_id } } = await req.json();
+    const payload = await req.json();
+    
+    // Handle both entity automation and direct invocation formats
+    const order_id = payload.data?.order_id || payload.event?.entity_id;
 
+    // Validate order_id
+    if (!order_id) {
+      return Response.json({ success: false, error: 'No order_id provided' }, { status: 400 });
+    }
+    
     // Fetch the order
-    const orders = await base44.asServiceRole.entities.Order.filter({ id: order_id });
-    const order = orders[0];
+    const order = await base44.asServiceRole.entities.Order.get(order_id);
     
     if (!order) return Response.json({ success: false, error: 'Order not found' }, { status: 404 });
 
