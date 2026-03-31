@@ -89,29 +89,26 @@ export default function WorkOrdersPage() {
           </div>
 
           {/* Stage Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {[
-              { key: 'all', label: 'Alla aktiva', count: activeOrders.length, icon: ClipboardList, colorClass: 'from-white/20 to-white/10', textColor: 'text-white/70' },
-              { key: 'picking', label: 'Plockning', count: stats.picking, icon: Package, colorClass: 'from-amber-500/30 to-amber-600/30', textColor: 'text-amber-400' },
-              { key: 'production', label: 'Produktion', count: stats.production, icon: Factory, colorClass: 'from-blue-500/30 to-blue-600/30', textColor: 'text-blue-400' },
-              { key: 'completed', label: 'Klara', count: stats.completed, icon: CheckCircle2, colorClass: 'from-green-500/30 to-green-600/30', textColor: 'text-green-400' }
-            ].map(({ key, label, count, icon: Icon, colorClass, textColor }) => (
+              { key: 'all', label: 'Alla aktiva', count: activeOrders.length, bgColor: 'bg-white/5 border-white/10', textColor: 'text-white/70' },
+              { key: 'picking', label: 'Plockning', count: stats.picking, bgColor: 'bg-amber-500/10 border-amber-500/20', textColor: 'text-amber-400' },
+              { key: 'production', label: 'Produktion', count: stats.production, bgColor: 'bg-blue-500/10 border-blue-500/20', textColor: 'text-blue-400' },
+              { key: 'completed', label: 'Klara', count: stats.completed, bgColor: 'bg-green-500/10 border-green-500/20', textColor: 'text-green-400' }
+            ].map(({ key, label, count, bgColor, textColor }) => (
               <motion.button
                 key={key}
-                whileHover={{ y: -3 }}
+                whileHover={{ y: -2 }}
                 onClick={() => setStageFilter(key === 'completed' ? 'completed' : key)}
                 className={cn(
-                  "p-4 rounded-2xl border transition-all duration-200 text-left",
+                  "p-5 rounded-2xl border transition-all duration-200 text-left",
                   (stageFilter === key || (key === 'completed' && stageFilter === 'completed'))
                     ? "bg-white/10 border-white/30"
-                    : "bg-white/5 border-white/10 hover:bg-white/8 hover:border-white/20"
+                    : bgColor + " hover:bg-white/8 hover:border-white/20"
                 )}
               >
-                <div className={cn("w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center mb-2", colorClass)}>
-                  <Icon className={cn("w-4 h-4", textColor)} />
-                </div>
-                <p className="text-2xl font-bold text-white tracking-tight">{count}</p>
-                <p className="text-xs text-white/50">{label}</p>
+                <p className={cn("text-3xl font-bold tracking-tight mb-1", textColor)}>{count}</p>
+                <p className="text-sm text-white/50">{label}</p>
               </motion.button>
             ))}
           </div>
@@ -161,16 +158,10 @@ export default function WorkOrdersPage() {
                         : "bg-white/5 border-white/10 hover:border-white/20"
                     )}
                   >
-                    <div className="flex items-start gap-5">
-                      {/* Stage Icon */}
-                      <div className={cn("w-12 h-12 rounded-xl border flex items-center justify-center flex-shrink-0 mt-1", stage.color)}>
-                        <StageIcon className="w-5 h-5" />
-                      </div>
-
-                      {/* Main Content */}
-                      <div className="flex-1 min-w-0 pt-1">
-                        {/* Title & Status */}
-                        <div className="flex items-center gap-3 mb-3 flex-wrap">
+                    <div className="flex flex-col gap-4">
+                      {/* Header Row: Stage + Title + Status */}
+                      <div className="flex items-baseline justify-between gap-4">
+                        <div className="flex items-baseline gap-3 flex-wrap">
                           <input
                             type="text"
                             defaultValue={wo.name || wo.order_number || `AO-${wo.id.slice(0, 6)}`}
@@ -181,44 +172,46 @@ export default function WorkOrdersPage() {
                               }
                             }}
                             onClick={e => e.stopPropagation()}
-                            className="font-bold text-white text-base bg-transparent border-b border-white/20 hover:border-white/40 focus:border-white/60 focus:outline-none px-1 py-0 transition-colors"
+                            className="font-bold text-lg text-white bg-transparent border-b border-white/20 hover:border-white/40 focus:border-white/60 focus:outline-none px-1 py-0 transition-colors"
                           />
-                          <Badge className={cn("text-xs px-2 py-1 border", stage.color)}>
+                          <span className={cn("text-xs font-bold px-2 py-1 rounded-lg", stage.color)}>
                             {stage.label}
-                          </Badge>
-                          {wo.priority && wo.priority !== 'normal' && (
-                            <span className={cn("text-xs font-bold", priority.color)}>
-                              {priority.label}
-                            </span>
-                          )}
+                          </span>
                         </div>
-
-                        {/* Details */}
-                        <div className="flex flex-col gap-2 text-sm text-white/60">
-                          <span>{wo.customer_name}</span>
-                          <div className="flex items-center gap-4 flex-wrap">
-                            {wo.delivery_date && (
-                              <span className={cn(
-                                "flex items-center gap-1",
-                                new Date(wo.delivery_date) < new Date() && wo.status !== 'completed'
-                                  ? 'text-red-400 font-medium' : ''
-                              )}>
-                                📅 {format(new Date(wo.delivery_date), 'd MMM', { locale: sv })}
-                              </span>
-                            )}
-                            <span className="flex items-center gap-2">
-                              <span className={cn("w-2 h-2 rounded-full", status.dot)} />
-                              {status.label}
-                            </span>
-                          </div>
-                        </div>
+                        {wo.priority && wo.priority !== 'normal' && (
+                          <span className={cn("text-xs font-bold", priority.color)}>
+                            {priority.label.toUpperCase()}
+                          </span>
+                        )}
                       </div>
 
-                      {/* Arrow */}
-                      <ArrowRight className="w-5 h-5 text-white/30 flex-shrink-0 mt-3" />
+                      {/* Details Row: Customer, Delivery, Status */}
+                      <div className="grid grid-cols-3 gap-6 text-sm">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-white/40 text-xs">Kund</span>
+                          <span className="text-white font-medium">{wo.customer_name}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-white/40 text-xs">Leverans</span>
+                          <span className={cn(
+                            "text-white font-medium",
+                            wo.delivery_date && new Date(wo.delivery_date) < new Date() && wo.status !== 'completed'
+                              ? 'text-red-400' : ''
+                          )}>
+                            {wo.delivery_date ? format(new Date(wo.delivery_date), 'd MMM', { locale: sv }) : '—'}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-white/40 text-xs">Status</span>
+                          <span className={cn("text-white font-medium", status.dot ? 'text-' + status.dot.split('-')[1] : '')}>
+                            {status.label}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </motion.div>
-                </Link>
+                    </div>
+                    </motion.div>
+                    </Link>
               );
             })}
           </div>
