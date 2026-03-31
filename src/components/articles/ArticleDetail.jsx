@@ -23,6 +23,7 @@ import ProductAssemblyManager from "./ProductAssemblyManager";
 import ArticleComments from "./ArticleComments";
 import LinkToSiteModal from "./LinkToSiteModal";
 import InternalTransferModal from "./InternalTransferModal";
+import WarehouseDistribution from "./WarehouseDistribution";
 import PODocumentHub from "@/components/purchaseorders/PODocumentHub";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -743,6 +744,19 @@ export default function ArticleDetail({
             Rapportera till Reparation
           </button>
         )}
+        {(article.stock_qty || 0) > 0 && siblingArticles.length > 0 && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setInternalTransferOpen(true);
+            }}
+            className="w-full bg-purple-500/30 border border-purple-500/60 hover:bg-purple-500/40 text-purple-300 font-medium h-10 md:h-11 text-sm md:text-base active:scale-95 transition-all rounded-lg flex items-center justify-center gap-2 backdrop-blur-xl"
+          >
+            <ArrowRightLeft className="w-3 h-3 md:w-4 md:h-4" />
+            Flytta mellan lager
+          </button>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -1144,31 +1158,8 @@ export default function ArticleDetail({
                     </button>
                   </div>
                 )}
-              </div>
-              {/* Multi-warehouse stock distribution */}
-              {siblingArticles.length > 0 && !editingLocation && (
-                <div className="mb-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
-                  <p className="text-xs text-blue-300 mb-2 font-medium">Lagerfördelning (samma SKU)</p>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-white">{article.warehouse || 'Okänt lager'}</span>
-                      <span className="font-bold text-white">{article.stock_qty || 0} st</span>
-                    </div>
-                    {siblingArticles.map(sibling => (
-                      <div key={sibling.id} className="flex items-center justify-between text-sm">
-                        <span className="text-slate-300">{sibling.warehouse || 'Okänt lager'}</span>
-                        <span className="font-bold text-slate-300">{sibling.stock_qty || 0} st</span>
-                      </div>
-                    ))}
-                    <div className="border-t border-blue-500/30 pt-1.5 flex items-center justify-between text-sm font-bold">
-                      <span className="text-blue-300">Totalt</span>
-                      <span className="text-blue-300">
-                        {siblingArticles.reduce((sum, a) => sum + (a.stock_qty || 0), article.stock_qty || 0)} st
-                      </span>
-                    </div>
-                  </div>
                 </div>
-              )}
+                <WarehouseDistribution article={article} siblingArticles={siblingArticles} isEditing={editingLocation} />
 
               {editingLocation ? (
                 <div className="space-y-3">
