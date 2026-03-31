@@ -12,10 +12,10 @@ import {
   Search, Plus, Package, ClipboardList, Download, Upload,
   Calendar, User, MapPin, FileText, Truck, Eye, ArrowUpDown, Printer,
   CheckSquare, X, CheckCircle2, AlertCircle, Mail, ChevronDown,
-  TrendingUp, Clock, AlertTriangle
+  TrendingUp, Clock, AlertTriangle, Factory
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -27,6 +27,7 @@ import FortnoxSyncButton from "@/components/orders/FortnoxSyncButton";
 import PullToRefresh from "@/components/utils/PullToRefresh";
 
 export default function OrdersPage() {
+  const navigate = useNavigate();
   // Restore state from localStorage
   const getStoredState = () => {
     try {
@@ -173,6 +174,22 @@ export default function OrdersPage() {
       a.remove();
       toast.success('PDF nedladdad!');
       setSelectedOrderIds([]);
+    }
+  });
+
+  const sendToProductionMutation = useMutation({
+    mutationFn: async (order) => {
+      const user = await base44.auth.me();
+      await base44.entities.Order.update(order.id, {
+        status: 'in_production',
+        production_started_date: new Date().toISOString(),
+        production_started_by: user.email
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      toast.success('Order skickad till produktion!');
+      navigate(createPageUrl('Production'));
     }
   });
 
@@ -875,6 +892,19 @@ export default function OrdersPage() {
                           orderItems={orderItems.filter(item => item.order_id === order.id)}
                           onSyncSuccess={() => refetch()}
                         />
+
+                        {order.status === 'picked' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-blue-600/20 border-blue-500/30 text-blue-400 hover:bg-blue-600/30"
+                            onClick={() => sendToProductionMutation.mutate(order)}
+                            disabled={sendToProductionMutation.isPending}
+                          >
+                            <Factory className="w-4 h-4 mr-2" />
+                            Till produktion
+                          </Button>
+                        )}
 
                         {order.status === 'picked' && !order.fortnox_invoiced && (
                            <Button

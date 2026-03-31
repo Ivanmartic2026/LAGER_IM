@@ -15,6 +15,7 @@ import { createPageUrl } from "@/utils";
 import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import OrderForm from "@/components/orders/OrderForm";
 import PickingItemCard from "@/components/orders/PickingItemCard";
+import OrderRoutingModal from "@/components/orders/OrderRoutingModal";
 
 export default function PickOrderPage() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -197,7 +198,7 @@ export default function PickOrderPage() {
         }
       });
       
-      toast.success("Alla artiklar plockade! Order komplett.");
+      toast.success("Alla artiklar plockade! Välj nästa steg.");
     }
 
     setPickingItemId(null);
@@ -498,29 +499,47 @@ export default function PickOrderPage() {
           </div>
         )}
 
-        {/* Complete Message */}
+        {/* Routing Modal when picking is complete */}
         {order.status === 'picked' && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mt-6 bg-green-500/10 border border-green-500/30 rounded-xl p-6 text-center"
-          >
-            <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-3" />
-            <h3 className="text-xl font-bold text-white mb-2">
-              Order komplett!
-            </h3>
-            <p className="text-slate-400 mb-4">
-              Alla artiklar har plockats från lagret
-            </p>
-            <Button
-              onClick={() => exportOrderMutation.mutate()}
-              disabled={exportOrderMutation.isPending}
-              className="bg-green-600 hover:bg-green-500"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Ladda ner plockkvitto
-            </Button>
-          </motion.div>
+          <OrderRoutingModal
+            order={order}
+            onDownload={() => exportOrderMutation.mutate()}
+            isDownloading={exportOrderMutation.isPending}
+            onRoute={async (route) => {
+              const user = await base44.auth.me();
+              if (route === 'delivered') {
+                await updateOrderMutation.mutateAsync({
+                  id: order.id,
+                  data: { status: 'delivered' }
+                });
+                toast.success('Order markerad som levererad!');
+                navigate(createPageUrl('Orders'));
+              } else if (route === 'in_production') {
+                await updateOrderMutation.mutateAsync({
+                  id: order.id,
+                  data: {
+                    status: 'in_production',
+                    production_started_date: new Date().toISOString(),
+                    production_started_by: user.email
+                  }
+                });
+                toast.success('Order skickad till produktion!');
+                navigate(createPageUrl('Production'));
+              } else if (route === 'parallel') {
+                await updateOrderMutation.mutateAsync({
+                  id: order.id,
+                  data: {
+                    status: 'in_production',
+                    production_started_date: new Date().toISOString(),
+                    production_started_by: user.email,
+                    notes: (order.notes ? order.notes + '\n' : '') + '[Parallell: plockning & produktion]'
+                  }
+                });
+                toast.success('Produktion startad parallellt!');
+                navigate(createPageUrl('Production'));
+              }
+            }}
+          />
         )}
 
         {/* Edit Order Form */}
