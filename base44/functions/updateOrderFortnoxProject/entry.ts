@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { customer_name, fortnox_project_number } = await req.json();
+    const { customer_name, fortnox_project_number, fortnox_project_name } = await req.json();
 
     // Find order by customer_name
     const orders = await base44.entities.Order.filter({ customer_name });
@@ -20,10 +20,12 @@ Deno.serve(async (req) => {
 
     const order = orders[0];
 
-    // Update with fortnox_project_number
-    await base44.entities.Order.update(order.id, { 
-      fortnox_project_number 
-    });
+    // Update with fortnox_project_number and project_name
+    const updateData = { fortnox_project_number };
+    if (fortnox_project_name) {
+      updateData.fortnox_project_name = fortnox_project_name;
+    }
+    await base44.entities.Order.update(order.id, updateData);
 
     return Response.json({ 
       success: true, 

@@ -177,6 +177,10 @@
       "type": "string",
       "description": "Fortnox projektnummer"
     },
+    "fortnox_project_name": {
+      "type": "string",
+      "description": "Fortnox projektnamn/ben\u00e4mning"
+    },
     "invoiced_date": {
       "type": "string",
       "format": "date-time",

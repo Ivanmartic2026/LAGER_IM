@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { order_id, customer_number, your_order_number, delivery_date, order_rows } = await req.json();
+    const { order_id, customer_number, your_order_number, delivery_date, order_rows, project_name } = await req.json();
 
     // Only customer_number and order_rows are truly required
     if (!customer_number || !order_rows || order_rows.length === 0) {
@@ -132,13 +132,19 @@ Deno.serve(async (req) => {
     const data = JSON.parse(text);
     const fortnoxOrder = data.Order || {};
     const fortnoxOrderNumber = fortnoxOrder.OrderNumber;
+    const fortnoxDocumentNumber = fortnoxOrder.DocumentNumber;
 
-    // Update Lager AI order record with Fortnox order number if order_id provided
-    if (order_id) {
+    // Update Lager AI order record with Fortnox document number and project name if provided
+    if (order_id && fortnoxDocumentNumber) {
       try {
-        await base44.asServiceRole.entities.Order.update(order_id, {
-          fortnox_order_id: fortnoxOrderNumber
-        });
+        const updateData = {
+          fortnox_document_number: fortnoxDocumentNumber,
+          fortnox_order_id: fortnoxDocumentNumber
+        };
+        if (project_name) {
+          updateData.fortnox_project_name = project_name;
+        }
+        await base44.asServiceRole.entities.Order.update(order_id, updateData);
       } catch (e) {
         console.warn('Failed to update Lager AI order record:', e.message);
       }

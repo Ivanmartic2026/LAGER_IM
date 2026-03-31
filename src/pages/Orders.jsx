@@ -841,7 +841,10 @@ export default function OrdersPage() {
                         {order.fortnox_project_number && (
                           <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30">
                             <div className="text-xs text-purple-400/70 mb-1">Projekt</div>
-                            <div className="text-sm font-semibold text-purple-300">#{order.fortnox_project_number}</div>
+                            <div className="text-sm font-semibold text-purple-300 line-clamp-2">
+                              Projekt #{order.fortnox_project_number}
+                              {order.fortnox_project_name && ` - ${order.fortnox_project_name}`}
+                            </div>
                           </div>
                         )}
                         {order.fortnox_invoiced && order.fortnox_invoice_number && (
