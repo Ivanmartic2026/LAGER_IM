@@ -208,10 +208,9 @@ export default function WorkOrdersPage() {
                           </span>
                         </div>
                       </div>
-                    </div>
-                    </div>
-                    </motion.div>
-                    </Link>
+                      </div>
+                      </motion.div>
+                      </Link>
               );
             })}
           </div>
