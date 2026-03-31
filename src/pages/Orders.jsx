@@ -59,7 +59,10 @@ export default function OrdersPage() {
 
   const { data: orders = [], isLoading, refetch } = useQuery({
     queryKey: ['orders'],
-    queryFn: () => base44.entities.Order.list('-created_date'),
+    queryFn: async () => {
+      const allOrders = await base44.entities.Order.list('-created_date');
+      return allOrders;
+    },
   });
 
   const { data: orderItems = [] } = useQuery({
