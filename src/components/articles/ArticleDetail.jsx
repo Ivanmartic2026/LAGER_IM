@@ -78,6 +78,17 @@ export default function ArticleDetail({
     queryFn: () => base44.entities.StockMovement.filter({ article_id: article.id }, '-created_date', 500),
   });
 
+  // Fetch sibling articles with same SKU (for multi-warehouse view)
+  const { data: siblingArticles = [] } = useQuery({
+    queryKey: ['sibling-articles', article.sku],
+    queryFn: async () => {
+      if (!article.sku) return [];
+      const all = await base44.entities.Article.filter({ sku: article.sku });
+      return all.filter(a => a.id !== article.id);
+    },
+    enabled: !!article.sku,
+  });
+
   const { data: allArticles = [] } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list('-updated_date'),
@@ -660,7 +671,16 @@ export default function ArticleDetail({
           <div className="grid grid-cols-3 gap-2 md:gap-4">
             <div className="p-3 md:p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
               <p className="text-xs md:text-sm text-blue-300 mb-1">In Stock</p>
-              <p className="text-2xl md:text-3xl font-bold text-white">{article.stock_qty || 0}</p>
+              {siblingArticles.length > 0 ? (
+                <>
+                  <p className="text-2xl md:text-3xl font-bold text-white">
+                    {siblingArticles.reduce((sum, a) => sum + (a.stock_qty || 0), article.stock_qty || 0)}
+                  </p>
+                  <p className="text-xs text-blue-300/70 mt-1">totalt</p>
+                </>
+              ) : (
+                <p className="text-2xl md:text-3xl font-bold text-white">{article.stock_qty || 0}</p>
+              )}
             </div>
             <div className="p-3 md:p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
               <p className="text-xs md:text-sm text-slate-400 mb-1">Safety Stock</p>
@@ -1123,6 +1143,31 @@ export default function ArticleDetail({
                   </div>
                 )}
               </div>
+              {/* Multi-warehouse stock distribution */}
+              {siblingArticles.length > 0 && !editingLocation && (
+                <div className="mb-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                  <p className="text-xs text-blue-300 mb-2 font-medium">Lagerfördelning (samma SKU)</p>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white">{article.warehouse || 'Okänt lager'}</span>
+                      <span className="font-bold text-white">{article.stock_qty || 0} st</span>
+                    </div>
+                    {siblingArticles.map(sibling => (
+                      <div key={sibling.id} className="flex items-center justify-between text-sm">
+                        <span className="text-slate-300">{sibling.warehouse || 'Okänt lager'}</span>
+                        <span className="font-bold text-slate-300">{sibling.stock_qty || 0} st</span>
+                      </div>
+                    ))}
+                    <div className="border-t border-blue-500/30 pt-1.5 flex items-center justify-between text-sm font-bold">
+                      <span className="text-blue-300">Totalt</span>
+                      <span className="text-blue-300">
+                        {siblingArticles.reduce((sum, a) => sum + (a.stock_qty || 0), article.stock_qty || 0)} st
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {editingLocation ? (
                 <div className="space-y-3">
                   <div>
