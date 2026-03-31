@@ -106,7 +106,7 @@ export default function OrdersPage() {
 
   const exportOrderMutation = useMutation({
     mutationFn: async (orderId) => {
-      const response = await base44.functions.invoke('exportOrder', { orderId });
+      const response = await base44.functions.invoke('exportOrder', { orderId }, { responseType: 'arraybuffer' });
       return response.data;
     },
     onSuccess: (data) => {
@@ -120,6 +120,9 @@ export default function OrdersPage() {
       window.URL.revokeObjectURL(url);
       a.remove();
       toast.success('PDF nedladdad!');
+    },
+    onError: (error) => {
+      toast.error('Kunde inte generera PDF: ' + (error.message || 'Okänt fel'));
     }
   });
 
