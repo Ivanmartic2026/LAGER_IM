@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Ordernummer (kopierat fr\u00e5n Order)"
     },
+    "name": {
+      "type": "string",
+      "description": "Arbetsordens namn/titel"
+    },
     "customer_name": {
       "type": "string",
       "description": "Kundnamn (kopierat fr\u00e5n Order)"

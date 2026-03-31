@@ -257,10 +257,20 @@ export default function WorkOrderViewPage() {
         {/* Header */}
         <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-xl font-bold text-white mb-1">
-                {workOrder.order_number || `AO-${workOrder.id.slice(0, 6)}`}
-              </h1>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-xl font-bold text-white">
+                  {workOrder.order_number || `AO-${workOrder.id.slice(0, 6)}`}
+                </h1>
+                {workOrder.name && <span className="text-white/60 text-sm font-normal">— {workOrder.name}</span>}
+              </div>
+              <input
+                type="text"
+                defaultValue={workOrder.name || ''}
+                onBlur={e => e.target.value !== (workOrder.name || '') && handleSaveNotes('name', e.target.value)}
+                placeholder="Lägg till namn på denna arbetsorder..."
+                className="text-xs bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 placeholder:text-white/30 w-full mb-2"
+              />
               <p className="text-white/60 text-sm">{workOrder.customer_name}</p>
               {workOrder.delivery_date && (
                 <p className={cn("text-sm mt-1", new Date(workOrder.delivery_date) < new Date() && workOrder.status !== 'completed' ? 'text-red-400' : 'text-white/50')}>
