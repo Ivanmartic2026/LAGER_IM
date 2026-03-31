@@ -30,7 +30,7 @@ function getOverallStatus(workOrder, materialNeedsPurchase) {
   return 'ready';
 }
 
-export default function WorkOrderHeader({ workOrder, onNameChange }) {
+export default function WorkOrderHeader({ workOrder, order, onNameChange }) {
   const stageConfig = STAGE_CONFIG[workOrder.current_stage] || STAGE_CONFIG.picking;
   const materialNeedsPurchase = workOrder.materials_needed?.some(m => m.needs_purchase);
   const overallStatus = getOverallStatus(workOrder, materialNeedsPurchase);
@@ -89,8 +89,8 @@ export default function WorkOrderHeader({ workOrder, onNameChange }) {
         {[
           { label: 'Status', value: workOrder.status },
           { label: 'Prioritet', value: workOrder.priority || 'Normal' },
-          { label: 'Projekt', value: workOrder.fortnox_project_number || '—' },
-          { label: 'Fortnox Order', value: workOrder.fortnox_order_id || '—' }
+          { label: 'Projekt', value: order?.fortnox_project_number || '—' },
+          { label: 'Fortnox Order', value: order?.fortnox_order_id || '—' }
         ].map(({ label, value }) => (
           <div key={label} className="p-3 rounded-lg bg-white/5 border border-white/10">
             <p className="text-xs text-white/50 mb-1">{label}</p>

@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export default function ProductionChecklist({ 
-  workOrder, 
+  workOrder,
+  order,
   onChecklistChange, 
   onSaveNotes, 
   onImageUpload, 
@@ -36,8 +37,8 @@ export default function ProductionChecklist({
       {/* Fortnox Info */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         {[
-          { label: 'Projekt', value: workOrder.fortnox_project_number || '—' },
-          { label: 'Order', value: workOrder.fortnox_order_id || '—' }
+          { label: 'Projekt', value: order?.fortnox_project_number || '—' },
+          { label: 'Order', value: order?.fortnox_order_id || '—' }
         ].map(({ label, value }) => (
           <div key={label} className="p-2 rounded bg-blue-500/20 border border-blue-500/30">
             <p className="text-xs text-blue-300 mb-1">{label}</p>

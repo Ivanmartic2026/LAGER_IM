@@ -243,7 +243,8 @@ export default function WorkOrderViewPage() {
 
         {/* Header with Status */}
         <WorkOrderHeader 
-          workOrder={workOrder} 
+          workOrder={workOrder}
+          order={order}
           onNameChange={(name) => handleSaveNotes('name', name)}
         />
 
@@ -270,6 +271,7 @@ export default function WorkOrderViewPage() {
         {workOrder.current_stage === 'production' || workOrder.production_started_date ? (
           <ProductionChecklist
             workOrder={workOrder}
+            order={order}
             onChecklistChange={handleChecklistChange}
             onSaveNotes={handleSaveNotes}
             onImageUpload={handleImageUpload}
