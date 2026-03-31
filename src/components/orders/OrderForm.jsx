@@ -171,10 +171,8 @@ export default function OrderForm({ order, onClose }) {
     setOrderItems(orderItems.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    console.log('Form submitted', { formData, orderItems });
     
     if (!formData.customer_name) {
       toast.error("Kundnamn krävs");
@@ -186,7 +184,6 @@ export default function OrderForm({ order, onClose }) {
       return;
     }
 
-    console.log('Calling mutation...');
     saveOrderMutation.mutate(formData);
   };
 
