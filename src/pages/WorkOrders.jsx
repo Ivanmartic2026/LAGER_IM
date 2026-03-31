@@ -161,13 +161,16 @@ export default function WorkOrdersPage() {
                         : "bg-white/5 border-white/10 hover:border-white/20"
                     )}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={cn("w-10 h-10 rounded-xl border flex items-center justify-center flex-shrink-0", stage.color)}>
+                    <div className="flex items-start gap-5">
+                      {/* Stage Icon */}
+                      <div className={cn("w-12 h-12 rounded-xl border flex items-center justify-center flex-shrink-0 mt-1", stage.color)}>
                         <StageIcon className="w-5 h-5" />
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      {/* Main Content */}
+                      <div className="flex-1 min-w-0 pt-1">
+                        {/* Title & Status */}
+                        <div className="flex items-center gap-3 mb-3 flex-wrap">
                           <input
                             type="text"
                             defaultValue={wo.name || wo.order_number || `AO-${wo.id.slice(0, 6)}`}
@@ -178,39 +181,41 @@ export default function WorkOrdersPage() {
                               }
                             }}
                             onClick={e => e.stopPropagation()}
-                            className="font-semibold text-white text-sm bg-transparent border-b border-white/20 hover:border-white/40 focus:border-white/60 focus:outline-none px-1 py-0 transition-colors"
+                            className="font-bold text-white text-base bg-transparent border-b border-white/20 hover:border-white/40 focus:border-white/60 focus:outline-none px-1 py-0 transition-colors"
                           />
-                          <Badge className={cn("text-xs px-2 py-0 border", stage.color)}>
+                          <Badge className={cn("text-xs px-2 py-1 border", stage.color)}>
                             {stage.label}
                           </Badge>
                           {wo.priority && wo.priority !== 'normal' && (
-                            <span className={cn("text-xs font-medium", priority.color)}>
+                            <span className={cn("text-xs font-bold", priority.color)}>
                               {priority.label}
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-white/50">
+
+                        {/* Details */}
+                        <div className="flex flex-col gap-2 text-sm text-white/60">
                           <span>{wo.customer_name}</span>
-                          {wo.delivery_date && (
-                            <>
-                              <span>•</span>
+                          <div className="flex items-center gap-4 flex-wrap">
+                            {wo.delivery_date && (
                               <span className={cn(
+                                "flex items-center gap-1",
                                 new Date(wo.delivery_date) < new Date() && wo.status !== 'completed'
-                                  ? 'text-red-400' : ''
+                                  ? 'text-red-400 font-medium' : ''
                               )}>
-                                Lev: {format(new Date(wo.delivery_date), 'd MMM', { locale: sv })}
+                                📅 {format(new Date(wo.delivery_date), 'd MMM', { locale: sv })}
                               </span>
-                            </>
-                          )}
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <span className={cn("w-1.5 h-1.5 rounded-full", status.dot)} />
-                            {status.label}
-                          </span>
+                            )}
+                            <span className="flex items-center gap-2">
+                              <span className={cn("w-2 h-2 rounded-full", status.dot)} />
+                              {status.label}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      <ArrowRight className="w-4 h-4 text-white/30 flex-shrink-0" />
+                      {/* Arrow */}
+                      <ArrowRight className="w-5 h-5 text-white/30 flex-shrink-0 mt-3" />
                     </div>
                   </motion.div>
                 </Link>
