@@ -26,10 +26,25 @@ export default function ProductionChecklist({
 
   return (
     <div className="p-5 rounded-2xl bg-blue-500/10 border border-blue-500/30">
-      <h2 className="font-bold text-blue-400 mb-4 flex items-center gap-2">
-        <Factory className="w-5 h-5" />
-        Produktion
-      </h2>
+      <div className="flex items-start justify-between mb-4">
+        <h2 className="font-bold text-blue-400 flex items-center gap-2">
+          <Factory className="w-5 h-5" />
+          Produktion
+        </h2>
+      </div>
+
+      {/* Fortnox Info */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        {[
+          { label: 'Projekt', value: workOrder.fortnox_project_number || '—' },
+          { label: 'Order', value: workOrder.fortnox_order_id || '—' }
+        ].map(({ label, value }) => (
+          <div key={label} className="p-2 rounded bg-blue-500/20 border border-blue-500/30">
+            <p className="text-xs text-blue-300 mb-1">{label}</p>
+            <p className="text-xs font-medium text-blue-100 break-words">{value}</p>
+          </div>
+        ))}
+      </div>
 
       {!canStartProduction && (
         <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 mb-4 flex items-start gap-2">
