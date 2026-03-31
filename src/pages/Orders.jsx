@@ -746,8 +746,9 @@ export default function OrdersPage() {
                        : "bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5"
                    )}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-start gap-3 flex-1">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-3">
+                      {/* Left: Checkbox + Title + Badges */}
+                      <div className="lg:col-span-2 flex items-start gap-3">
                         <Checkbox
                           checked={selectedOrderIds.includes(order.id)}
                           onCheckedChange={(checked) => {
@@ -761,92 +762,104 @@ export default function OrdersPage() {
                           className="mt-1"
                         />
                         <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2 flex-wrap">
-                          <h3 className="text-lg font-semibold text-white">
-                            {order.order_number || `Order #${order.id.slice(0, 8)}`}
-                          </h3>
-                          <Badge className={cn("text-xs", statusColors[order.status])}>
-                            {statusLabels[order.status]}
-                          </Badge>
-                          {order.priority === 'urgent' && (
-                            <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
-                              Brådskande
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
+                            <h3 className="text-lg font-semibold text-white">
+                              {order.order_number || `Order #${order.id.slice(0, 8)}`}
+                            </h3>
+                            <Badge className={cn("text-xs", statusColors[order.status])}>
+                              {statusLabels[order.status]}
                             </Badge>
-                          )}
-                          {order.is_incomplete && (
-                            <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs flex items-center gap-1 font-semibold">
-                              <AlertCircle className="w-3 h-3" />
-                              Ofullständig
-                            </Badge>
-                          )}
-                          {order.status === 'picked' && !order.fortnox_invoiced && !order.is_incomplete && (
-                            <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs flex items-center gap-1">
-                              <AlertCircle className="w-3 h-3" />
-                              Väntar fakturering
-                            </Badge>
-                          )}
-                          {order.fortnox_project_number && (
-                            <Badge className="bg-purple-500/30 text-purple-300 border-purple-500/50 text-xs flex items-center gap-1 font-semibold">
-                              Projekt #{order.fortnox_project_number}
-                            </Badge>
-                          )}
-                          {order.fortnox_invoiced && order.fortnox_invoice_number && (
-                            <Badge className="bg-green-500/30 text-green-300 border-green-500/50 text-xs flex items-center gap-1 font-semibold">
-                              <FileText className="w-3 h-3" />
-                              #{order.fortnox_invoice_number}
-                            </Badge>
-                          )}
-                        </div>
-                        
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-400">
-                           <div className="flex items-center gap-1.5">
-                             <User className="w-4 h-4" />
-                             <span>{order.customer_name}</span>
-                           </div>
-                           <div className={cn(
-                             "flex items-center gap-1.5 px-2 py-1 rounded-lg",
-                             getDaysOld(order.created_date) > 5 
-                               ? "bg-orange-500/20 text-orange-400" 
-                               : "bg-slate-700/50 text-slate-300"
-                           )}>
-                             <Calendar className="w-4 h-4" />
-                             <span className="font-medium">{getDaysOld(order.created_date)} dagar</span>
-                           </div>
-                           {order.delivery_date && (
-                             <div className="flex items-center gap-1.5">
-                               <Calendar className="w-4 h-4" />
-                               <span>{format(new Date(order.delivery_date), "d MMM yyyy", { locale: sv })}</span>
-                             </div>
-                           )}
-                           {itemsCount > 0 && (
-                             <div className="flex items-center gap-1.5">
-                               <Package className="w-4 h-4" />
-                               <span>{itemsCount} artiklar</span>
-                             </div>
-                           )}
-                           {order.rm_system_url && (
-                             <a 
-                               href={order.rm_system_url} 
-                               target="_blank" 
-                               rel="noopener noreferrer"
-                               className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 hover:underline"
-                               onClick={(e) => e.stopPropagation()}
-                             >
-                               <Truck className="w-4 h-4" />
-                               <span>RM System</span>
-                             </a>
-                           )}
-                         </div>
+                            {order.priority === 'urgent' && (
+                              <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
+                                Brådskande
+                              </Badge>
+                            )}
+                            {order.is_incomplete && (
+                              <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs flex items-center gap-1 font-semibold">
+                                <AlertCircle className="w-3 h-3" />
+                                Ofullständig
+                              </Badge>
+                            )}
+                            {order.status === 'picked' && !order.fortnox_invoiced && !order.is_incomplete && (
+                              <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3" />
+                                Väntar fakturering
+                              </Badge>
+                            )}
+                          </div>
 
-                        {order.notes && (
-                          <p className="text-sm text-slate-500 mt-2 line-clamp-1">
-                            {order.notes}
-                          </p>
-                        )}
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-400">
+                             <div className="flex items-center gap-1.5">
+                               <User className="w-4 h-4" />
+                               <span>{order.customer_name}</span>
+                             </div>
+                             <div className={cn(
+                               "flex items-center gap-1.5 px-2 py-1 rounded-lg",
+                               getDaysOld(order.created_date) > 5 
+                                 ? "bg-orange-500/20 text-orange-400" 
+                                 : "bg-slate-700/50 text-slate-300"
+                             )}>
+                               <Calendar className="w-4 h-4" />
+                               <span className="font-medium">{getDaysOld(order.created_date)} dagar</span>
+                             </div>
+                             {order.delivery_date && (
+                               <div className="flex items-center gap-1.5">
+                                 <Calendar className="w-4 h-4" />
+                                 <span>{format(new Date(order.delivery_date), "d MMM yyyy", { locale: sv })}</span>
+                               </div>
+                             )}
+                             {itemsCount > 0 && (
+                               <div className="flex items-center gap-1.5">
+                                 <Package className="w-4 h-4" />
+                                 <span>{itemsCount} artiklar</span>
+                               </div>
+                             )}
+                             {order.rm_system_url && (
+                               <a 
+                                 href={order.rm_system_url} 
+                                 target="_blank" 
+                                 rel="noopener noreferrer"
+                                 className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 hover:underline"
+                                 onClick={(e) => e.stopPropagation()}
+                               >
+                                 <Truck className="w-4 h-4" />
+                                 <span>RM System</span>
+                               </a>
+                             )}
+                           </div>
+
+                          {order.notes && (
+                            <p className="text-sm text-slate-500 mt-2 line-clamp-1">
+                              {order.notes}
+                            </p>
+                          )}
                         </div>
                       </div>
 
-                      <div className="flex gap-2 ml-4 flex-wrap">
+                      {/* Right: Project & Fortnox Info */}
+                      <div className="lg:col-span-1 flex flex-col gap-2">
+                        {order.fortnox_project_number && (
+                          <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30">
+                            <div className="text-xs text-purple-400/70 mb-1">Projekt</div>
+                            <div className="text-sm font-semibold text-purple-300">#{order.fortnox_project_number}</div>
+                          </div>
+                        )}
+                        {order.fortnox_invoiced && order.fortnox_invoice_number && (
+                          <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30">
+                            <div className="text-xs text-green-400/70 mb-1">Fortnox</div>
+                            <div className="text-sm font-semibold text-green-300 flex items-center gap-1.5">
+                              <FileText className="w-3 h-3" />
+                              #{order.fortnox_invoice_number}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-start justify-between">
+                      <div></div>
+
+                      <div className="flex gap-2 ml-4 flex-wrap justify-end">
                         <Button
                           size="sm"
                           variant="outline"
@@ -987,14 +1000,14 @@ export default function OrdersPage() {
                         >
                           {deleteOrderMutation.isPending ? 'Tar bort...' : 'Ta bort'}
                         </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-        )}
+                        </div>
+                        </div>
+                        </motion.div>
+                        );
+                        })}
+                        </AnimatePresence>
+                        </div>
+                        )}
           </>
         ) : (
           /* Plockningslista */
