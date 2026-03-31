@@ -41,6 +41,58 @@
       "default": "pending",
       "description": "\u00d6vergripande status"
     },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "assigned_to": {
+            "type": "string"
+          },
+          "assigned_name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "completed"
+            ],
+            "default": "pending"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "buy",
+              "manufacture",
+              "assemble"
+            ],
+            "default": "assemble",
+            "description": "Typ av arbetsmoment"
+          },
+          "started_date": {
+            "type": "string"
+          },
+          "completed_date": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Arbetsmoment kopplade till denna arbetsorder"
+    },
     "assigned_to_picking": {
       "type": "string",
       "description": "Tilldelad plockning (email)"
@@ -59,23 +111,19 @@
     },
     "picking_started_date": {
       "type": "string",
-      "format": "date-time",
-      "description": "N\u00e4r plockning startades"
+      "format": "date-time"
     },
     "picking_completed_date": {
       "type": "string",
-      "format": "date-time",
-      "description": "N\u00e4r plockning slutf\u00f6rdes"
+      "format": "date-time"
     },
     "production_started_date": {
       "type": "string",
-      "format": "date-time",
-      "description": "N\u00e4r produktion startades"
+      "format": "date-time"
     },
     "production_completed_date": {
       "type": "string",
-      "format": "date-time",
-      "description": "N\u00e4r produktion slutf\u00f6rdes"
+      "format": "date-time"
     },
     "production_status": {
       "type": "string",
@@ -86,8 +134,7 @@
         "tested",
         "completed"
       ],
-      "default": "started",
-      "description": "Detaljstatus i produktionen"
+      "default": "started"
     },
     "checklist": {
       "type": "object",
@@ -104,27 +151,22 @@
           "type": "boolean",
           "default": false
         }
-      },
-      "description": "Produktionschecklista"
+      }
     },
     "assembly_images": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Bilder fr\u00e5n montering"
+      }
     },
     "deviations": {
-      "type": "string",
-      "description": "Avvikelser som uppt\u00e4ckts"
+      "type": "string"
     },
     "picking_notes": {
-      "type": "string",
-      "description": "Instruktioner f\u00f6r plockning"
+      "type": "string"
     },
     "production_notes": {
-      "type": "string",
-      "description": "Instruktioner f\u00f6r produktion"
+      "type": "string"
     },
     "priority": {
       "type": "string",
@@ -134,8 +176,63 @@
         "high",
         "urgent"
       ],
-      "default": "normal",
-      "description": "Prioritet"
+      "default": "normal"
+    },
+    "drawing_url": {
+      "type": "string",
+      "description": "L\u00e4nk till ritning"
+    },
+    "bill_of_materials_url": {
+      "type": "string",
+      "description": "L\u00e4nk till stycklista (BOM)"
+    },
+    "materials_needed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "article_id": {
+            "type": "string"
+          },
+          "article_name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "in_stock": {
+            "type": "number",
+            "default": 0
+          },
+          "missing": {
+            "type": "number",
+            "default": 0
+          },
+          "needs_purchase": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "description": "Lista \u00f6ver beh\u00f6vda material och deras status"
+    },
+    "all_materials_ready": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indikerar om alla material \u00e4r tillg\u00e4ngliga"
+    },
+    "quality_report_url": {
+      "type": "string",
+      "description": "L\u00e4nk till kvalitetsrapport"
+    },
+    "test_protocol_url": {
+      "type": "string",
+      "description": "L\u00e4nk till testprotokoll"
+    },
+    "needs_procurement": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indikerar om n\u00e5got material beh\u00f6ver k\u00f6pas in"
     }
   },
   "required": [

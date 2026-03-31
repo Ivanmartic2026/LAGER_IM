@@ -10,7 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ArrowLeft, Package, Factory, Truck, CheckCircle2,
   Play, User, Clock, AlertCircle, Camera, Upload,
-  ChevronRight, ClipboardList
+  ChevronRight, ClipboardList, FileText, AlertTriangle,
+  Download, Plus, X
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -213,6 +214,21 @@ export default function WorkOrderViewPage() {
     toast.success('Sparat');
   };
 
+  const handleUploadFile = async (type, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      await updateWOMutation.mutateAsync({
+        id: workOrderId,
+        data: { [`${type}_url`]: result.file_url }
+      });
+      toast.success('Fil uppladdad');
+    } catch (err) {
+      toast.error('Fel vid uppladdning');
+    }
+  };
+
   if (isLoading || !workOrder) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -349,6 +365,180 @@ export default function WorkOrderViewPage() {
             )}
           </div>
         )}
+
+        {/* DRAWINGS & BILL OF MATERIALS */}
+        <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
+          <h2 className="font-bold text-white mb-4 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-blue-400" />
+            Dokumentation
+          </h2>
+          <div className="space-y-3">
+            {/* Ritning */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+              <span className="text-white text-sm font-medium">Ritning</span>
+              <div className="flex gap-2">
+                {workOrder.drawing_url ? (
+                  <>
+                    <a href={workOrder.drawing_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-xs hover:underline flex items-center gap-1">
+                      <Download className="w-3 h-3" />
+                      Öppna
+                    </a>
+                    <button onClick={() => updateWOMutation.mutateAsync({ id: workOrderId, data: { drawing_url: null } })} className="text-red-400 hover:text-red-300">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </>
+                ) : (
+                  <label className="text-blue-400 text-xs hover:underline cursor-pointer flex items-center gap-1">
+                    <Plus className="w-3 h-3" />
+                    Ladda upp
+                    <input type="file" className="hidden" onChange={(e) => handleUploadFile('drawing', e)} />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {/* Stycklista */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+              <span className="text-white text-sm font-medium">Stycklista (BOM)</span>
+              <div className="flex gap-2">
+                {workOrder.bill_of_materials_url ? (
+                  <>
+                    <a href={workOrder.bill_of_materials_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-xs hover:underline flex items-center gap-1">
+                      <Download className="w-3 h-3" />
+                      Öppna
+                    </a>
+                    <button onClick={() => updateWOMutation.mutateAsync({ id: workOrderId, data: { bill_of_materials_url: null } })} className="text-red-400 hover:text-red-300">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </>
+                ) : (
+                  <label className="text-blue-400 text-xs hover:underline cursor-pointer flex items-center gap-1">
+                    <Plus className="w-3 h-3" />
+                    Ladda upp
+                    <input type="file" className="hidden" onChange={(e) => handleUploadFile('bill_of_materials', e)} />
+                  </label>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* MATERIAL STATUS */}
+        <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-white flex items-center gap-2">
+              <Package className="w-5 h-5 text-yellow-400" />
+              Materialstatus
+            </h2>
+            {workOrder.all_materials_ready && (
+              <Badge className="bg-green-500/20 border-green-500/30 text-green-400 border">
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Allt material klart
+              </Badge>
+            )}
+          </div>
+          {workOrder.materials_needed && workOrder.materials_needed.length > 0 ? (
+            <div className="space-y-2">
+              {workOrder.materials_needed.map((material, idx) => {
+                const allInStock = material.in_stock >= material.quantity;
+                return (
+                  <div key={idx} className={cn("p-3 rounded-lg border", allInStock ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20')}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="text-white font-medium text-sm">{material.article_name}</p>
+                        <p className={cn("text-xs mt-1", allInStock ? 'text-green-400' : 'text-red-400')}>
+                          Behövs: {material.quantity} st | I lager: {material.in_stock} st
+                          {material.missing > 0 && ` | Saknas: ${material.missing} st`}
+                        </p>
+                      </div>
+                      {material.needs_purchase && (
+                        <Badge className="bg-red-500/20 border-red-500/30 text-red-400 border whitespace-nowrap">
+                          Måste köpas
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-white/50 text-sm">Ingen materialinformation tillgänglig än</p>
+          )}
+        </div>
+
+        {/* PROCUREMENT NEEDS */}
+        {workOrder.needs_procurement && (
+          <div className="mb-6 p-5 rounded-2xl bg-orange-500/10 border border-orange-500/30">
+            <h2 className="font-bold text-orange-400 mb-3 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Inköpsbehov
+            </h2>
+            <p className="text-white/70 text-sm mb-3">
+              Det finns material som behöver köpas in innan produktion kan startas. Kontrollera materialstatus ovan.
+            </p>
+            <Button className="bg-orange-600 hover:bg-orange-500 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Skapa inköpsorder
+            </Button>
+          </div>
+        )}
+
+        {/* QUALITY & TESTING */}
+        <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
+          <h2 className="font-bold text-white mb-4 flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-purple-400" />
+            Kvalitetskontroll & Test
+          </h2>
+          <div className="space-y-3">
+            {/* Kvalitetsrapport */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+              <span className="text-white text-sm font-medium">Kvalitetsrapport</span>
+              <div className="flex gap-2">
+                {workOrder.quality_report_url ? (
+                  <>
+                    <a href={workOrder.quality_report_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-xs hover:underline flex items-center gap-1">
+                      <Download className="w-3 h-3" />
+                      Öppna
+                    </a>
+                    <button onClick={() => updateWOMutation.mutateAsync({ id: workOrderId, data: { quality_report_url: null } })} className="text-red-400 hover:text-red-300">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </>
+                ) : (
+                  <label className="text-blue-400 text-xs hover:underline cursor-pointer flex items-center gap-1">
+                    <Plus className="w-3 h-3" />
+                    Ladda upp
+                    <input type="file" className="hidden" onChange={(e) => handleUploadFile('quality_report', e)} />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {/* Testprotokoll */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+              <span className="text-white text-sm font-medium">Testprotokoll</span>
+              <div className="flex gap-2">
+                {workOrder.test_protocol_url ? (
+                  <>
+                    <a href={workOrder.test_protocol_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-xs hover:underline flex items-center gap-1">
+                      <Download className="w-3 h-3" />
+                      Öppna
+                    </a>
+                    <button onClick={() => updateWOMutation.mutateAsync({ id: workOrderId, data: { test_protocol_url: null } })} className="text-red-400 hover:text-red-300">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </>
+                ) : (
+                  <label className="text-blue-400 text-xs hover:underline cursor-pointer flex items-center gap-1">
+                    <Plus className="w-3 h-3" />
+                    Ladda upp
+                    <input type="file" className="hidden" onChange={(e) => handleUploadFile('test_protocol', e)} />
+                  </label>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* STAGE: PRODUCTION */}
         {(workOrder.current_stage === 'production' || workOrder.production_started_date) && (
