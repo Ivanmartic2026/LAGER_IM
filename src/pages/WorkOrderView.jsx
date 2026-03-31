@@ -172,7 +172,16 @@ export default function WorkOrderViewPage() {
       id: workOrder.order_id,
       data: { status: 'delivered' }
     });
-    toast.success('Arbetsorder slutförd!');
+
+    // Notify + sync to Fortnox
+    try {
+      await base44.functions.invoke('notifyWorkOrderCompleted', { work_order_id: workOrderId });
+      toast.success('Arbetsorder slutförd! Email skickat till info@imvision.se');
+    } catch (e) {
+      console.error('Notify failed:', e);
+      toast.success('Arbetsorder slutförd!');
+    }
+
     navigate(createPageUrl('WorkOrders'));
   };
 
