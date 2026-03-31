@@ -3,7 +3,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { order_id } = await req.json();
+    const payload = await req.json();
+    const order_id = payload.order_id || payload.data?.order_id || payload.event?.entity_id;
 
     console.log(`[Step 1] Fetching order with ID: ${order_id}`);
     const order = await base44.entities.Order.get(order_id);
