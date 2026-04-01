@@ -54,7 +54,7 @@ function LayoutContent({ children, currentPageName }) {
   const NAV_ITEMS = [
     { name: "Inventory", label: t('nav_inventory', language), icon: Package, module: null },
     { name: "Orders", label: t('nav_orders', language), icon: ShoppingCart, module: "Orders" },
-    { name: "WorkOrders", label: "Arbetsordrar", icon: ClipboardList, module: null },
+    { name: "WorkOrders", label: "WorkOrders", icon: ClipboardList, module: null },
     { name: "PurchaseOrders", label: "Purchase Order", icon: ShoppingCart, module: "PurchaseOrders" },
     { name: "SiteReports", label: t('nav_site', language), icon: MapPin, module: "SiteReports" },
 
