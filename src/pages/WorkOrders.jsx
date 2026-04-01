@@ -84,7 +84,7 @@ export default function WorkOrdersPage() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
               <ClipboardList className="w-6 h-6 text-blue-400" />
-              Arbetsordrar
+              Work Orders
             </h1>
             <Button
               onClick={() => setCreateModalOpen(true)}
