@@ -54,13 +54,13 @@ Deno.serve(async (req) => {
     
     // Header border
     doc.setDrawColor(37, 99, 235);
-    doc.setLineWidth(1);
+    doc.setLineWidth(2);
     doc.line(0, 30, W, 30);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
+    doc.setFontSize(24);
     doc.setTextColor(20, 20, 40);
-    doc.text('ARBETSORDER', margin, 13);
+    doc.text('ARBETSORDER', margin, 14);
 
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
@@ -69,30 +69,30 @@ Deno.serve(async (req) => {
 
     // WO number top right
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
+    doc.setFontSize(14);
     doc.setTextColor(37, 99, 235);
     const woLabel = wo.name || wo.order_number || work_order_id.slice(0, 8);
-    doc.text(woLabel, W - margin, 13, { align: 'right' });
+    doc.text(woLabel, W - margin, 14, { align: 'right' });
 
     y = 38;
     doc.setTextColor(20, 20, 20);
 
     // ── Info grid ───────────────────────────────────────────
     const infoBox = (label, value, x, boxY, w = 85) => {
-      doc.setFillColor(250, 250, 255);
-      doc.setDrawColor(200, 200, 220);
-      doc.setLineWidth(0.3);
-      doc.roundedRect(x, boxY, w, 14, 2, 2, 'FD');
+      doc.setFillColor(245, 247, 255);
+      doc.setDrawColor(180, 190, 220);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(x, boxY, w, 16, 2, 2, 'FD');
       
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.setTextColor(100, 100, 120);
+      doc.setFontSize(7.5);
+      doc.setTextColor(110, 110, 140);
       doc.text(fix(label), x + 4, boxY + 5);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
+      doc.setFontSize(10);
       doc.setTextColor(20, 20, 40);
       const val = doc.splitTextToSize(fix(value) || '-', w - 8);
-      doc.text(val[0], x + 4, boxY + 11);
+      doc.text(val[0], x + 4, boxY + 12);
     };
 
     const stageLabels = { picking: 'Plockning', production: 'Produktion', delivery: 'Leverans', completed: 'Klar' };
@@ -102,12 +102,12 @@ Deno.serve(async (req) => {
     infoBox('Kund', order.customer_name || '—', margin, y, 85);
     infoBox('Status / Fas', stageLabels[wo.current_stage] || wo.current_stage || '—', margin + 90, y, 55);
     infoBox('Prioritet', priorityLabels[wo.priority] || wo.priority || 'Normal', margin + 150, y, 45);
-    y += 18;
+    y += 20;
 
     infoBox('Ordernummer', order.order_number || '—', margin, y, 55);
     infoBox('Leveransdatum', wo.delivery_date || order.delivery_date || '—', margin + 60, y, 55);
     infoBox('Kundref', order.customer_reference || '—', margin + 120, y, 75);
-    y += 18;
+    y += 20;
 
     if (wo.assigned_to_production_name || wo.assigned_to_picking_name) {
       infoBox('Tilldelad produktion', wo.assigned_to_production_name || '—', margin, y, 85);
@@ -121,12 +121,12 @@ Deno.serve(async (req) => {
       doc.setFillColor(37, 99, 235);
       doc.setDrawColor(37, 99, 235);
       doc.setLineWidth(0.2);
-      doc.rect(margin, y, W - margin * 2, 7, 'F');
+      doc.rect(margin, y, W - margin * 2, 8, 'F');
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
+      doc.setFontSize(9);
       doc.setTextColor(255, 255, 255);
-      doc.text(fix(title).toUpperCase(), margin + 3, y + 5);
-      y += 10;
+      doc.text(fix(title).toUpperCase(), margin + 3, y + 5.5);
+      y += 11;
       doc.setTextColor(20, 20, 20);
     };
 
