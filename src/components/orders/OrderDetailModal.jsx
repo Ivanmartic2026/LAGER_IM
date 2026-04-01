@@ -422,6 +422,24 @@ export default function OrderDetailModal({ order, onClose, onSyncSuccess }) {
             </div>
           </div>
 
+          {order.source_document_url && (
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-400" />
+                Originaldokument
+              </h3>
+              <a
+                href={order.source_document_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 underline p-3 rounded-lg bg-blue-500/10 border border-blue-500/20"
+              >
+                <FileText className="w-4 h-4" />
+                Öppna originaldokument
+              </a>
+            </div>
+          )}
+
           {order.notes && (
             <div>
               <h3 className="text-sm font-semibold text-white mb-2">Anteckningar</h3>

@@ -864,6 +864,18 @@ export default function OrdersPage() {
                                  <span>RM System</span>
                                </a>
                              )}
+                             {order.source_document_url && (
+                               <a 
+                                 href={order.source_document_url} 
+                                 target="_blank" 
+                                 rel="noopener noreferrer"
+                                 className="flex items-center gap-1.5 text-orange-400 hover:text-orange-300 hover:underline"
+                                 onClick={(e) => e.stopPropagation()}
+                               >
+                                 <FileText className="w-4 h-4" />
+                                 <span>Originaldokument</span>
+                               </a>
+                             )}
                            </div>
 
                           {order.notes && (
