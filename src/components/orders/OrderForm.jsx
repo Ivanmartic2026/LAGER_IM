@@ -24,7 +24,8 @@ export default function OrderForm({ order, onClose }) {
     priority: order?.priority || 'normal',
     delivery_date: order?.delivery_date || '',
     delivery_address: order?.delivery_address || '',
-    notes: order?.notes || ''
+    notes: order?.notes || '',
+    site_visit_info: order?.site_visit_info || ''
   });
 
   const [orderItems, setOrderItems] = useState([]);
@@ -359,6 +360,18 @@ export default function OrderForm({ order, onClose }) {
               value={formData.delivery_address}
               onChange={(e) => setFormData({ ...formData, delivery_address: e.target.value })}
               placeholder="Fullständig leveransadress..."
+              className="bg-slate-800 border-slate-700 text-white h-20"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-slate-300 mb-2 block flex items-center gap-2">
+              🗺️ Site Visit
+            </label>
+            <Textarea
+              value={formData.site_visit_info}
+              onChange={(e) => setFormData({ ...formData, site_visit_info: e.target.value })}
+              placeholder="Datum, kontaktperson, vad som ska göras på platsen..."
               className="bg-slate-800 border-slate-700 text-white h-20"
             />
           </div>

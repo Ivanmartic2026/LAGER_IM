@@ -115,6 +115,10 @@
       },
       "description": "Kopplade sitenamn (f\u00f6r enklare visning)"
     },
+    "site_visit_info": {
+      "type": "string",
+      "description": "Information om platsbes\u00f6k (Site Visit) \u2013 datum, kontaktperson, vad som ska g\u00f6ras m.m."
+    },
     "notes": {
       "type": "string",
       "description": "Anteckningar"
