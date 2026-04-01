@@ -30,6 +30,7 @@ export default function SupplierPOView() {
   const urlParams = new URLSearchParams(window.location.search);
   const poToken = urlParams.get('token');
   const [activeTab, setActiveTab] = useState('confirm');
+  const [editMode, setEditMode] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['supplier-po', poToken],
@@ -85,6 +86,27 @@ export default function SupplierPOView() {
   const currentStatus = STATUS_CONFIG[purchaseOrder.status] || STATUS_CONFIG.draft;
   const isConfirmed = purchaseOrder.status !== 'draft' && purchaseOrder.status !== 'sent';
 
+  if (editMode) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-0">
+        <div className="w-full h-full bg-white overflow-auto">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+            <h2 className="text-lg font-bold text-gray-900">Redigera order</h2>
+            <button
+              onClick={() => setEditMode(false)}
+              className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+            >
+              ×
+            </button>
+          </div>
+          <div className="p-6">
+            <SupplierPOConfirmation purchaseOrder={purchaseOrder} items={items} poToken={poToken} onClose={() => setEditMode(false)} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
@@ -130,8 +152,14 @@ export default function SupplierPOView() {
 
         {/* PO Summary Card */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Order Summary</h2>
+            <button
+              onClick={() => setEditMode(true)}
+              className="px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Redigera
+            </button>
           </div>
           <div className="p-5">
             <div className="grid sm:grid-cols-3 gap-4 text-sm">
