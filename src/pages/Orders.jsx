@@ -800,6 +800,12 @@ export default function OrdersPage() {
                                 Väntar fakturering
                               </Badge>
                             )}
+                            {order.sales_completed && (
+                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Försäljning slutförd
+                              </Badge>
+                            )}
                           </div>
 
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-400">
