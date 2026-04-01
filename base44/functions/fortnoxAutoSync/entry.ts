@@ -6,7 +6,12 @@ Deno.serve(async (req) => {
     const payload = await req.json();
     
     // Handle both entity automation and direct invocation formats
-    const order_id = payload.data?.order_id || payload.event?.entity_id;
+    let order_id = payload.data?.order_id;
+    
+    // If triggered by article change, need to find related orders
+    if (!order_id && payload.event?.entity_name === 'Article') {
+      return Response.json({ success: true, message: 'Article change detected but no order context' });
+    }
 
     // Validate order_id
     if (!order_id) {
@@ -14,9 +19,14 @@ Deno.serve(async (req) => {
     }
     
     // Fetch the order
-    const order = await base44.asServiceRole.entities.Order.get(order_id);
+    let order;
+    try {
+      order = await base44.asServiceRole.entities.Order.get(order_id);
+    } catch (err) {
+      return Response.json({ success: false, error: `Entity Order with ID ${order_id} not found` }, { status: 404 });
+    }
     
-    if (!order) return Response.json({ success: false, error: 'Order not found' }, { status: 404 });
+    if (!order) return Response.json({ success: false, error: `Entity Order with ID ${order_id} not found` }, { status: 404 });
 
     // Check if already synced to Fortnox
     if (order.fortnox_order_id) {
