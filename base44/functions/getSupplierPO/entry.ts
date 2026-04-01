@@ -1,11 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-// Public endpoint - no auth required, validated by supplier_portal_token
 Deno.serve(async (req) => {
   try {
+    const body = await req.json();
     const base44 = createClientFromRequest(req);
-
-    const { token } = await req.json();
+    const { token } = body;
 
     if (!token) {
       return Response.json({ error: 'Token krävs' }, { status: 400 });
