@@ -105,19 +105,18 @@ export default function RecentActivityWidget() {
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="fixed right-0 top-20 w-72 bg-gradient-to-b from-slate-900/80 to-black/60 backdrop-blur-xl border-l border-white/10 z-30 hidden lg:flex flex-col max-h-[calc(100vh-120px)] overflow-hidden"
+      className="fixed right-0 top-20 w-64 bg-gradient-to-b from-slate-900/80 to-black/60 backdrop-blur-xl border-l border-white/10 z-30 hidden lg:flex flex-col max-h-[calc(100vh-120px)] overflow-hidden"
     >
       {/* Header */}
-      <div className="p-4 border-b border-white/10 flex-shrink-0">
-        <div className="flex items-center gap-2 mb-1">
-          <Activity className="w-4 h-4 text-blue-400" />
-          <h3 className="text-sm font-semibold text-white">Senaste ändringar</h3>
+      <div className="px-3 py-2 border-b border-white/10 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <Activity className="w-3.5 h-3.5 text-blue-400" />
+          <h3 className="text-xs font-semibold text-white">Senaste ändringar</h3>
         </div>
-        <p className="text-xs text-white/40">De 8 senaste uppdateringarna</p>
       </div>
 
-      {/* Activities List - No scroll */}
-      <div className="flex-1 space-y-2 p-3 overflow-hidden flex flex-col">
+      {/* Activities List */}
+      <div className="flex-1 space-y-1 p-2 overflow-y-auto flex flex-col">
         {allActivities.map((activity, idx) => {
           const Icon = getActivityIcon(activity.type, activity.entity_type);
           const colorClass = getActivityColor(activity.type, activity.entity_type);
@@ -128,33 +127,28 @@ export default function RecentActivityWidget() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm"
+              className="p-2 rounded-md bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-xs"
             >
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
+                  "w-6 h-6 rounded flex items-center justify-center flex-shrink-0",
                   colorClass
                 )}>
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3 h-3" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-xs font-medium text-white truncate">
+                  <div className="flex items-center gap-1">
+                    <p className="font-medium text-white truncate">
                       {getTypeLabel(activity.type)}
                     </p>
-                    <span className="text-xs text-white/40 flex-shrink-0">
+                    <span className="text-white/50 flex-shrink-0">
                       {activity.entity_type}
                     </span>
                   </div>
-                  <p className="text-xs text-white/60 line-clamp-2 mb-2">
+                  <p className="text-white/60 line-clamp-1">
                     {activity.message}
                   </p>
-                  {activity.actor_name && (
-                    <p className="text-xs text-white/40">
-                      av {activity.actor_name}
-                    </p>
-                  )}
-                  <p className="text-xs text-white/30 mt-1">
+                  <p className="text-white/40 mt-0.5">
                     {format(new Date(activity.created_date), "d MMM HH:mm", { locale: sv })}
                   </p>
                 </div>
