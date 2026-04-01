@@ -1012,7 +1012,11 @@ export default function InventoryPage() {
                   />
                 </div>
                 <div className="w-16 flex-shrink-0"></div>
-                <div className="w-16 flex-shrink-0 text-center">Stock</div>
+                <div className="flex gap-2 text-center">
+                  <div className="w-16 flex-shrink-0">Lager</div>
+                  <div className="w-16 flex-shrink-0">Res.</div>
+                  <div className="w-16 flex-shrink-0">Till.</div>
+                </div>
                 <div className="w-28 flex-shrink-0 ml-2">ETA</div>
                 <div className="flex-1 min-w-0 ml-2">Product Name</div>
                 <div className="w-32 flex-shrink-0 ml-2">Location</div>
@@ -1031,7 +1035,7 @@ export default function InventoryPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       onClick={() => setSelectedArticle(article)}
-                      style={{minWidth: '900px'}}
+                      style={{minWidth: '1050px'}}
                       className={cn(
                         "flex items-center px-4 py-3 my-1 rounded-2xl cursor-pointer transition-all backdrop-blur-xl border active:scale-[0.98] duration-300 hover:shadow-2xl hover:shadow-white/5",
                         article.status === 'in_transit'
@@ -1061,12 +1065,29 @@ export default function InventoryPage() {
                           <Package className="w-6 h-6 text-white/30" />
                         </div>
                       )}
-                      {/* Stock */}
-                      <div className="w-16 flex-shrink-0 text-center ml-0">
-                        <div className={cn("text-2xl font-bold leading-none mb-1 tracking-tight", article.stock_qty <= 0 ? "text-red-400" : hasLowStock ? "text-amber-400" : "text-white")}>
-                          {article.stock_qty || 0}
+                      {/* Stock - Split into 3 columns */}
+                      <div className="flex gap-2 ml-0">
+                        {/* I Lager */}
+                        <div className="w-16 text-center">
+                          <div className={cn("text-xl font-bold leading-none mb-1 tracking-tight", article.stock_qty <= 0 ? "text-red-400" : hasLowStock ? "text-amber-400" : "text-blue-400")}>
+                            {article.stock_qty || 0}
+                          </div>
+                          <div className="text-[10px] text-white/40">I Lager</div>
                         </div>
-                        <div className="text-xs text-white/40">st</div>
+                        {/* Reserverat */}
+                        <div className="w-16 text-center">
+                          <div className="text-xl font-bold leading-none mb-1 text-purple-400 tracking-tight">
+                            {article.reserved_stock_qty || 0}
+                          </div>
+                          <div className="text-[10px] text-white/40">Res.</div>
+                        </div>
+                        {/* Tillgängligt */}
+                        <div className="w-16 text-center">
+                          <div className={cn("text-xl font-bold leading-none mb-1 tracking-tight", Math.max(0, (article.stock_qty || 0) - (article.reserved_stock_qty || 0)) <= 0 ? "text-red-400" : "text-emerald-400")}>
+                            {Math.max(0, (article.stock_qty || 0) - (article.reserved_stock_qty || 0))}
+                          </div>
+                          <div className="text-[10px] text-white/40">Till.</div>
+                        </div>
                       </div>
                       {/* ETA */}
                       <div className="w-28 flex-shrink-0 ml-2">
