@@ -511,6 +511,9 @@ export default function InventoryPage() {
         if (editMode === 'true') {
           setEditingArticle(article);
         }
+      } else {
+        // Article not found, clear the URL parameter
+        window.history.replaceState({}, '', createPageUrl("Inventory"));
       }
     }
   }, [articles]);
