@@ -20,7 +20,6 @@ import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import OrderForm from "@/components/orders/OrderForm";
-import OrderDetailModal from "@/components/orders/OrderDetailModal";
 import InvoiceModal from "@/components/orders/InvoiceModal";
 import FortnoxCustomerSelect from "@/components/orders/FortnoxCustomerSelect";
 import FortnoxSyncButton from "@/components/orders/FortnoxSyncButton";
@@ -909,7 +908,7 @@ export default function OrdersPage() {
                           size="sm"
                           variant="outline"
                           className="bg-slate-700 border-slate-600 hover:bg-slate-600"
-                          onClick={() => setSelectedOrder(order)}
+                          onClick={() => navigate(`/OrderDetail?id=${order.id}`)}
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           Detaljer
@@ -1244,14 +1243,7 @@ export default function OrdersPage() {
 
 
 
-        {/* Order Detail Modal */}
-        {selectedOrder && (
-          <OrderDetailModal
-            order={orders.find(o => o.id === selectedOrder.id) || selectedOrder}
-            onClose={() => setSelectedOrder(null)}
-            onSyncSuccess={() => refetch()}
-          />
-        )}
+
 
         {/* Invoice Modal */}
         <AnimatePresence>
