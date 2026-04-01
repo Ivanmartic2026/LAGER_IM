@@ -11,10 +11,6 @@ export default function FortnoxSyncButton({ order, orderItems, onSyncSuccess }) 
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState(null);
 
-  if (!order.fortnox_customer_number) {
-    return null;
-  }
-
   if (order.fortnox_order_id) {
     return (
       <Badge className="bg-green-500/20 text-green-400 flex items-center gap-1">
@@ -24,7 +20,7 @@ export default function FortnoxSyncButton({ order, orderItems, onSyncSuccess }) 
     );
   }
 
-  const canSync = order.fortnox_customer_number && !order.fortnox_order_id && orderItems?.length > 0;
+  const canSync = order.fortnox_customer_number && !order.fortnox_order_id;
 
   const handleSync = async () => {
     setSyncing(true);
@@ -79,7 +75,18 @@ export default function FortnoxSyncButton({ order, orderItems, onSyncSuccess }) 
   };
 
   if (!canSync) {
-    return null;
+    return (
+      <Button
+        size="sm"
+        disabled
+        title="Saknar Fortnox-kundnummer — lägg till i Redigera"
+        className="bg-slate-700/50 border-slate-600 text-slate-500 cursor-not-allowed opacity-60"
+        variant="outline"
+      >
+        <Send className="w-3 h-3 mr-1" />
+        Skicka till Fortnox
+      </Button>
+    );
   }
 
   return (
