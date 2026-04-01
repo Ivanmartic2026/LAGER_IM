@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Package, Clock, MapPin, FileText, Truck, ChevronDown } from "lucide-react";
+import { AlertCircle, Package, Clock, MapPin, FileText, Truck, ChevronDown, Building2, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -60,21 +60,21 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange, onStat
             />
             <div className="space-y-2">
                <div className="flex items-center gap-2">
-                 <Package className="w-4 h-4 text-white/50 shrink-0" />
-                 <p className="text-white/60 text-sm font-medium">{order?.customer_name || workOrder.customer_name}</p>
+                 <Building2 className="w-4 h-4 text-white/50 shrink-0" />
+                 <p className="text-white/70 text-sm font-medium">{order?.customer_name || workOrder.customer_name}</p>
                </div>
                {(order?.delivery_date || workOrder.delivery_date) && (
-                 <div className={cn("flex items-center gap-2 text-sm", isOverdue ? 'text-red-400' : 'text-white/50')}>
+                 <div className={cn("flex items-center gap-2 text-sm", isOverdue ? 'text-red-400' : 'text-white/60')}>
                    <Clock className="w-4 h-4 shrink-0" />
-                   <span>Leverans: {format(new Date(order?.delivery_date || workOrder.delivery_date), 'd MMMM yyyy', { locale: sv })}</span>
+                   <span className="font-medium">Leverans: {format(new Date(order?.delivery_date || workOrder.delivery_date), 'd MMM yyyy', { locale: sv })}</span>
                  </div>
                )}
-               <div className="flex items-center gap-2 text-sm text-white/50">
-                 <FileText className="w-4 h-4 shrink-0" />
-                 <span>Status: {workOrder.status}</span>
+               <div className="flex items-center gap-2 text-sm text-white/60">
+                 <Zap className="w-4 h-4 shrink-0" />
+                 <span className="font-medium capitalize">{workOrder.status === 'in_progress' ? 'Pågår' : workOrder.status === 'pending' ? 'Väntar' : workOrder.status === 'completed' ? 'Klar' : workOrder.status}</span>
                </div>
                {order?.delivery_address && (
-                 <div className="flex items-start gap-2 text-white/50 text-sm">
+                 <div className="flex items-start gap-2 text-white/60 text-sm">
                    <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
                    <span>{order.delivery_address}</span>
                  </div>
