@@ -70,7 +70,7 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
   const isConfirmed = purchaseOrder.status === 'confirmed';
 
   return (
-    <div className="space-y-6">
+    <form className="space-y-6">
       {isConfirmed && (
         <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
           <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
@@ -107,8 +107,7 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
         {items.map((item, itemIndex) => {
           const confirmed = confirmedItems[itemIndex];
           return (
-            <Card key={item.id} className="bg-gray-50 border-gray-200">
-              <CardContent className="pt-4 space-y-4">
+            <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4">
                 <div>
                   <div className="font-semibold text-gray-900">{item.article_name}</div>
                   <div className="text-sm text-gray-500">Ordered: {item.quantity_ordered} pcs</div>
@@ -216,8 +215,7 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
                     rows={2}
                   />
                 </div>
-              </CardContent>
-            </Card>
+            </div>
           );
         })}
       </div>
@@ -245,6 +243,6 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
           {confirmPOMutation.isPending ? 'Confirming...' : 'Confirm Purchase Order'}
         </Button>
       )}
-    </div>
+    </form>
   );
 }
