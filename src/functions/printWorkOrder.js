@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     let yPos = margin;
 
     // Black background
-    doc.setFillColor(15, 15, 15);
+    doc.setFillColor(0, 0, 0);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
     // === HEADER ===
@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     
     yPos += 5;
     doc.setFontSize(9);
-    doc.setTextColor(150, 150, 150);
+    doc.setTextColor(255, 255, 255);
     doc.setFont(undefined, 'normal');
     const now = new Date();
     const dateStr = now.toLocaleDateString('sv-SE') + ' ' + now.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
     
     yPos += 5;
     doc.setFontSize(10);
-    doc.setTextColor(220, 220, 220);
+    doc.setTextColor(255, 255, 255);
     doc.setFont(undefined, 'bold');
     const headerText = (wo.customer_name || '') + ' ' + (wo.order_number || '');
     const splitHeader = doc.splitTextToSize(headerText.trim(), contentWidth);
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
     ];
 
     doc.setFont(undefined, 'bold');
-    doc.setTextColor(180, 180, 180);
+    doc.setTextColor(255, 255, 255);
     
     for (let i = 0; i < 3; i++) {
       doc.text(gridData[i].label, gridX[i], yPos);
@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
     yPos += 6;
     doc.setFontSize(8);
     doc.setFont(undefined, 'bold');
-    doc.setTextColor(180, 180, 180);
+    doc.setTextColor(255, 255, 255);
     
     for (let i = 3; i < 6; i++) {
       doc.text(gridData[i].label, gridX[i - 3], yPos);
@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
 
     // === SECTION HELPER ===
     const addSection = (title) => {
-      doc.setFillColor(40, 40, 40);
+      doc.setFillColor(0, 0, 0);
       doc.rect(margin, yPos - 3, contentWidth, 5.5, 'F');
       
       doc.setTextColor(255, 255, 255);
@@ -121,12 +121,12 @@ Deno.serve(async (req) => {
 
     const addField = (label, value) => {
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(170, 170, 170);
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(8);
       doc.text(label + ':', margin, yPos);
       
       doc.setFont(undefined, 'normal');
-      doc.setTextColor(210, 210, 210);
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(9);
       const labelWidth = 42;
       const maxWidth = contentWidth - labelWidth;
@@ -163,16 +163,16 @@ Deno.serve(async (req) => {
     if (orderItems && orderItems.length > 0) {
       // Check if we need a new page
       if (yPos > pageHeight - 50) {
-        doc.addPage();
-        doc.setFillColor(15, 15, 15);
-        doc.rect(0, 0, pageWidth, pageHeight, 'F');
-        yPos = margin;
+      doc.addPage();
+      doc.setFillColor(0, 0, 0);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      yPos = margin;
       }
 
       addSection('ARTIKLAR / MATERIALLISTA');
 
       // Table header
-      doc.setFillColor(50, 50, 50);
+      doc.setFillColor(0, 0, 0);
       doc.rect(margin, yPos - 3, contentWidth, 5, 'F');
       
       doc.setFont(undefined, 'bold');
@@ -207,7 +207,7 @@ Deno.serve(async (req) => {
           yPos = margin;
           
           // Repeat header on new page
-          doc.setFillColor(50, 50, 50);
+          doc.setFillColor(0, 0, 0);
           doc.rect(margin, yPos - 3, contentWidth, 5, 'F');
           doc.setFont(undefined, 'bold');
           doc.setTextColor(255, 255, 255);
@@ -224,14 +224,14 @@ Deno.serve(async (req) => {
 
         // Alternate row background
         if (idx % 2 === 1) {
-          doc.setFillColor(25, 25, 25);
+          doc.setFillColor(0, 0, 0);
           doc.rect(margin, yPos - 3, contentWidth, 4, 'F');
         }
 
         const picked = item.quantity_picked || 0;
         const ordered = item.quantity_ordered || 0;
         
-        doc.setTextColor(200, 200, 200);
+        doc.setTextColor(255, 255, 255);
         const articleName = (item.article_name || '—').substring(0, 38);
         doc.text(articleName, colX.artikel, yPos);
         doc.text((item.article_batch_number || '—').substring(0, 22), colX.batch, yPos);
@@ -256,7 +256,7 @@ Deno.serve(async (req) => {
     if (wo.production_notes && wo.production_notes.trim()) {
       if (yPos > pageHeight - 20) {
         doc.addPage();
-        doc.setFillColor(15, 15, 15);
+        doc.setFillColor(0, 0, 0);
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
         yPos = margin;
       }
@@ -265,7 +265,7 @@ Deno.serve(async (req) => {
     }
 
     // === FOOTER ===
-    doc.setTextColor(80, 80, 80);
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(7);
     doc.setFont(undefined, 'normal');
     doc.text('IMvision - Arbetsorder', margin, pageHeight - 6);
