@@ -315,8 +315,8 @@ export default function WorkOrderViewPage() {
         />
 
         {/* Activity Feed */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="bg-white/5 rounded-2xl border border-white/10 p-5">
+          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
             Aktivitetslogg
           </h3>
