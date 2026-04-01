@@ -63,6 +63,7 @@ export default function ArticleDetail({
   const [locationData, setLocationData] = useState({
     warehouse: article.warehouse || '',
     shelf_address: Array.isArray(article.shelf_address) ? (article.shelf_address[0] || '') : (article.shelf_address || ''),
+    shelf_addresses: Array.isArray(article.shelf_address) ? article.shelf_address : (article.shelf_address ? [article.shelf_address] : ['']),
   });
   const [editingTechnical, setEditingTechnical] = useState(false);
   const [aiDataExpanded, setAiDataExpanded] = useState(false);
@@ -1113,6 +1114,7 @@ export default function ArticleDetail({
                       setLocationData({
                         warehouse: article.warehouse || '',
                         shelf_address: Array.isArray(article.shelf_address) ? (article.shelf_address[0] || '') : (article.shelf_address || ''),
+                        shelf_addresses: Array.isArray(article.shelf_address) ? article.shelf_address : (article.shelf_address ? [article.shelf_address] : ['']),
                       });
                     }}
                     className="h-8 px-3 text-sm rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 flex items-center gap-1 transition-colors"
@@ -1137,9 +1139,10 @@ export default function ArticleDetail({
                         e.preventDefault();
                         e.stopPropagation();
                         try {
+                          const allShelves = (locationData.shelf_addresses || [locationData.shelf_address]).filter(Boolean);
                           const updatedData = {
                             warehouse: locationData.warehouse || null,
-                            shelf_address: locationData.shelf_address ? [locationData.shelf_address] : null,
+                            shelf_address: allShelves.length > 0 ? allShelves : null,
                           };
                           await updateArticleMutation.mutateAsync({
                             id: article.id,
@@ -1170,7 +1173,21 @@ export default function ArticleDetail({
                     <InfoRow icon={Warehouse} label="Warehouse" value={article.warehouse} />
                   )}
                   {article.shelf_address && (
-                    <InfoRow icon={MapPin} label="Location" value={article.shelf_address} />
+                    Array.isArray(article.shelf_address) && article.shelf_address.length > 1 ? (
+                      <div className="flex items-start justify-between py-3 border-b border-slate-700/50 last:border-0">
+                        <div className="flex items-center gap-3 text-slate-400">
+                          <MapPin className="w-4 h-4" />
+                          <span className="text-sm">Location</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 justify-end">
+                          {article.shelf_address.map((addr, i) => (
+                            <span key={i} className="bg-slate-700 text-white text-xs px-2 py-1 rounded font-medium">{addr}</span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <InfoRow icon={MapPin} label="Location" value={Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address} />
+                    )
                   )}
                 </div>
               )}
