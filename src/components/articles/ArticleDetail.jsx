@@ -673,32 +673,31 @@ export default function ArticleDetail({
             </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-3 gap-2 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
             <div className="p-3 md:p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
-              <p className="text-xs md:text-sm text-blue-300 mb-1">In Stock</p>
-              {siblingArticles.length > 0 ? (
-                <>
-                  <p className="text-2xl md:text-3xl font-bold text-white">
-                    {siblingArticles.reduce((sum, a) => sum + (a.stock_qty || 0), article.stock_qty || 0)}
-                  </p>
-                  <p className="text-xs text-blue-300/70 mt-1">totalt</p>
-                </>
-              ) : (
-                <p className="text-2xl md:text-3xl font-bold text-white">{article.stock_qty || 0}</p>
+              <p className="text-xs md:text-sm text-blue-300 mb-1">I Lager</p>
+              <p className="text-2xl md:text-3xl font-bold text-white">{article.stock_qty || 0}</p>
+              {siblingArticles.length > 0 && (
+                <p className="text-xs text-blue-300/70 mt-1">
+                  +{siblingArticles.reduce((sum, a) => sum + (a.stock_qty || 0), 0)} (andra)
+                </p>
               )}
             </div>
+            <div className="p-3 md:p-4 rounded-xl bg-purple-500/10 border border-purple-500/30">
+              <p className="text-xs md:text-sm text-purple-300 mb-1">Reserverat</p>
+              <p className="text-2xl md:text-3xl font-bold text-white">{article.reserved_stock_qty || 0}</p>
+              <p className="text-xs text-purple-300/70 mt-1">för ordrar</p>
+            </div>
+            <div className="p-3 md:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+              <p className="text-xs md:text-sm text-emerald-300 mb-1">Tillgängligt</p>
+              <p className="text-2xl md:text-3xl font-bold text-white">
+                {Math.max(0, (article.stock_qty || 0) - (article.reserved_stock_qty || 0))}
+              </p>
+            </div>
             <div className="p-3 md:p-4 rounded-xl bg-slate-800/50 border border-slate-700/50">
-              <p className="text-xs md:text-sm text-slate-400 mb-1">Safety Stock</p>
+              <p className="text-xs md:text-sm text-slate-400 mb-1">Minimilager</p>
               <p className="text-2xl md:text-3xl font-bold text-white">{article.min_stock_level || "—"}</p>
             </div>
-            {article.status === 'on_repair' && article.repair_notes && (
-              <div className="p-3 md:p-4 rounded-xl bg-orange-500/10 border border-orange-500/30">
-                <p className="text-xs md:text-sm text-orange-300 mb-1">Reparation</p>
-                <p className="text-2xl md:text-3xl font-bold text-white">
-                  {article.repair_notes.match(/^(\d+)\s*st/) ? article.repair_notes.match(/^(\d+)\s*st/)[1] : "—"}
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>
