@@ -21,40 +21,45 @@ Deno.serve(async (req) => {
     
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
+    const margin = 12;
     const contentWidth = pageWidth - (margin * 2);
     
     let yPos = margin;
 
-    // Fill entire page with black background
+    // Black background
     doc.setFillColor(15, 15, 15);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-    // Header: Title and Subtitle
+    // === HEADER ===
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
+    doc.setFontSize(22);
     doc.setFont(undefined, 'bold');
     doc.text('ARBETSORDER', margin, yPos);
     
-    yPos += 6;
-    doc.setFontSize(11);
-    doc.setTextColor(180, 180, 180);
-    doc.setFont(undefined, 'normal');
-    const titleText = `${wo.customer_name || ''} ${wo.order_number || ''}`.trim();
-    doc.text(titleText, margin, yPos);
-    
-    yPos += 4;
+    yPos += 5;
     doc.setFontSize(9);
-    doc.setTextColor(130, 130, 130);
+    doc.setTextColor(150, 150, 150);
+    doc.setFont(undefined, 'normal');
     const now = new Date();
-    const dateStr = now.toLocaleDateString('sv-SE') + ' ' + now.toLocaleTimeString('sv-SE');
-    doc.text(`Utskriven: ${dateStr}`, margin, yPos);
+    const dateStr = now.toLocaleDateString('sv-SE') + ' ' + now.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+    doc.text('Utskriven: ' + dateStr, margin, yPos);
     
-    yPos += 10;
+    yPos += 5;
+    doc.setFontSize(10);
+    doc.setTextColor(220, 220, 220);
+    doc.setFont(undefined, 'bold');
+    const headerText = (wo.customer_name || '') + ' ' + (wo.order_number || '');
+    const splitHeader = doc.splitTextToSize(headerText.trim(), contentWidth);
+    doc.text(splitHeader, margin, yPos);
+    yPos += (splitHeader.length * 4);
+    
+    yPos += 6;
 
-    // Info grid: 3 columns x 2 rows
+    // === INFO GRID (3 columns, 2 rows) ===
+    doc.setFontSize(8);
     const colWidth = contentWidth / 3;
-    const gridItems = [
+    const gridX = [margin, margin + colWidth, margin + colWidth * 2];
+    const gridData = [
       { label: 'Kund', value: wo.customer_name || '—' },
       { label: 'Status / Fas', value: wo.current_stage || '—' },
       { label: 'Prioritet', value: wo.priority || 'normal' },
@@ -63,88 +68,88 @@ Deno.serve(async (req) => {
       { label: 'Kundref', value: orderData.customer_reference || '?' }
     ];
 
-    doc.setFontSize(8);
     doc.setFont(undefined, 'bold');
-    doc.setTextColor(200, 200, 200);
-    
-    // Row 1
-    for (let i = 0; i < 3; i++) {
-      doc.text(gridItems[i].label, margin + (i * colWidth), yPos);
-    }
-    
-    yPos += 4;
-    doc.setFont(undefined, 'normal');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
+    doc.setTextColor(180, 180, 180);
     
     for (let i = 0; i < 3; i++) {
-      doc.text(gridItems[i].value, margin + (i * colWidth), yPos);
+      doc.text(gridData[i].label, gridX[i], yPos);
     }
     
-    yPos += 7;
-    doc.setFontSize(8);
-    doc.setFont(undefined, 'bold');
-    doc.setTextColor(200, 200, 200);
-    
-    // Row 2
-    for (let i = 3; i < 6; i++) {
-      doc.text(gridItems[i].label, margin + ((i - 3) * colWidth), yPos);
-    }
-    
-    yPos += 4;
+    yPos += 3.5;
     doc.setFont(undefined, 'normal');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
+    doc.setFontSize(9);
+    
+    for (let i = 0; i < 3; i++) {
+      const val = String(gridData[i].value).substring(0, 30);
+      doc.text(val, gridX[i], yPos);
+    }
+    
+    yPos += 6;
+    doc.setFontSize(8);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(180, 180, 180);
     
     for (let i = 3; i < 6; i++) {
-      doc.text(gridItems[i].value, margin + ((i - 3) * colWidth), yPos);
+      doc.text(gridData[i].label, gridX[i - 3], yPos);
+    }
+    
+    yPos += 3.5;
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    
+    for (let i = 3; i < 6; i++) {
+      const val = String(gridData[i].value).substring(0, 30);
+      doc.text(val, gridX[i - 3], yPos);
     }
 
-    yPos += 12;
+    yPos += 10;
 
-    // Section header function
+    // === SECTION HELPER ===
     const addSection = (title) => {
-      doc.setFillColor(50, 50, 50);
-      doc.rect(margin, yPos - 3, contentWidth, 6, 'F');
+      doc.setFillColor(40, 40, 40);
+      doc.rect(margin, yPos - 3, contentWidth, 5.5, 'F');
       
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(10);
+      doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
-      doc.text(title, margin + 2, yPos + 1.5);
+      doc.text(title, margin + 2, yPos + 1);
       
-      yPos += 10;
+      yPos += 9;
     };
 
     const addField = (label, value) => {
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(200, 200, 200);
+      doc.setTextColor(170, 170, 170);
       doc.setFontSize(8);
       doc.text(label + ':', margin, yPos);
       
       doc.setFont(undefined, 'normal');
-      doc.setTextColor(220, 220, 220);
+      doc.setTextColor(210, 210, 210);
       doc.setFontSize(9);
-      const labelWidth = 45;
+      const labelWidth = 42;
       const maxWidth = contentWidth - labelWidth;
-      const lines = doc.splitTextToSize(String(value || '—'), maxWidth);
+      const valStr = String(value || '—');
+      const lines = doc.splitTextToSize(valStr, maxWidth);
       
       lines.forEach((line, idx) => {
-        doc.text(line, margin + labelWidth, yPos + (idx * 3.5));
+        doc.text(line, margin + labelWidth, yPos + (idx * 3.2));
       });
       
-      yPos += (lines.length * 3.5) + 2;
+      yPos += (lines.length * 3.2) + 1.5;
     };
 
-    // Order Information section
+    // === ORDERINFORMATION ===
     addSection('ORDERINFORMATION');
     addField('Kund', wo.customer_name);
     addField('Fortnox kundnr', orderData.fortnox_customer_number || '—');
     addField('Leveransadress', orderData.delivery_address || '—');
     addField('Fortnox Projekt', orderData.fortnox_project_number || '—');
 
-    yPos += 3;
+    yPos += 2;
 
-    // Work Order Details section
+    // === ARBETSORDER DETALJER ===
     addSection('ARBETSORDER DETALJER');
     addField('Arbetsorder', wo.name || wo.order_number || '—');
     addField('Status', wo.status || '—');
@@ -152,88 +157,119 @@ Deno.serve(async (req) => {
     addField('Prioritet', wo.priority || '—');
     addField('Produktionsstatus', wo.production_status || '—');
 
-    yPos += 5;
+    yPos += 3;
 
-    // Articles/Materials section
+    // === ARTIKLAR / MATERIALLISTA ===
     if (orderItems && orderItems.length > 0) {
+      // Check if we need a new page
+      if (yPos > pageHeight - 50) {
+        doc.addPage();
+        doc.setFillColor(15, 15, 15);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        yPos = margin;
+      }
+
       addSection('ARTIKLAR / MATERIALLISTA');
 
       // Table header
-      doc.setFillColor(60, 60, 60);
-      doc.rect(margin, yPos - 3, contentWidth, 6, 'F');
+      doc.setFillColor(50, 50, 50);
+      doc.rect(margin, yPos - 3, contentWidth, 5, 'F');
       
       doc.setFont(undefined, 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(8);
+      doc.setFontSize(7.5);
       
-      const cols = {
+      const colX = {
         artikel: margin + 1,
-        batch: margin + 85,
-        hylla: margin + 145,
-        best: margin + 180,
-        plockat: margin + 210
+        batch: margin + 80,
+        hylla: margin + 138,
+        best: margin + 170,
+        plockat: margin + 200
       };
 
-      doc.text('Artikel', cols.artikel, yPos + 1.5);
-      doc.text('Batch', cols.batch, yPos + 1.5);
-      doc.text('Hylla', cols.hylla, yPos + 1.5);
-      doc.text('Best.', cols.best, yPos + 1.5);
-      doc.text('Plockat', cols.plockat, yPos + 1.5);
+      doc.text('Artikel', colX.artikel, yPos + 1);
+      doc.text('Batch', colX.batch, yPos + 1);
+      doc.text('Hylla', colX.hylla, yPos + 1);
+      doc.text('Best.', colX.best, yPos + 1);
+      doc.text('Plockat', colX.plockat, yPos + 1);
       
-      yPos += 8;
+      yPos += 7;
 
       // Table rows
       doc.setFont(undefined, 'normal');
-      doc.setTextColor(200, 200, 200);
       doc.setFontSize(8);
 
       orderItems.forEach((item, idx) => {
-        if (yPos > pageHeight - 25) {
+        if (yPos > pageHeight - 12) {
           doc.addPage();
           doc.setFillColor(15, 15, 15);
           doc.rect(0, 0, pageWidth, pageHeight, 'F');
           yPos = margin;
+          
+          // Repeat header on new page
+          doc.setFillColor(50, 50, 50);
+          doc.rect(margin, yPos - 3, contentWidth, 5, 'F');
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(7.5);
+          doc.text('Artikel', colX.artikel, yPos + 1);
+          doc.text('Batch', colX.batch, yPos + 1);
+          doc.text('Hylla', colX.hylla, yPos + 1);
+          doc.text('Best.', colX.best, yPos + 1);
+          doc.text('Plockat', colX.plockat, yPos + 1);
+          yPos += 7;
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(8);
+        }
+
+        // Alternate row background
+        if (idx % 2 === 1) {
+          doc.setFillColor(25, 25, 25);
+          doc.rect(margin, yPos - 3, contentWidth, 4, 'F');
         }
 
         const picked = item.quantity_picked || 0;
         const ordered = item.quantity_ordered || 0;
         
-        // Alternate row background
-        if (idx % 2 === 0) {
-          doc.setFillColor(25, 25, 25);
-          doc.rect(margin, yPos - 2, contentWidth, 4.5, 'F');
-        }
-
         doc.setTextColor(200, 200, 200);
-        const articleName = (item.article_name || '—').substring(0, 40);
-        doc.text(articleName, cols.artikel, yPos);
-        doc.text(item.article_batch_number || '—', cols.batch, yPos);
-        doc.text(item.shelf_address || '—', cols.hylla, yPos);
-        doc.text(String(ordered), cols.best, yPos);
+        const articleName = (item.article_name || '—').substring(0, 38);
+        doc.text(articleName, colX.artikel, yPos);
+        doc.text((item.article_batch_number || '—').substring(0, 22), colX.batch, yPos);
+        doc.text((item.shelf_address || '—').substring(0, 12), colX.hylla, yPos);
+        doc.text(String(ordered), colX.best, yPos);
         
-        // Highlight if picked
+        // Color code picked quantity
         if (picked === ordered && ordered > 0) {
-          doc.setTextColor(120, 200, 120);
+          doc.setTextColor(100, 200, 100);
+        } else if (picked < ordered && picked > 0) {
+          doc.setTextColor(200, 150, 100);
         }
-        doc.text(String(picked), cols.plockat, yPos);
+        doc.text(String(picked), colX.plockat, yPos);
 
-        yPos += 4.5;
+        yPos += 4;
       });
     }
 
-    yPos += 5;
+    yPos += 3;
 
-    // Production notes if exists
-    if (wo.production_notes) {
+    // === PRODUKTIONSANTECKNINGAR ===
+    if (wo.production_notes && wo.production_notes.trim()) {
+      if (yPos > pageHeight - 20) {
+        doc.addPage();
+        doc.setFillColor(15, 15, 15);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        yPos = margin;
+      }
       addSection('PRODUKTIONSANTECKNINGAR');
       addField('Anteckningar', wo.production_notes);
     }
 
-    // Footer
-    doc.setTextColor(100, 100, 100);
+    // === FOOTER ===
+    doc.setTextColor(80, 80, 80);
     doc.setFontSize(7);
-    doc.text('IMvision - Arbetsorder', margin, pageHeight - 8);
-    doc.text('Sida 1 av 1', pageWidth - margin, pageHeight - 8, { align: 'right' });
+    doc.setFont(undefined, 'normal');
+    doc.text('IMvision - Arbetsorder', margin, pageHeight - 6);
+    doc.text('Sida 1 av 1', pageWidth - margin - 10, pageHeight - 6);
 
     const pdf = doc.output('arraybuffer');
     
@@ -241,7 +277,7 @@ Deno.serve(async (req) => {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="arbetsorder_${wo.order_number || wo.id.slice(0, 8)}.pdf"`
+        'Content-Disposition': `attachment; filename="arbetsorder_${wo.order_number ? wo.order_number.replace(/\s/g, '_') : wo.id.slice(0, 8)}.pdf"`
       }
     });
   } catch (error) {
