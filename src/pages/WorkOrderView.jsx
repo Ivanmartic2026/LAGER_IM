@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, User, Clock, Truck, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Play, User, Clock, Truck, CheckCircle2, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -234,13 +234,37 @@ export default function WorkOrderViewPage() {
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-3xl mx-auto space-y-4">
 
-        {/* Back */}
-        <Link to={createPageUrl('WorkOrders')}>
-          <Button variant="ghost" className="text-white/60 hover:text-white -ml-2">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Arbetsordrar
+        {/* Back + Print */}
+        <div className="flex items-center justify-between">
+          <Link to={createPageUrl('WorkOrders')}>
+            <Button variant="ghost" className="text-white/60 hover:text-white -ml-2">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Arbetsordrar
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white/5 border-white/20 hover:bg-white/10 text-white gap-2"
+            onClick={async () => {
+              try {
+                const res = await base44.functions.invoke('printWorkOrder', { work_order_id: workOrderId });
+                const blob = new Blob([res.data], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `arbetsorder_${workOrder.order_number || workOrderId.slice(0,8)}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+              } catch (e) {
+                toast.error('Kunde inte skapa PDF');
+              }
+            }}
+          >
+            <Printer className="w-4 h-4" />
+            Skriv ut PDF
           </Button>
-        </Link>
+        </div>
 
         {/* Header with Status */}
         <WorkOrderHeader 
