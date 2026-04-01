@@ -116,7 +116,7 @@ export default function DesignerSection({ workOrderId }) {
         <div>
           <h3 className="text-base font-semibold text-white flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-purple-500 inline-block" />
-            Konstruktör
+            Construction and Design Lino
           </h3>
           {tasks.length > 0 && (
             <p className="text-xs text-white/50 mt-1">
