@@ -202,7 +202,6 @@ export default function SupplierPOView() {
             </div>
           </div>
         </motion.div>
-      </div>
 
         {/* Step Navigation */}
         <div className="bg-white/8 rounded-2xl border border-white/15 overflow-hidden">
