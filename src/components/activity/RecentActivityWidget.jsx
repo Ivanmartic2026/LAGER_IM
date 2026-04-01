@@ -71,10 +71,20 @@ export default function RecentActivityWidget() {
       queryClient.invalidateQueries({ queryKey: ['productionActivities'] });
     });
 
+    const unsubscribeOrder = base44.entities.Order.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['ordersData'] });
+    });
+
+    const unsubscribeWOData = base44.entities.WorkOrder.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['workOrdersData'] });
+    });
+
     return () => {
       unsubscribeWO();
       unsubscribePO();
       unsubscribeProd();
+      unsubscribeOrder();
+      unsubscribeWOData();
     };
   }, [queryClient]);
 
@@ -115,13 +125,53 @@ export default function RecentActivityWidget() {
     },
   });
 
-  // Combine and sort all activities
+  const { data: ordersList = [] } = useQuery({
+    queryKey: ['ordersData'],
+    queryFn: async () => {
+      try {
+        return await base44.entities.Order.list('-updated_date', 50);
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  const { data: workOrdersList = [] } = useQuery({
+    queryKey: ['workOrdersData'],
+    queryFn: async () => {
+      try {
+        return await base44.entities.WorkOrder.list('-updated_date', 50);
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  // Combine and sort all activities including direct Order and WorkOrder updates
   React.useEffect(() => {
-    const combined = [...workOrderActivities, ...poActivities, ...productionActivities]
+    const directOrderActivities = ordersList.map(o => ({
+      ...o,
+      entity_type: 'Order',
+      type: 'system',
+      message: `Uppdaterad`,
+      created_date: o.updated_date || o.created_date,
+      order_id: o.id
+    }));
+
+    const directWOActivities = workOrdersList.map(wo => ({
+      ...wo,
+      entity_type: 'WorkOrder',
+      type: 'system',
+      message: `Uppdaterad`,
+      created_date: wo.updated_date || wo.created_date,
+      work_order_id: wo.id
+    }));
+
+    const combined = [...workOrderActivities, ...poActivities, ...productionActivities, ...directOrderActivities, ...directWOActivities]
       .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
       .slice(0, 8);
     setAllActivities(combined);
-  }, [workOrderActivities, poActivities, productionActivities]);
+  }, [workOrderActivities, poActivities, productionActivities, ordersList, workOrdersList]);
 
   const getActivityIcon = (type, entity_type) => {
     if (entity_type === 'PO') return ShoppingCart;
@@ -158,9 +208,16 @@ export default function RecentActivityWidget() {
   };
 
   const getActivityTitle = (activity) => {
-    if (activity.entity_type === 'WorkOrder' && workOrders[activity.work_order_id]) {
-      const wo = workOrders[activity.work_order_id];
-      return `${wo.customer_name} - ${wo.name || 'Arbetsorder'}`;
+    if (activity.entity_type === 'WorkOrder') {
+      if (workOrders[activity.work_order_id]) {
+        const wo = workOrders[activity.work_order_id];
+        return `${wo.customer_name} - ${wo.name || 'Arbetsorder'}`;
+      }
+      // Direct WorkOrder update
+      return `${activity.customer_name} - ${activity.name || 'Arbetsorder'}`;
+    }
+    if (activity.entity_type === 'Order') {
+      return `${activity.customer_name} - Order${activity.order_number || ''}`;
     }
     if (activity.entity_type === 'PO' && purchaseOrders[activity.purchase_order_id]) {
       const po = purchaseOrders[activity.purchase_order_id];
@@ -175,7 +232,9 @@ export default function RecentActivityWidget() {
 
   const handleActivityClick = (activity) => {
     if (activity.entity_type === 'WorkOrder') {
-      navigate(`/WorkOrders/${activity.work_order_id}`);
+      navigate(`/WorkOrders/${activity.work_order_id || activity.id}`);
+    } else if (activity.entity_type === 'Order') {
+      navigate(`/Orders/${activity.id}`);
     } else if (activity.entity_type === 'PO') {
       navigate(`/PurchaseOrders/${activity.purchase_order_id}`);
     }
