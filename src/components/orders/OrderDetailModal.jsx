@@ -156,7 +156,7 @@ export default function OrderDetailModal({ order, onClose, onSyncSuccess }) {
                 </Badge>
               )}
               {order.fortnox_project_number && (
-                <Badge className="bg-green-500/30 text-green-300 border-green-500/50 text-xs flex items-center gap-1 font-semibold">
+                <Badge className="bg-purple-500/30 text-purple-300 border-purple-500/50 text-xs flex items-center gap-1 font-semibold">
                   Fortnox Projekt #{order.fortnox_project_number}
                 </Badge>
               )}
