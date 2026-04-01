@@ -72,7 +72,7 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
   return (
     <form className="space-y-6">
       {isConfirmed && (
-        <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+         <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
           <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
           <div>
             <div className="font-semibold text-green-900">Order Confirmed</div>

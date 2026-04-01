@@ -90,7 +90,7 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
       <div className="border-2 border-dashed border-blue-300 rounded-xl p-6 bg-blue-50">
         <div className="flex flex-col items-center gap-3 mb-4">
           <Upload className="w-8 h-8 text-blue-500" />
-          <p className="text-sm text-blue-700 text-center font-medium">Välj dokumenttyp och ladda upp en fil</p>
+          <p className="text-sm text-blue-700 text-center font-medium">Select document type and upload a file</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -110,9 +110,9 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
             className="flex items-center justify-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation shadow-sm"
           >
             {uploading ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Laddar upp...</>
+              <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
             ) : (
-              <><Upload className="w-4 h-4" /> Ladda upp fil</>
+              <><Upload className="w-4 h-4" /> Upload File</>
             )}
           </button>
         </div>
@@ -127,8 +127,8 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
 
       {/* Uploaded files */}
       {documents.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-slate-700">{documents.length} fil{documents.length !== 1 ? 'er' : ''} uppladdad</p>
+       <div className="space-y-2">
+         <p className="text-sm font-semibold text-slate-700">{documents.length} file{documents.length !== 1 ? 's' : ''} uploaded</p>
           {documents.map((doc) => {
             const docLabel = DOC_TYPES.find(d => d.value === doc.document_type)?.label || doc.document_type;
             return (
@@ -139,18 +139,18 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
                   <p className="text-xs text-slate-500">{docLabel}{doc.created_date ? ` · ${format(new Date(doc.created_date), 'd MMM')}` : ''}</p>
                 </div>
                 {doc.is_approved ? (
-                  <span className="text-xs text-green-700 font-semibold flex-shrink-0 bg-green-100 px-2 py-1 rounded">✓ Godkänd</span>
-                ) : (
-                  <span className="text-xs text-amber-700 font-semibold flex-shrink-0 bg-amber-100 px-2 py-1 rounded">Väntar</span>
-                )}
+                   <span className="text-xs text-green-700 font-semibold flex-shrink-0 bg-green-100 px-2 py-1 rounded">✓ Approved</span>
+                 ) : (
+                   <span className="text-xs text-amber-700 font-semibold flex-shrink-0 bg-amber-100 px-2 py-1 rounded">Pending</span>
+                 )}
                 <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-600 flex-shrink-0">
                   <ExternalLink className="w-4 h-4" />
                 </a>
                 {!doc.is_approved && (
-                  <button
-                    onClick={() => { if (confirm('Ta bort detta dokument?')) deleteMutation.mutate(doc.id); }}
-                    className="text-slate-400 hover:text-red-600 flex-shrink-0"
-                  >
+                   <button
+                     onClick={() => { if (confirm('Delete this document?')) deleteMutation.mutate(doc.id); }}
+                     className="text-slate-400 hover:text-red-600 flex-shrink-0"
+                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 )}
@@ -161,7 +161,7 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
       )}
 
       <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
-        ⚠️ Skicka inte leveransen innan alla dokument har laddats upp och godkänts av IMvision.
+        ⚠️ Do not ship until all documents have been uploaded and approved by IMvision.
       </div>
     </div>
   );

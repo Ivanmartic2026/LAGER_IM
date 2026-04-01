@@ -12,21 +12,21 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 const STEPS = [
-  { key: 'confirm', label: 'Bekräfta order', icon: CheckCircle2, step: 1 },
-  { key: 'requirements', label: 'Dokument krävs', icon: FileText, step: 2 },
-  { key: 'upload', label: 'Ladda upp dokument', icon: Upload, step: 3 },
+  { key: 'confirm', label: 'Confirm Order', icon: CheckCircle2, step: 1 },
+  { key: 'requirements', label: 'Required Documents', icon: FileText, step: 2 },
+  { key: 'upload', label: 'Upload Documents', icon: Upload, step: 3 },
 ];
 
 const STATUS_CONFIG = {
-  draft: { label: 'Utkast', color: 'bg-slate-900 text-slate-100 border-slate-700', icon: '📝' },
-  sent: { label: 'Skickad', color: 'bg-blue-900 text-blue-100 border-blue-700', icon: '📬' },
-  confirmed: { label: 'Bekräftad', color: 'bg-green-900 text-green-100 border-green-700', icon: '✓' },
-  waiting_for_supplier_documentation: { label: 'Väntar på dokumentation', color: 'bg-amber-900 text-amber-100 border-amber-700', icon: '⏳' },
-  in_production: { label: 'I produktion', color: 'bg-purple-900 text-purple-100 border-purple-700', icon: '⚙️' },
-  shipped: { label: 'Skickad', color: 'bg-cyan-900 text-cyan-100 border-cyan-700', icon: '🚚' },
-  ready_for_reception: { label: 'Klar för mottagning', color: 'bg-indigo-900 text-indigo-100 border-indigo-700', icon: '📦' },
-  received: { label: 'Mottagen', color: 'bg-emerald-900 text-emerald-100 border-emerald-700', icon: '✅' },
-  cancelled: { label: 'Avbruten', color: 'bg-red-900 text-red-100 border-red-700', icon: '✕' }
+  draft: { label: 'Draft', color: 'bg-slate-900 text-slate-100 border-slate-700', icon: '📝' },
+  sent: { label: 'Sent', color: 'bg-blue-900 text-blue-100 border-blue-700', icon: '📬' },
+  confirmed: { label: 'Confirmed', color: 'bg-green-900 text-green-100 border-green-700', icon: '✓' },
+  waiting_for_supplier_documentation: { label: 'Waiting for Documentation', color: 'bg-amber-900 text-amber-100 border-amber-700', icon: '⏳' },
+  in_production: { label: 'In Production', color: 'bg-purple-900 text-purple-100 border-purple-700', icon: '⚙️' },
+  shipped: { label: 'Shipped', color: 'bg-cyan-900 text-cyan-100 border-cyan-700', icon: '🚚' },
+  ready_for_reception: { label: 'Ready for Reception', color: 'bg-indigo-900 text-indigo-100 border-indigo-700', icon: '📦' },
+  received: { label: 'Received', color: 'bg-emerald-900 text-emerald-100 border-emerald-700', icon: '✅' },
+  cancelled: { label: 'Cancelled', color: 'bg-red-900 text-red-100 border-red-700', icon: '✕' }
 };
 
 export default function SupplierPOView() {
@@ -56,8 +56,8 @@ export default function SupplierPOView() {
           <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
             <FileText className="w-7 h-7 text-red-600" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900 mb-2">Ogiltig länk</h1>
-          <p className="text-slate-600 text-sm">Denna länk saknar en obligatorisk token. Använd länken från ditt email.</p>
+          <h1 className="text-xl font-bold text-slate-900 mb-2">Invalid Link</h1>
+          <p className="text-slate-600 text-sm">This link is missing a required token. Please use the link from your email.</p>
         </div>
       </div>
     );
@@ -68,7 +68,7 @@ export default function SupplierPOView() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-slate-600">Laddar din inköpsorder...</p>
+          <p className="text-sm text-slate-600">Loading your purchase order...</p>
         </div>
       </div>
     );
@@ -81,8 +81,8 @@ export default function SupplierPOView() {
           <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
             <Package className="w-7 h-7 text-amber-600" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900 mb-2">Order hittades inte</h1>
-          <p className="text-slate-600 text-sm">Kontrollera att länken är korrekt eller kontakta din IMvision-representant.</p>
+          <h1 className="text-xl font-bold text-slate-900 mb-2">Order Not Found</h1>
+          <p className="text-slate-600 text-sm">Please verify the link is correct or contact your IMvision representative.</p>
         </div>
       </div>
     );
@@ -95,7 +95,7 @@ export default function SupplierPOView() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-slate-200 sticky top-0 bg-white/90 backdrop-blur z-10 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900">Redigera order</h2>
+          <h2 className="text-lg font-bold text-slate-900">Edit Order</h2>
           <button
             onClick={() => window.location.href = `?token=${poToken}`}
             className="text-slate-400 hover:text-slate-600 text-2xl leading-none"
@@ -120,16 +120,16 @@ export default function SupplierPOView() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
               <Package className="w-6 h-6 text-blue-600" />
-              Inköpsordrar
+              Purchase Orders
             </h1>
           </div>
 
           {/* Status Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {[
-              { key: 'all', label: 'Alla', count: 1, bgColor: 'bg-white border-slate-200', textColor: 'text-slate-700' },
-              { key: 'confirmed', label: 'Bekräftade', count: isConfirmed ? 1 : 0, bgColor: 'bg-green-50 border-green-200', textColor: 'text-green-700' },
-              { key: 'pending', label: 'Väntar', count: isConfirmed ? 0 : 1, bgColor: 'bg-amber-50 border-amber-200', textColor: 'text-amber-700' },
+              { key: 'all', label: 'All', count: 1, bgColor: 'bg-white border-slate-200', textColor: 'text-slate-700' },
+              { key: 'confirmed', label: 'Confirmed', count: isConfirmed ? 1 : 0, bgColor: 'bg-green-50 border-green-200', textColor: 'text-green-700' },
+              { key: 'pending', label: 'Pending', count: isConfirmed ? 0 : 1, bgColor: 'bg-amber-50 border-amber-200', textColor: 'text-amber-700' },
             ].map(({ key, label, count, bgColor, textColor }) => (
               <motion.button
                 key={key}
@@ -154,7 +154,7 @@ export default function SupplierPOView() {
             <Input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Sök leverantör eller order..."
+              placeholder="Search supplier or order..."
               className="pl-10 h-10 bg-white border-slate-300 text-slate-900 placeholder:text-slate-500"
             />
           </div>
@@ -185,19 +185,19 @@ export default function SupplierPOView() {
             <div className="flex items-end justify-between gap-4">
               <div className="grid grid-cols-3 gap-6 text-sm flex-1">
                 <div className="flex flex-col gap-1">
-                  <span className="text-slate-500 text-xs">Leverantör</span>
-                  <span className="text-slate-900 font-medium">{purchaseOrder.supplier_name}</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-slate-500 text-xs">ETA</span>
-                  <span className="text-slate-900 font-medium">
-                    {purchaseOrder.expected_delivery_date ? format(new Date(purchaseOrder.expected_delivery_date), 'd MMM', { locale: sv }) : '—'}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-slate-500 text-xs">Artiklar</span>
-                  <span className="text-slate-900 font-medium">{items.length} st</span>
-                </div>
+                   <span className="text-slate-500 text-xs">Supplier</span>
+                   <span className="text-slate-900 font-medium">{purchaseOrder.supplier_name}</span>
+                 </div>
+                 <div className="flex flex-col gap-1">
+                   <span className="text-slate-500 text-xs">ETA</span>
+                   <span className="text-slate-900 font-medium">
+                     {purchaseOrder.expected_delivery_date ? format(new Date(purchaseOrder.expected_delivery_date), 'd MMM', { locale: sv }) : '—'}
+                   </span>
+                 </div>
+                 <div className="flex flex-col gap-1">
+                   <span className="text-slate-500 text-xs">Items</span>
+                   <span className="text-slate-900 font-medium">{items.length} pcs</span>
+                 </div>
               </div>
             </div>
           </div>
@@ -250,8 +250,8 @@ export default function SupplierPOView() {
 
         {/* Footer */}
         <div className="text-center pb-6">
-          <p className="text-xs text-slate-500">IMvision leverantörsportal · Säker länk</p>
-          <p className="text-xs text-slate-400 mt-0.5">För support: kontakta din IMvision-representant</p>
+          <p className="text-xs text-slate-500">IMvision Supplier Portal · Secure Link</p>
+          <p className="text-xs text-slate-400 mt-0.5">For support: contact your IMvision representative</p>
         </div>
       </div>
     </div>
@@ -277,9 +277,9 @@ function RequirementsSection({ onContinue }) {
       <div className="p-4 bg-blue-500/20 border border-blue-500/30 rounded-xl">
         <h3 className="font-semibold text-blue-400 mb-1 flex items-center gap-2">
           <FileText className="w-4 h-4" />
-          Dokument krävda från leverantör
+          Required Documents from Supplier
         </h3>
-        <p className="text-sm text-blue-300">Alla dokument måste laddas upp i fliken <strong>Ladda upp dokument</strong>. All information måste matcha inköpsordern exakt.</p>
+        <p className="text-sm text-blue-300">All documents must be uploaded in the <strong>Upload Documents</strong> tab. All information must match the purchase order exactly.</p>
       </div>
 
       {phases.map(phase => {
@@ -307,14 +307,14 @@ function RequirementsSection({ onContinue }) {
       })}
 
       <div className="p-4 bg-amber-500/20 border border-amber-500/30 rounded-xl text-sm text-amber-300">
-        ⚠️ <strong>Skicka inte leveransen</strong> innan alla dokument har laddats upp och godkänts av IMvision.
+        ⚠️ <strong>Do not ship</strong> until all documents have been uploaded and approved by IMvision.
       </div>
 
       <button
         onClick={onContinue}
         className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2"
       >
-        Fortsätt till dokumentuppladdning
+        Continue to Document Upload
         <ChevronRight className="w-4 h-4" />
       </button>
     </div>
