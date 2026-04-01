@@ -31,7 +31,7 @@ export default function DocumentationPage() {
 
   const handleDownload = async (filename) => {
     try {
-      const response = await fetch(`/components/docs/${filename}`);
+      const response = await fetch(`/docs/${filename}`);
       const text = await response.text();
       const blob = new Blob([text], { type: 'text/markdown' });
       const url = window.URL.createObjectURL(blob);
@@ -126,7 +126,7 @@ function DocumentationViewer({ filename }) {
     const loadDoc = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/components/docs/${filename}`);
+        const response = await fetch(`/docs/${filename}`);
         const text = await response.text();
         setContent(text);
       } catch (error) {
