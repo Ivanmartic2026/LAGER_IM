@@ -21,6 +21,7 @@ import SimplifiedReceivingForm from "@/components/receiving/SimplifiedReceivingF
 import InvoiceScanButton from "@/components/orders/InvoiceScanButton";
 import PODocumentHub from "@/components/purchaseorders/PODocumentHub";
 import POStatusFlow from "@/components/purchaseorders/POStatusFlow";
+import ActivityFeed from "@/components/activity/ActivityFeed";
 
 export default function PurchaseOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -587,8 +588,20 @@ export default function PurchaseOrdersPage() {
                   <X className="w-5 h-5" />
                 </Button>
               </div>
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 <PODocumentHub purchaseOrder={documentsPO} />
+                <div className="border-t border-slate-700 pt-6">
+                  <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
+                    Aktivitetslogg
+                  </h3>
+                  <ActivityFeed
+                    entityType="POActivity"
+                    entityId={documentsPO.id}
+                    logFunctionName="logPOActivity"
+                    idField="purchase_order_id"
+                  />
+                </div>
               </div>
             </motion.div>
           </motion.div>

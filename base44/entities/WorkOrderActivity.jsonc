@@ -1,0 +1,73 @@
+{
+  "name": "WorkOrderActivity",
+  "type": "object",
+  "properties": {
+    "work_order_id": {
+      "type": "string",
+      "description": "Referens till WorkOrder"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "comment",
+        "system",
+        "decision",
+        "assignment",
+        "file_upload",
+        "status_change",
+        "field_change"
+      ],
+      "description": "Typ av aktivitet"
+    },
+    "message": {
+      "type": "string",
+      "description": "Meddelande eller beskrivning"
+    },
+    "field_name": {
+      "type": "string",
+      "description": "F\u00e4ltnamn som \u00e4ndrades"
+    },
+    "old_value": {
+      "type": "string",
+      "description": "Tidigare v\u00e4rde"
+    },
+    "new_value": {
+      "type": "string",
+      "description": "Nytt v\u00e4rde"
+    },
+    "actor_email": {
+      "type": "string",
+      "description": "Vem som utf\u00f6rde \u00e5tg\u00e4rden"
+    },
+    "actor_name": {
+      "type": "string",
+      "description": "Namn p\u00e5 akt\u00f6ren"
+    },
+    "is_decision": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om detta \u00e4r ett markerat beslut"
+    },
+    "decision_reason": {
+      "type": "string",
+      "description": "Motivering till beslutet"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "L\u00e4nk till uppladdad fil"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Filnamn"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Extra data"
+    }
+  },
+  "required": [
+    "work_order_id",
+    "type",
+    "message"
+  ]
+}

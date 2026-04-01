@@ -17,6 +17,7 @@ import DocumentSection from "@/components/workorders/DocumentSection";
 import ProductionChecklist from "@/components/workorders/ProductionChecklist";
 import ArticlesList from "@/components/workorders/ArticlesList";
 import NotesSection from "@/components/workorders/NotesSection";
+import ActivityFeed from "@/components/activity/ActivityFeed";
 
 export default function WorkOrderViewPage() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -288,6 +289,20 @@ export default function WorkOrderViewPage() {
           notes={workOrder.production_notes || ''}
           onSaveNotes={handleSaveNotes}
         />
+
+        {/* Activity Feed */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+          <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
+            Aktivitetslogg
+          </h3>
+          <ActivityFeed
+            entityType="WorkOrderActivity"
+            entityId={workOrderId}
+            logFunctionName="logWorkOrderActivity"
+            idField="work_order_id"
+          />
+        </div>
 
       </div>
     </div>
