@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import FortnoxSyncButton from "@/components/orders/FortnoxSyncButton";
+import OrderTasks from "@/components/orders/OrderTasks";
 
 export default function OrderDetailModal({ order, onClose, onSyncSuccess }) {
   const [editMode, setEditMode] = useState(false);
@@ -439,6 +440,9 @@ export default function OrderDetailModal({ order, onClose, onSyncSuccess }) {
               </a>
             </div>
           )}
+
+          {/* Tasks */}
+          <OrderTasks orderId={order.id} />
 
           {order.notes && (
             <div>

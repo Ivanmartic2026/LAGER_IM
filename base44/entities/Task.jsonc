@@ -1,0 +1,64 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Uppgiftens titel"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal",
+      "description": "Prioritet"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Tilldelad (email)"
+    },
+    "assigned_to_name": {
+      "type": "string",
+      "description": "Tilldelad (namn)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beskrivning av uppgiften"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "to_do",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ],
+      "default": "to_do",
+      "description": "Status"
+    },
+    "order_id": {
+      "type": "string",
+      "description": "Referens till Order"
+    },
+    "work_order_id": {
+      "type": "string",
+      "description": "Referens till WorkOrder"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Klart senast"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
