@@ -267,11 +267,15 @@ export default function WorkOrderViewPage() {
         </div>
 
         {/* Header with Status */}
-        <WorkOrderHeader 
-          workOrder={workOrder}
-          order={order}
-          onNameChange={(name) => handleSaveNotes('name', name)}
-        />
+         <WorkOrderHeader 
+           workOrder={workOrder}
+           order={order}
+           onNameChange={(name) => handleSaveNotes('name', name)}
+           onStatusChange={(status) => updateWOMutation.mutateAsync({
+             id: workOrderId,
+             data: { status }
+           })}
+         />
 
         {/* Process Flow */}
         <ProcessFlow currentStage={workOrder.current_stage} />

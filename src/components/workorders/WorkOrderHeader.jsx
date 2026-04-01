@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Package, Clock, MapPin, FileText, Truck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, Package, Clock, MapPin, FileText, Truck, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -30,7 +31,8 @@ function getOverallStatus(workOrder, materialNeedsPurchase) {
   return 'ready';
 }
 
-export default function WorkOrderHeader({ workOrder, order, onNameChange }) {
+export default function WorkOrderHeader({ workOrder, order, onNameChange, onStatusChange }) {
+  const [statusOpen, setStatusOpen] = useState(false);
   const stageConfig = STAGE_CONFIG[workOrder.current_stage] || STAGE_CONFIG.picking;
   const materialNeedsPurchase = workOrder.materials_needed?.some(m => m.needs_purchase);
   const overallStatus = getOverallStatus(workOrder, materialNeedsPurchase);
@@ -100,19 +102,55 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange }) {
       {/* Meta Info */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Status', value: workOrder.status, icon: null },
+          { label: 'Status', value: workOrder.status, icon: null, isClickable: true },
           { label: 'Prioritet', value: workOrder.priority || 'Normal', icon: null },
           { label: 'Projekt', value: order?.fortnox_project_number || '—', icon: FileText },
           { label: 'Fortnox Order', value: order?.fortnox_order_id || '—', icon: FileText },
           { label: 'Kundreferens', value: order?.customer_reference || '—', icon: FileText },
           { label: 'Leveranssätt', value: order?.delivery_method || '—', icon: Truck }
-        ].map(({ label, value, icon: Icon }) => (
-          <div key={label} className="p-3 rounded-lg bg-white/5 border border-white/10">
+        ].map(({ label, value, icon: Icon, isClickable }) => (
+          <div key={label} className={cn("p-3 rounded-lg bg-white/5 border border-white/10", isClickable && "relative")}>
             <div className="flex items-center gap-1 mb-1">
               {Icon && <Icon className="w-3 h-3 text-white/50" />}
               <p className="text-xs text-white/50">{label}</p>
             </div>
-            <p className="text-sm font-medium text-white break-words">{value}</p>
+            {isClickable ? (
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto p-0 text-sm font-medium text-white hover:text-blue-400 w-full justify-between"
+                  onClick={() => setStatusOpen(!statusOpen)}
+                >
+                  <span>{value}</span>
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+                {statusOpen && (
+                  <div className="absolute top-full left-0 mt-1 bg-white/10 border border-white/20 rounded-lg shadow-lg z-10 min-w-32">
+                    {['pending', 'in_progress', 'completed', 'cancelled'].map(status => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          onStatusChange?.(status);
+                          setStatusOpen(false);
+                        }}
+                        className={cn(
+                          "block w-full text-left px-3 py-2 text-sm hover:bg-white/10 border-b border-white/10 last:border-b-0",
+                          value === status ? 'bg-white/20 text-blue-400 font-semibold' : 'text-white/70'
+                        )}
+                      >
+                        {status === 'pending' ? 'Väntar' :
+                         status === 'in_progress' ? 'Pågår' :
+                         status === 'completed' ? 'Klar' :
+                         status === 'cancelled' ? 'Avbruten' : status}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-white break-words">{value}</p>
+            )}
           </div>
         ))}
       </div>
