@@ -28,13 +28,6 @@ export default function WorkOrderViewPage() {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [files, setFiles] = useState([]);
 
-  // Initialize files from order's source document
-  useEffect(() => {
-    if (order?.source_document_url) {
-      setFiles([{ url: order.source_document_url, name: 'Original order document' }]);
-    }
-  }, [order?.source_document_url]);
-
   const { data: workOrder, isLoading } = useQuery({
     queryKey: ['workOrder', workOrderId],
     queryFn: async () => {
@@ -63,6 +56,13 @@ export default function WorkOrderViewPage() {
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list()
   });
+
+  // Initialize files from order's source document
+  useEffect(() => {
+    if (order?.source_document_url) {
+      setFiles([{ url: order.source_document_url, name: 'Original order document' }]);
+    }
+  }, [order?.source_document_url]);
 
   const updateWOMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.WorkOrder.update(id, data),
