@@ -211,6 +211,11 @@
     "source_document_url": {
       "type": "string",
       "description": "Originalfil som ordern skapades fr\u00e5n (PDF/bild)"
+    },
+    "sales_completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "F\u00f6rs\u00e4ljning slutf\u00f6rd - markera n\u00e4r s\u00e4ljaren \u00e4r klar med sin del"
     }
   },
   "required": [

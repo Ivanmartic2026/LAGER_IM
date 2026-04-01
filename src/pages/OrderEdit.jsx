@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { X, Plus, Trash2, Package, ArrowLeft } from "lucide-react";
+import { X, Plus, Trash2, Package, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import FortnoxCustomerSelect from "@/components/orders/FortnoxCustomerSelect";
 import OrderTasks from "@/components/orders/OrderTasks";
@@ -28,7 +29,8 @@ export default function OrderEdit() {
     delivery_date: '',
     delivery_address: '',
     notes: '',
-    site_visit_info: ''
+    site_visit_info: '',
+    sales_completed: false
   });
 
   const [orderItems, setOrderItems] = useState([]);
@@ -71,7 +73,8 @@ export default function OrderEdit() {
         delivery_date: order.delivery_date || '',
         delivery_address: order.delivery_address || '',
         notes: order.notes || '',
-        site_visit_info: order.site_visit_info || ''
+        site_visit_info: order.site_visit_info || '',
+        sales_completed: order.sales_completed || false
       });
     }
   }, [order]);
@@ -226,6 +229,12 @@ export default function OrderEdit() {
           <h1 className="text-3xl font-bold text-white">
             {orderId ? 'Redigera order' : 'Ny order'}
           </h1>
+          {formData.sales_completed && (
+            <div className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg bg-green-900/30 border border-green-600/50">
+              <CheckCircle2 className="w-5 h-5 text-green-500" />
+              <span className="text-sm font-medium text-green-400">Försäljning slutförd</span>
+            </div>
+          )}
         </div>
 
         {/* Form */}
@@ -371,6 +380,22 @@ export default function OrderEdit() {
                 </Select>
               </div>
             </div>
+          </div>
+
+          {/* Sales Completed */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                id="sales_completed"
+                checked={formData.sales_completed}
+                onCheckedChange={(checked) => setFormData({ ...formData, sales_completed: checked })}
+                className="w-6 h-6"
+              />
+              <label htmlFor="sales_completed" className="text-base font-medium text-white cursor-pointer">
+                ✅ Försäljning slutförd
+              </label>
+            </div>
+            <p className="text-sm text-slate-400 mt-2 ml-9">Markera när säljaren är klar med sin del av ordern</p>
           </div>
 
           {/* Address & Notes */}
