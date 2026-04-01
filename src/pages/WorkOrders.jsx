@@ -161,7 +161,7 @@ export default function WorkOrdersPage() {
                     <div className="flex flex-col gap-4">
                       {/* Header Row: Stage + Title + Status */}
                       <div className="flex items-baseline justify-between gap-4">
-                        <div className="flex items-baseline gap-3 flex-wrap">
+                        <div className="flex items-baseline gap-3 flex-wrap min-w-0">
                           <input
                             type="text"
                             defaultValue={wo.name || wo.order_number || `AO-${wo.id.slice(0, 6)}`}
@@ -172,7 +172,7 @@ export default function WorkOrdersPage() {
                               }
                             }}
                             onClick={e => e.stopPropagation()}
-                            className="font-bold text-lg text-white bg-transparent border-b border-white/20 hover:border-white/40 focus:border-white/60 focus:outline-none px-1 py-0 transition-colors"
+                            className="font-bold text-lg text-white bg-transparent border-b border-white/20 hover:border-white/40 focus:border-white/60 focus:outline-none px-1 py-0 transition-colors truncate"
                           />
                           <span className={cn("text-xs font-bold px-2 py-1 rounded-lg", stage.color)}>
                             {stage.label}
