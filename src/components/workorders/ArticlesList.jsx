@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, CheckCircle2, AlertCircle, Download, Printer } from "lucide-react";
+import { Package, CheckCircle2, AlertCircle, Download, Printer, Minus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -87,6 +87,10 @@ export default function ArticlesList({ items = [], articles = [] }) {
     printWindow.print();
   };
 
+  const handleWithdraw = () => {
+    toast.info("Ta ut från Lagret - funktion under utveckling");
+  };
+
   return (
     <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
       <div className="flex items-center justify-between mb-4">
@@ -95,6 +99,15 @@ export default function ArticlesList({ items = [], articles = [] }) {
           Artiklar ({items.length})
         </h2>
         <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-red-500/20 border-red-500/30 hover:bg-red-500/30 text-red-400 gap-2"
+            onClick={handleWithdraw}
+          >
+            <Minus className="w-4 h-4" />
+            Ta ut från Lagret
+          </Button>
           <Button
             size="sm"
             variant="outline"
