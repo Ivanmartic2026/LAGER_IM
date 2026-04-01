@@ -105,7 +105,7 @@ export default function RecentActivityWidget() {
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="fixed right-0 top-20 h-[calc(100vh-120px)] w-72 bg-gradient-to-b from-slate-900/80 to-black/60 backdrop-blur-xl border-l border-white/10 overflow-hidden z-30 hidden lg:flex flex-col"
+      className="fixed right-0 top-20 w-72 bg-gradient-to-b from-slate-900/80 to-black/60 backdrop-blur-xl border-l border-white/10 z-30 hidden lg:flex flex-col max-h-[calc(100vh-120px)] overflow-hidden"
     >
       {/* Header */}
       <div className="p-4 border-b border-white/10 flex-shrink-0">
@@ -116,8 +116,8 @@ export default function RecentActivityWidget() {
         <p className="text-xs text-white/40">De 8 senaste uppdateringarna</p>
       </div>
 
-      {/* Activities List */}
-      <div className="flex-1 overflow-y-auto space-y-2 p-3">
+      {/* Activities List - No scroll */}
+      <div className="flex-1 space-y-2 p-3 overflow-hidden flex flex-col">
         {allActivities.map((activity, idx) => {
           const Icon = getActivityIcon(activity.type, activity.entity_type);
           const colorClass = getActivityColor(activity.type, activity.entity_type);
@@ -128,7 +128,7 @@ export default function RecentActivityWidget() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all"
+              className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm"
             >
               <div className="flex gap-3">
                 <div className={cn(
