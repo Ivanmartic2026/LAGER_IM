@@ -59,6 +59,43 @@ export default function RecentActivityWidget() {
     refetchInterval: 30000,
   });
 
+  // Fetch work order and PO details for titles
+  const { data: workOrders = {} } = useQuery({
+    queryKey: ['workOrdersForActivity'],
+    queryFn: async () => {
+      try {
+        const all = await base44.entities.WorkOrder.list('', 100);
+        return Object.fromEntries(all.map(w => [w.id, w]));
+      } catch {
+        return {};
+      }
+    },
+  });
+
+  const { data: purchaseOrders = {} } = useQuery({
+    queryKey: ['poForActivity'],
+    queryFn: async () => {
+      try {
+        const all = await base44.entities.PurchaseOrder.list('', 100);
+        return Object.fromEntries(all.map(p => [p.id, p]));
+      } catch {
+        return {};
+      }
+    },
+  });
+
+  const { data: orders = {} } = useQuery({
+    queryKey: ['ordersForActivity'],
+    queryFn: async () => {
+      try {
+        const all = await base44.entities.Order.list('', 100);
+        return Object.fromEntries(all.map(o => [o.id, o]));
+      } catch {
+        return {};
+      }
+    },
+  });
+
   // Combine and sort all activities
   React.useEffect(() => {
     const combined = [...workOrderActivities, ...poActivities, ...productionActivities]
@@ -99,6 +136,22 @@ export default function RecentActivityWidget() {
       case 'file_upload': return 'Fil uppladdad';
       default: return 'Uppdatering';
     }
+  };
+
+  const getActivityTitle = (activity) => {
+    if (activity.entity_type === 'WorkOrder' && workOrders[activity.work_order_id]) {
+      const wo = workOrders[activity.work_order_id];
+      return `${wo.customer_name} - ${wo.name || 'Arbetsorder'}`;
+    }
+    if (activity.entity_type === 'PO' && purchaseOrders[activity.purchase_order_id]) {
+      const po = purchaseOrders[activity.purchase_order_id];
+      return `${po.supplier_name} - PO${po.po_number || ''}`;
+    }
+    if (activity.entity_type === 'Production' && orders[activity.order_id]) {
+      const ord = orders[activity.order_id];
+      return `${ord.customer_name} - Order${ord.order_number || ''}`;
+    }
+    return activity.entity_type;
   };
 
   const handleActivityClick = (activity) => {
@@ -148,16 +201,11 @@ export default function RecentActivityWidget() {
                   <Icon className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <p className="font-semibold text-white truncate">
-                      {getTypeLabel(activity.type)}
-                    </p>
-                  </div>
-                  <p className="text-white/50 text-xs mb-1 truncate">
-                    Order: <span className="text-white font-medium">{activity.entity_type}</span>
+                  <p className="font-semibold text-white truncate text-xs mb-1">
+                    {getActivityTitle(activity)}
                   </p>
-                  <p className="text-white/70 line-clamp-2 text-xs mb-1">
-                    {activity.message}
+                  <p className="text-white/70 text-xs mb-1">
+                    Uppdaterad — {getTypeLabel(activity.type)}
                   </p>
                   <p className="text-white/40 text-xs">
                     {format(new Date(activity.created_date), "d MMM HH:mm", { locale: sv })}
