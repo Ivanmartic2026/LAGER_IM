@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Search, Package, Factory, CheckCircle2, Truck,
-  Clock, ArrowRight, AlertCircle, Zap, ClipboardList, Plus
+  Clock, ArrowRight, AlertCircle, Zap, ClipboardList, Plus, Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -53,6 +53,13 @@ export default function WorkOrdersPage() {
 
   const activeOrders = workOrders.filter(wo => wo.status !== 'completed' && wo.status !== 'cancelled');
   const completedOrders = workOrders.filter(wo => wo.status === 'completed');
+
+  const deleteMutation = useMutation({
+    mutationFn: (workOrderId) => base44.entities.WorkOrder.delete(workOrderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workOrders'] });
+    }
+  });
 
   const filtered = workOrders.filter(wo => {
     const matchStage = stageFilter === 'all' || wo.current_stage === stageFilter;
@@ -185,28 +192,43 @@ export default function WorkOrdersPage() {
                         )}
                       </div>
 
-                      {/* Details Row: Customer, Delivery, Status */}
-                      <div className="grid grid-cols-3 gap-6 text-sm">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-white/40 text-xs">Kund</span>
-                          <span className="text-white font-medium">{wo.customer_name}</span>
+                      {/* Details Row: Customer, Delivery, Status, Delete */}
+                      <div className="flex items-end justify-between gap-4">
+                        <div className="grid grid-cols-3 gap-6 text-sm flex-1">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-white/40 text-xs">Kund</span>
+                            <span className="text-white font-medium">{wo.customer_name}</span>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-white/40 text-xs">Leverans</span>
+                            <span className={cn(
+                              "text-white font-medium",
+                              wo.delivery_date && new Date(wo.delivery_date) < new Date() && wo.status !== 'completed'
+                                ? 'text-red-400' : ''
+                            )}>
+                              {wo.delivery_date ? format(new Date(wo.delivery_date), 'd MMM', { locale: sv }) : '—'}
+                            </span>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-white/40 text-xs">Status</span>
+                            <span className={cn("text-xs font-bold px-2 py-1 rounded-lg border w-fit", status.color)}>
+                              {status.label}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <span className="text-white/40 text-xs">Leverans</span>
-                          <span className={cn(
-                            "text-white font-medium",
-                            wo.delivery_date && new Date(wo.delivery_date) < new Date() && wo.status !== 'completed'
-                              ? 'text-red-400' : ''
-                          )}>
-                            {wo.delivery_date ? format(new Date(wo.delivery_date), 'd MMM', { locale: sv }) : '—'}
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <span className="text-white/40 text-xs">Status</span>
-                          <span className={cn("text-xs font-bold px-2 py-1 rounded-lg border w-fit", status.color)}>
-                            {status.label}
-                          </span>
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (confirm('Vill du ta bort denna arbetsorder?')) {
+                              deleteMutation.mutate(wo.id);
+                            }
+                          }}
+                          className="text-white/50 hover:text-red-400 hover:bg-red-500/10 flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                       </div>
                       </motion.div>
