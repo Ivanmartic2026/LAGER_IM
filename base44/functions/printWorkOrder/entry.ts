@@ -29,18 +29,10 @@ Deno.serve(async (req) => {
     const margin = 15;
     let y = 15;
 
-    // Fix Swedish characters for jsPDF latin-1 encoding
+    // Fix Swedish characters for jsPDF UTF-8 encoding
     const fix = (str) => {
       if (!str) return '';
-      return String(str)
-        // Fix encoding corruption
-        .replace(/ï¿½/g, 'ö').replace(/ï¿½/g, 'ä').replace(/ï¿½/g, 'å')
-        // Standard replacements
-        .replace(/å/g, 'o').replace(/Å/g, 'O')
-        .replace(/ä/g, 'a').replace(/Ä/g, 'A')
-        .replace(/ö/g, 'o').replace(/Ö/g, 'O')
-        .replace(/é/g, 'e').replace(/É/g, 'E')
-        .replace(/[^\x00-\x7E]/g, '?');
+      return String(str).trim();
     };
 
     const addLine = (h = 4) => { y += h; };
@@ -96,22 +88,28 @@ Deno.serve(async (req) => {
     };
 
     const stageLabels = { picking: 'Plockning', production: 'Produktion', delivery: 'Leverans', completed: 'Klar' };
-    const priorityLabels = { low: 'Lag', normal: 'Normal', high: 'Hog', urgent: 'Bradskande' };
-    const statusLabels = { pending: 'Vantar', in_progress: 'Pagar', completed: 'Klar', cancelled: 'Avbruten' };
+    const priorityLabels = { låg: 'Låg', normal: 'Normal', hög: 'Hög', brådskande: 'Brådskande' };
+    const statusLabels = { väntande: 'Väntande', pågår: 'Pågår', klar: 'Klar', avbruten: 'Avbruten' };
 
-    infoBox('Kund', order.customer_name || '—', margin, y, 85);
-    infoBox('Status / Fas', stageLabels[wo.current_stage] || wo.current_stage || '—', margin + 90, y, 55);
-    infoBox('Prioritet', priorityLabels[wo.priority] || wo.priority || 'Normal', margin + 150, y, 45);
+    infoBox('Kund', order.customer_name || '—', margin, y, 55);
+    infoBox('Kundreferens', order.customer_reference || wo.customer_reference || '—', margin + 60, y, 55);
+    infoBox('Arbetsorder', wo.name || wo.order_number || '—', margin + 120, y, 75);
     y += 20;
 
     infoBox('Ordernummer', order.order_number || '—', margin, y, 55);
-    infoBox('Leveransdatum', wo.delivery_date || order.delivery_date || '—', margin + 60, y, 55);
-    infoBox('Kundref', order.customer_reference || '—', margin + 120, y, 75);
+    infoBox('Leverans', wo.delivery_date || order.delivery_date || '—', margin + 60, y, 55);
+    infoBox('Prioritet', priorityLabels[wo.priority] || wo.priority || 'Normal', margin + 120, y, 75);
     y += 20;
 
-    if (wo.assigned_to_production_name || wo.assigned_to_picking_name) {
-      infoBox('Tilldelad produktion', wo.assigned_to_production_name || '—', margin, y, 85);
-      infoBox('Tilldelad plockning', wo.assigned_to_picking_name || '—', margin + 90, y, 85);
+    if (wo.technician_name || wo.assigned_to_production_name) {
+      infoBox('Tekniker', wo.technician_name || wo.assigned_to_production_name || '—', margin, y, 85);
+      infoBox('Telefon', wo.technician_phone || '—', margin + 90, y, 85);
+      y += 18;
+    }
+
+    if (wo.delivery_contact_name) {
+      infoBox('Leveranskontakt', wo.delivery_contact_name || '—', margin, y, 85);
+      infoBox('Telefon', wo.delivery_contact_phone || '—', margin + 90, y, 85);
       y += 18;
     }
 
@@ -143,10 +141,17 @@ Deno.serve(async (req) => {
       y += lines.length * 5 + 1;
     };
 
+    // ── Project Description ────────────────────────────────
+    if (wo.project_description) {
+      sectionHeader('Projektbeskrivning');
+      field('Beskrivning', wo.project_description);
+      y += 4;
+    }
+
     // ── Order Info ──────────────────────────────────────────
     sectionHeader('Orderinformation');
     if (order.customer_name) field('Kund', order.customer_name);
-    if (order.customer_reference) field('Kundreferens', order.customer_reference);
+    if (order.customer_reference || wo.customer_reference) field('Kundreferens', order.customer_reference || wo.customer_reference);
     if (order.fortnox_customer_number) field('Fortnox kundnr', order.fortnox_customer_number);
     if (order.delivery_address) field('Leveransadress', order.delivery_address);
     if (order.delivery_method) field('Leveranssätt', order.delivery_method);
@@ -259,11 +264,13 @@ Deno.serve(async (req) => {
 
     // ── Checklist ───────────────────────────────────────────
     if (wo.checklist) {
-      sectionHeader('Produktionschecklista');
+      sectionHeader('Checklista');
       const checks = [
-        ['Monterad', wo.checklist.assembled],
-        ['Testad', wo.checklist.tested],
-        ['Redo for leverans', wo.checklist.ready_for_delivery],
+        ['Plockat', wo.checklist.picked],
+        ['Monterat', wo.checklist.assembled],
+        ['Testat', wo.checklist.tested],
+        ['Paketerat', wo.checklist.packed],
+        ['Redo för leverans', wo.checklist.ready_for_delivery],
       ];
       checks.forEach(([label, done]) => {
         checkPage(8);
@@ -278,8 +285,33 @@ Deno.serve(async (req) => {
       y += 2;
     }
 
+    // ── Total Overview ──────────────────────────────────────
+    if (wo.total_items || wo.total_weight_kg || wo.total_volume_m3) {
+      sectionHeader('Sammanfattning');
+      if (wo.total_items) field('Totalt antal artiklar', String(wo.total_items));
+      if (wo.total_weight_kg) field('Total vikt', `${wo.total_weight_kg} kg`);
+      if (wo.total_volume_m3) field('Total volym', `${wo.total_volume_m3} m³`);
+      y += 4;
+    }
+
+    // ── Timeline ─────────────────────────────────────────────
+    if (wo.planned_start_date || wo.planned_deadline) {
+      sectionHeader('Tidsplan');
+      if (wo.planned_start_date) field('Planerat start', new Date(wo.planned_start_date).toLocaleDateString('sv-SE'));
+      if (wo.planned_deadline) field('Deadline', new Date(wo.planned_deadline).toLocaleDateString('sv-SE'));
+      y += 4;
+    }
+
+    // ── Sign-off ────────────────────────────────────────────
+    if (wo.signed_off_by || wo.signed_off_date) {
+      sectionHeader('Godkännande');
+      if (wo.signed_off_by) field('Godkänt av', wo.signed_off_by);
+      if (wo.signed_off_date) field('Godkännandedatum', new Date(wo.signed_off_date).toLocaleString('sv-SE'));
+      y += 4;
+    }
+
     // ── Timestamps ──────────────────────────────────────────
-    sectionHeader('Tidsstamplar');
+    sectionHeader('Tider');
     if (wo.picking_started_date) field('Plockning startad', new Date(wo.picking_started_date).toLocaleString('sv-SE'));
     if (wo.picking_completed_date) field('Plockning klar', new Date(wo.picking_completed_date).toLocaleString('sv-SE'));
     if (wo.production_started_date) field('Produktion startad', new Date(wo.production_started_date).toLocaleString('sv-SE'));
@@ -296,8 +328,8 @@ Deno.serve(async (req) => {
         decision: 'Beslut',
         assignment: 'Tilldelning',
         file_upload: 'Fil uppladdad',
-        status_change: 'Statusandring',
-        field_change: 'Faltandring'
+        status_change: 'Statusändring',
+        field_change: 'Fältändring'
       };
 
       // Sort oldest first

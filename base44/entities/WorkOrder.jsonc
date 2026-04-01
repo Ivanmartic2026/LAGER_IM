@@ -18,6 +18,10 @@
       "type": "string",
       "description": "Kundnamn (kopierat fr\u00e5n Order)"
     },
+    "customer_reference": {
+      "type": "string",
+      "description": "Kundreferens"
+    },
     "delivery_date": {
       "type": "string",
       "format": "date",
@@ -37,12 +41,12 @@
     "status": {
       "type": "string",
       "enum": [
-        "pending",
-        "in_progress",
-        "completed",
-        "cancelled"
+        "v\u00e4ntande",
+        "p\u00e5g\u00e5r",
+        "klar",
+        "avbruten"
       ],
-      "default": "pending",
+      "default": "v\u00e4ntande",
       "description": "\u00d6vergripande status"
     },
     "tasks": {
@@ -68,20 +72,20 @@
           "status": {
             "type": "string",
             "enum": [
-              "pending",
-              "in_progress",
-              "completed"
+              "v\u00e4ntande",
+              "p\u00e5g\u00e5r",
+              "klar"
             ],
-            "default": "pending"
+            "default": "v\u00e4ntande"
           },
           "type": {
             "type": "string",
             "enum": [
-              "buy",
-              "manufacture",
-              "assemble"
+              "k\u00f6p",
+              "tillverka",
+              "montera"
             ],
-            "default": "assemble",
+            "default": "montera",
             "description": "Typ av arbetsmoment"
           },
           "started_date": {
@@ -107,11 +111,31 @@
     },
     "assigned_to_production": {
       "type": "string",
-      "description": "Tilldelad produktion (email)"
+      "description": "Tilldelad produktion/teknik (email)"
     },
     "assigned_to_production_name": {
       "type": "string",
-      "description": "Tilldelad produktion (namn)"
+      "description": "Tilldelad produktion/teknik (namn)"
+    },
+    "technician_name": {
+      "type": "string",
+      "description": "Ansvarig tekniker"
+    },
+    "technician_phone": {
+      "type": "string",
+      "description": "Teknikers telefon"
+    },
+    "delivery_contact_name": {
+      "type": "string",
+      "description": "Leveranskontakt namn"
+    },
+    "delivery_contact_phone": {
+      "type": "string",
+      "description": "Leveranskontakt telefon"
+    },
+    "project_description": {
+      "type": "string",
+      "description": "Tydlig projektbeskrivning"
     },
     "picking_started_date": {
       "type": "string",
@@ -132,28 +156,41 @@
     "production_status": {
       "type": "string",
       "enum": [
-        "started",
-        "in_progress",
-        "assembled",
-        "tested",
-        "completed"
+        "p\u00e5b\u00f6rjad",
+        "p\u00e5g\u00e5r",
+        "monterad",
+        "testad",
+        "klar"
       ],
-      "default": "started"
+      "default": "p\u00e5b\u00f6rjad"
     },
     "checklist": {
       "type": "object",
       "properties": {
+        "picked": {
+          "type": "boolean",
+          "default": false,
+          "description": "Plockat"
+        },
         "assembled": {
           "type": "boolean",
-          "default": false
+          "default": false,
+          "description": "Monterat"
         },
         "tested": {
           "type": "boolean",
-          "default": false
+          "default": false,
+          "description": "Testat"
+        },
+        "packed": {
+          "type": "boolean",
+          "default": false,
+          "description": "Paketerat"
         },
         "ready_for_delivery": {
           "type": "boolean",
-          "default": false
+          "default": false,
+          "description": "Redo f\u00f6r leverans"
         }
       }
     },
@@ -164,21 +201,24 @@
       }
     },
     "deviations": {
-      "type": "string"
+      "type": "string",
+      "description": "Avvikelser"
     },
     "picking_notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Plockanteckningar"
     },
     "production_notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Produktionsanteckningar"
     },
     "priority": {
       "type": "string",
       "enum": [
-        "low",
+        "l\u00e5g",
         "normal",
-        "high",
-        "urgent"
+        "h\u00f6g",
+        "br\u00e5dskande"
       ],
       "default": "normal"
     },
@@ -215,6 +255,10 @@
           "needs_purchase": {
             "type": "boolean",
             "default": false
+          },
+          "serial_number": {
+            "type": "string",
+            "description": "Serienummer f\u00f6r sp\u00e5rning"
           }
         }
       },
@@ -237,6 +281,37 @@
       "type": "boolean",
       "default": false,
       "description": "Indikerar om n\u00e5got material beh\u00f6ver k\u00f6pas in"
+    },
+    "planned_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Planerat startdatum"
+    },
+    "planned_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Planerad deadline"
+    },
+    "signed_off_by": {
+      "type": "string",
+      "description": "Godk\u00e4nt av (email)"
+    },
+    "signed_off_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Godk\u00e4nnandedatum"
+    },
+    "total_items": {
+      "type": "number",
+      "description": "Totalt antal artiklar"
+    },
+    "total_weight_kg": {
+      "type": "number",
+      "description": "Total vikt i kg"
+    },
+    "total_volume_m3": {
+      "type": "number",
+      "description": "Total volym i m\u00b3"
     }
   },
   "required": [
