@@ -36,6 +36,19 @@ export default function WorkOrderViewPage() {
     enabled: !!workOrderId
   });
 
+  // Real-time listener for WorkOrder changes
+  useEffect(() => {
+    if (!workOrderId) return;
+    
+    const unsubscribe = base44.entities.WorkOrder.subscribe((event) => {
+      if (event.id === workOrderId) {
+        queryClient.setQueryData(['workOrder', workOrderId], event.data);
+      }
+    });
+
+    return unsubscribe;
+  }, [workOrderId, queryClient]);
+
   const { data: order } = useQuery({
     queryKey: ['order', workOrder?.order_id],
     queryFn: async () => {
