@@ -9,18 +9,18 @@ Deno.serve(async (req) => {
 
     const { work_order_id } = await req.json();
 
-    // Fetch data
-    const [woList, allItems] = await Promise.all([
+    // Fetch all data in parallel
+    const [woList] = await Promise.all([
       base44.asServiceRole.entities.WorkOrder.filter({ id: work_order_id }),
-      base44.asServiceRole.entities.OrderItem.filter({ order_id: '' }) // placeholder
     ]);
 
     const wo = woList[0];
     if (!wo) return Response.json({ error: 'Not found' }, { status: 404 });
 
-    const [orderList, orderItems] = await Promise.all([
+    const [orderList, orderItems, activities] = await Promise.all([
       base44.asServiceRole.entities.Order.filter({ id: wo.order_id }),
-      base44.asServiceRole.entities.OrderItem.filter({ order_id: wo.order_id })
+      base44.asServiceRole.entities.OrderItem.filter({ order_id: wo.order_id }),
+      base44.asServiceRole.entities.WorkOrderActivity.filter({ work_order_id: work_order_id }),
     ]);
     const order = orderList[0] || {};
 
@@ -69,14 +69,16 @@ Deno.serve(async (req) => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
       doc.setTextColor(20, 20, 20);
-      doc.text(String(value || '—'), x + 4, boxY + 11);
+      const val = doc.splitTextToSize(String(value || '—'), w - 8);
+      doc.text(val[0], x + 4, boxY + 11);
     };
 
     const stageLabels = { picking: 'Plockning', production: 'Produktion', delivery: 'Leverans', completed: 'Klar' };
     const priorityLabels = { low: 'Låg', normal: 'Normal', high: 'Hög', urgent: 'Brådskande' };
+    const statusLabels = { pending: 'Väntar', in_progress: 'Pågår', completed: 'Klar', cancelled: 'Avbruten' };
 
     infoBox('Kund', order.customer_name || '—', margin, y, 85);
-    infoBox('Status / Fas', stageLabels[wo.current_stage] || wo.current_stage, margin + 90, y, 55);
+    infoBox('Status / Fas', stageLabels[wo.current_stage] || wo.current_stage || '—', margin + 90, y, 55);
     infoBox('Prioritet', priorityLabels[wo.priority] || wo.priority || 'Normal', margin + 150, y, 45);
     y += 18;
 
@@ -117,6 +119,29 @@ Deno.serve(async (req) => {
       y += lines.length * 5 + 1;
     };
 
+    // ── Order Info ──────────────────────────────────────────
+    sectionHeader('Orderinformation');
+    if (order.customer_name) field('Kund', order.customer_name);
+    if (order.customer_reference) field('Kundreferens', order.customer_reference);
+    if (order.fortnox_customer_number) field('Fortnox kundnr', order.fortnox_customer_number);
+    if (order.delivery_address) field('Leveransadress', order.delivery_address);
+    if (order.delivery_method) field('Leveranssätt', order.delivery_method);
+    if (order.shipping_company) field('Speditör', order.shipping_company);
+    if (order.notes) field('Anteckningar (order)', order.notes);
+    if (order.rm_system_id) field('RM System ID', order.rm_system_id);
+    if (order.fortnox_project_number) field('Fortnox Projekt', order.fortnox_project_number);
+
+    // ── Work Order Info ─────────────────────────────────────
+    sectionHeader('Arbetsorder detaljer');
+    field('Arbetsorder', wo.name || '—');
+    field('Status', statusLabels[wo.status] || wo.status || '—');
+    field('Fas', stageLabels[wo.current_stage] || wo.current_stage || '—');
+    field('Prioritet', priorityLabels[wo.priority] || wo.priority || 'Normal');
+    if (wo.production_status) field('Produktionsstatus', wo.production_status);
+    if (wo.picking_notes) field('Plockanteckningar', wo.picking_notes);
+    if (wo.production_notes) field('Produktionsanteckningar', wo.production_notes);
+    if (wo.deviations) field('Avvikelser', wo.deviations);
+
     // ── Materials / artiklar ────────────────────────────────
     if (orderItems.length > 0) {
       sectionHeader('Artiklar / Materiallista');
@@ -127,8 +152,10 @@ Deno.serve(async (req) => {
       doc.setFontSize(8);
       doc.setTextColor(40, 40, 40);
       doc.text('Artikel', margin + 2, y + 5);
-      doc.text('Antal', W - margin - 30, y + 5, { align: 'right' });
-      doc.text('Plockad', W - margin - 2, y + 5, { align: 'right' });
+      doc.text('Batch', margin + 90, y + 5);
+      doc.text('Hylla', margin + 125, y + 5);
+      doc.text('Best.', W - margin - 18, y + 5, { align: 'right' });
+      doc.text('Plockat', W - margin - 2, y + 5, { align: 'right' });
       y += 8;
 
       orderItems.forEach((item, idx) => {
@@ -140,10 +167,61 @@ Deno.serve(async (req) => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(20, 20, 20);
-        const name = doc.splitTextToSize(item.article_name || item.article_id || '—', 110);
+        const name = doc.splitTextToSize(item.article_name || item.article_id || '—', 85);
         doc.text(name[0], margin + 2, y + 4);
-        doc.text(String(item.quantity_ordered || 0), W - margin - 30, y + 4, { align: 'right' });
-        doc.text(String(item.quantity_picked || 0), W - margin - 2, y + 4, { align: 'right' });
+        doc.text(String(item.article_batch_number || '—'), margin + 90, y + 4);
+        doc.text(String(item.shelf_address || '—'), margin + 125, y + 4);
+        doc.text(String(item.quantity_ordered || 0), W - margin - 18, y + 4, { align: 'right' });
+        
+        // Color picked qty
+        const picked = item.quantity_picked || 0;
+        const ordered = item.quantity_ordered || 0;
+        if (picked >= ordered) doc.setTextColor(22, 163, 74);
+        else if (picked > 0) doc.setTextColor(217, 119, 6);
+        else doc.setTextColor(180, 180, 180);
+        doc.text(String(picked), W - margin - 2, y + 4, { align: 'right' });
+        doc.setTextColor(20, 20, 20);
+        y += 7;
+      });
+      y += 4;
+    }
+
+    // ── WO Tasks ────────────────────────────────────────────
+    if (wo.tasks && wo.tasks.length > 0) {
+      sectionHeader('Arbetsmoment');
+      const taskStatusLabels = { pending: 'Väntar', in_progress: 'Pågår', completed: 'Klar' };
+      const taskTypeLabels = { buy: 'Köp', manufacture: 'Tillverka', assemble: 'Montera' };
+
+      doc.setFillColor(230, 230, 230);
+      doc.rect(margin, y, W - margin * 2, 7, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(40, 40, 40);
+      doc.text('Moment', margin + 2, y + 5);
+      doc.text('Typ', margin + 100, y + 5);
+      doc.text('Ansvarig', margin + 125, y + 5);
+      doc.text('Status', W - margin - 2, y + 5, { align: 'right' });
+      y += 8;
+
+      wo.tasks.forEach((task, idx) => {
+        checkPage(7);
+        if (idx % 2 === 0) {
+          doc.setFillColor(250, 250, 250);
+          doc.rect(margin, y - 1, W - margin * 2, 7, 'F');
+        }
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(20, 20, 20);
+        const title = doc.splitTextToSize(task.title || '—', 95);
+        doc.text(title[0], margin + 2, y + 4);
+        doc.text(taskTypeLabels[task.type] || task.type || '—', margin + 100, y + 4);
+        doc.text(task.assigned_name || task.assigned_to || '—', margin + 125, y + 4);
+        const s = task.status || 'pending';
+        if (s === 'completed') doc.setTextColor(22, 163, 74);
+        else if (s === 'in_progress') doc.setTextColor(217, 119, 6);
+        else doc.setTextColor(180, 180, 180);
+        doc.text(taskStatusLabels[s] || s, W - margin - 2, y + 4, { align: 'right' });
+        doc.setTextColor(20, 20, 20);
         y += 7;
       });
       y += 4;
@@ -170,42 +248,81 @@ Deno.serve(async (req) => {
       y += 2;
     }
 
-    // ── Notes ───────────────────────────────────────────────
-    if (wo.production_notes) {
-      sectionHeader('Anteckningar');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(40, 40, 40);
-      const lines = doc.splitTextToSize(wo.production_notes, W - margin * 2 - 4);
-      lines.forEach(line => {
-        checkPage(6);
-        doc.text(line, margin + 2, y);
-        y += 5;
-      });
-      y += 4;
-    }
-
-    // ── Deviations ──────────────────────────────────────────
-    if (wo.deviations) {
-      sectionHeader('Avvikelser');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(40, 40, 40);
-      const lines = doc.splitTextToSize(wo.deviations, W - margin * 2 - 4);
-      lines.forEach(line => {
-        checkPage(6);
-        doc.text(line, margin + 2, y);
-        y += 5;
-      });
-      y += 4;
-    }
-
     // ── Timestamps ──────────────────────────────────────────
     sectionHeader('Tidsstämplar');
     if (wo.picking_started_date) field('Plockning startad', new Date(wo.picking_started_date).toLocaleString('sv-SE'));
     if (wo.picking_completed_date) field('Plockning klar', new Date(wo.picking_completed_date).toLocaleString('sv-SE'));
     if (wo.production_started_date) field('Produktion startad', new Date(wo.production_started_date).toLocaleString('sv-SE'));
     if (wo.production_completed_date) field('Produktion klar', new Date(wo.production_completed_date).toLocaleString('sv-SE'));
+
+    // ── Activity log ────────────────────────────────────────
+    if (activities && activities.length > 0) {
+      sectionHeader('Aktivitetslogg / Kommentarer');
+
+      const typeLabels = {
+        comment: 'Kommentar',
+        system: 'System',
+        decision: 'Beslut',
+        assignment: 'Tilldelning',
+        file_upload: 'Fil uppladdad',
+        status_change: 'Statusändring',
+        field_change: 'Fältändring'
+      };
+
+      // Sort oldest first
+      const sorted = [...activities].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+
+      sorted.forEach((act, idx) => {
+        checkPage(16);
+
+        // Row background
+        if (idx % 2 === 0) {
+          doc.setFillColor(248, 248, 248);
+          doc.rect(margin, y - 1, W - margin * 2, 14, 'F');
+        }
+
+        // Type badge color
+        const isDecision = act.is_decision;
+        const type = act.type || 'comment';
+        if (isDecision) doc.setTextColor(124, 58, 237);
+        else if (type === 'system') doc.setTextColor(100, 100, 100);
+        else if (type === 'status_change') doc.setTextColor(37, 99, 235);
+        else doc.setTextColor(20, 20, 20);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.text(`[${typeLabels[type] || type}]${isDecision ? ' ★ BESLUT' : ''}`, margin + 2, y + 4);
+
+        // Actor + time
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(120, 120, 120);
+        const timeStr = act.created_date ? new Date(act.created_date).toLocaleString('sv-SE') : '';
+        const actor = act.actor_name || act.actor_email || '';
+        doc.text(`${actor}  ${timeStr}`, W - margin - 2, y + 4, { align: 'right' });
+
+        // Message
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(20, 20, 20);
+        const msgLines = doc.splitTextToSize(act.message || '—', W - margin * 2 - 4);
+        msgLines.slice(0, 2).forEach((line, li) => {
+          doc.text(line, margin + 2, y + 9 + li * 4);
+        });
+
+        // Field change extra info
+        if (type === 'field_change' && act.old_value && act.new_value) {
+          doc.setFontSize(7);
+          doc.setTextColor(100, 100, 100);
+          const changeText = `${act.field_name || ''}: "${act.old_value}" → "${act.new_value}"`;
+          const changeLines = doc.splitTextToSize(changeText, W - margin * 2 - 4);
+          doc.text(changeLines[0], margin + 2, y + (msgLines.length > 0 ? 13 : 9));
+        }
+
+        y += 15;
+      });
+      y += 4;
+    }
 
     // ── Footer on each page ─────────────────────────────────
     const pageCount = doc.getNumberOfPages();
