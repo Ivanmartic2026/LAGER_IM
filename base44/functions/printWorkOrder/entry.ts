@@ -50,31 +50,31 @@ Deno.serve(async (req) => {
 
     // ── Header bar ──────────────────────────────────────────
     doc.setFillColor(245, 245, 250);
-    doc.rect(0, 0, W, 30, 'F');
+    doc.rect(0, 0, W, 36, 'F');
     
     // Header border
     doc.setDrawColor(37, 99, 235);
     doc.setLineWidth(2);
-    doc.line(0, 30, W, 30);
+    doc.line(0, 36, W, 36);
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(24);
     doc.setTextColor(20, 20, 40);
-    doc.text('ARBETSORDER', margin, 14);
+    doc.text('ARBETSORDER', margin, 13);
+
+    // WO number on second line, right aligned
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(37, 99, 235);
+    const woLabel = wo.name || wo.order_number || work_order_id.slice(0, 8);
+    doc.text(woLabel, W - margin, 23, { align: 'right' });
 
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 120);
-    doc.text(`Utskriven: ${new Date().toLocaleDateString('sv-SE')} ${new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`, margin, 21);
+    doc.text(`Utskriven: ${new Date().toLocaleDateString('sv-SE')} ${new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`, margin, 30);
 
-    // WO number top right
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.setTextColor(37, 99, 235);
-    const woLabel = wo.name || wo.order_number || work_order_id.slice(0, 8);
-    doc.text(woLabel, W - margin, 14, { align: 'right' });
-
-    y = 38;
+    y = 42;
     doc.setTextColor(20, 20, 20);
 
     // ── Info grid ───────────────────────────────────────────
