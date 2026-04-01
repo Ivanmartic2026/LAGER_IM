@@ -143,8 +143,6 @@ function ActivityItem({ activity }) {
 export default function ActivityFeed({ entityType, entityId, logFunctionName, idField }) {
   const queryClient = useQueryClient();
   const [comment, setComment] = useState('');
-  const [isDecision, setIsDecision] = useState(false);
-  const [decisionReason, setDecisionReason] = useState('');
   const [showAll, setShowAll] = useState(false);
 
   const entityMap = {
@@ -170,18 +168,14 @@ export default function ActivityFeed({ entityType, entityId, logFunctionName, id
     mutationFn: async () => {
       const payload = {
         [idField]: entityId,
-        type: isDecision ? 'decision' : 'comment',
+        type: 'comment',
         message: comment,
-        is_decision: isDecision,
-        decision_reason: isDecision ? decisionReason : null,
       };
       return base44.functions.invoke(logFunctionName, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [entityType, entityId] });
       setComment('');
-      setIsDecision(false);
-      setDecisionReason('');
     },
   });
 
@@ -199,20 +193,7 @@ export default function ActivityFeed({ entityType, entityId, logFunctionName, id
           className="min-h-[80px] resize-none bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-blue-500/50"
         />
 
-        <div className="flex items-center justify-between mt-3 gap-3 flex-wrap">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isDecision}
-              onChange={(e) => setIsDecision(e.target.checked)}
-              className="rounded bg-white/10 border-white/20"
-            />
-            <span className="text-sm text-white/60 flex items-center gap-1">
-              <Gavel className="w-3.5 h-3.5 text-amber-400" />
-              Markera som beslut
-            </span>
-          </label>
-
+        <div className="flex items-center justify-end mt-3 gap-3 flex-wrap">
           <Button
             size="sm"
             onClick={() => addComment.mutate()}
@@ -223,17 +204,6 @@ export default function ActivityFeed({ entityType, entityId, logFunctionName, id
             Skicka
           </Button>
         </div>
-
-        {isDecision && (
-          <div className="mt-3">
-            <Textarea
-              placeholder="Motivering till beslutet (valfritt)..."
-              value={decisionReason}
-              onChange={(e) => setDecisionReason(e.target.value)}
-              className="min-h-[60px] resize-none bg-amber-500/10 border-amber-500/30 text-white placeholder:text-amber-300/40 text-sm"
-            />
-          </div>
-        )}
       </div>
 
       {/* Timeline */}
