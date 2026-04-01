@@ -24,10 +24,10 @@ const STAGE_CONFIG = {
 };
 
 const STATUS_CONFIG = {
-  pending: { label: 'Väntar', dot: 'bg-white/40' },
-  in_progress: { label: 'Pågår', dot: 'bg-blue-400' },
-  completed: { label: 'Klar', dot: 'bg-green-400' },
-  cancelled: { label: 'Avbruten', dot: 'bg-red-400' }
+  pending: { label: 'Väntar', color: 'bg-white/10 text-white/50 border-white/20' },
+  in_progress: { label: 'Pågår', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  completed: { label: 'Klar', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  cancelled: { label: 'Avbruten', color: 'bg-red-500/20 text-red-400 border-red-500/30' }
 };
 
 const PRIORITY_CONFIG = {
@@ -203,7 +203,7 @@ export default function WorkOrdersPage() {
                         </div>
                         <div className="flex flex-col gap-1">
                           <span className="text-white/40 text-xs">Status</span>
-                          <span className={cn("text-white font-medium", status.dot ? 'text-' + status.dot.split('-')[1] : '')}>
+                          <span className={cn("text-xs font-bold px-2 py-1 rounded-lg border w-fit", status.color)}>
                             {status.label}
                           </span>
                         </div>
