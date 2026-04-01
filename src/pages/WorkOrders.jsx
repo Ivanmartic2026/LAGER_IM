@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Search, Package, Factory, CheckCircle2, Truck,
-  Clock, ArrowRight, AlertCircle, Zap, ClipboardList, Plus, Trash2, Edit2
+  Clock, ArrowRight, AlertCircle, Zap, ClipboardList, Plus, Trash2, Edit2, Download
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -220,31 +220,55 @@ export default function WorkOrdersPage() {
                           </div>
                         </div>
                         <div className="flex gap-2 flex-shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              navigate(createPageUrl(`WorkOrderView?id=${wo.id}&edit=true`));
-                            }}
-                            className="text-white/50 hover:text-blue-400 hover:bg-blue-500/10"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (confirm('Vill du ta bort denna arbetsorder?')) {
-                                deleteMutation.mutate(wo.id);
-                              }
-                            }}
-                            className="text-white/50 hover:text-red-400 hover:bg-red-500/10"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={(e) => {
+                               e.preventDefault();
+                               navigate(createPageUrl(`PickOrder?id=${wo.id}`));
+                             }}
+                             className="text-white/50 hover:text-green-400 hover:bg-green-500/10 gap-1"
+                           >
+                             <Package className="w-4 h-4" />
+                             <span className="hidden sm:inline text-xs">Ta ut från lager</span>
+                           </Button>
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={(e) => {
+                               e.preventDefault();
+                               base44.functions.invoke('printWorkOrder', { work_order_id: wo.id });
+                             }}
+                             className="text-white/50 hover:text-purple-400 hover:bg-purple-500/10 gap-1"
+                           >
+                             <Download className="w-4 h-4" />
+                             <span className="hidden sm:inline text-xs">Plocklista</span>
+                           </Button>
+                           <Button
+                             variant="ghost"
+                             size="icon"
+                             onClick={(e) => {
+                               e.preventDefault();
+                               navigate(createPageUrl(`WorkOrderView?id=${wo.id}&edit=true`));
+                             }}
+                             className="text-white/50 hover:text-blue-400 hover:bg-blue-500/10"
+                           >
+                             <Edit2 className="w-4 h-4" />
+                           </Button>
+                           <Button
+                             variant="ghost"
+                             size="icon"
+                             onClick={(e) => {
+                               e.preventDefault();
+                               if (confirm('Vill du ta bort denna arbetsorder?')) {
+                                 deleteMutation.mutate(wo.id);
+                               }
+                             }}
+                             className="text-white/50 hover:text-red-400 hover:bg-red-500/10"
+                           >
+                             <Trash2 className="w-4 h-4" />
+                           </Button>
+                         </div>
                       </div>
                       </div>
                       </motion.div>
