@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Search, Package, Factory, CheckCircle2, Truck,
-  Clock, ArrowRight, AlertCircle, Zap, ClipboardList, Plus, Trash2
+  Clock, ArrowRight, AlertCircle, Zap, ClipboardList, Plus, Trash2, Upload, FileUp
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -41,6 +41,8 @@ export default function WorkOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+  const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -60,6 +62,26 @@ export default function WorkOrdersPage() {
       queryClient.invalidateQueries({ queryKey: ['workOrders'] });
     }
   });
+
+  const handleDocumentUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingDocument(true);
+
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      // File uploaded successfully, URL is available at file_url
+      alert(`Fil uppladdad: ${file.name}`);
+    } catch (error) {
+      alert('Kunde inte ladda upp fil: ' + error.message);
+    } finally {
+      setIsUploadingDocument(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   const filtered = workOrders.filter(wo => {
     const matchStage = stageFilter === 'all' || wo.current_stage === stageFilter;
@@ -237,6 +259,40 @@ export default function WorkOrdersPage() {
             })}
           </div>
         )}
+
+        {/* File Upload Section */}
+        <div className="mt-12 pt-8 border-t border-white/10">
+          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <FileUp className="w-5 h-5" />
+            Dokument
+          </h2>
+          
+          <div className="p-6 rounded-2xl border border-dashed border-white/20 hover:border-white/40 transition-colors">
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleDocumentUpload}
+              className="hidden"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+            />
+            
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingDocument}
+              className="w-full flex flex-col items-center gap-3 py-8 cursor-pointer"
+            >
+              <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <Upload className="w-6 h-6 text-blue-400" />
+              </div>
+              <div className="text-center">
+                <p className="text-white font-medium">
+                  {isUploadingDocument ? 'Laddar upp...' : 'Ladda upp dokument'}
+                </p>
+                <p className="text-white/50 text-sm">PDF, bilder, Word, Excel</p>
+              </div>
+            </button>
+          </div>
+        </div>
       </div>
 
       <CreateProductionWorkOrderModal open={createModalOpen} onOpenChange={setCreateModalOpen} />
