@@ -168,7 +168,7 @@ export default function RecentActivityWidget() {
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="fixed right-0 top-20 w-64 bg-gradient-to-b from-slate-900/80 to-black/60 backdrop-blur-xl border-l border-white/10 z-30 hidden lg:flex flex-col max-h-[calc(100vh-120px)] overflow-hidden"
+      className="fixed right-0 top-20 w-96 bg-gradient-to-b from-slate-900/80 to-black/60 backdrop-blur-xl border-l border-white/10 z-30 hidden lg:flex flex-col max-h-[calc(100vh-120px)] overflow-hidden"
     >
       {/* Header */}
       <div className="px-4 py-3 border-b border-white/10 flex-shrink-0">
