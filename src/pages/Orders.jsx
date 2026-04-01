@@ -900,7 +900,14 @@ export default function OrdersPage() {
                     </div>
 
                     <div className="flex items-start justify-between">
-                      <div></div>
+                      <div>
+                        {order.sales_completed && (
+                          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-500/30">
+                            <CheckCircle2 className="w-4 h-4 text-green-400" />
+                            <span className="text-xs font-medium text-green-400">Försäljning slutförd</span>
+                          </div>
+                        )}
+                      </div>
 
                       <div className="flex gap-2 ml-4 flex-wrap justify-end">
                         <Button
