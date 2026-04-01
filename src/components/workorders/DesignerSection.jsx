@@ -60,8 +60,14 @@ export default function DesignerSection({ workOrderId }) {
 
   // Update task status mutation
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, status }) =>
-      base44.entities.Task.update(id, { status }),
+    mutationFn: ({ id, status }) => {
+      const updateData = { status };
+      // Add completed timestamp when marking as done
+      if (status === 'completed') {
+        updateData.completed_date = new Date().toISOString();
+      }
+      return base44.entities.Task.update(id, updateData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['designerTasks', workOrderId] });
       toast.success('Uppgift uppdaterad');
@@ -247,6 +253,11 @@ export default function DesignerSection({ workOrderId }) {
                   {task.due_date && (
                     <p className="text-xs text-white/40 mt-1">
                       Klart senast: {format(new Date(task.due_date), 'PPP', { locale: sv })}
+                    </p>
+                  )}
+                  {task.status === 'completed' && task.completed_date && (
+                    <p className="text-xs text-green-400/70 mt-1">
+                      ✓ Klar {format(new Date(task.completed_date), 'PPP HH:mm', { locale: sv })}
                     </p>
                   )}
                 </div>
