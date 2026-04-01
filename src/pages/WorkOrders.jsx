@@ -172,7 +172,7 @@ export default function WorkOrdersPage() {
                               }
                             }}
                             onClick={e => e.stopPropagation()}
-                            className="font-bold text-lg text-white bg-transparent border-b border-white/20 hover:border-white/40 focus:border-white/60 focus:outline-none px-1 py-0 transition-colors truncate"
+                            className="font-bold text-lg text-white bg-transparent border-b border-white/20 hover:border-white/40 focus:border-white/60 focus:outline-none px-1 py-0 transition-colors max-w-xs"
                           />
                           <span className={cn("text-xs font-bold px-2 py-1 rounded-lg", stage.color)}>
                             {stage.label}
