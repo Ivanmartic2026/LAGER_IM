@@ -33,7 +33,10 @@ Deno.serve(async (req) => {
     const fix = (str) => {
       if (!str) return '';
       return String(str)
-        .replace(/å/g, 'a').replace(/Å/g, 'A')
+        // Fix encoding corruption
+        .replace(/ï¿½/g, 'ö').replace(/ï¿½/g, 'ä').replace(/ï¿½/g, 'å')
+        // Standard replacements
+        .replace(/å/g, 'o').replace(/Å/g, 'O')
         .replace(/ä/g, 'a').replace(/Ä/g, 'A')
         .replace(/ö/g, 'o').replace(/Ö/g, 'O')
         .replace(/é/g, 'e').replace(/É/g, 'E')
