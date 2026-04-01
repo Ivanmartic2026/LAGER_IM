@@ -152,10 +152,24 @@ export default function OrderEdit() {
 
       return savedOrder;
     },
-    onSuccess: (savedOrder) => {
+    onSuccess: async (savedOrder) => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orderItems'] });
       queryClient.invalidateQueries({ queryKey: ['articles'] });
+      
+      // Log activity
+      if (orderId) {
+        try {
+          await base44.functions.invoke('logProductionActivity', {
+            order_id: orderId,
+            type: 'field_change',
+            message: 'Order uppdaterad',
+          });
+        } catch (e) {
+          console.error('Activity log failed:', e);
+        }
+      }
+      
       toast.success(orderId ? "Order uppdaterad" : "Order skapad");
       navigate('/Orders');
     },

@@ -78,9 +78,20 @@ export default function WorkOrderViewPage() {
 
   const updateWOMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.WorkOrder.update(id, data),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['workOrder', workOrderId] });
       queryClient.invalidateQueries({ queryKey: ['workOrders'] });
+      
+      // Log activity
+      try {
+        await base44.functions.invoke('logWorkOrderActivity', {
+          work_order_id: workOrderId,
+          type: 'field_change',
+          message: 'Arbetsorder uppdaterad',
+        });
+      } catch (e) {
+        console.error('Activity log failed:', e);
+      }
     }
   });
 
