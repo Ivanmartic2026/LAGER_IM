@@ -240,6 +240,20 @@ Deno.serve(async (req) => {
                 <div class="info-value">${order.customer_reference}</div>
               </div>
               ` : ''}
+              ${order.fortnox_project_number ? `
+              <div class="info-item">
+                <div class="info-label">Fortnox projektnr</div>
+                <div class="info-value">${order.fortnox_project_number}</div>
+                ${order.fortnox_project_name ? `<div class="info-label" style="margin-top:5px;">Projektnamn</div><div class="info-value">${order.fortnox_project_name}</div>` : ''}
+              </div>
+              ` : ''}
+              ${order.fortnox_order_id ? `
+              <div class="info-item">
+                <div class="info-label">Fortnox Order-ID</div>
+                <div class="info-value">${order.fortnox_order_id}</div>
+                ${order.fortnox_document_number ? `<div class="info-label" style="margin-top:5px;">Dokument-ID</div><div class="info-value">${order.fortnox_document_number}</div>` : ''}
+              </div>
+              ` : ''}
             </div>
 
             <div class="customer-box">
@@ -251,6 +265,18 @@ Deno.serve(async (req) => {
                 </div>
               ` : ''}
             </div>
+
+            ${order.site_visit_info || (order.site_names && order.site_names.length > 0) ? `
+            <div class="customer-box" style="margin-bottom: 30px;">
+              <div class="customer-label">Site / Platsbesök</div>
+              ${order.site_names && order.site_names.length > 0 ? `
+                <div style="font-size: 15px; font-weight: 500; color: #000; margin-bottom: 6px;">${order.site_names.join(', ')}</div>
+              ` : ''}
+              ${order.site_visit_info ? `
+                <div style="color: #333333; font-size: 14px; line-height: 1.6; margin-top: 6px; white-space: pre-line;">${order.site_visit_info}</div>
+              ` : ''}
+            </div>
+            ` : ''}
 
             <table>
               <thead>
