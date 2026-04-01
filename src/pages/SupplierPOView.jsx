@@ -274,30 +274,30 @@ function RequirementsSection({ onContinue }) {
 
   return (
     <div className="space-y-5">
-      <div className="p-4 bg-blue-500/20 border border-blue-500/30 rounded-xl">
-        <h3 className="font-semibold text-blue-400 mb-1 flex items-center gap-2">
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+        <h3 className="font-semibold text-blue-900 mb-1 flex items-center gap-2">
           <FileText className="w-4 h-4" />
           Required Documents from Supplier
         </h3>
-        <p className="text-sm text-blue-300">All documents must be uploaded in the <strong>Upload Documents</strong> tab. All information must match the purchase order exactly.</p>
+        <p className="text-sm text-blue-700">All documents must be uploaded in the <strong>Upload Documents</strong> tab. All information must match the purchase order exactly.</p>
       </div>
 
       {phases.map(phase => {
         const phaseDocs = docs.filter(d => d.phase === phase);
         return (
           <div key={phase}>
-            <h4 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <div className="h-px flex-1 bg-white/20" />
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+              <div className="h-px flex-1 bg-slate-300" />
               {phase}
-              <div className="h-px flex-1 bg-white/20" />
+              <div className="h-px flex-1 bg-slate-300" />
             </h4>
             <div className="space-y-2">
               {phaseDocs.map((item, i) => (
-                <div key={i} className="flex items-start gap-3 p-3.5 bg-white/5 rounded-xl border border-white/10">
+                <div key={i} className="flex items-start gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
                   <span className="text-lg flex-shrink-0 leading-none mt-0.5">{item.icon}</span>
                   <div>
-                    <div className="font-semibold text-white text-sm">{item.doc}</div>
-                    <div className="text-xs text-white/50 mt-0.5">{item.note}</div>
+                    <div className="font-semibold text-slate-900 text-sm">{item.doc}</div>
+                    <div className="text-xs text-slate-600 mt-0.5">{item.note}</div>
                   </div>
                 </div>
               ))}
@@ -306,7 +306,7 @@ function RequirementsSection({ onContinue }) {
         );
       })}
 
-      <div className="p-4 bg-amber-500/20 border border-amber-500/30 rounded-xl text-sm text-amber-300">
+      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-900">
         ⚠️ <strong>Do not ship</strong> until all documents have been uploaded and approved by IMvision.
       </div>
 
