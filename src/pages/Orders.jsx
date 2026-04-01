@@ -42,7 +42,7 @@ export default function OrdersPage() {
 
   const [viewMode, setViewMode] = useState(storedState.viewMode || "orders");
   const [searchQuery, setSearchQuery] = useState(storedState.searchQuery || "");
-  const [statusFilter, setStatusFilter] = useState(storedState.statusFilter || "ready_to_pick");
+  const [statusFilter, setStatusFilter] = useState(storedState.statusFilter || "all");
   const [invoiceFilter, setInvoiceFilter] = useState(storedState.invoiceFilter || "all");
   const [sortBy, setSortBy] = useState(storedState.sortBy || "date_desc");
   const [showForm, setShowForm] = useState(false);
@@ -339,18 +339,32 @@ export default function OrdersPage() {
 
   const statusColors = {
     draft: "bg-slate-500/20 text-slate-400 border-slate-500/30",
-    ready_to_pick: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    ready_for_handover: "bg-blue-400/20 text-blue-300 border-blue-400/30",
+    handed_over: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+    planning: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+    construction: "bg-violet-500/20 text-violet-400 border-violet-500/30",
+    ready_for_production: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+    in_production: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+    ready_for_warehouse: "bg-teal-500/20 text-teal-400 border-teal-500/30",
     picking: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-    picked: "bg-green-500/20 text-green-400 border-green-500/30",
+    ready_for_delivery: "bg-lime-500/20 text-lime-400 border-lime-500/30",
+    shipped: "bg-blue-500/20 text-blue-400 border-blue-500/30",
     delivered: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
     cancelled: "bg-red-500/20 text-red-400 border-red-500/30"
   };
 
   const statusLabels = {
     draft: "Utkast",
-    ready_to_pick: "Redo att plocka",
-    picking: "Plockar",
-    picked: "Plockad",
+    ready_for_handover: "Klar för överlämning",
+    handed_over: "Överlämnad",
+    planning: "Planering",
+    construction: "Konstruktion",
+    ready_for_production: "Klar för produktion",
+    in_production: "I produktion",
+    ready_for_warehouse: "Klar för lager",
+    picking: "Plockas",
+    ready_for_delivery: "Klar för leverans",
+    shipped: "Skickad",
     delivered: "Levererad",
     cancelled: "Avbruten"
   };
@@ -363,7 +377,7 @@ export default function OrdersPage() {
       if (!article) return acc;
 
       const order = orders.find(o => o.id === item.order_id);
-      if (!order || !['ready_to_pick', 'picking'].includes(order.status)) return acc;
+      if (!order || !['picking'].includes(order.status)) return acc;
 
       const existingTask = acc.find(t => t.article_id === item.article_id);
       
@@ -565,10 +579,10 @@ export default function OrdersPage() {
 
           <motion.button
             whileHover={{ y: -4, transition: { duration: 0.2 } }}
-            onClick={() => setStatusFilter('ready_to_pick')}
+            onClick={() => setStatusFilter('in_production')}
             className={cn(
               "p-5 rounded-2xl backdrop-blur-sm border transition-all duration-300 cursor-pointer group text-left",
-              statusFilter === 'ready_to_pick'
+              statusFilter === 'in_production'
                 ? "bg-emerald-500/20 border-emerald-500/40 shadow-lg shadow-emerald-500/10"
                 : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:shadow-emerald-500/10"
             )}
@@ -579,9 +593,9 @@ export default function OrdersPage() {
               </div>
             </div>
             <p className="text-3xl font-bold text-white mb-1 tracking-tight">
-              {orders.filter(o => o.status === 'ready_to_pick').length}
+              {orders.filter(o => o.status === 'in_production').length}
             </p>
-            <p className="text-sm text-white/50">Redo att plocka</p>
+            <p className="text-sm text-white/50">I produktion</p>
           </motion.button>
 
           <motion.button
@@ -672,10 +686,17 @@ export default function OrdersPage() {
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {[
               { value: "all", label: "Alla" },
-              { value: "draft", label: "Utkast" },
-              { value: "ready_to_pick", label: "Redo att plocka" },
-              { value: "picking", label: "Plockar" },
-              { value: "picked", label: "Plockad" },
+              { value: "draft", label: "🧾 Utkast" },
+              { value: "ready_for_handover", label: "Klar för överlämning" },
+              { value: "handed_over", label: "Överlämnad" },
+              { value: "planning", label: "Planering" },
+              { value: "construction", label: "Konstruktion" },
+              { value: "ready_for_production", label: "Klar för produktion" },
+              { value: "in_production", label: "🏗️ I produktion" },
+              { value: "ready_for_warehouse", label: "Klar för lager" },
+              { value: "picking", label: "📦 Plockas" },
+              { value: "ready_for_delivery", label: "Klar för leverans" },
+              { value: "shipped", label: "🚚 Skickad" },
               { value: "delivered", label: "Levererad" },
               { value: "cancelled", label: "Avbruten" },
             ].map(({ value, label }) => (
@@ -911,7 +932,7 @@ export default function OrdersPage() {
                           );
                         })()}
 
-                        {(order.status === 'ready_to_pick' || order.status === 'picking') && (
+                        {(order.status === 'picking') && (
                           <Link to={`${createPageUrl("PickOrder")}?orderId=${order.id}`}>
                             <Button
                               size="sm"

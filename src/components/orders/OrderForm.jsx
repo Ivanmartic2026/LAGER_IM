@@ -115,7 +115,7 @@ export default function OrderForm({ order, onClose }) {
       }
 
       // Sync reserved stock if order is ready_to_pick or picking
-      if (['ready_to_pick', 'picking'].includes(savedOrder.status)) {
+      if (['picking'].includes(savedOrder.status)) {
         await base44.functions.invoke('syncReservedStock');
       }
 
@@ -318,12 +318,19 @@ export default function OrderForm({ order, onClose }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="draft">Utkast</SelectItem>
-                  <SelectItem value="ready_to_pick">Redo att plocka</SelectItem>
-                  <SelectItem value="picking">Plockar</SelectItem>
-                  <SelectItem value="picked">Plockad</SelectItem>
+                  <SelectItem value="draft">🧾 Utkast</SelectItem>
+                  <SelectItem value="ready_for_handover">Klar för överlämning</SelectItem>
+                  <SelectItem value="handed_over">📐 Överlämnad</SelectItem>
+                  <SelectItem value="planning">Planering</SelectItem>
+                  <SelectItem value="construction">Konstruktion</SelectItem>
+                  <SelectItem value="ready_for_production">Klar för produktion</SelectItem>
+                  <SelectItem value="in_production">🏗️ I produktion</SelectItem>
+                  <SelectItem value="ready_for_warehouse">Klar för lager</SelectItem>
+                  <SelectItem value="picking">📦 Plockas</SelectItem>
+                  <SelectItem value="ready_for_delivery">Klar för leverans</SelectItem>
+                  <SelectItem value="shipped">🚚 Skickad</SelectItem>
                   <SelectItem value="delivered">Levererad</SelectItem>
-                  <SelectItem value="production">Produktion</SelectItem>
+                  <SelectItem value="cancelled">Avbruten</SelectItem>
                 </SelectContent>
               </Select>
             </div>

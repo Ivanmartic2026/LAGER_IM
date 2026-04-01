@@ -85,18 +85,32 @@ export default function OrderDetailModal({ order, onClose, onSyncSuccess }) {
 
   const statusColors = {
     draft: "bg-slate-500/20 text-slate-400 border-slate-500/30",
-    ready_to_pick: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    ready_for_handover: "bg-blue-400/20 text-blue-300 border-blue-400/30",
+    handed_over: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+    planning: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+    construction: "bg-violet-500/20 text-violet-400 border-violet-500/30",
+    ready_for_production: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+    in_production: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+    ready_for_warehouse: "bg-teal-500/20 text-teal-400 border-teal-500/30",
     picking: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-    picked: "bg-green-500/20 text-green-400 border-green-500/30",
+    ready_for_delivery: "bg-lime-500/20 text-lime-400 border-lime-500/30",
+    shipped: "bg-blue-500/20 text-blue-400 border-blue-500/30",
     delivered: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
     cancelled: "bg-red-500/20 text-red-400 border-red-500/30"
   };
 
   const statusLabels = {
     draft: "Utkast",
-    ready_to_pick: "Redo att plocka",
-    picking: "Plockar",
-    picked: "Plockad",
+    ready_for_handover: "Klar för överlämning",
+    handed_over: "Överlämnad",
+    planning: "Planering",
+    construction: "Konstruktion",
+    ready_for_production: "Klar för produktion",
+    in_production: "I produktion",
+    ready_for_warehouse: "Klar för lager",
+    picking: "Plockas",
+    ready_for_delivery: "Klar för leverans",
+    shipped: "Skickad",
     delivered: "Levererad",
     cancelled: "Avbruten"
   };
