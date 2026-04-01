@@ -21,6 +21,7 @@ const DOC_TYPES = [
 
 export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedType, setSelectedType] = useState('other');
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
@@ -55,12 +56,21 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
     e.target.value = '';
 
     setUploading(true);
+    setUploadProgress(0);
     try {
+      // Simulate progress for file upload
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + Math.random() * 30, 90));
+      }, 200);
+
       // Upload file using SDK
       const uploadRes = await base44.functions.invoke('supplierUploadFile', { 
         file,
         token: poToken 
       });
+      clearInterval(progressInterval);
+      setUploadProgress(95);
+
       const file_url = uploadRes.data?.file_url;
       if (!file_url) throw new Error(uploadRes.data?.error || 'Upload failed');
 
@@ -75,12 +85,16 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
       });
       if (res.data?.error) throw new Error(res.data.error);
 
+      setUploadProgress(100);
       queryClient.invalidateQueries({ queryKey: ['supplier-po-documents', purchaseOrder.id] });
       toast.success('Document uploaded!');
     } catch (err) {
       toast.error('Upload failed: ' + err.message);
     } finally {
-      setUploading(false);
+      setTimeout(() => {
+        setUploading(false);
+        setUploadProgress(0);
+      }, 500);
     }
   };
 
@@ -97,7 +111,8 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={uploading}
+            className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
           >
             {DOC_TYPES.map(dt => (
               <option key={dt.value} value={dt.value}>{dt.label}</option>
@@ -116,6 +131,18 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
             )}
           </button>
         </div>
+
+        {uploading && (
+          <div className="mt-4 space-y-2">
+            <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+              <div
+                className="bg-blue-600 h-full rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+            <p className="text-xs text-blue-600 font-medium text-center">{Math.round(uploadProgress)}%</p>
+          </div>
+        )}
       </div>
 
       <input
