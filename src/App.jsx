@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import SupplierPOView from '@/pages/SupplierPOView';
 import FortnoxSync from '@/pages/FortnoxSync';
+import OrderEdit from '@/pages/OrderEdit';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -81,6 +82,12 @@ function App() {
             <Route path="/FortnoxSync" element={
               <LayoutWrapper currentPageName="FortnoxSync">
                 <FortnoxSync />
+              </LayoutWrapper>
+            } />
+            {/* Order Edit - fullscreen */}
+            <Route path="/OrderEdit" element={
+              <LayoutWrapper currentPageName="Orders">
+                <OrderEdit />
               </LayoutWrapper>
             } />
             {/* All other routes require auth */}

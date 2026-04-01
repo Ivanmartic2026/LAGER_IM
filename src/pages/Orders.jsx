@@ -45,14 +45,11 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState(storedState.statusFilter || "all");
   const [invoiceFilter, setInvoiceFilter] = useState(storedState.invoiceFilter || "all");
   const [sortBy, setSortBy] = useState(storedState.sortBy || "date_desc");
-  const [showForm, setShowForm] = useState(false);
-  const [editingOrder, setEditingOrder] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [invoiceModalOrder, setInvoiceModalOrder] = useState(null);
   const [warehouseFilter, setWarehouseFilter] = useState("all");
   const [isUploadingDocument, setIsUploadingDocument] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
   const fileInputRef = React.useRef(null);
   
   const queryClient = useQueryClient();
@@ -525,11 +522,7 @@ export default function OrdersPage() {
                     )}
                   </Button>
                   <Button
-                    onClick={() => {
-                      console.log('Ny order clicked');
-                      setEditingOrder(null);
-                      setShowForm(true);
-                    }}
+                    onClick={() => navigate('/OrderEdit')}
                     className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -720,7 +713,7 @@ export default function OrdersPage() {
               Skapa din första order för att komma igång
             </p>
             <Button
-              onClick={() => setShowForm(true)}
+              onClick={() => navigate('/OrderEdit')}
               className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -1018,16 +1011,13 @@ export default function OrdersPage() {
                         )}
 
                         <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-slate-700 border-slate-600 hover:bg-slate-600"
-                          onClick={() => {
-                            setEditingOrder(order);
-                            setShowForm(true);
-                          }}
-                        >
-                          Redigera
-                        </Button>
+                           size="sm"
+                           variant="outline"
+                           className="bg-slate-700 border-slate-600 hover:bg-slate-600"
+                           onClick={() => navigate(`/OrderEdit?id=${order.id}`)}
+                         >
+                           Redigera
+                         </Button>
 
                         <Button
                           size="sm"
@@ -1207,18 +1197,7 @@ export default function OrdersPage() {
           </div>
         )}
 
-        {/* Order Form Modal */}
-        <AnimatePresence>
-          {showForm && (
-            <OrderForm
-              order={editingOrder}
-              onClose={() => {
-                setShowForm(false);
-                setEditingOrder(null);
-              }}
-            />
-          )}
-        </AnimatePresence>
+
 
         {/* Order Detail Modal */}
         {selectedOrder && (
