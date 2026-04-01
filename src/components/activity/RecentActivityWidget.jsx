@@ -86,7 +86,7 @@ export default function RecentActivityWidget() {
       unsubscribeOrder();
       unsubscribeWOData();
     };
-  }, [queryClient]);
+  }, []);
 
   // Fetch work order and PO details for titles
   const { data: workOrders = {} } = useQuery({
