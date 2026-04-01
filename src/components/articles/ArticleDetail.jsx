@@ -24,6 +24,7 @@ import ArticleComments from "./ArticleComments";
 import LinkToSiteModal from "./LinkToSiteModal";
 import InternalTransferModal from "./InternalTransferModal";
 import WarehouseDistribution from "./WarehouseDistribution";
+import LocationEditSection from "./LocationEditSection";
 import PODocumentHub from "@/components/purchaseorders/PODocumentHub";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -1162,26 +1163,7 @@ export default function ArticleDetail({
                 <WarehouseDistribution article={article} siblingArticles={siblingArticles} isEditing={editingLocation} />
 
               {editingLocation ? (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Warehouse</label>
-                    <Input
-                      type="text"
-                      value={locationData.warehouse}
-                      onChange={(e) => setLocationData({...locationData, warehouse: e.target.value})}
-                      className="bg-slate-900 border-slate-700 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Hyllplats</label>
-                    <Input
-                      type="text"
-                      value={locationData.shelf_address}
-                      onChange={(e) => setLocationData({...locationData, shelf_address: e.target.value})}
-                      className="bg-slate-900 border-slate-700 text-white"
-                    />
-                  </div>
-                </div>
+                <LocationEditSection locationData={locationData} setLocationData={setLocationData} />
               ) : (
                 <div className="space-y-0">
                   {article.warehouse && (
