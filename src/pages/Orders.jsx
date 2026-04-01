@@ -201,6 +201,21 @@ export default function OrdersPage() {
     }
   });
 
+  const createWorkOrderMutation = useMutation({
+    mutationFn: async (order) => {
+      const response = await base44.functions.invoke('createWorkOrder', { order_id: order.id });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['workOrders'] });
+      toast.success('Arbetsorder skapad!');
+      navigate(createPageUrl(`WorkOrderView?id=${data.id}`));
+    },
+    onError: (error) => {
+      toast.error('Kunde inte skapa arbetsorder: ' + (error.message || 'Okänt fel'));
+    }
+  });
+
   const markAsInvoicedMutation = useMutation({
     mutationFn: async ({ orderId, invoiceNumber }) => {
       const user = await base44.auth.me();
@@ -970,6 +985,28 @@ export default function OrdersPage() {
                             orderItems={orderItems.filter(item => item.order_id === order.id)}
                             onSyncSuccess={() => refetch()}
                           />
+                        )}
+
+                        {order.status !== 'in_production' && !workOrders.find(w => w.order_id === order.id) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30"
+                            onClick={() => createWorkOrderMutation.mutate(order)}
+                            disabled={createWorkOrderMutation.isPending}
+                          >
+                            {createWorkOrderMutation.isPending ? (
+                              <>
+                                <div className="w-3 h-3 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin mr-2" />
+                                Skapar...
+                              </>
+                            ) : (
+                              <>
+                                <Factory className="w-4 h-4 mr-2" />
+                                Skapa arbetsorder
+                              </>
+                            )}
+                          </Button>
                         )}
 
                         {order.status === 'picked' && (
