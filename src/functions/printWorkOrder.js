@@ -1,8 +1,10 @@
-// deno-lint-ignore-file no-undef
 import { jsPDF } from 'npm:jspdf@4.0.0';
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-Deno.serve(async (req) => {
+// @ts-ignore - Deno global
+const { serve } = Deno;
+
+serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const { work_order_id } = await req.json();
@@ -15,181 +17,206 @@ Deno.serve(async (req) => {
     const wo = workOrder[0];
     const order = await base44.asServiceRole.entities.Order.filter({ id: wo.order_id });
     const orderData = order[0] || {};
-
     const orderItems = await base44.asServiceRole.entities.OrderItem.filter({ order_id: wo.order_id });
-    const articles = await base44.asServiceRole.entities.Article.list();
 
-    // Create PDF with black theme
     const doc = new jsPDF({ format: 'a4', orientation: 'portrait' });
     
-    // Set colors
-    const darkBg = [20, 20, 20];
-    const white = [255, 255, 255];
-    const lightGray = [170, 170, 170];
-    const accentBlue = [37, 99, 235];
-
-    // Page width and margins
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
-    const contentWidth = pageWidth - 2 * margin;
+    const margin = 20;
+    const contentWidth = pageWidth - (margin * 2);
+    
     let yPos = margin;
 
-    // Fill entire page with dark background
-    doc.setFillColor(...darkBg);
+    // Fill entire page with black background
+    doc.setFillColor(15, 15, 15);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-    // Header with dark background
-    doc.setFillColor(...darkBg);
-    doc.rect(0, 0, pageWidth, 40, 'F');
-    
-    doc.setTextColor(...white);
-    doc.setFontSize(22);
+    // Header section
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(28);
     doc.setFont(undefined, 'bold');
-    doc.text('ARBETSORDER', margin, 20);
-
-    doc.setFontSize(11);
+    doc.text('ARBETSORDER', margin, yPos);
+    
+    yPos += 8;
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
     doc.setFont(undefined, 'normal');
-    const orderTitle = `${wo.customer_name} ${wo.order_number || ''}`.trim();
-    doc.text(orderTitle, pageWidth - margin, 20, { align: 'right' });
+    doc.text(`Utskriven: ${new Date().toLocaleString('sv-SE')}`, margin, yPos);
+    
+    yPos += 2;
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    const titleText = `${wo.customer_name || ''} ${wo.order_number || ''}`.trim();
+    doc.text(titleText, margin, yPos);
+    
+    yPos += 15;
 
+    // Horizontal line
+    doc.setDrawColor(100, 100, 100);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
+
+    // Top info grid
     doc.setFontSize(9);
-    doc.setTextColor(...lightGray);
-    doc.text(`Utskriven: ${new Date().toLocaleString('sv-SE')}`, pageWidth - margin, 30, { align: 'right' });
+    const gridY = yPos;
+    const colWidth = contentWidth / 3;
 
-    yPos = 50;
+    const gridData = [
+      { label: 'Kund', value: wo.customer_name || '-' },
+      { label: 'Status / Fas', value: wo.current_stage || '-' },
+      { label: 'Prioritet', value: wo.priority || 'normal' },
+      { label: 'Ordernummer', value: wo.order_number || '-' },
+      { label: 'Leveransdatum', value: wo.delivery_date || '-' },
+      { label: 'Kundref', value: orderData.customer_reference || '?' }
+    ];
 
-    // Function to add section
-    const addSection = (title, items) => {
-      // Section header with accent color
-      doc.setFillColor(...accentBlue);
-      doc.rect(margin, yPos - 5, contentWidth, 8, 'F');
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(255, 255, 255);
+    
+    for (let i = 0; i < 3; i++) {
+      doc.text(gridData[i].label, margin + (i * colWidth), gridY);
+    }
+
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(220, 220, 220);
+    
+    for (let i = 0; i < 3; i++) {
+      doc.text(gridData[i].value, margin + (i * colWidth), gridY + 5);
+    }
+
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(255, 255, 255);
+    
+    for (let i = 3; i < 6; i++) {
+      doc.text(gridData[i].label, margin + ((i - 3) * colWidth), gridY + 12);
+    }
+
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(220, 220, 220);
+    
+    for (let i = 3; i < 6; i++) {
+      doc.text(gridData[i].value, margin + ((i - 3) * colWidth), gridY + 17);
+    }
+
+    yPos = gridY + 28;
+
+    // Section function
+    const addSection = (title) => {
+      doc.setFillColor(45, 45, 45);
+      doc.rect(margin, yPos - 4, contentWidth, 7, 'F');
       
-      doc.setTextColor(...white);
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
       doc.text(title, margin + 3, yPos + 1);
       
       yPos += 12;
-
-      doc.setTextColor(...white);
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'normal');
-
-      items.forEach(([label, value]) => {
-        if (value === undefined || value === null || value === '') {
-          value = '-';
-        }
-        
-        doc.setFont(undefined, 'bold');
-        doc.text(label + ':', margin, yPos);
-        
-        doc.setFont(undefined, 'normal');
-        doc.setTextColor(...white);
-        
-        const labelWidth = 50;
-        const maxWidth = contentWidth - labelWidth;
-        const lines = doc.splitTextToSize(String(value), maxWidth);
-        
-        lines.forEach((line, idx) => {
-          doc.text(line, margin + labelWidth, yPos + (idx * 4));
-        });
-        
-        yPos += (lines.length * 4) + 2;
-      });
-
-      yPos += 3;
     };
 
-    // Overview section
-    addSection('ARBETSORDER ÖVERSIKT', [
-      ['Kund', wo.customer_name],
-      ['Ordernummer', wo.order_number || '-'],
-      ['Status', wo.status || 'pending'],
-      ['Fas', wo.current_stage || 'picking'],
-      ['Leveransdatum', wo.delivery_date || '-'],
-      ['Prioritet', wo.priority || 'normal']
-    ]);
-
-    // Order information section
-    if (orderData.id) {
-      addSection('ORDERINFORMATION', [
-        ['Leveransadress', orderData.delivery_address || '-'],
-        ['Fortnox kundnr', orderData.fortnox_customer_number || '-'],
-        ['Fortnox Projekt', orderData.fortnox_project_number || '-'],
-        ['Kundreferens', orderData.customer_reference || '-']
-      ]);
-    }
-
-    // Articles/Materials section
-    if (orderItems && orderItems.length > 0) {
-      doc.setFillColor(...accentBlue);
-      doc.rect(margin, yPos - 5, contentWidth, 8, 'F');
-      
-      doc.setTextColor(...white);
-      doc.setFontSize(10);
+    const addField = (label, value) => {
       doc.setFont(undefined, 'bold');
-      doc.text('ARTIKLAR / MATERIALLISTA', margin + 3, yPos + 1);
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.text(label + ':', margin, yPos);
       
-      yPos += 10;
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(200, 200, 200);
+      const labelWidth = 50;
+      const maxWidth = contentWidth - labelWidth;
+      const lines = doc.splitTextToSize(String(value || '-'), maxWidth);
+      
+      lines.forEach((line, idx) => {
+        doc.text(line, margin + labelWidth, yPos + (idx * 4));
+      });
+      
+      yPos += (lines.length * 4) + 2;
+    };
+
+    // Order Information section
+    addSection('ORDERINFORMATION');
+    addField('Kund', wo.customer_name);
+    addField('Fortnox kundnr', orderData.fortnox_customer_number);
+    addField('Leveransadress', orderData.delivery_address);
+    addField('Fortnox Projekt', orderData.fortnox_project_number);
+
+    yPos += 3;
+
+    // Work Order Details section
+    addSection('ARBETSORDER DETALJER');
+    addField('Arbetsorder', wo.name || wo.order_number);
+    addField('Status', wo.status);
+    addField('Fas', wo.current_stage);
+    addField('Prioritet', wo.priority);
+    addField('Produktionsstatus', wo.production_status);
+
+    yPos += 5;
+
+    // Articles section
+    if (orderItems && orderItems.length > 0) {
+      addSection('ARTIKLAR / MATERIALLISTA');
 
       // Table headers
-      doc.setFillColor(50, 50, 50);
+      doc.setFillColor(55, 55, 55);
       doc.rect(margin, yPos - 4, contentWidth, 6, 'F');
       
-      doc.setTextColor(...lightGray);
-      doc.setFontSize(8);
       doc.setFont(undefined, 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
       
-      const colPositions = [margin + 2, margin + 100, margin + 140, margin + 170, margin + 200];
-      doc.text('Artikel', colPositions[0], yPos);
-      doc.text('Batch', colPositions[1], yPos);
-      doc.text('Hylla', colPositions[2], yPos);
-      doc.text('Best.', colPositions[3], yPos);
-      doc.text('Plockad', colPositions[4], yPos);
+      const cols = {
+        artikel: margin + 2,
+        batch: margin + 90,
+        hylla: margin + 140,
+        best: margin + 170,
+        plockat: margin + 200
+      };
+
+      doc.text('Artikel', cols.artikel, yPos + 1);
+      doc.text('Batch', cols.batch, yPos + 1);
+      doc.text('Hylla', cols.hylla, yPos + 1);
+      doc.text('Best.', cols.best, yPos + 1);
+      doc.text('Plockat', cols.plockat, yPos + 1);
       
-      yPos += 6;
+      yPos += 8;
 
       // Table rows
-      doc.setTextColor(...white);
       doc.setFont(undefined, 'normal');
-      doc.setFontSize(8);
+      doc.setTextColor(200, 200, 200);
 
       orderItems.forEach(item => {
-        const article = articles.find(a => a.id === item.article_id);
         const picked = item.quantity_picked || 0;
         const ordered = item.quantity_ordered || 0;
 
-        doc.text(item.article_name || '-', colPositions[0], yPos);
-        doc.text(item.article_batch_number || '-', colPositions[1], yPos);
-        doc.text(item.shelf_address || '-', colPositions[2], yPos);
-        doc.text(String(ordered), colPositions[3], yPos);
+        doc.text(item.article_name || '-', cols.artikel, yPos);
+        doc.text(item.article_batch_number || '-', cols.batch, yPos);
+        doc.text(item.shelf_address || '-', cols.hylla, yPos);
+        doc.text(String(ordered), cols.best, yPos);
         
-        // Picked count in green if complete
         if (picked === ordered && ordered > 0) {
-          doc.setTextColor(34, 197, 94); // Green
+          doc.setTextColor(100, 200, 100);
         }
-        doc.text(String(picked), colPositions[4], yPos);
-        doc.setTextColor(...white);
+        doc.text(String(picked), cols.plockat, yPos);
+        doc.setTextColor(200, 200, 200);
 
         yPos += 5;
       });
-
-      yPos += 3;
     }
 
-    // Production notes
+    yPos += 5;
+
+    // Production notes if exists
     if (wo.production_notes) {
-      addSection('PRODUKTIONSANTECKNINGAR', [
-        ['Anteckningar', wo.production_notes]
-      ]);
+      addSection('PRODUKTIONSANTECKNINGAR');
+      addField('Anteckningar', wo.production_notes);
     }
 
     // Footer
-    doc.setTextColor(...lightGray);
+    doc.setTextColor(100, 100, 100);
     doc.setFontSize(8);
     doc.text('IMvision - Arbetsorder', margin, pageHeight - 10);
-    doc.text(`Sida 1 av 1`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+    doc.text('Sida 1 av 1', pageWidth - margin, pageHeight - 10, { align: 'right' });
 
     const pdf = doc.output('arraybuffer');
     
