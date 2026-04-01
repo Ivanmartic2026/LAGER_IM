@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, User, Clock, Truck, CheckCircle2, Printer } from "lucide-react";
+import { ArrowLeft, Play, User, Clock, Truck, CheckCircle2, Printer, FileUp, Download, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -26,6 +26,14 @@ export default function WorkOrderViewPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [files, setFiles] = useState([]);
+
+  // Initialize files from order's source document
+  useEffect(() => {
+    if (order?.source_document_url) {
+      setFiles([{ url: order.source_document_url, name: 'Original order document' }]);
+    }
+  }, [order?.source_document_url]);
 
   const { data: workOrder, isLoading } = useQuery({
     queryKey: ['workOrder', workOrderId],
@@ -223,6 +231,22 @@ export default function WorkOrderViewPage() {
     }
   };
 
+  const handleAddFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      setFiles([...files, { url: result.file_url, name: file.name }]);
+      toast.success('Fil uppladdad');
+    } catch (err) {
+      toast.error('Fel vid uppladdning');
+    }
+  };
+
+  const handleRemoveFile = (index) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
+
   if (isLoading || !workOrder) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -334,6 +358,51 @@ export default function WorkOrderViewPage() {
             logFunctionName="logWorkOrderActivity"
             idField="work_order_id"
           />
+        </div>
+
+        {/* File Management */}
+        <div className="bg-white/5 rounded-2xl border border-white/10 p-5">
+          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+            <FileUp className="w-4 h-4" />
+            Files
+          </h3>
+
+          {/* File List */}
+          {files.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {files.map((file, idx) => (
+                <div key={idx} className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10">
+                  <a
+                    href={file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-blue-400 hover:text-blue-300 flex-1 min-w-0"
+                  >
+                    <Download className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate text-sm">{file.name}</span>
+                  </a>
+                  <button
+                    onClick={() => handleRemoveFile(idx)}
+                    className="text-white/40 hover:text-red-400 transition-colors flex-shrink-0 ml-2"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Upload Button */}
+          <label className="block">
+            <input
+              type="file"
+              onChange={handleAddFile}
+              className="hidden"
+            />
+            <div className="p-4 rounded-lg border border-dashed border-white/20 hover:border-white/40 text-center cursor-pointer transition-colors">
+              <p className="text-white/60 text-sm">Click to upload file</p>
+            </div>
+          </label>
         </div>
 
       </div>
