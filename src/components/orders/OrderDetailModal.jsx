@@ -456,17 +456,8 @@ export default function OrderDetailModal({ order, onClose, onSyncSuccess }) {
 
         {/* Footer */}
         <div className="flex items-center justify-between p-6 border-t border-slate-700 bg-slate-900/50">
-          <div>
-            {order.sales_completed ? (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/20 border border-green-500/30">
-                <CheckCircle2 className="w-4 h-4 text-green-400" />
-                <span className="text-xs font-medium text-green-400">Försäljning slutförd</span>
-              </div>
-            ) : (
-              <div className="text-xs text-slate-500">
-                Skapad {format(new Date(order.created_date), "d MMM yyyy HH:mm", { locale: sv })}
-              </div>
-            )}
+          <div className="text-xs text-slate-500">
+            Skapad {format(new Date(order.created_date), "d MMM yyyy HH:mm", { locale: sv })}
           </div>
           <div className="flex gap-2">
              {!order.fortnox_project_number && (
