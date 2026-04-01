@@ -1,10 +1,8 @@
+// deno-lint-ignore-file no-undef
 import { jsPDF } from 'npm:jspdf@4.0.0';
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-// @ts-ignore - Deno global
-const { serve } = Deno;
-
-serve(async (req) => {
+Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const { work_order_id } = await req.json();
@@ -23,7 +21,7 @@ serve(async (req) => {
     
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
+    const margin = 15;
     const contentWidth = pageWidth - (margin * 2);
     
     let yPos = margin;
@@ -32,175 +30,194 @@ serve(async (req) => {
     doc.setFillColor(15, 15, 15);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-    // Header section
+    // Header: Title and Subtitle
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(28);
+    doc.setFontSize(24);
     doc.setFont(undefined, 'bold');
     doc.text('ARBETSORDER', margin, yPos);
     
-    yPos += 8;
-    doc.setFontSize(10);
-    doc.setTextColor(150, 150, 150);
-    doc.setFont(undefined, 'normal');
-    doc.text(`Utskriven: ${new Date().toLocaleString('sv-SE')}`, margin, yPos);
-    
-    yPos += 2;
-    doc.setTextColor(255, 255, 255);
+    yPos += 6;
     doc.setFontSize(11);
-    doc.setFont(undefined, 'bold');
+    doc.setTextColor(180, 180, 180);
+    doc.setFont(undefined, 'normal');
     const titleText = `${wo.customer_name || ''} ${wo.order_number || ''}`.trim();
     doc.text(titleText, margin, yPos);
     
-    yPos += 15;
-
-    // Horizontal line
-    doc.setDrawColor(100, 100, 100);
-    doc.line(margin, yPos, pageWidth - margin, yPos);
-    yPos += 8;
-
-    // Top info grid
+    yPos += 4;
     doc.setFontSize(9);
-    const gridY = yPos;
-    const colWidth = contentWidth / 3;
+    doc.setTextColor(130, 130, 130);
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('sv-SE') + ' ' + now.toLocaleTimeString('sv-SE');
+    doc.text(`Utskriven: ${dateStr}`, margin, yPos);
+    
+    yPos += 10;
 
-    const gridData = [
-      { label: 'Kund', value: wo.customer_name || '-' },
-      { label: 'Status / Fas', value: wo.current_stage || '-' },
+    // Info grid: 3 columns x 2 rows
+    const colWidth = contentWidth / 3;
+    const gridItems = [
+      { label: 'Kund', value: wo.customer_name || '—' },
+      { label: 'Status / Fas', value: wo.current_stage || '—' },
       { label: 'Prioritet', value: wo.priority || 'normal' },
-      { label: 'Ordernummer', value: wo.order_number || '-' },
-      { label: 'Leveransdatum', value: wo.delivery_date || '-' },
+      { label: 'Ordernummer', value: wo.order_number || '—' },
+      { label: 'Leveransdatum', value: wo.delivery_date || '—' },
       { label: 'Kundref', value: orderData.customer_reference || '?' }
     ];
 
+    doc.setFontSize(8);
     doc.setFont(undefined, 'bold');
+    doc.setTextColor(200, 200, 200);
+    
+    // Row 1
+    for (let i = 0; i < 3; i++) {
+      doc.text(gridItems[i].label, margin + (i * colWidth), yPos);
+    }
+    
+    yPos += 4;
+    doc.setFont(undefined, 'normal');
     doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
     
     for (let i = 0; i < 3; i++) {
-      doc.text(gridData[i].label, margin + (i * colWidth), gridY);
+      doc.text(gridItems[i].value, margin + (i * colWidth), yPos);
     }
-
-    doc.setFont(undefined, 'normal');
-    doc.setTextColor(220, 220, 220);
     
-    for (let i = 0; i < 3; i++) {
-      doc.text(gridData[i].value, margin + (i * colWidth), gridY + 5);
-    }
-
+    yPos += 7;
+    doc.setFontSize(8);
     doc.setFont(undefined, 'bold');
-    doc.setTextColor(255, 255, 255);
+    doc.setTextColor(200, 200, 200);
     
+    // Row 2
     for (let i = 3; i < 6; i++) {
-      doc.text(gridData[i].label, margin + ((i - 3) * colWidth), gridY + 12);
+      doc.text(gridItems[i].label, margin + ((i - 3) * colWidth), yPos);
     }
-
+    
+    yPos += 4;
     doc.setFont(undefined, 'normal');
-    doc.setTextColor(220, 220, 220);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
     
     for (let i = 3; i < 6; i++) {
-      doc.text(gridData[i].value, margin + ((i - 3) * colWidth), gridY + 17);
+      doc.text(gridItems[i].value, margin + ((i - 3) * colWidth), yPos);
     }
 
-    yPos = gridY + 28;
+    yPos += 12;
 
-    // Section function
+    // Section header function
     const addSection = (title) => {
-      doc.setFillColor(45, 45, 45);
-      doc.rect(margin, yPos - 4, contentWidth, 7, 'F');
+      doc.setFillColor(50, 50, 50);
+      doc.rect(margin, yPos - 3, contentWidth, 6, 'F');
       
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
-      doc.text(title, margin + 3, yPos + 1);
+      doc.text(title, margin + 2, yPos + 1.5);
       
-      yPos += 12;
+      yPos += 10;
     };
 
     const addField = (label, value) => {
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(9);
+      doc.setTextColor(200, 200, 200);
+      doc.setFontSize(8);
       doc.text(label + ':', margin, yPos);
       
       doc.setFont(undefined, 'normal');
-      doc.setTextColor(200, 200, 200);
-      const labelWidth = 50;
+      doc.setTextColor(220, 220, 220);
+      doc.setFontSize(9);
+      const labelWidth = 45;
       const maxWidth = contentWidth - labelWidth;
-      const lines = doc.splitTextToSize(String(value || '-'), maxWidth);
+      const lines = doc.splitTextToSize(String(value || '—'), maxWidth);
       
       lines.forEach((line, idx) => {
-        doc.text(line, margin + labelWidth, yPos + (idx * 4));
+        doc.text(line, margin + labelWidth, yPos + (idx * 3.5));
       });
       
-      yPos += (lines.length * 4) + 2;
+      yPos += (lines.length * 3.5) + 2;
     };
 
     // Order Information section
     addSection('ORDERINFORMATION');
     addField('Kund', wo.customer_name);
-    addField('Fortnox kundnr', orderData.fortnox_customer_number);
-    addField('Leveransadress', orderData.delivery_address);
-    addField('Fortnox Projekt', orderData.fortnox_project_number);
+    addField('Fortnox kundnr', orderData.fortnox_customer_number || '—');
+    addField('Leveransadress', orderData.delivery_address || '—');
+    addField('Fortnox Projekt', orderData.fortnox_project_number || '—');
 
     yPos += 3;
 
     // Work Order Details section
     addSection('ARBETSORDER DETALJER');
-    addField('Arbetsorder', wo.name || wo.order_number);
-    addField('Status', wo.status);
-    addField('Fas', wo.current_stage);
-    addField('Prioritet', wo.priority);
-    addField('Produktionsstatus', wo.production_status);
+    addField('Arbetsorder', wo.name || wo.order_number || '—');
+    addField('Status', wo.status || '—');
+    addField('Fas', wo.current_stage || '—');
+    addField('Prioritet', wo.priority || '—');
+    addField('Produktionsstatus', wo.production_status || '—');
 
     yPos += 5;
 
-    // Articles section
+    // Articles/Materials section
     if (orderItems && orderItems.length > 0) {
       addSection('ARTIKLAR / MATERIALLISTA');
 
-      // Table headers
-      doc.setFillColor(55, 55, 55);
-      doc.rect(margin, yPos - 4, contentWidth, 6, 'F');
+      // Table header
+      doc.setFillColor(60, 60, 60);
+      doc.rect(margin, yPos - 3, contentWidth, 6, 'F');
       
       doc.setFont(undefined, 'bold');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(8);
       
       const cols = {
-        artikel: margin + 2,
-        batch: margin + 90,
-        hylla: margin + 140,
-        best: margin + 170,
-        plockat: margin + 200
+        artikel: margin + 1,
+        batch: margin + 85,
+        hylla: margin + 145,
+        best: margin + 180,
+        plockat: margin + 210
       };
 
-      doc.text('Artikel', cols.artikel, yPos + 1);
-      doc.text('Batch', cols.batch, yPos + 1);
-      doc.text('Hylla', cols.hylla, yPos + 1);
-      doc.text('Best.', cols.best, yPos + 1);
-      doc.text('Plockat', cols.plockat, yPos + 1);
+      doc.text('Artikel', cols.artikel, yPos + 1.5);
+      doc.text('Batch', cols.batch, yPos + 1.5);
+      doc.text('Hylla', cols.hylla, yPos + 1.5);
+      doc.text('Best.', cols.best, yPos + 1.5);
+      doc.text('Plockat', cols.plockat, yPos + 1.5);
       
       yPos += 8;
 
       // Table rows
       doc.setFont(undefined, 'normal');
       doc.setTextColor(200, 200, 200);
+      doc.setFontSize(8);
 
-      orderItems.forEach(item => {
+      orderItems.forEach((item, idx) => {
+        if (yPos > pageHeight - 25) {
+          doc.addPage();
+          doc.setFillColor(15, 15, 15);
+          doc.rect(0, 0, pageWidth, pageHeight, 'F');
+          yPos = margin;
+        }
+
         const picked = item.quantity_picked || 0;
         const ordered = item.quantity_ordered || 0;
+        
+        // Alternate row background
+        if (idx % 2 === 0) {
+          doc.setFillColor(25, 25, 25);
+          doc.rect(margin, yPos - 2, contentWidth, 4.5, 'F');
+        }
 
-        doc.text(item.article_name || '-', cols.artikel, yPos);
-        doc.text(item.article_batch_number || '-', cols.batch, yPos);
-        doc.text(item.shelf_address || '-', cols.hylla, yPos);
+        doc.setTextColor(200, 200, 200);
+        const articleName = (item.article_name || '—').substring(0, 40);
+        doc.text(articleName, cols.artikel, yPos);
+        doc.text(item.article_batch_number || '—', cols.batch, yPos);
+        doc.text(item.shelf_address || '—', cols.hylla, yPos);
         doc.text(String(ordered), cols.best, yPos);
         
+        // Highlight if picked
         if (picked === ordered && ordered > 0) {
-          doc.setTextColor(100, 200, 100);
+          doc.setTextColor(120, 200, 120);
         }
         doc.text(String(picked), cols.plockat, yPos);
-        doc.setTextColor(200, 200, 200);
 
-        yPos += 5;
+        yPos += 4.5;
       });
     }
 
@@ -214,9 +231,9 @@ serve(async (req) => {
 
     // Footer
     doc.setTextColor(100, 100, 100);
-    doc.setFontSize(8);
-    doc.text('IMvision - Arbetsorder', margin, pageHeight - 10);
-    doc.text('Sida 1 av 1', pageWidth - margin, pageHeight - 10, { align: 'right' });
+    doc.setFontSize(7);
+    doc.text('IMvision - Arbetsorder', margin, pageHeight - 8);
+    doc.text('Sida 1 av 1', pageWidth - margin, pageHeight - 8, { align: 'right' });
 
     const pdf = doc.output('arraybuffer');
     
