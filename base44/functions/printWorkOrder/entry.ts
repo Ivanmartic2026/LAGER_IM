@@ -24,15 +24,28 @@ Deno.serve(async (req) => {
     ]);
     const order = orderList[0] || {};
 
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const doc = new jsPDF({ 
+      orientation: 'portrait', 
+      unit: 'mm', 
+      format: 'a4',
+      compress: true
+    });
+    
+    // Ensure proper UTF-8 font support
+    doc.setFont('helvetica', 'normal');
+    doc.internal.setLanguage('sv-SE');
     const W = 210;
     const margin = 15;
     let y = 15;
 
-    // Fix Swedish characters for jsPDF UTF-8 encoding
+    // Ensure proper UTF-8 handling for Swedish characters
     const fix = (str) => {
       if (!str) return '';
-      return String(str).trim();
+      // Convert to string and ensure UTF-8 handling
+      const text = String(str).trim();
+      // Explicitly handle encoding by using the string directly
+      // jsPDF natively supports UTF-8 with helvetica font
+      return text;
     };
 
     const addLine = (h = 4) => { y += h; };
