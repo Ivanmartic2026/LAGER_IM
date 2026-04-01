@@ -157,16 +157,17 @@ export default function WorkOrdersPage() {
               const isUrgent = wo.priority === 'urgent' || wo.priority === 'high';
 
               return (
-                <Link key={wo.id} to={createPageUrl(`WorkOrderView?id=${wo.id}`)}>
-                  <motion.div
-                    whileHover={{ scale: 1.005 }}
-                    className={cn(
-                      "p-5 rounded-2xl border transition-all cursor-pointer",
-                      isUrgent && wo.status !== 'completed'
-                        ? "bg-white/10 border-orange-500/30 shadow-lg shadow-orange-500/5"
-                        : "bg-white/8 border-white/15 hover:border-white/25 hover:bg-white/10"
-                    )}
-                  >
+                <motion.div
+                  key={wo.id}
+                  whileHover={{ scale: 1.005 }}
+                  onClick={() => navigate(`/WorkOrders/${wo.id}`)}
+                  className={cn(
+                    "p-5 rounded-2xl border transition-all cursor-pointer",
+                    isUrgent && wo.status !== 'completed'
+                      ? "bg-white/10 border-orange-500/30 shadow-lg shadow-orange-500/5"
+                      : "bg-white/8 border-white/15 hover:border-white/25 hover:bg-white/10"
+                  )}
+                >
                     <div className="flex flex-col gap-4">
                       {/* Header Row: Stage + Title + Status */}
                       <div className="flex items-baseline justify-between gap-4">
@@ -247,7 +248,6 @@ export default function WorkOrdersPage() {
                       </div>
                       </div>
                       </motion.div>
-                      </Link>
               );
             })}
           </div>
