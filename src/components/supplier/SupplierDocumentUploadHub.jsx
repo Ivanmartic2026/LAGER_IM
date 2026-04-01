@@ -56,15 +56,13 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('token', poToken);
-
-      const fnUrl = `https://api.base44.com/api/apps/${appParams.appId}/functions/supplierUploadFile`;
-      const uploadRes = await fetch(fnUrl, { method: 'POST', body: formData });
-      const uploadData = await uploadRes.json();
-      const file_url = uploadData?.file_url;
-      if (!file_url) throw new Error(uploadData?.error || 'Upload failed');
+      // Upload file using SDK
+      const uploadRes = await base44.functions.invoke('supplierUploadFile', { 
+        file,
+        token: poToken 
+      });
+      const file_url = uploadRes.data?.file_url;
+      if (!file_url) throw new Error(uploadRes.data?.error || 'Upload failed');
 
       const docDef = DOC_TYPES.find(d => d.value === selectedType);
       const res = await base44.functions.invoke('supplierGetDocuments', {
