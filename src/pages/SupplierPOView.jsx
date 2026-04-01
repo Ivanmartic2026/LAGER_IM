@@ -29,8 +29,8 @@ const STATUS_CONFIG = {
 export default function SupplierPOView() {
   const urlParams = new URLSearchParams(window.location.search);
   const poToken = urlParams.get('token');
+  const editMode = urlParams.get('edit') === 'true';
   const [activeTab, setActiveTab] = useState('confirm');
-  const [editMode, setEditMode] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['supplier-po', poToken],
@@ -92,14 +92,14 @@ export default function SupplierPOView() {
         <div className="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10 shadow-sm">
           <h2 className="text-lg font-bold text-gray-900">Redigera order</h2>
           <button
-            onClick={() => setEditMode(false)}
+            onClick={() => window.location.href = `?token=${poToken}`}
             className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
           >
             ×
           </button>
         </div>
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
-          <SupplierPOConfirmation purchaseOrder={purchaseOrder} items={items} poToken={poToken} onClose={() => setEditMode(false)} />
+          <SupplierPOConfirmation purchaseOrder={purchaseOrder} items={items} poToken={poToken} />
         </div>
       </div>
     );
@@ -153,7 +153,7 @@ export default function SupplierPOView() {
           <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Order Summary</h2>
             <button
-              onClick={() => setEditMode(true)}
+              onClick={() => window.location.href = `?token=${poToken}&edit=true`}
               className="px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Redigera
