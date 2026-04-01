@@ -148,14 +148,14 @@ export default function RecentActivityWidget() {
                   <Icon className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
+                  <div className="flex items-center gap-1.5 mb-1">
                     <p className="font-semibold text-white truncate">
                       {getTypeLabel(activity.type)}
                     </p>
-                    <span className="text-white/50 text-xs flex-shrink-0">
-                      {activity.entity_type}
-                    </span>
                   </div>
+                  <p className="text-white/50 text-xs mb-1 truncate">
+                    Order: <span className="text-white font-medium">{activity.entity_type}</span>
+                  </p>
                   <p className="text-white/70 line-clamp-2 text-xs mb-1">
                     {activity.message}
                   </p>
