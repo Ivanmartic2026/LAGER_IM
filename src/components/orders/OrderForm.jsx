@@ -179,11 +179,6 @@ export default function OrderForm({ order, onClose }) {
       return;
     }
 
-    if (orderItems.length === 0) {
-      toast.error("Lägg till minst en artikel");
-      return;
-    }
-
     saveOrderMutation.mutate(formData);
   };
 
