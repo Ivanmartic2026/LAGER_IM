@@ -94,6 +94,19 @@ export default function InventoryPage() {
     refetchOnWindowFocus: false,
   });
 
+  // Subscribe to article changes for real-time reserved stock updates
+  React.useEffect(() => {
+    const unsubscribe = base44.entities.Article.subscribe((event) => {
+      if (event.type === 'update' && event.data?.reserved_stock_qty !== undefined) {
+        queryClient.setQueryData(['articles'], (oldData) => {
+          if (!Array.isArray(oldData)) return oldData;
+          return oldData.map(a => a.id === event.id ? event.data : a);
+        });
+      }
+    });
+    return unsubscribe;
+  }, [queryClient]);
+
   const { data: suppliers = [] } = useQuery({
     queryKey: ['suppliers'],
     queryFn: () => base44.entities.Supplier.list(),
