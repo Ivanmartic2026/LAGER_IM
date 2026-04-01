@@ -102,15 +102,6 @@ export default function ArticlesList({ items = [], articles = [] }) {
           <Button
             size="sm"
             variant="outline"
-            className="bg-red-500/20 border-red-500/30 hover:bg-red-500/30 text-red-400 gap-2"
-            onClick={handleWithdraw}
-          >
-            <Minus className="w-4 h-4" />
-            Ta ut från Lagret
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
             className="bg-white/5 border-white/20 hover:bg-white/10 text-white gap-2"
             onClick={handleExportCSV}
           >
@@ -158,6 +149,16 @@ export default function ArticlesList({ items = [], articles = [] }) {
             </div>
           );
         })}
+      </div>
+      <div className="mt-4 pt-4 border-t border-white/10">
+        <Button
+          size="sm"
+          className="w-full bg-red-500/20 border-red-500/30 hover:bg-red-500/30 text-red-400 gap-2 border"
+          onClick={handleWithdraw}
+        >
+          <Minus className="w-4 h-4" />
+          Ta ut från Lagret
+        </Button>
       </div>
     </div>
   );
