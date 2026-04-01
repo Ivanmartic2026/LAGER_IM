@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import RecentActivityWidget from "@/components/activity/RecentActivityWidget";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import PWAOptimizer from "@/components/pwa/PWAOptimizer";
 import PushManager from "@/components/pwa/PushManager";
@@ -145,6 +146,7 @@ function LayoutContent({ children, currentPageName }) {
       <PWAOptimizer />
       <PushManager />
       <OfflineIndicator />
+      <RecentActivityWidget />
       {/* Logo and Notifications - Top */}
       <div className="hidden md:flex fixed top-6 left-6 right-6 z-50 items-center justify-between">
         <button onClick={() => navigate(createPageUrl("Home"))}>
