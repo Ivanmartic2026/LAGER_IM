@@ -682,38 +682,6 @@ export default function OrdersPage() {
 
 
 
-          {/* Status Filter Tabs */}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {[
-              { value: "all", label: "Alla" },
-              { value: "draft", label: "🧾 Utkast" },
-              { value: "ready_for_handover", label: "Klar för överlämning" },
-              { value: "handed_over", label: "Överlämnad" },
-              { value: "planning", label: "Planering" },
-              { value: "construction", label: "Konstruktion" },
-              { value: "ready_for_production", label: "Klar för produktion" },
-              { value: "in_production", label: "🏗️ I produktion" },
-              { value: "ready_for_warehouse", label: "Klar för lager" },
-              { value: "picking", label: "📦 Plockas" },
-              { value: "ready_for_delivery", label: "Klar för leverans" },
-              { value: "shipped", label: "🚚 Skickad" },
-              { value: "delivered", label: "Levererad" },
-              { value: "cancelled", label: "Avbruten" },
-            ].map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => setStatusFilter(value)}
-                className={cn(
-                  "whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-all border",
-                  statusFilter === value
-                    ? "bg-blue-600 text-white border-blue-500"
-                    : "bg-white/5 text-white/50 border-white/10 hover:bg-white/10 hover:text-white"
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
 
           {selectedOrderIds.length > 0 && (
             <div className="flex items-center justify-end">
