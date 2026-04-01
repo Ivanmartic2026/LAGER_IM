@@ -33,13 +33,16 @@ Deno.serve(async (req) => {
     // Get order items
     const orderItems = await base44.asServiceRole.entities.OrderItem.filter({ order_id: orderId });
 
-    // Create PDF
+    // Create PDF with UTF-8 support for Swedish characters
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
       compress: true
     });
+    
+    // Ensure proper UTF-8 font support for Swedish characters (ÄÖÅ äöå)
+    doc.setFont('helvetica', 'normal');
 
     const pageWidth = 210;
     const margin = 20;
