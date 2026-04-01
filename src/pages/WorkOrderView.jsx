@@ -17,6 +17,7 @@ import DocumentSection from "@/components/workorders/DocumentSection";
 import ProductionChecklist from "@/components/workorders/ProductionChecklist";
 import ArticlesList from "@/components/workorders/ArticlesList";
 import NotesSection from "@/components/workorders/NotesSection";
+import DesignerSection from "@/components/workorders/DesignerSection";
 import ActivityFeed from "@/components/activity/ActivityFeed";
 
 export default function WorkOrderViewPage() {
@@ -317,6 +318,9 @@ export default function WorkOrderViewPage() {
           notes={workOrder.production_notes || ''}
           onSaveNotes={handleSaveNotes}
         />
+
+        {/* Designer Section */}
+        <DesignerSection workOrderId={workOrderId} />
 
         {/* Activity Feed */}
         <div className="bg-white/5 rounded-2xl border border-white/10 p-5">
