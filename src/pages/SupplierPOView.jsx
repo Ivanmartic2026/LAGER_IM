@@ -88,7 +88,7 @@ export default function SupplierPOView() {
 
   if (editMode) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10 shadow-sm">
           <h2 className="text-lg font-bold text-gray-900">Redigera order</h2>
           <button
@@ -98,8 +98,10 @@ export default function SupplierPOView() {
             ×
           </button>
         </div>
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
-          <SupplierPOConfirmation purchaseOrder={purchaseOrder} items={items} poToken={poToken} />
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+            <SupplierPOConfirmation purchaseOrder={purchaseOrder} items={items} poToken={poToken} />
+          </div>
         </div>
       </div>
     );
