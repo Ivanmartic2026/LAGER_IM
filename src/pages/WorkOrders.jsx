@@ -148,7 +148,7 @@ export default function WorkOrdersPage() {
             <p className="text-white/50 text-sm">Arbetsordrar skapas automatiskt när ordrar läggs</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {filtered.map(wo => {
               const stage = STAGE_CONFIG[wo.current_stage] || STAGE_CONFIG.picking;
               const StageIcon = stage.icon;
@@ -161,10 +161,10 @@ export default function WorkOrdersPage() {
                   <motion.div
                     whileHover={{ scale: 1.005 }}
                     className={cn(
-                      "p-4 rounded-2xl border transition-all cursor-pointer",
+                      "p-5 rounded-2xl border transition-all cursor-pointer",
                       isUrgent && wo.status !== 'completed'
-                        ? "bg-white/8 border-orange-500/20"
-                        : "bg-white/5 border-white/10 hover:border-white/20"
+                        ? "bg-white/10 border-orange-500/30 shadow-lg shadow-orange-500/5"
+                        : "bg-white/8 border-white/15 hover:border-white/25 hover:bg-white/10"
                     )}
                   >
                     <div className="flex flex-col gap-4">
