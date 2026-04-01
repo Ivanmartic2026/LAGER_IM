@@ -39,46 +39,61 @@ export default function ArticlesList({ items = [], articles = [] }) {
     const html = `
       <html>
         <head>
-          <title>Artikellista</title>
+          <title>Plocklista</title>
           <style>
-            body { font-family: Arial; margin: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-            th { background-color: #f0f0f0; font-weight: bold; }
-            .status-klar { color: green; }
-            .status-missing { color: red; }
-            .status-partial { color: orange; }
+            body { font-family: Arial; margin: 20px; background-color: #000; color: #fff; }
+            h2 { margin-bottom: 30px; font-size: 24px; }
+            .item { 
+              display: flex; 
+              justify-content: space-between; 
+              align-items: center;
+              border: 1px solid #333;
+              border-radius: 8px;
+              padding: 16px;
+              margin-bottom: 12px;
+              background-color: #1a1a1a;
+              page-break-inside: avoid;
+            }
+            .item-left { flex: 1; }
+            .item-name { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+            .item-sku { font-size: 12px; color: #999; }
+            .item-right { 
+              display: flex; 
+              align-items: center; 
+              gap: 16px;
+              text-align: right;
+            }
+            .quantity { font-size: 18px; color: #fff; }
+            .status { 
+              padding: 6px 12px; 
+              border-radius: 6px; 
+              font-size: 12px; 
+              font-weight: bold;
+            }
+            .status-klar { background-color: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+            .status-missing { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+            .status-partial { background-color: rgba(234, 179, 8, 0.2); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
           </style>
         </head>
         <body>
-          <h2>Artikellista</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Artikelnamn</th>
-                <th>Nummer</th>
-                <th>Beställd</th>
-                <th>Plockad</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${items.map(item => {
-                const missing = item.quantity_ordered - (item.quantity_picked || 0);
-                const status = item.status === 'picked' ? 'Klar' : missing > 0 ? `Saknas ${missing}` : 'Delvis';
-                const statusClass = item.status === 'picked' ? 'status-klar' : missing > 0 ? 'status-missing' : 'status-partial';
-                return `
-                  <tr>
-                    <td>${item.article_name}</td>
-                    <td>${item.shelf_address || ''}</td>
-                    <td>${item.quantity_ordered}</td>
-                    <td>${item.quantity_picked || 0}</td>
-                    <td class="${statusClass}">${status}</td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
+          <h2>Plocklista</h2>
+          ${items.map(item => {
+            const missing = item.quantity_ordered - (item.quantity_picked || 0);
+            const status = item.status === 'picked' ? 'Klar' : missing > 0 ? `Saknas ${missing}` : 'Delvis';
+            const statusClass = item.status === 'picked' ? 'status-klar' : missing > 0 ? 'status-missing' : 'status-partial';
+            return `
+              <div class="item">
+                <div class="item-left">
+                  <div class="item-name">${item.article_name}</div>
+                  <div class="item-sku">${item.shelf_address || ''}</div>
+                </div>
+                <div class="item-right">
+                  <div class="quantity">${item.quantity_ordered} st</div>
+                  <div class="status ${statusClass}">${status}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
         </body>
       </html>
     `;
