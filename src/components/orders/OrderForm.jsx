@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { X, Plus, Trash2, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import FortnoxCustomerSelect from "@/components/orders/FortnoxCustomerSelect";
+import OrderTasks from "@/components/orders/OrderTasks";
 
 export default function OrderForm({ order, onClose }) {
   const [formData, setFormData] = useState({
@@ -519,6 +520,11 @@ export default function OrderForm({ order, onClose }) {
               </div>
             )}
           </div>
+
+          {/* Tasks - only for existing orders */}
+          {order?.id && (
+            <OrderTasks orderId={order.id} />
+          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
