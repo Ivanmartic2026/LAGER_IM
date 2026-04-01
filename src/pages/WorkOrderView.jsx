@@ -257,7 +257,7 @@ export default function WorkOrderViewPage() {
 
   return (
     <div className="min-h-screen bg-black p-4 md:p-6">
-      <div className="max-w-3xl mx-auto space-y-4">
+      <div className="max-w-3xl mx-auto space-y-4 bg-black">
 
         {/* Back + Print */}
         <div className="flex items-center justify-between">
@@ -347,7 +347,7 @@ export default function WorkOrderViewPage() {
         <DesignerSection workOrderId={workOrderId} />
 
         {/* Activity Feed */}
-        <div className="bg-white/5 rounded-2xl border border-white/10 p-5">
+        <div className="bg-black rounded-2xl border border-white/10 p-5">
           <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
             Aktivitetslogg
@@ -361,7 +361,7 @@ export default function WorkOrderViewPage() {
         </div>
 
         {/* File Management */}
-        <div className="bg-white/5 rounded-2xl border border-white/10 p-5">
+        <div className="bg-black rounded-2xl border border-white/10 p-5">
           <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
             <FileUp className="w-4 h-4" />
             Files
