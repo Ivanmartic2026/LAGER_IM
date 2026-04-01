@@ -1,7 +1,7 @@
+// deno-lint-ignore-file no-undef
 import { jsPDF } from 'npm:jspdf@4.0.0';
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-// deno-lint-ignore no-undef
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -23,10 +23,10 @@ Deno.serve(async (req) => {
     const doc = new jsPDF({ format: 'a4', orientation: 'portrait' });
     
     // Set colors
-    const darkBg = [25, 25, 25];
+    const darkBg = [20, 20, 20];
     const white = [255, 255, 255];
-    const lightGray = [180, 180, 180];
-    const accentBlue = [59, 130, 246];
+    const lightGray = [170, 170, 170];
+    const accentBlue = [37, 99, 235];
 
     // Page width and margins
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     const contentWidth = pageWidth - 2 * margin;
     let yPos = margin;
 
-    // Dark background
+    // Fill entire page with dark background
     doc.setFillColor(...darkBg);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
