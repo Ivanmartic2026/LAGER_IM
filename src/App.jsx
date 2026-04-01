@@ -12,6 +12,7 @@ import SupplierPOView from '@/pages/SupplierPOView';
 import FortnoxSync from '@/pages/FortnoxSync';
 import OrderEdit from '@/pages/OrderEdit';
 import OrderDetail from '@/pages/OrderDetail';
+import WorkOrderViewPage from '@/pages/WorkOrderView';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -95,6 +96,12 @@ function App() {
             <Route path="/OrderDetail" element={
               <LayoutWrapper currentPageName="Orders">
                 <OrderDetail />
+              </LayoutWrapper>
+            } />
+            {/* WorkOrder Detail */}
+            <Route path="/WorkOrders/:workOrderId" element={
+              <LayoutWrapper currentPageName="WorkOrders">
+                <WorkOrderViewPage />
               </LayoutWrapper>
             } />
             {/* All other routes require auth */}

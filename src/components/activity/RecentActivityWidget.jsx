@@ -106,8 +106,6 @@ export default function RecentActivityWidget() {
       navigate(`/WorkOrders/${activity.work_order_id}`);
     } else if (activity.entity_type === 'PO') {
       navigate(`/PurchaseOrders/${activity.purchase_order_id}`);
-    } else if (activity.entity_type === 'Production') {
-      navigate(`/Production/${activity.order_id}`);
     }
   };
 

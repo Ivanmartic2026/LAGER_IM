@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, User, Clock, Truck, CheckCircle2, Printer, FileUp, Download, X } from "lucide-react";
@@ -21,8 +21,7 @@ import DesignerSection from "@/components/workorders/DesignerSection";
 import ActivityFeed from "@/components/activity/ActivityFeed";
 
 export default function WorkOrderViewPage() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const workOrderId = urlParams.get('id');
+  const { workOrderId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [uploadingImages, setUploadingImages] = useState(false);
