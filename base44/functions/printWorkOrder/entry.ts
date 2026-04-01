@@ -29,6 +29,17 @@ Deno.serve(async (req) => {
     const margin = 15;
     let y = 15;
 
+    // Fix Swedish characters for jsPDF latin-1 encoding
+    const fix = (str) => {
+      if (!str) return '';
+      return String(str)
+        .replace(/å/g, 'a').replace(/Å/g, 'A')
+        .replace(/ä/g, 'a').replace(/Ä/g, 'A')
+        .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+        .replace(/é/g, 'e').replace(/É/g, 'E')
+        .replace(/[^\x00-\x7E]/g, '?');
+    };
+
     const addLine = (h = 4) => { y += h; };
     const checkPage = (needed = 20) => {
       if (y + needed > 280) { doc.addPage(); y = 15; }
@@ -65,17 +76,17 @@ Deno.serve(async (req) => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.setTextColor(120, 120, 120);
-      doc.text(label, x + 4, boxY + 5);
+      doc.text(fix(label), x + 4, boxY + 5);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
       doc.setTextColor(20, 20, 20);
-      const val = doc.splitTextToSize(String(value || '—'), w - 8);
+      const val = doc.splitTextToSize(fix(value) || '-', w - 8);
       doc.text(val[0], x + 4, boxY + 11);
     };
 
     const stageLabels = { picking: 'Plockning', production: 'Produktion', delivery: 'Leverans', completed: 'Klar' };
-    const priorityLabels = { low: 'Låg', normal: 'Normal', high: 'Hög', urgent: 'Brådskande' };
-    const statusLabels = { pending: 'Väntar', in_progress: 'Pågår', completed: 'Klar', cancelled: 'Avbruten' };
+    const priorityLabels = { low: 'Lag', normal: 'Normal', high: 'Hog', urgent: 'Bradskande' };
+    const statusLabels = { pending: 'Vantar', in_progress: 'Pagar', completed: 'Klar', cancelled: 'Avbruten' };
 
     infoBox('Kund', order.customer_name || '—', margin, y, 85);
     infoBox('Status / Fas', stageLabels[wo.current_stage] || wo.current_stage || '—', margin + 90, y, 55);
@@ -101,7 +112,7 @@ Deno.serve(async (req) => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
       doc.setTextColor(255, 255, 255);
-      doc.text(title.toUpperCase(), margin + 3, y + 5);
+      doc.text(fix(title).toUpperCase(), margin + 3, y + 5);
       y += 10;
       doc.setTextColor(0, 0, 0);
     };
@@ -111,10 +122,10 @@ Deno.serve(async (req) => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
       doc.setTextColor(80, 80, 80);
-      doc.text(`${label}:`, margin, y);
+      doc.text(fix(label) + ':', margin, y);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(20, 20, 20);
-      const lines = doc.splitTextToSize(String(value || '—'), W - margin * 2 - 40);
+      const lines = doc.splitTextToSize(fix(value) || '-', W - margin * 2 - 40);
       doc.text(lines, margin + 40, y);
       y += lines.length * 5 + 1;
     };
@@ -156,6 +167,7 @@ Deno.serve(async (req) => {
       doc.text('Hylla', margin + 125, y + 5);
       doc.text('Best.', W - margin - 18, y + 5, { align: 'right' });
       doc.text('Plockat', W - margin - 2, y + 5, { align: 'right' });
+
       y += 8;
 
       orderItems.forEach((item, idx) => {
@@ -167,10 +179,10 @@ Deno.serve(async (req) => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(20, 20, 20);
-        const name = doc.splitTextToSize(item.article_name || item.article_id || '—', 85);
+        const name = doc.splitTextToSize(fix(item.article_name || item.article_id) || '-', 85);
         doc.text(name[0], margin + 2, y + 4);
-        doc.text(String(item.article_batch_number || '—'), margin + 90, y + 4);
-        doc.text(String(item.shelf_address || '—'), margin + 125, y + 4);
+        doc.text(fix(item.article_batch_number) || '-', margin + 90, y + 4);
+        doc.text(fix(item.shelf_address) || '-', margin + 125, y + 4);
         doc.text(String(item.quantity_ordered || 0), W - margin - 18, y + 4, { align: 'right' });
         
         // Color picked qty
@@ -189,8 +201,8 @@ Deno.serve(async (req) => {
     // ── WO Tasks ────────────────────────────────────────────
     if (wo.tasks && wo.tasks.length > 0) {
       sectionHeader('Arbetsmoment');
-      const taskStatusLabels = { pending: 'Väntar', in_progress: 'Pågår', completed: 'Klar' };
-      const taskTypeLabels = { buy: 'Köp', manufacture: 'Tillverka', assemble: 'Montera' };
+      const taskStatusLabels = { pending: 'Vantar', in_progress: 'Pagar', completed: 'Klar' };
+      const taskTypeLabels = { buy: 'Kop', manufacture: 'Tillverka', assemble: 'Montera' };
 
       doc.setFillColor(230, 230, 230);
       doc.rect(margin, y, W - margin * 2, 7, 'F');
@@ -201,6 +213,7 @@ Deno.serve(async (req) => {
       doc.text('Typ', margin + 100, y + 5);
       doc.text('Ansvarig', margin + 125, y + 5);
       doc.text('Status', W - margin - 2, y + 5, { align: 'right' });
+
       y += 8;
 
       wo.tasks.forEach((task, idx) => {
@@ -212,10 +225,10 @@ Deno.serve(async (req) => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(20, 20, 20);
-        const title = doc.splitTextToSize(task.title || '—', 95);
+        const title = doc.splitTextToSize(fix(task.title) || '-', 95);
         doc.text(title[0], margin + 2, y + 4);
-        doc.text(taskTypeLabels[task.type] || task.type || '—', margin + 100, y + 4);
-        doc.text(task.assigned_name || task.assigned_to || '—', margin + 125, y + 4);
+        doc.text(fix(taskTypeLabels[task.type] || task.type) || '-', margin + 100, y + 4);
+        doc.text(fix(task.assigned_name || task.assigned_to) || '-', margin + 125, y + 4);
         const s = task.status || 'pending';
         if (s === 'completed') doc.setTextColor(22, 163, 74);
         else if (s === 'in_progress') doc.setTextColor(217, 119, 6);
@@ -233,14 +246,14 @@ Deno.serve(async (req) => {
       const checks = [
         ['Monterad', wo.checklist.assembled],
         ['Testad', wo.checklist.tested],
-        ['Redo för leverans', wo.checklist.ready_for_delivery],
+        ['Redo for leverans', wo.checklist.ready_for_delivery],
       ];
       checks.forEach(([label, done]) => {
         checkPage(8);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(done ? 22 : 180, done ? 163 : 180, done ? 74 : 180);
-        doc.text(done ? '✓' : '○', margin + 2, y);
+        doc.text(done ? '+' : 'o', margin + 2, y);
         doc.setTextColor(20, 20, 20);
         doc.text(label, margin + 10, y);
         y += 7;
@@ -249,7 +262,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Timestamps ──────────────────────────────────────────
-    sectionHeader('Tidsstämplar');
+    sectionHeader('Tidsstamplar');
     if (wo.picking_started_date) field('Plockning startad', new Date(wo.picking_started_date).toLocaleString('sv-SE'));
     if (wo.picking_completed_date) field('Plockning klar', new Date(wo.picking_completed_date).toLocaleString('sv-SE'));
     if (wo.production_started_date) field('Produktion startad', new Date(wo.production_started_date).toLocaleString('sv-SE'));
@@ -259,14 +272,15 @@ Deno.serve(async (req) => {
     if (activities && activities.length > 0) {
       sectionHeader('Aktivitetslogg / Kommentarer');
 
+
       const typeLabels = {
         comment: 'Kommentar',
         system: 'System',
         decision: 'Beslut',
         assignment: 'Tilldelning',
         file_upload: 'Fil uppladdad',
-        status_change: 'Statusändring',
-        field_change: 'Fältändring'
+        status_change: 'Statusandring',
+        field_change: 'Faltandring'
       };
 
       // Sort oldest first
@@ -291,21 +305,21 @@ Deno.serve(async (req) => {
 
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7);
-        doc.text(`[${typeLabels[type] || type}]${isDecision ? ' ★ BESLUT' : ''}`, margin + 2, y + 4);
+        doc.text(`[${fix(typeLabels[type] || type)}]${isDecision ? ' * BESLUT' : ''}`, margin + 2, y + 4);
 
         // Actor + time
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
         doc.setTextColor(120, 120, 120);
         const timeStr = act.created_date ? new Date(act.created_date).toLocaleString('sv-SE') : '';
-        const actor = act.actor_name || act.actor_email || '';
+        const actor = fix(act.actor_name || act.actor_email || '');
         doc.text(`${actor}  ${timeStr}`, W - margin - 2, y + 4, { align: 'right' });
 
         // Message
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(20, 20, 20);
-        const msgLines = doc.splitTextToSize(act.message || '—', W - margin * 2 - 4);
+        const msgLines = doc.splitTextToSize(fix(act.message) || '-', W - margin * 2 - 4);
         msgLines.slice(0, 2).forEach((line, li) => {
           doc.text(line, margin + 2, y + 9 + li * 4);
         });
@@ -314,7 +328,7 @@ Deno.serve(async (req) => {
         if (type === 'field_change' && act.old_value && act.new_value) {
           doc.setFontSize(7);
           doc.setTextColor(100, 100, 100);
-          const changeText = `${act.field_name || ''}: "${act.old_value}" → "${act.new_value}"`;
+          const changeText = fix(`${act.field_name || ''}: "${act.old_value}" -> "${act.new_value}"`);
           const changeLines = doc.splitTextToSize(changeText, W - margin * 2 - 4);
           doc.text(changeLines[0], margin + 2, y + (msgLines.length > 0 ? 13 : 9));
         }
@@ -333,7 +347,7 @@ Deno.serve(async (req) => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.setTextColor(150, 150, 150);
-      doc.text('IMvision — Arbetsorder', margin, 293);
+      doc.text('IMvision - Arbetsorder', margin, 293);
       doc.text(`Sida ${i} av ${pageCount}`, W - margin, 293, { align: 'right' });
     }
 
