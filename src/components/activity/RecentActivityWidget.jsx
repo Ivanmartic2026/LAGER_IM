@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -12,6 +13,7 @@ const ACTIVITY_ENTITIES = ['WorkOrderActivity', 'POActivity', 'ProductionActivit
 
 export default function RecentActivityWidget() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [allActivities, setAllActivities] = useState([]);
 
@@ -30,7 +32,6 @@ export default function RecentActivityWidget() {
         return [];
       }
     },
-    refetchInterval: 30000,
   });
 
   const { data: poActivities = [] } = useQuery({
@@ -43,7 +44,6 @@ export default function RecentActivityWidget() {
         return [];
       }
     },
-    refetchInterval: 30000,
   });
 
   const { data: productionActivities = [] } = useQuery({
@@ -56,8 +56,28 @@ export default function RecentActivityWidget() {
         return [];
       }
     },
-    refetchInterval: 30000,
   });
+
+  // Real-time listeners for activity updates
+  useEffect(() => {
+    const unsubscribeWO = base44.entities.WorkOrderActivity.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['workOrderActivities'] });
+    });
+
+    const unsubscribePO = base44.entities.POActivity.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['poActivities'] });
+    });
+
+    const unsubscribeProd = base44.entities.ProductionActivity.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['productionActivities'] });
+    });
+
+    return () => {
+      unsubscribeWO();
+      unsubscribePO();
+      unsubscribeProd();
+    };
+  }, [queryClient]);
 
   // Fetch work order and PO details for titles
   const { data: workOrders = {} } = useQuery({
