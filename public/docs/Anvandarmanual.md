@@ -21,14 +21,6 @@
 
 ## Introduktion
 
-IMvision Lager & Order är ett komplett lagerstyrningssystem designat för att hantera LED-skärmar, komponenter och tillbehör. Systemet är optimerat för både mobil och desktop-användning och fungerar även offline.
+IMvision Lager & Order är ett komplett lagerstyrningssystem designat för att hantera LED-skärmar, komponenter och tillbehör.
 
-### Huvudfunktioner
-
-- **Mobiloptimerad skanning** - Använd kameran för att registrera artiklar direkt
-- **AI-driven dataigenkänning** - Extrahera automatiskt information från etiketter
-- **Komplett lagerstyrning** - Fullständig spårbarhet och kontroll
-- **Orderhantering** - Från offert till faktura
-- **Inköpshantering** - Planera och följ upp leveranser
-- **Offline-stöd** - Arbeta även utan internetuppkoppling
-- **Reparationsspårning** - Håll koll på artiklar på service
+*Version 1.0 - Senast uppdaterad: 2026-02-13*

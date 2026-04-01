@@ -62,7 +62,7 @@ export default function ArticleDetail({
   const [editingLocation, setEditingLocation] = useState(false);
   const [locationData, setLocationData] = useState({
     warehouse: article.warehouse || '',
-    shelf_address: article.shelf_address || '',
+    shelf_address: Array.isArray(article.shelf_address) ? (article.shelf_address[0] || '') : (article.shelf_address || ''),
   });
   const [editingTechnical, setEditingTechnical] = useState(false);
   const [aiDataExpanded, setAiDataExpanded] = useState(false);
@@ -1112,7 +1112,7 @@ export default function ArticleDetail({
                       setEditingLocation(true);
                       setLocationData({
                         warehouse: article.warehouse || '',
-                        shelf_address: article.shelf_address || '',
+                        shelf_address: Array.isArray(article.shelf_address) ? (article.shelf_address[0] || '') : (article.shelf_address || ''),
                       });
                     }}
                     className="h-8 px-3 text-sm rounded-lg text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 flex items-center gap-1 transition-colors"
@@ -1139,7 +1139,7 @@ export default function ArticleDetail({
                         try {
                           const updatedData = {
                             warehouse: locationData.warehouse || null,
-                            shelf_address: locationData.shelf_address || null,
+                            shelf_address: locationData.shelf_address ? [locationData.shelf_address] : null,
                           };
                           await updateArticleMutation.mutateAsync({
                             id: article.id,
