@@ -1,7 +1,6 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
-import { Package, CheckCircle2, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Package, CheckCircle2, AlertTriangle, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MaterialStatus({ materials = [] }) {
@@ -10,9 +9,9 @@ export default function MaterialStatus({ materials = [] }) {
       <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
         <h2 className="font-bold text-white mb-4 flex items-center gap-2">
           <Package className="w-5 h-5 text-yellow-400" />
-          Materialstatus
+          Material Status
         </h2>
-        <p className="text-white/50 text-sm">Ingen materialinformation tillgänglig än</p>
+        <p className="text-white/50 text-sm">No material information available yet</p>
       </div>
     );
   }
@@ -25,12 +24,12 @@ export default function MaterialStatus({ materials = [] }) {
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-bold text-white flex items-center gap-2">
           <Package className="w-5 h-5 text-yellow-400" />
-          Materialstatus
+          Material Status
         </h2>
         {allReady && (
           <Badge className="bg-green-500/20 border-green-500/30 text-green-400 border">
             <CheckCircle2 className="w-3 h-3 mr-1" />
-            Allt klart
+            All ready
           </Badge>
         )}
       </div>
@@ -38,8 +37,9 @@ export default function MaterialStatus({ materials = [] }) {
       <div className="space-y-2">
         {materials.map((material, idx) => {
           const inStock = material.in_stock >= material.quantity;
-          const status = inStock ? 'I lager' : material.needs_purchase ? 'Saknas' : 'På väg';
+          const status = inStock ? 'In Stock' : material.needs_purchase ? 'Missing' : 'On the way';
           const statusColor = inStock ? 'text-green-400' : material.needs_purchase ? 'text-red-400' : 'text-yellow-400';
+          const eta = material.transit_expected_date || material.eta;
 
           return (
             <div key={idx} className={cn("p-3 rounded-lg border", 
@@ -48,9 +48,15 @@ export default function MaterialStatus({ materials = [] }) {
                 <div className="flex-1">
                   <p className="text-white font-medium text-sm">{material.article_name}</p>
                   <p className={cn("text-xs mt-1", statusColor)}>
-                    Behövs: {material.quantity} st | I lager: {material.in_stock} st
-                    {material.missing > 0 && ` | Saknas: ${material.missing} st`}
+                    Needed: {material.quantity} pcs | In stock: {material.in_stock} pcs
+                    {material.missing > 0 && ` | Missing: ${material.missing} pcs`}
                   </p>
+                  {eta && !inStock && (
+                    <p className="text-xs mt-1 text-blue-400 flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      ETA: <strong>{eta}</strong>
+                    </p>
+                  )}
                 </div>
                 <Badge className={cn("border whitespace-nowrap",
                   inStock ? 'bg-green-500/20 border-green-500/30 text-green-400' :
@@ -68,7 +74,7 @@ export default function MaterialStatus({ materials = [] }) {
       {needsPurchase > 0 && (
         <div className="mt-4 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-orange-400 flex-shrink-0" />
-          <p className="text-sm text-orange-400">{needsPurchase} artikel(ar) måste köpas in</p>
+          <p className="text-sm text-orange-400">{needsPurchase} article(s) need to be purchased</p>
         </div>
       )}
     </div>

@@ -23,21 +23,21 @@ Deno.serve(async (req) => {
     ]);
     const order = orderList[0] || {};
 
-    const stageLabels = { picking: 'Plockning', production: 'Produktion', delivery: 'Leverans', completed: 'Klar' };
-    const priorityLabels = { låg: 'Låg', normal: 'Normal', hög: 'Hög', brådskande: 'Brådskande' };
-    const statusLabels = { väntande: 'Väntande', pågår: 'Pågår', klar: 'Klar', avbruten: 'Avbruten' };
-    const typeLabels = { comment: 'Kommentar', system: 'System', decision: 'Beslut', assignment: 'Tilldelning', file_upload: 'Fil', status_change: 'Status', field_change: 'Fält' };
+    const stageLabels = { picking: 'Picking', production: 'Production', delivery: 'Delivery', completed: 'Completed' };
+    const priorityLabels = { låg: 'Low', normal: 'Normal', hög: 'High', brådskande: 'Urgent', low: 'Low', high: 'High', urgent: 'Urgent' };
+    const statusLabels = { väntande: 'Pending', pågår: 'In Progress', klar: 'Done', avbruten: 'Cancelled' };
+    const typeLabels = { comment: 'Comment', system: 'System', decision: 'Decision', assignment: 'Assignment', file_upload: 'File', status_change: 'Status', field_change: 'Field' };
 
     const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const fmtDate = (d) => d ? new Date(d).toLocaleDateString('sv-SE') : '—';
     const fmtDT = (d) => d ? new Date(d).toLocaleString('sv-SE') : '—';
 
     const checkRows = wo.checklist ? [
-      ['Plockat', wo.checklist.picked],
-      ['Monterat', wo.checklist.assembled],
-      ['Testat', wo.checklist.tested],
-      ['Paketerat', wo.checklist.packed],
-      ['Redo för leverans', wo.checklist.ready_for_delivery],
+      ['Picked', wo.checklist.picked],
+      ['Assembled', wo.checklist.assembled],
+      ['Tested', wo.checklist.tested],
+      ['Packed', wo.checklist.packed],
+      ['Ready for delivery', wo.checklist.ready_for_delivery],
     ] : [];
 
     const sorted = [...(activities || [])].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
 <div class="top-bar">
   <img src="https://media.base44.com/images/public/69455d52c9eab36b7d26cc74/81c7616fb_LogoLIGGANDE_IMvision_VITtkopia.png" class="logo" alt="IMvision" />
   <div class="top-bar-right">
-    <div style="font-size:13px;font-weight:bold;letter-spacing:0.05em">ARBETSORDER</div>
+    <div style="font-size:13px;font-weight:bold;letter-spacing:0.05em">WORK ORDER</div>
     <div style="margin-top:2px">${esc(wo.name || wo.order_number || '')}</div>
   </div>
 </div>
@@ -99,55 +99,55 @@ Deno.serve(async (req) => {
 <div class="page">
 <div class="header">
   <div>
-    <div style="font-size:10px;color:#888;margin-bottom:4px;">ARBETSORDER</div>
+    <div style="font-size:10px;color:#888;margin-bottom:4px;">WORK ORDER</div>
     <h1>${esc(wo.name || wo.order_number || work_order_id.slice(0,8))}</h1>
     <div style="margin-top:4px;font-size:11px;color:#555;">
       Status: <strong>${esc(statusLabels[wo.status] || wo.status || '—')}</strong>
-      &nbsp;|&nbsp; Fas: <strong>${esc(stageLabels[wo.current_stage] || wo.current_stage || '—')}</strong>
-      &nbsp;|&nbsp; Prioritet: <strong>${esc(priorityLabels[wo.priority] || wo.priority || 'Normal')}</strong>
+      &nbsp;|&nbsp; Stage: <strong>${esc(stageLabels[wo.current_stage] || wo.current_stage || '—')}</strong>
+      &nbsp;|&nbsp; Priority: <strong>${esc(priorityLabels[wo.priority] || wo.priority || 'Normal')}</strong>
     </div>
   </div>
   <div class="header-right">
-    <div>Utskriven: ${fmtDT(new Date())}</div>
-    ${order.order_number ? `<div>Ordernr: <strong>${esc(order.order_number)}</strong></div>` : ''}
-    ${wo.delivery_date || order.delivery_date ? `<div>Leverans: <strong>${esc(wo.delivery_date || order.delivery_date)}</strong></div>` : ''}
+    <div>Printed: ${fmtDT(new Date())}</div>
+    ${order.order_number ? `<div>Order No: <strong>${esc(order.order_number)}</strong></div>` : ''}
+    ${wo.delivery_date || order.delivery_date ? `<div>Delivery: <strong>${esc(wo.delivery_date || order.delivery_date)}</strong></div>` : ''}
   </div>
 </div>
 
 <div class="grid">
-  <div class="box"><div class="label">Kund</div><div class="value">${esc(order.customer_name || wo.customer_name || '—')}</div></div>
-  <div class="box"><div class="label">Kundreferens</div><div class="value">${esc(order.customer_reference || wo.customer_reference || '—')}</div></div>
-  <div class="box"><div class="label">Leveransdatum</div><div class="value">${esc(wo.delivery_date || order.delivery_date || '—')}</div></div>
+  <div class="box"><div class="label">Customer</div><div class="value">${esc(order.customer_name || wo.customer_name || '—')}</div></div>
+  <div class="box"><div class="label">Customer Reference</div><div class="value">${esc(order.customer_reference || wo.customer_reference || '—')}</div></div>
+  <div class="box"><div class="label">Delivery Date</div><div class="value">${esc(wo.delivery_date || order.delivery_date || '—')}</div></div>
 </div>
 
 ${wo.technician_name || wo.assigned_to_production_name ? `
 <div class="grid2">
-  <div class="box"><div class="label">Tekniker</div><div class="value">${esc(wo.technician_name || wo.assigned_to_production_name)}</div></div>
-  ${wo.technician_phone ? `<div class="box"><div class="label">Telefon</div><div class="value">${esc(wo.technician_phone)}</div></div>` : ''}
+  <div class="box"><div class="label">Technician</div><div class="value">${esc(wo.technician_name || wo.assigned_to_production_name)}</div></div>
+  ${wo.technician_phone ? `<div class="box"><div class="label">Phone</div><div class="value">${esc(wo.technician_phone)}</div></div>` : ''}
 </div>` : ''}
 
 ${wo.delivery_contact_name ? `
 <div class="grid2">
-  <div class="box"><div class="label">Leveranskontakt</div><div class="value">${esc(wo.delivery_contact_name)}</div></div>
-  ${wo.delivery_contact_phone ? `<div class="box"><div class="label">Telefon</div><div class="value">${esc(wo.delivery_contact_phone)}</div></div>` : ''}
+  <div class="box"><div class="label">Delivery Contact</div><div class="value">${esc(wo.delivery_contact_name)}</div></div>
+  ${wo.delivery_contact_phone ? `<div class="box"><div class="label">Phone</div><div class="value">${esc(wo.delivery_contact_phone)}</div></div>` : ''}
 </div>` : ''}
 
-${wo.project_description ? `<h2>Projektbeskrivning</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.project_description)}</p>` : ''}
+${wo.project_description ? `<h2>Project Description</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.project_description)}</p>` : ''}
 
-<h2>Orderinformation</h2>
-${order.delivery_address ? `<div class="field"><span class="fl">Leveransadress</span><span>${esc(order.delivery_address)}</span></div>` : ''}
-${order.delivery_method ? `<div class="field"><span class="fl">Leveranssätt</span><span>${esc(order.delivery_method)}</span></div>` : ''}
-${order.fortnox_project_number ? `<div class="field"><span class="fl">Fortnox Projekt</span><span>${esc(order.fortnox_project_number)}</span></div>` : ''}
-${order.notes ? `<div class="field"><span class="fl">Anteckningar</span><span>${esc(order.notes)}</span></div>` : ''}
+<h2>Order Information</h2>
+${order.delivery_address ? `<div class="field"><span class="fl">Delivery Address</span><span>${esc(order.delivery_address)}</span></div>` : ''}
+${order.delivery_method ? `<div class="field"><span class="fl">Delivery Method</span><span>${esc(order.delivery_method)}</span></div>` : ''}
+${order.fortnox_project_number ? `<div class="field"><span class="fl">Fortnox Project</span><span>${esc(order.fortnox_project_number)}</span></div>` : ''}
+${order.notes ? `<div class="field"><span class="fl">Notes</span><span>${esc(order.notes)}</span></div>` : ''}
 
-${wo.picking_notes ? `<h2>Plockanteckningar</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.picking_notes)}</p>` : ''}
-${wo.production_notes ? `<h2>Produktionsanteckningar</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.production_notes)}</p>` : ''}
-${wo.deviations ? `<h2>Avvikelser / Konstruktörsanteckningar</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.deviations)}</p>` : ''}
+${wo.picking_notes ? `<h2>Picking Notes</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.picking_notes)}</p>` : ''}
+${wo.production_notes ? `<h2>Production Notes</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.production_notes)}</p>` : ''}
+${wo.deviations ? `<h2>Deviations / Designer Notes</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.deviations)}</p>` : ''}
 
 ${designerTasks && designerTasks.length > 0 ? `
-<h2>Construction and Design Lino – Uppgifter för konstruktören</h2>
+<h2>Designer / Engineering Tasks</h2>
 <table>
-  <thead><tr><th style="width:30px"></th><th>Uppgift</th><th>Beskrivning</th><th>Tilldelad</th><th>Status</th><th>Klar</th></tr></thead>
+  <thead><tr><th style="width:30px"></th><th>Task</th><th>Description</th><th>Assigned To</th><th>Status</th><th>Completed</th></tr></thead>
   <tbody>
     ${designerTasks.map(task => `
     <tr>
@@ -155,16 +155,16 @@ ${designerTasks && designerTasks.length > 0 ? `
       <td style="${task.status === 'completed' ? 'text-decoration:line-through;color:#999' : 'font-weight:bold'}">${esc(task.name || '—')}</td>
       <td style="color:#555">${esc(task.description || '—')}</td>
       <td>${esc(task.assigned_to_name || task.assigned_to || '—')}</td>
-      <td style="color:${task.status === 'completed' ? '#16a34a' : task.status === 'in_progress' ? '#d97706' : '#555'}">${esc(task.status === 'completed' ? 'Klar' : task.status === 'in_progress' ? 'Pågår' : 'Att göra')}</td>
+      <td style="color:${task.status === 'completed' ? '#16a34a' : task.status === 'in_progress' ? '#d97706' : '#555'}">${esc(task.status === 'completed' ? 'Done' : task.status === 'in_progress' ? 'In Progress' : 'To Do')}</td>
       <td style="color:#16a34a;font-size:10px">${task.completed_date ? fmtDT(task.completed_date) : '—'}</td>
     </tr>`).join('')}
   </tbody>
 </table>` : ''}
 
 ${orderItems.length > 0 ? `
-<h2>Artiklar / Materiallista</h2>
+<h2>Articles / Material List</h2>
 <table>
-  <thead><tr><th>Artikel</th><th>Batch</th><th>Hylla</th><th>Beställt</th><th>Plockat</th></tr></thead>
+  <thead><tr><th>Article</th><th>Batch</th><th>Shelf</th><th>Ordered</th><th>Picked</th><th>ETA</th></tr></thead>
   <tbody>
     ${orderItems.map(item => `
     <tr>
@@ -173,14 +173,15 @@ ${orderItems.length > 0 ? `
       <td>${esc(item.shelf_address || '—')}</td>
       <td>${item.quantity_ordered || 0}</td>
       <td style="color:${(item.quantity_picked||0)>=(item.quantity_ordered||0)?'#16a34a':(item.quantity_picked||0)>0?'#d97706':'#999'}">${item.quantity_picked || 0}</td>
+      <td style="color:#2563eb;font-size:10px">${esc(item.transit_expected_date || item.eta || '—')}</td>
     </tr>`).join('')}
   </tbody>
 </table>` : ''}
 
 ${wo.tasks && wo.tasks.length > 0 ? `
-<h2>Arbetsmoment</h2>
+<h2>Work Tasks</h2>
 <table>
-  <thead><tr><th>Moment</th><th>Typ</th><th>Ansvarig</th><th>Status</th></tr></thead>
+  <thead><tr><th>Task</th><th>Type</th><th>Assigned</th><th>Status</th></tr></thead>
   <tbody>
     ${wo.tasks.map(task => `
     <tr>
@@ -193,20 +194,20 @@ ${wo.tasks && wo.tasks.length > 0 ? `
 </table>` : ''}
 
 ${checkRows.length > 0 ? `
-<h2>Checklista</h2>
+<h2>Checklist</h2>
 ${checkRows.map(([label, done]) => `
 <div class="check ${done ? 'done' : 'todo'}">${done ? '✓' : '○'} ${label}</div>
 `).join('')}` : ''}
 
 ${wo.picking_started_date || wo.production_started_date ? `
-<h2>Tider</h2>
-${wo.picking_started_date ? `<div class="field"><span class="fl">Plockning startad</span><span>${fmtDT(wo.picking_started_date)}</span></div>` : ''}
-${wo.picking_completed_date ? `<div class="field"><span class="fl">Plockning klar</span><span>${fmtDT(wo.picking_completed_date)}</span></div>` : ''}
-${wo.production_started_date ? `<div class="field"><span class="fl">Produktion startad</span><span>${fmtDT(wo.production_started_date)}</span></div>` : ''}
-${wo.production_completed_date ? `<div class="field"><span class="fl">Produktion klar</span><span>${fmtDT(wo.production_completed_date)}</span></div>` : ''}` : ''}
+<h2>Timeline</h2>
+${wo.picking_started_date ? `<div class="field"><span class="fl">Picking started</span><span>${fmtDT(wo.picking_started_date)}</span></div>` : ''}
+${wo.picking_completed_date ? `<div class="field"><span class="fl">Picking completed</span><span>${fmtDT(wo.picking_completed_date)}</span></div>` : ''}
+${wo.production_started_date ? `<div class="field"><span class="fl">Production started</span><span>${fmtDT(wo.production_started_date)}</span></div>` : ''}
+${wo.production_completed_date ? `<div class="field"><span class="fl">Production completed</span><span>${fmtDT(wo.production_completed_date)}</span></div>` : ''}` : ''}
 
 ${sorted.length > 0 ? `
-<h2>Aktivitetslogg</h2>
+<h2>Activity Log</h2>
 ${sorted.map(act => `
 <div class="act-row">
   <div class="act-meta">
@@ -220,13 +221,13 @@ ${sorted.map(act => `
 </div><!-- end .page -->
 
 <div style="background:#000;color:rgba(255,255,255,0.7);font-size:10px;padding:8px 32px;display:flex;justify-content:space-between;margin-top:30px;">
-  <span>IMvision AB – Arbetsorder</span>
+  <span>IMvision AB – Work Order</span>
   <span>${esc(wo.name || wo.order_number || '')} &nbsp;|&nbsp; ${fmtDT(new Date())}</span>
 </div>
 
 <div style="position:fixed;bottom:24px;right:24px;z-index:999;display:flex;gap:10px;" class="no-print">
   <button onclick="window.print()" style="background:#000;color:#fff;border:none;padding:10px 22px;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;letter-spacing:0.05em;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-    🖨️ Skriv ut
+    🖨️ Print
   </button>
 </div>
 <style>.no-print { } @media print { .no-print { display: none !important; } }</style>
