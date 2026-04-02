@@ -93,47 +93,47 @@ export default function OrderTasks({ orderId }) {
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="mb-4 space-y-2 p-3 rounded-lg bg-slate-900/60 border border-slate-700">
-          <Input
-            placeholder="Uppgiftens namn *"
-            value={newTask.name}
-            onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
-            className="bg-slate-800 border-slate-700 text-white text-sm h-8"
-          />
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              value={newTask.priority}
-              onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-              className="bg-slate-800 border border-slate-700 text-white text-sm rounded-md px-2 h-8"
-            >
-              <option value="low">Låg prioritet</option>
-              <option value="normal">Normal prioritet</option>
-              <option value="high">Hög prioritet</option>
-              <option value="urgent">Akut prioritet</option>
-            </select>
-            <Input
-              placeholder="Tilldelad (email)"
-              value={newTask.assigned_to}
-              onChange={(e) => setNewTask({ ...newTask, assigned_to: e.target.value })}
-              className="bg-slate-800 border-slate-700 text-white text-sm h-8"
-            />
-          </div>
-          <Textarea
-            placeholder="Beskrivning..."
-            value={newTask.description}
-            onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-            className="bg-slate-800 border-slate-700 text-white text-sm h-16 resize-none"
-          />
-          <div className="flex gap-2">
-            <Button size="sm" type="submit" disabled={createMutation.isPending} className="bg-blue-600 hover:bg-blue-500 h-7 text-xs">
-              {createMutation.isPending ? 'Sparar...' : 'Spara'}
-            </Button>
-            <Button size="sm" type="button" variant="ghost" onClick={() => setShowForm(false)} className="h-7 text-xs text-slate-400">
-              Avbryt
-            </Button>
-          </div>
-        </form>
-      )}
+         <div className="mb-4 space-y-2 p-3 rounded-lg bg-slate-900/60 border border-slate-700">
+           <Input
+             placeholder="Uppgiftens namn *"
+             value={newTask.name}
+             onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
+             className="bg-slate-800 border-slate-700 text-white text-sm h-8"
+           />
+           <div className="grid grid-cols-2 gap-2">
+             <select
+               value={newTask.priority}
+               onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+               className="bg-slate-800 border border-slate-700 text-white text-sm rounded-md px-2 h-8"
+             >
+               <option value="low">Låg prioritet</option>
+               <option value="normal">Normal prioritet</option>
+               <option value="high">Hög prioritet</option>
+               <option value="urgent">Akut prioritet</option>
+             </select>
+             <Input
+               placeholder="Tilldelad (email)"
+               value={newTask.assigned_to}
+               onChange={(e) => setNewTask({ ...newTask, assigned_to: e.target.value })}
+               className="bg-slate-800 border-slate-700 text-white text-sm h-8"
+             />
+           </div>
+           <Textarea
+             placeholder="Beskrivning..."
+             value={newTask.description}
+             onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+             className="bg-slate-800 border-slate-700 text-white text-sm h-16 resize-none"
+           />
+           <div className="flex gap-2">
+             <Button size="sm" onClick={handleCreate} disabled={createMutation.isPending} className="bg-blue-600 hover:bg-blue-500 h-7 text-xs">
+               {createMutation.isPending ? 'Sparar...' : 'Spara'}
+             </Button>
+             <Button size="sm" variant="ghost" onClick={() => setShowForm(false)} className="h-7 text-xs text-slate-400">
+               Avbryt
+             </Button>
+           </div>
+         </div>
+       )}
 
       {tasks.length === 0 && !showForm && (
         <p className="text-sm text-slate-500 text-center py-2">Inga uppgifter ännu</p>
