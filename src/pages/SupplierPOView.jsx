@@ -187,12 +187,14 @@ export default function SupplierPOView() {
                    <span className="text-slate-500 text-xs">Supplier</span>
                    <span className="text-slate-900 font-medium">{purchaseOrder.supplier_name}</span>
                  </div>
-                 <div className="flex flex-col gap-1">
-                   <span className="text-slate-500 text-xs">ETA</span>
-                   <span className="text-slate-900 font-medium">
-                     {purchaseOrder.expected_delivery_date ? format(new Date(purchaseOrder.expected_delivery_date), 'd MMM', { locale: sv }) : '—'}
-                   </span>
-                 </div>
+                 {purchaseOrder.status !== 'received' && (
+                   <div className="flex flex-col gap-1">
+                     <span className="text-slate-500 text-xs">ETA</span>
+                     <span className="text-slate-900 font-medium">
+                       {purchaseOrder.expected_delivery_date ? format(new Date(purchaseOrder.expected_delivery_date), 'd MMM', { locale: sv }) : '—'}
+                     </span>
+                   </div>
+                 )}
                  <div className="flex flex-col gap-1">
                    <span className="text-slate-500 text-xs">Items</span>
                    <span className="text-slate-900 font-medium">{items.length} pcs</span>
