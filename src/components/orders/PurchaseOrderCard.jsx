@@ -156,7 +156,7 @@ export default function PurchaseOrderCard({
               <span>{order.supplier}</span>
             </div>
           )}
-          {order.estimated_delivery_date && (
+          {order.estimated_delivery_date && order.status !== 'received' && (
             <div className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
               <span>
