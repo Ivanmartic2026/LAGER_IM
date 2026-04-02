@@ -25,10 +25,16 @@ Deno.serve(async (req) => {
     });
 
     const enrichedItems = await Promise.all(items.map(async (item) => {
-      if (!item.article_sku && item.article_id) {
+      if (item.article_id) {
         const articles = await base44.asServiceRole.entities.Article.filter({ id: item.article_id });
         if (articles.length > 0) {
-          return { ...item, article_sku: articles[0].sku };
+          const article = articles[0];
+          return {
+            ...item,
+            article_sku: item.article_sku || article.sku,
+            transit_expected_date: article.transit_expected_date || null,
+            article_status: article.status || null,
+          };
         }
       }
       return item;

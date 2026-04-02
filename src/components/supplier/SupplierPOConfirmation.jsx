@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { CalendarIcon, Plus, Trash2, CheckCircle2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }) {
@@ -107,7 +107,16 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
             <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-4">
                 <div>
                   <div className="font-semibold text-gray-900">{item.article_name}</div>
-                  <div className="text-sm text-gray-500">Ordered: {item.quantity_ordered} pcs</div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-sm text-gray-500">
+                    <span>Ordered: {item.quantity_ordered} pcs</span>
+                    {item.article_sku && <span>SKU: {item.article_sku}</span>}
+                    {item.transit_expected_date && (
+                      <span className="flex items-center gap-1 text-blue-600 font-medium">
+                        <Clock className="w-3 h-3" />
+                        ETA: {format(new Date(item.transit_expected_date), 'd MMM yyyy')}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div>
