@@ -523,7 +523,9 @@ export default function PurchaseOrdersPage() {
                           <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-emerald-400 hover:bg-emerald-500/10 transition-colors" onClick={() => setAccountingModalPO(po)}>
                             <Send className="w-3 h-3" />Till ekonomi
                           </button>
-                          <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-purple-400 hover:bg-purple-500/10 transition-colors" onClick={async () => {
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0 ml-2">
+                          <button className="px-2.5 py-1 rounded-md text-xs text-purple-400 hover:bg-purple-500/10 transition-colors" onClick={async () => {
                             try {
                               await base44.functions.invoke('fortnoxSyncV2', { 
                                 purchaseOrderId: po.id
@@ -534,10 +536,8 @@ export default function PurchaseOrdersPage() {
                               toast.error('Synk misslyckades');
                             }
                           }}>
-                            <TrendingUp className="w-3 h-3" />Synca med Fortnox
+                            <TrendingUp className="w-3 h-3 mr-1 inline" />Synca
                           </button>
-                        </div>
-                        <div className="flex gap-1 flex-shrink-0 ml-2">
                           <button className="px-2.5 py-1 rounded-md text-xs text-white/40 hover:text-white hover:bg-white/8 transition-colors" onClick={() => { setEditingPO(po); setShowForm(true); }}>
                             Redigera
                           </button>
