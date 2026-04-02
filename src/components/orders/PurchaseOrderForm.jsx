@@ -143,6 +143,10 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
         if (item.article_id) {
           try {
             const articleUpdate = {};
+            // Sync name if changed in PO
+            if (item.article_name && item.article_name !== article?.name) {
+              articleUpdate.name = item.article_name;
+            }
             // Sync SKU if changed in PO
             if (item.article_sku && item.article_sku !== article?.sku) {
               articleUpdate.sku = item.article_sku;
@@ -1010,7 +1014,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
             >
               Avbryt
             </Button>
-            {purchaseOrder && formData.status !== 'received' && (
+            {purchaseOrder && purchaseOrder.status !== 'received' && (
               <Button
                 type="button"
                 onClick={handleReceiveGoods}
