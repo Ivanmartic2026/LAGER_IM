@@ -96,7 +96,13 @@ function ActivityItem({ activity }) {
             )}
           </div>
           <span className="text-xs text-white/30 whitespace-nowrap flex-shrink-0">
-            {format(new Date(activity.created_date), 'd MMM HH:mm', { locale: sv })}
+            {new Date(activity.created_date).toLocaleString('sv-SE', {
+              timeZone: 'Europe/Stockholm',
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
           </span>
         </div>
 
