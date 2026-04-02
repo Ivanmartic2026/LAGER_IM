@@ -171,11 +171,22 @@ export default function NotificationBell() {
                                   <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1" />
                                 )}
                               </div>
-                              <p className="text-xs text-slate-400 line-clamp-2 mb-2">
+                              <p className="text-xs text-slate-400 line-clamp-2 mb-1">
                                 {notification.message}
                               </p>
+                              {notification.type && (
+                                <p className="text-xs text-blue-400/70 mb-1 capitalize">
+                                  {notification.type.replace(/_/g, ' ')}
+                                </p>
+                              )}
                               <p className="text-xs text-slate-500">
-                                {format(new Date(notification.created_date), "d MMM HH:mm", { locale: sv })}
+                                {new Date(notification.created_date).toLocaleString('sv-SE', {
+                                  timeZone: 'Europe/Stockholm',
+                                  day: 'numeric',
+                                  month: 'short',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
                               </p>
                             </div>
                           </div>
