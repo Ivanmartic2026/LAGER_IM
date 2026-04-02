@@ -85,96 +85,34 @@ Deno.serve(async (req) => {
     }
 
     const accessToken = await getFortnoxToken(base44);
-
-    // Fetch all data in parallel
-    const [allInvoices, allSupplierInvoices, allProjects] = await Promise.all([
-      fetchAllPaginated(accessToken, '/invoices'),
-      fetchAllPaginated(accessToken, '/supplierinvoices'),
-      fetchAllPaginated(accessToken, '/projects')
-    ]);
-
-    console.log('First 3 invoices:', JSON.stringify(allInvoices.slice(0, 3)));
-    console.log('First 3 supplier invoices:', JSON.stringify(allSupplierInvoices.slice(0, 3)));
-    console.log('Total invoices fetched:', allInvoices.length);
-    console.log('Total supplier invoices fetched:', allSupplierInvoices.length);
-
-    // Group invoices by project
-    const projectInvoiceMap = {};
-    for (const inv of allInvoices) {
-      const projectNum = inv.Project;
-      if (projectNum) {
-        if (!projectInvoiceMap[projectNum]) {
-          projectInvoiceMap[projectNum] = { customer: [], supplier: [] };
-        }
-        projectInvoiceMap[projectNum].customer.push(inv);
-      }
-    }
-
-    for (const inv of allSupplierInvoices) {
-      const projectNum = inv.Project;
-      if (projectNum) {
-        if (!projectInvoiceMap[projectNum]) {
-          projectInvoiceMap[projectNum] = { customer: [], supplier: [] };
-        }
-        projectInvoiceMap[projectNum].supplier.push(inv);
-      }
-    }
-
-    // Build results only for projects with invoices
-    const results = [];
-    const projectsWithData = Object.keys(projectInvoiceMap);
-    console.log('Projects with invoices:', projectsWithData.length);
-
-    for (const project of allProjects) {
-      const projectNumber = project.ProjectNumber;
-      const invoices = projectInvoiceMap[projectNumber];
-
-      if (!invoices) continue;
-
-      let revenue = 0;
-      const customerInvoiceDetails = [];
-      for (const inv of invoices.customer) {
-        revenue += inv.Total || 0;
-        customerInvoiceDetails.push({
-          DocumentNumber: inv.DocumentNumber,
-          CustomerName: inv.CustomerName || 'Unknown',
-          Total: inv.Total || 0,
-          InvoiceDate: inv.InvoiceDate
-        });
-      }
-
-      let costs = 0;
-      const supplierInvoiceDetails = [];
-      for (const inv of invoices.supplier) {
-        costs += inv.Total || 0;
-        supplierInvoiceDetails.push({
-          GivenNumber: inv.GivenNumber,
-          SupplierName: inv.SupplierName || 'Unknown',
-          Total: inv.Total || 0,
-          InvoiceDate: inv.InvoiceDate
-        });
-      }
-
-      // Only include if revenue or costs > 0
-      if (revenue > 0 || costs > 0) {
-        results.push({
-          projectNumber,
-          projectName: project.Description || projectNumber,
-          projectStatus: project.Status || 'unknown',
-          revenue,
-          costs,
-          result: revenue - costs,
-          customerInvoices: customerInvoiceDetails,
-          supplierInvoices: supplierInvoiceDetails
-        });
-      }
-    }
-
+    
+    // Fetch first 3 invoices to inspect structure
+    const invoiceRes = await fetch(FORTNOX_API_BASE + '/invoices?limit=3', {
+      headers: { 'Authorization': 'Bearer ' + accessToken, 'Accept': 'application/json' }
+    });
+    const invoiceData = await invoiceRes.json();
+    
+    // Also test project filter on project "1"
+    const projectInvoiceRes = await fetch(FORTNOX_API_BASE + '/invoices?project=1&limit=3', {
+      headers: { 'Authorization': 'Bearer ' + accessToken, 'Accept': 'application/json' }
+    });
+    const projectInvoiceData = await projectInvoiceRes.json();
+    
+    // Also fetch supplier invoices sample
+    const supRes = await fetch(FORTNOX_API_BASE + '/supplierinvoices?limit=3', {
+      headers: { 'Authorization': 'Bearer ' + accessToken, 'Accept': 'application/json' }
+    });
+    const supData = await supRes.json();
+    
     return Response.json({
-      projects: results.sort((a, b) => a.projectNumber.localeCompare(b.projectNumber))
+      debug: true,
+      sampleInvoice: invoiceData.Invoices ? invoiceData.Invoices[0] : null,
+      totalInvoices: invoiceData.MetaInformation,
+      invoicesForProject1: projectInvoiceData.Invoices || [],
+      sampleSupplierInvoice: supData.SupplierInvoices ? supData.SupplierInvoices[0] : null,
     });
   } catch (error) {
-    console.error('getProjectFinancials error:', error);
+    console.error('getProjectFinancials debug error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
