@@ -194,8 +194,8 @@ async function createFortnoxInboundDelivery(accessToken, base44, poId) {
       return { succeeded: 0, failed: 0 };
     }
 
-    // Build invoice rows with article numbers and quantities
-    const invoiceRows = [];
+    // Build delivery rows with article numbers and quantities
+    const rows = [];
     for (const item of items) {
       if (item.quantity_received <= 0) continue;
 
@@ -209,40 +209,38 @@ async function createFortnoxInboundDelivery(accessToken, base44, poId) {
         continue;
       }
 
-      invoiceRows.push({
+      rows.push({
         ArticleNumber: articleNumber,
-        Quantity: item.quantity_received,
-        Price: item.unit_price || 0
+        DeliveredQuantity: item.quantity_received
       });
     }
 
-    if (invoiceRows.length === 0) {
+    if (rows.length === 0) {
       return { succeeded: 0, failed: 0 };
     }
 
-    // Create supplier invoice (inbound delivery) in Fortnox
-    const invoiceData = {
+    // Create inbound delivery in Fortnox
+    const deliveryData = {
       SupplierNumber: po.supplier_id || '',
-      SupplierName: po.supplier_name || '',
-      InvoiceNumber: po.invoice_number || `MANUAL-${po.po_number}`,
-      InvoiceDate: new Date().toISOString().split('T')[0],
-      DueDate: new Date().toISOString().split('T')[0],
-      Comments: `Automated inbound delivery from PO ${po.po_number}`,
-      InvoiceRows: invoiceRows
+      DeliveryDate: new Date().toISOString().split('T')[0],
+      Rows: rows
     };
 
-    const response = await fetch(`${FORTNOX_API_BASE}/supplierinvoices`, {
+    const response = await fetch(`${FORTNOX_API_BASE}/inbounddeliveries`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify({ SupplierInvoice: invoiceData })
+      body: JSON.stringify({ InboundDelivery: deliveryData })
     });
 
     if (response.ok) {
       succeeded = 1;
+    } else if (response.status === 400) {
+      failed = 1;
+      console.error('Fortnox Lager-modul är inte aktiverad - aktivera modulen i Fortnox för att synka lagerinleveranser');
     } else {
       const errorText = await response.text();
       console.error(`Fortnox inbound delivery creation failed: ${response.status} - ${errorText}`);
