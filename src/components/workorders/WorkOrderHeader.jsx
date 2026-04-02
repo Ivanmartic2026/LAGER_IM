@@ -7,19 +7,19 @@ import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 const STAGE_CONFIG = {
-  picking: { label: 'Plockning', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
-  production: { label: 'Produktion', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  delivery: { label: 'Leverans', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
-  completed: { label: 'Klar', color: 'bg-green-500/20 text-green-400 border-green-500/30' }
+  picking: { label: 'Picking', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+  production: { label: 'Production', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  delivery: { label: 'Delivery', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  completed: { label: 'Done', color: 'bg-green-500/20 text-green-400 border-green-500/30' }
 };
 
 const STATUS_CONFIG = {
-  blocked: { label: 'Blockerad – saknar material', color: 'text-red-400' },
-  waiting_material: { label: 'Väntar på material', color: 'text-yellow-400' },
-  ready: { label: 'Redo att starta', color: 'text-green-400' },
-  in_production: { label: 'Produktion pågår', color: 'text-blue-400' },
-  ready_delivery: { label: 'Redo för leverans', color: 'text-purple-400' },
-  completed: { label: 'Klar', color: 'text-green-400' }
+  blocked: { label: 'Blocked – missing materials', color: 'text-red-400' },
+  waiting_material: { label: 'Waiting for materials', color: 'text-yellow-400' },
+  ready: { label: 'Ready to start', color: 'text-green-400' },
+  in_production: { label: 'Production in progress', color: 'text-blue-400' },
+  ready_delivery: { label: 'Ready for delivery', color: 'text-purple-400' },
+  completed: { label: 'Completed', color: 'text-green-400' }
 };
 
 function getOverallStatus(workOrder, materialNeedsPurchase) {
@@ -55,7 +55,7 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange, onStat
               type="text"
               defaultValue={workOrder.name || ''}
               onBlur={e => onNameChange(e.target.value)}
-              placeholder="Lägg till namn på denna arbetsorder..."
+              placeholder="Add a name for this work order..."
               className="text-sm bg-white/5 border border-white/10 rounded px-2 py-1 text-white/70 placeholder:text-white/30 w-full mb-3 line-clamp-2 break-words"
             />
             <div className="space-y-2">
@@ -66,12 +66,12 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange, onStat
                {(order?.delivery_date || workOrder.delivery_date) && (
                  <div className={cn("flex items-center gap-2 text-sm", isOverdue ? 'text-red-400' : 'text-white/60')}>
                    <Clock className="w-4 h-4 shrink-0" />
-                   <span className="font-medium">Leverans: {format(new Date(order?.delivery_date || workOrder.delivery_date), 'd MMM yyyy', { locale: sv })}</span>
+                   <span className="font-medium">Delivery: {format(new Date(order?.delivery_date || workOrder.delivery_date), 'd MMM yyyy', { locale: sv })}</span>
                  </div>
                )}
                <div className="flex items-center gap-2 text-sm text-white/60">
                  <Zap className="w-4 h-4 shrink-0" />
-                 <span className="font-medium capitalize">{workOrder.status === 'in_progress' ? 'Pågår' : workOrder.status === 'pending' ? 'Väntar' : workOrder.status === 'completed' ? 'Klar' : workOrder.status}</span>
+                 <span className="font-medium capitalize">{workOrder.status === 'in_progress' ? 'In Progress' : workOrder.status === 'pending' ? 'Pending' : workOrder.status === 'completed' ? 'Done' : workOrder.status}</span>
                </div>
                {order?.delivery_address && (
                  <div className="flex items-start gap-2 text-white/60 text-sm">
@@ -103,11 +103,11 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange, onStat
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Status', value: workOrder.status, icon: null, isClickable: true },
-          { label: 'Prioritet', value: workOrder.priority || 'Normal', icon: null },
-          { label: 'Projekt', value: order?.fortnox_project_number || '—', icon: FileText },
+          { label: 'Priority', value: workOrder.priority || 'Normal', icon: null },
+          { label: 'Project', value: order?.fortnox_project_number || '—', icon: FileText },
           { label: 'Fortnox Order', value: order?.fortnox_order_id || '—', icon: FileText },
-          { label: 'Kundreferens', value: order?.customer_reference || '—', icon: FileText },
-          { label: 'Leveranssätt', value: order?.delivery_method || '—', icon: Truck }
+          { label: 'Customer Ref', value: order?.customer_reference || '—', icon: FileText },
+          { label: 'Delivery Method', value: order?.delivery_method || '—', icon: Truck }
         ].map(({ label, value, icon: Icon, isClickable }) => (
           <div key={label} className={cn("p-3 rounded-lg bg-white/5 border border-white/10", isClickable && "relative")}>
             <div className="flex items-center gap-1 mb-1">
@@ -139,10 +139,10 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange, onStat
                           value === status ? 'bg-white/20 text-blue-400 font-semibold' : 'text-white/70'
                         )}
                       >
-                        {status === 'pending' ? 'Väntar' :
-                         status === 'in_progress' ? 'Pågår' :
-                         status === 'completed' ? 'Klar' :
-                         status === 'cancelled' ? 'Avbruten' : status}
+                        {status === 'pending' ? 'Pending' :
+                         status === 'in_progress' ? 'In Progress' :
+                         status === 'completed' ? 'Done' :
+                         status === 'cancelled' ? 'Cancelled' : status}
                       </button>
                     ))}
                   </div>

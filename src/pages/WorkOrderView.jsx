@@ -332,7 +332,7 @@ export default function WorkOrderViewPage() {
   if (isLoading || !workOrder) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white/50">Laddar arbetsorder...</div>
+        <div className="text-white/50">Loading work order...</div>
       </div>
     );
   }
@@ -346,7 +346,7 @@ export default function WorkOrderViewPage() {
           <Link to={createPageUrl('WorkOrders')}>
             <Button variant="ghost" className="text-white/60 hover:text-white -ml-2">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Arbetsordrar
+              Work Orders
             </Button>
           </Link>
           <Button
@@ -361,12 +361,12 @@ export default function WorkOrderViewPage() {
                 const url = URL.createObjectURL(blob);
                 window.open(url, '_blank');
               } catch (e) {
-                toast.error('Kunde inte skapa utskrift');
+                toast.error('Could not create print');
               }
             }}
           >
             <Printer className="w-4 h-4" />
-            Skriv ut PDF
+            Print PDF
           </Button>
         </div>
 
@@ -429,7 +429,7 @@ export default function WorkOrderViewPage() {
         <div className="bg-black rounded-2xl border border-white/10 p-5">
           <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
-            Aktivitetslogg
+            Activity Log
           </h3>
           <ActivityFeed
             entityType="WorkOrderActivity"
@@ -443,7 +443,7 @@ export default function WorkOrderViewPage() {
         <div className="bg-black rounded-2xl border border-white/10 p-5">
           <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
             <FileUp className="w-4 h-4" />
-            Files
+            Attachments
           </h3>
 
           {/* File List */}
@@ -479,7 +479,7 @@ export default function WorkOrderViewPage() {
               className="hidden"
             />
             <div className="p-4 rounded-lg border border-dashed border-white/20 hover:border-white/40 text-center cursor-pointer transition-colors">
-              <p className="text-white/60 text-sm">Click to upload file</p>
+              <p className="text-white/60 text-sm">Click to upload a file</p>
             </div>
           </label>
         </div>

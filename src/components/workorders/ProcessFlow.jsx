@@ -3,10 +3,10 @@ import { Package, Factory, Truck, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STAGES = [
-  { key: 'picking', label: 'Plockning', icon: Package },
-  { key: 'production', label: 'Produktion', icon: Factory },
-  { key: 'delivery', label: 'Leverans', icon: Truck },
-  { key: 'completed', label: 'Klar', icon: CheckCircle2 }
+  { key: 'picking', label: 'Picking', icon: Package },
+  { key: 'production', label: 'Production', icon: Factory },
+  { key: 'delivery', label: 'Delivery', icon: Truck },
+  { key: 'completed', label: 'Done', icon: CheckCircle2 }
 ];
 
 export default function ProcessFlow({ currentStage }) {

@@ -54,7 +54,7 @@ export default function DesignerSection({ workOrderId }) {
       setNewTaskName('');
       setNewTaskDesc('');
       setIsAddingTask(false);
-      toast.success('Uppgift skapad');
+      toast.success('Task created');
     }
   });
 
@@ -70,7 +70,7 @@ export default function DesignerSection({ workOrderId }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['designerTasks', workOrderId] });
-      toast.success('Uppgift uppdaterad');
+      toast.success('Task updated');
     }
   });
 
@@ -79,7 +79,7 @@ export default function DesignerSection({ workOrderId }) {
     mutationFn: (taskId) => base44.entities.Task.delete(taskId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['designerTasks', workOrderId] });
-      toast.success('Uppgift raderad');
+      toast.success('Task deleted');
     }
   });
 
@@ -92,9 +92,9 @@ export default function DesignerSection({ workOrderId }) {
         deviations: designerNotes // Using deviations field for designer notes
       });
       queryClient.invalidateQueries({ queryKey: ['workOrder', workOrderId] });
-      toast.success('Anteckningar sparade');
+      toast.success('Notes saved');
     } catch (e) {
-      toast.error('Kunde inte spara anteckningar');
+      toast.error('Could not save notes');
     } finally {
       setIsSavingNotes(false);
     }
@@ -119,20 +119,20 @@ export default function DesignerSection({ workOrderId }) {
             Construction and Design Lino
           </h3>
           {tasks.length > 0 && (
-            <p className="text-xs text-white/50 mt-1">
-              {completedCount} av {tasks.length} uppgifter klara
-            </p>
+          <p className="text-xs text-white/50 mt-1">
+            {completedCount} of {tasks.length} tasks completed
+          </p>
           )}
         </div>
       </div>
 
       {/* Designer Notes */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-white/70">Konstruktörens anteckningar</label>
+        <label className="text-sm font-medium text-white/70">Designer notes</label>
         <Textarea
           value={designerNotes}
           onChange={(e) => setDesignerNotes(e.target.value)}
-          placeholder="Lägg in instruktioner, noteringar eller specialkrav för konstruktören..."
+          placeholder="Add instructions, notes or special requirements for the designer..."
           className="bg-white/5 border-white/10 text-white placeholder:text-white/30 resize-none"
           rows={3}
         />
@@ -143,14 +143,14 @@ export default function DesignerSection({ workOrderId }) {
           disabled={isSavingNotes}
           className="bg-white/5 border-white/20 hover:bg-white/10 text-white text-xs"
         >
-          {isSavingNotes ? 'Sparar...' : 'Spara anteckningar'}
+          {isSavingNotes ? 'Saving...' : 'Save notes'}
         </Button>
       </div>
 
       {/* Tasks Section */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium text-white">Uppgifter för konstruktören</h4>
+          <h4 className="text-sm font-medium text-white">Tasks for the designer</h4>
           {!isAddingTask && (
             <Button
               variant="ghost"
@@ -159,7 +159,7 @@ export default function DesignerSection({ workOrderId }) {
               className="text-blue-400 hover:text-blue-300 hover:bg-white/5 text-xs gap-1"
             >
               <Plus className="w-3 h-3" />
-              Lägg till uppgift
+              Add task
             </Button>
           )}
         </div>
@@ -168,13 +168,13 @@ export default function DesignerSection({ workOrderId }) {
         {isAddingTask && (
           <div className="bg-white/5 rounded-lg p-3 space-y-2 border border-white/10">
             <Input
-              placeholder="Uppgiftets titel..."
+              placeholder="Task title..."
               value={newTaskName}
               onChange={(e) => setNewTaskName(e.target.value)}
               className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm"
             />
             <Textarea
-              placeholder="Beskrivning (valfritt)..."
+              placeholder="Description (optional)..."
               value={newTaskDesc}
               onChange={(e) => setNewTaskDesc(e.target.value)}
               className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm resize-none"
@@ -185,7 +185,7 @@ export default function DesignerSection({ workOrderId }) {
                 size="sm"
                 onClick={() => {
                   if (!newTaskName.trim()) {
-                    toast.error('Uppgiftens titel kan inte vara tom');
+                    toast.error('Task title cannot be empty');
                     return;
                   }
                   createTaskMutation.mutate({
@@ -196,7 +196,7 @@ export default function DesignerSection({ workOrderId }) {
                 disabled={createTaskMutation.isPending}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
               >
-                {createTaskMutation.isPending ? 'Skapar...' : 'Skapa'}
+                {createTaskMutation.isPending ? 'Creating...' : 'Create'}
               </Button>
               <Button
                 variant="ghost"
@@ -208,7 +208,7 @@ export default function DesignerSection({ workOrderId }) {
                 }}
                 className="text-white/60 hover:text-white hover:bg-white/5 text-xs"
               >
-                Avbryt
+                Cancel
               </Button>
             </div>
           </div>
@@ -252,19 +252,19 @@ export default function DesignerSection({ workOrderId }) {
                   )}
                   {task.due_date && (
                     <p className="text-xs text-white/40 mt-1">
-                      Klart senast: {format(new Date(task.due_date), 'PPP', { locale: sv })}
+                      Due: {format(new Date(task.due_date), 'PPP', { locale: sv })}
                     </p>
                   )}
                   {task.status === 'completed' && task.completed_date && (
                     <p className="text-xs text-green-400/70 mt-1">
-                      ✓ Klar {format(new Date(task.completed_date), 'PPP HH:mm', { locale: sv })}
+                      ✓ Completed {format(new Date(task.completed_date), 'PPP HH:mm', { locale: sv })}
                     </p>
                   )}
                 </div>
 
                 <button
                   onClick={() => {
-                    if (confirm('Radera denna uppgift?')) {
+                    if (confirm('Delete this task?')) {
                       deleteTaskMutation.mutate(task.id);
                     }
                   }}
@@ -281,7 +281,7 @@ export default function DesignerSection({ workOrderId }) {
             {isAddingTask ? null : (
               <>
                 <AlertCircle className="w-5 h-5 text-white/30 mx-auto mb-2" />
-                <p className="text-sm text-white/50">Inga uppgifter ännu</p>
+                <p className="text-sm text-white/50">No tasks yet</p>
               </>
             )}
           </div>
