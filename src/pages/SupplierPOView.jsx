@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import { supplierFetch } from "@/lib/supplierApi";
 import { Badge } from "@/components/ui/badge";
 import { Package, FileText, CheckCircle2, Clock, Upload, ExternalLink, ChevronRight, Building2, CalendarCheck, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -40,8 +40,7 @@ export default function SupplierPOView() {
   const { data, isLoading } = useQuery({
     queryKey: ['supplier-po', poToken],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getSupplierPO', { token: poToken });
-      return response.data;
+      return await supplierFetch('getSupplierPO', { token: poToken });
     },
     enabled: !!poToken
   });

@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { appParams } from '@/lib/app-params';
+import { supplierFetch, supplierUploadFile } from '@/lib/supplierApi';
 import { toast } from 'sonner';
 import { Upload, FileText, ExternalLink, Trash2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -29,20 +28,19 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
   const { data: documents = [] } = useQuery({
     queryKey: ['supplier-po-documents', purchaseOrder.id],
     queryFn: async () => {
-      const res = await base44.functions.invoke('supplierGetDocuments', { action: 'list', token: poToken });
-      return res.data?.documents || [];
+      const res = await supplierFetch('supplierGetDocuments', { action: 'list', token: poToken });
+      return res?.documents || [];
     },
     enabled: !!poToken,
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (documentId) => {
-      const res = await base44.functions.invoke('supplierGetDocuments', {
+      await supplierFetch('supplierGetDocuments', {
         action: 'delete',
         token: poToken,
         document_id: documentId,
       });
-      if (res.data?.error) throw new Error(res.data.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supplier-po-documents', purchaseOrder.id] });
@@ -63,19 +61,16 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
         setUploadProgress(prev => Math.min(prev + Math.random() * 30, 90));
       }, 200);
 
-      // Upload file using SDK
-      const uploadRes = await base44.functions.invoke('supplierUploadFile', { 
-        file,
-        token: poToken 
-      });
+      // Upload file directly
+      const uploadRes = await supplierUploadFile(file, poToken);
       clearInterval(progressInterval);
       setUploadProgress(95);
 
-      const file_url = uploadRes.data?.file_url;
-      if (!file_url) throw new Error(uploadRes.data?.error || 'Upload failed');
+      const file_url = uploadRes?.file_url;
+      if (!file_url) throw new Error('Upload failed');
 
       const docDef = DOC_TYPES.find(d => d.value === selectedType);
-      const res = await base44.functions.invoke('supplierGetDocuments', {
+      await supplierFetch('supplierGetDocuments', {
         action: 'create',
         token: poToken,
         document_type: selectedType,
@@ -83,7 +78,6 @@ export default function SupplierDocumentUploadHub({ purchaseOrder, poToken }) {
         file_url,
         file_name: file.name,
       });
-      if (res.data?.error) throw new Error(res.data.error);
 
       setUploadProgress(100);
       queryClient.invalidateQueries({ queryKey: ['supplier-po-documents', purchaseOrder.id] });

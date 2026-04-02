@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supplierFetch } from "@/lib/supplierApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,15 +30,12 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
 
   const confirmPOMutation = useMutation({
     mutationFn: async (data) => {
-      // Use token-based backend function (no auth required)
-      const response = await base44.functions.invoke('supplierConfirmPO', {
+      return await supplierFetch('supplierConfirmPO', {
         token: poToken,
         confirmedDate: data.confirmedDate?.toISOString(),
         supplierComments: data.supplierComments,
         items: data.items,
       });
-      if (response.data?.error) throw new Error(response.data.error);
-      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supplier-po'] });
