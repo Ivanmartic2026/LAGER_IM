@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
   .badge-gray { background: #f3f4f6; color: #555; }
   @media print {
     body { padding: 10px; }
-    @page { margin: 15mm; }
+    @page { margin: 15mm; size: A4; }
   }
 </style>
 </head>
