@@ -1104,7 +1104,7 @@ export default function InventoryPage() {
                       </div>
                       {/* ETA */}
                       <div className="w-28 flex-shrink-0 ml-2">
-                        {incomingQuantities[article.id] ? (
+                        {article.status !== 'received' && incomingQuantities[article.id] ? (
                           <div className="flex flex-col gap-0.5 bg-amber-500/15 border border-amber-500/40 rounded-xl px-2 py-1.5">
                             <div className="text-amber-300 text-[10px] font-semibold uppercase tracking-wider">🚚 ETA</div>
                             <span className="text-amber-200 font-bold text-xs truncate">
@@ -1114,7 +1114,7 @@ export default function InventoryPage() {
                               }
                             </span>
                           </div>
-                        ) : article.transit_expected_date ? (
+                        ) : article.status !== 'received' && article.transit_expected_date ? (
                           <div className="flex flex-col gap-0.5 bg-blue-600/20 border border-blue-500/30 rounded-xl px-2 py-1.5">
                             <div className="text-blue-300 text-[10px] font-semibold uppercase tracking-wider">ETA</div>
                             <span className="text-white font-bold text-xs">{format(new Date(article.transit_expected_date), "d MMM", { locale: sv })}</span>
