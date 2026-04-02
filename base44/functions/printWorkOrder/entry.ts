@@ -15,10 +15,11 @@ Deno.serve(async (req) => {
     const wo = woList[0];
     if (!wo) return Response.json({ error: 'Not found' }, { status: 404 });
 
-    const [orderList, orderItems, activities] = await Promise.all([
+    const [orderList, orderItems, activities, designerTasks] = await Promise.all([
       base44.asServiceRole.entities.Order.filter({ id: wo.order_id }),
       base44.asServiceRole.entities.OrderItem.filter({ order_id: wo.order_id }),
       base44.asServiceRole.entities.WorkOrderActivity.filter({ work_order_id }),
+      base44.asServiceRole.entities.Task.filter({ work_order_id }),
     ]);
     const order = orderList[0] || {};
 
@@ -128,7 +129,24 @@ ${order.notes ? `<div class="field"><span class="fl">Anteckningar</span><span>${
 
 ${wo.picking_notes ? `<h2>Plockanteckningar</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.picking_notes)}</p>` : ''}
 ${wo.production_notes ? `<h2>Produktionsanteckningar</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.production_notes)}</p>` : ''}
-${wo.deviations ? `<h2>Avvikelser</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.deviations)}</p>` : ''}
+${wo.deviations ? `<h2>Avvikelser / Konstruktörsanteckningar</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.deviations)}</p>` : ''}
+
+${designerTasks && designerTasks.length > 0 ? `
+<h2>Construction and Design Lino – Uppgifter för konstruktören</h2>
+<table>
+  <thead><tr><th style="width:30px"></th><th>Uppgift</th><th>Beskrivning</th><th>Tilldelad</th><th>Status</th><th>Klar</th></tr></thead>
+  <tbody>
+    ${designerTasks.map(task => `
+    <tr>
+      <td style="text-align:center;font-size:14px">${task.status === 'completed' ? '✓' : '○'}</td>
+      <td style="${task.status === 'completed' ? 'text-decoration:line-through;color:#999' : 'font-weight:bold'}">${esc(task.name || '—')}</td>
+      <td style="color:#555">${esc(task.description || '—')}</td>
+      <td>${esc(task.assigned_to_name || task.assigned_to || '—')}</td>
+      <td style="color:${task.status === 'completed' ? '#16a34a' : task.status === 'in_progress' ? '#d97706' : '#555'}">${esc(task.status === 'completed' ? 'Klar' : task.status === 'in_progress' ? 'Pågår' : 'Att göra')}</td>
+      <td style="color:#16a34a;font-size:10px">${task.completed_date ? fmtDT(task.completed_date) : '—'}</td>
+    </tr>`).join('')}
+  </tbody>
+</table>` : ''}
 
 ${orderItems.length > 0 ? `
 <h2>Artiklar / Materiallista</h2>
