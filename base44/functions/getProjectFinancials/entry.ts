@@ -1,42 +1,42 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+const CLIENT_ID = 'mp08u6gAFPz2';
+const CLIENT_SECRET = 'GjAMHv9Mm7wZW356pZmLdkkBlie0QaPg';
 const FORTNOX_API_BASE = 'https://api.fortnox.se/3';
 
-async function getAccessToken(base44) {
+async function getFortnoxToken(base44) {
   const configs = await base44.asServiceRole.entities.FortnoxConfig.list();
-  if (!configs || configs.length === 0) {
-    throw new Error('Fortnox not configured');
-  }
-
+  if (!configs || configs.length === 0) throw new Error('Fortnox inte ansluten');
+  
   const config = configs[0];
   const now = Date.now();
-
-  if (config.token_expires_at && config.token_expires_at > now + 60000) {
+  
+  if (config.access_token && config.token_expires_at && (config.token_expires_at - 300000) > now) {
     return config.access_token;
   }
-
-  const tokenResponse = await fetch('https://oauth.fortnox.se/token', {
+  
+  if (!config.refresh_token) throw new Error('Ingen refresh token');
+  
+  const credentials = btoa(CLIENT_ID + ':' + CLIENT_SECRET);
+  const response = await fetch('https://apps.fortnox.se/oauth-v1/token', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'refresh_token',
-      refresh_token: config.refresh_token,
-      client_id: Deno.env.get('FORTNOX_CLIENT_ID'),
-      client_secret: Deno.env.get('FORTNOX_CLIENT_SECRET')
-    })
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic ' + credentials },
+    body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(config.refresh_token)
   });
-
-  if (!tokenResponse.ok) {
-    throw new Error('Failed to refresh Fortnox token');
-  }
-
-  const tokenData = await tokenResponse.json();
+  
+  const text = await response.text();
+  if (!response.ok) throw new Error('Token refresh failed: ' + text);
+  
+  const data = JSON.parse(text);
+  const expiresAt = now + ((data.expires_in || 3600) * 1000);
+  
   await base44.asServiceRole.entities.FortnoxConfig.update(config.id, {
-    access_token: tokenData.access_token,
-    token_expires_at: now + tokenData.expires_in * 1000
+    access_token: data.access_token,
+    token_expires_at: expiresAt,
+    refresh_token: data.refresh_token || config.refresh_token
   });
-
-  return tokenData.access_token;
+  
+  return data.access_token;
 }
 
 Deno.serve(async (req) => {
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const accessToken = await getAccessToken(base44);
+    const accessToken = await getFortnoxToken(base44);
 
     // Fetch all orders with fortnox_project_number
     const orders = await base44.asServiceRole.entities.Order.list();
