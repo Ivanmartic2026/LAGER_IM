@@ -47,57 +47,38 @@ async function syncArticles(accessToken, articles) {
 
   for (const article of articles) {
     try {
-      const articleData = {
-        ArticleNumber: article.ArticleNumber || article.sku || `ART-${article.id}`,
-        Description: article.Description || article.name,
-        PurchasePrice: article.PurchasePrice !== undefined ? article.PurchasePrice : (article.unit_cost || 0),
-        SalesPrice: article.SalesPrice || article.unit_cost || 0,
-        Type: article.Type || (article.storage_type === 'company_owned' ? 'STOCK' : 'SERVICE'),
-        Manufacturer: article.Manufacturer || article.manufacturer || '',
-        ManufacturerArticleNumber: article.ManufacturerArticleNumber || article.supplier_product_code || '',
-        Height: article.Height || article.dimensions_height_mm || 0,
-        Depth: article.Depth || article.dimensions_depth_mm || 0,
-        Note: article.Note || article.transit_notes || ''
-      };
+      const articleNumber = article.sku || article.ArticleNumber || `ART-${article.id}`;
+      const description = article.name || article.Description;
 
-      if (article.StockWarning !== undefined || article.min_stock_level) {
-        articleData.StockWarning = article.StockWarning || article.min_stock_level;
-      }
-
-      const response = await fetch(`${FORTNOX_API_BASE}/articles/${articleData.ArticleNumber}`, {
-        method: 'PUT',
+      const createResponse = await fetch(`${FORTNOX_API_BASE}/articles`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           Article: {
-            Description: articleData.Description,
-            SalesPrice: articleData.SalesPrice,
-            PurchasePrice: articleData.PurchasePrice
+            ArticleNumber: articleNumber,
+            Description: description,
+            PurchasePrice: article.unit_cost || 0,
+            SalesPrice: article.unit_cost || 0,
+            Type: article.storage_type === 'company_owned' ? 'STOCK' : 'SERVICE',
+            Manufacturer: article.manufacturer || '',
+            ManufacturerArticleNumber: article.supplier_product_code || '',
+            Height: article.dimensions_height_mm || 0,
+            Depth: article.dimensions_depth_mm || 0,
+            Note: article.transit_notes || '',
+            StockWarning: article.min_stock_level || 0
           }
         })
       });
 
-      if (response.ok) {
+      if (createResponse.ok) {
         succeeded++;
-      } else if (response.status === 404) {
-        const createResponse = await fetch(`${FORTNOX_API_BASE}/articles`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({ Article: articleData })
-        });
-
-        if (createResponse.ok) {
-          succeeded++;
-        } else {
-          failed++;
-        }
       } else {
+        const errorText = await createResponse.text();
+        console.error(`Failed to create article ${articleNumber}: ${createResponse.status} - ${errorText}`);
         failed++;
       }
     } catch (error) {
