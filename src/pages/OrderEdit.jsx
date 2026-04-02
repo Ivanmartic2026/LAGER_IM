@@ -121,47 +121,33 @@ export default function OrderEdit() {
         await Promise.all(toDelete.map(id => base44.entities.OrderItem.delete(id)));
       }
 
-      // Save order items and update reserved stock
-       for (const item of orderItems) {
-         const article = articles.find(a => a.id === item.article_id);
-         const shelfAddress = article?.shelf_address 
-           ? (Array.isArray(article.shelf_address) ? article.shelf_address.join(', ') : article.shelf_address)
-           : (item.shelf_address || '');
+      // Save order items
+      for (const item of orderItems) {
+        const article = articles.find(a => a.id === item.article_id);
+        const shelfAddress = article?.shelf_address 
+          ? (Array.isArray(article.shelf_address) ? article.shelf_address.join(', ') : article.shelf_address)
+          : (item.shelf_address || '');
 
-         const itemData = {
-           order_id: savedOrder.id,
-           article_id: item.article_id,
-           article_name: article?.name || item.article_name,
-           article_batch_number: article?.batch_number || item.article_batch_number,
-           shelf_address: shelfAddress,
-           quantity_ordered: item.quantity_ordered,
-           quantity_picked: item.quantity_picked || 0,
-           status: item.status || 'pending'
-         };
+        const itemData = {
+          order_id: savedOrder.id,
+          article_id: item.article_id,
+          article_name: article?.name || item.article_name,
+          article_batch_number: article?.batch_number || item.article_batch_number,
+          shelf_address: shelfAddress,
+          quantity_ordered: item.quantity_ordered,
+          quantity_picked: item.quantity_picked || 0,
+          status: item.status || 'pending'
+        };
 
-         // Calculate stock reservation difference
-         const oldQuantity = existingItems.find(ei => ei.id === item.id)?.quantity_ordered || 0;
-         const newQuantity = itemData.quantity_ordered;
-         const quantityDiff = newQuantity - oldQuantity;
-
-         if (item.id) {
-           await base44.entities.OrderItem.update(item.id, itemData);
-         } else {
-           await base44.entities.OrderItem.create(itemData);
-         }
-
-         // Update reserved stock on article
-         if (article && quantityDiff !== 0) {
-           const updatedReserved = Math.max(0, (article.reserved_stock_qty || 0) + quantityDiff);
-           await base44.entities.Article.update(article.id, {
-             reserved_stock_qty: updatedReserved
-           });
-         }
-       }
-
-      if (['picking'].includes(savedOrder.status)) {
-        await base44.functions.invoke('syncReservedStock');
+        if (item.id) {
+          await base44.entities.OrderItem.update(item.id, itemData);
+        } else {
+          await base44.entities.OrderItem.create(itemData);
+        }
       }
+
+      // Always sync reserved stock after saving
+      await base44.functions.invoke('syncReservedStock');
 
       return savedOrder;
     },

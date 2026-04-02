@@ -7,10 +7,10 @@ Deno.serve(async (req) => {
     // Get all articles
     const articles = await base44.asServiceRole.entities.Article.list();
     
-    // Get all orders and filter for active picking status
+    // Get all orders and filter for active (non-completed/cancelled) statuses
     const allOrders = await base44.asServiceRole.entities.Order.list();
     const orders = allOrders.filter(o => 
-      o.status === 'ready_to_pick' || o.status === 'picking'
+      !['delivered', 'cancelled', 'shipped'].includes(o.status)
     );
     
     const orderIds = orders.map(o => o.id);
