@@ -151,90 +151,104 @@ async function syncSuppliers(accessToken, base44) {
   return { succeeded, failed };
 }
 
-async function syncPurchaseOrders(accessToken, base44) {
-  let succeeded = 0;
-  let failed = 0;
+async function syncPurchaseOrders(accessToken, base44, poId) {
+   let succeeded = 0;
+   let failed = 0;
 
-  const orders = await base44.asServiceRole.entities.PurchaseOrder.list();
+   const orders = poId 
+     ? [await base44.asServiceRole.entities.PurchaseOrder.get('PurchaseOrder', poId)]
+     : await base44.asServiceRole.entities.PurchaseOrder.list();
 
-  for (const order of orders) {
-    try {
-      const orderData = {
-        OrderNumber: order.po_number || '',
-        SupplierNumber: order.supplier_id || '',
-        SupplierName: order.supplier_name || '',
-        OrderDate: order.order_date || new Date().toISOString().split('T')[0],
-        Comments: order.notes || '',
-        TermsOfPayment: order.payment_terms?.replace(/_/g, ' ') || '30 days net'
-      };
+   for (const order of orders) {
+     try {
+       const orderData = {
+         OrderNumber: order.po_number || '',
+         SupplierNumber: order.supplier_id || '',
+         SupplierName: order.supplier_name || '',
+         OrderDate: order.order_date || new Date().toISOString().split('T')[0],
+         Comments: order.notes || '',
+         TermsOfPayment: order.payment_terms?.replace(/_/g, ' ') || '30 days net'
+       };
 
-      const response = await fetch(`${FORTNOX_API_BASE}/purchase-orders`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ PurchaseOrder: orderData })
-      });
+       const response = await fetch(`${FORTNOX_API_BASE}/purchase-orders`, {
+         method: 'POST',
+         headers: {
+           'Authorization': `Bearer ${accessToken}`,
+           'Content-Type': 'application/json',
+           'Accept': 'application/json'
+         },
+         body: JSON.stringify({ PurchaseOrder: orderData })
+       });
 
-      if (response.ok) {
-        succeeded++;
-      } else {
-        failed++;
-      }
-    } catch (error) {
-      console.error(`Error syncing purchase order ${order.id}:`, error);
-      failed++;
-    }
-  }
+       if (response.ok) {
+         succeeded++;
+       } else {
+         failed++;
+       }
+     } catch (error) {
+       console.error(`Error syncing purchase order ${order.id}:`, error);
+       failed++;
+     }
+   }
 
-  return { succeeded, failed };
+   return { succeeded, failed };
 }
 
 Deno.serve(async (req) => {
-  try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+   try {
+     const base44 = createClientFromRequest(req);
+     const user = await base44.auth.me();
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+     if (!user) {
+       return Response.json({ error: 'Unauthorized' }, { status: 401 });
+     }
 
-    const { syncType, articles } = await req.json();
+     const body = await req.json();
+     const { syncType, articles, purchaseOrderId } = body;
 
-    if (!syncType) {
-      return Response.json({ error: 'Missing syncType' }, { status: 400 });
-    }
+     // Support both old sync types and new purchaseOrderId
+     if (purchaseOrderId) {
+       const accessToken = await getFortnoxToken(base44);
+       const result = await syncPurchaseOrders(accessToken, base44, purchaseOrderId);
+       return Response.json({
+         success: true,
+         synced: result.succeeded,
+         errors: []
+       });
+     }
 
-    const accessToken = await getFortnoxToken(base44);
-    let result;
+     if (!syncType) {
+       return Response.json({ error: 'Missing syncType or purchaseOrderId' }, { status: 400 });
+     }
 
-    if (syncType === 'articles') {
-      if (!articles || articles.length === 0) {
-        return Response.json({ error: 'No articles provided' }, { status: 400 });
-      }
-      result = await syncArticles(accessToken, articles);
-    } else if (syncType === 'suppliers') {
-      result = await syncSuppliers(accessToken, base44);
-    } else if (syncType === 'purchaseOrders') {
-      result = await syncPurchaseOrders(accessToken, base44);
-    } else {
-      return Response.json({ error: 'Invalid sync type' }, { status: 400 });
-    }
+     const accessToken = await getFortnoxToken(base44);
+     let result;
 
-    return Response.json({
-      success: true,
-      synced: result.succeeded,
-      errors: []
-    });
-  } catch (error) {
-    console.error('Fortnox sync error:', error);
-    return Response.json({
-      success: false,
-      error: error.message,
-      synced: 0,
-      errors: [error.message]
-    }, { status: 500 });
-  }
+     if (syncType === 'articles') {
+       if (!articles || articles.length === 0) {
+         return Response.json({ error: 'No articles provided' }, { status: 400 });
+       }
+       result = await syncArticles(accessToken, articles);
+     } else if (syncType === 'suppliers') {
+       result = await syncSuppliers(accessToken, base44);
+     } else if (syncType === 'purchaseOrders') {
+       result = await syncPurchaseOrders(accessToken, base44);
+     } else {
+       return Response.json({ error: 'Invalid sync type' }, { status: 400 });
+     }
+
+     return Response.json({
+       success: true,
+       synced: result.succeeded,
+       errors: []
+     });
+   } catch (error) {
+     console.error('Fortnox sync error:', error);
+     return Response.json({
+       success: false,
+       error: error.message,
+       synced: 0,
+       errors: [error.message]
+     }, { status: 500 });
+   }
 });
