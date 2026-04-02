@@ -312,6 +312,21 @@
     "total_volume_m3": {
       "type": "number",
       "description": "Total volym i m\u00b3"
+    },
+    "uploaded_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Uppladdade filer kopplade till denna arbetsorder"
     }
   },
   "required": [

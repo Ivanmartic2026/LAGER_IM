@@ -71,12 +71,18 @@ export default function WorkOrderViewPage() {
     queryFn: () => base44.entities.Article.list()
   });
 
-  // Initialize files from order's source document
+  // Initialize files from workOrder's saved files + order's source document
   useEffect(() => {
-    if (order?.source_document_url) {
-      setFiles([{ url: order.source_document_url, name: 'Original order document' }]);
-    }
-  }, [order?.source_document_url]);
+    if (!workOrder) return;
+    const saved = workOrder.uploaded_files || [];
+    const sourceDoc = order?.source_document_url 
+      ? [{ url: order.source_document_url, name: 'Original order document' }] 
+      : [];
+    // Merge: source doc first, then saved files (avoid duplicates by url)
+    const sourceUrls = new Set(sourceDoc.map(f => f.url));
+    const extra = saved.filter(f => !sourceUrls.has(f.url));
+    setFiles([...sourceDoc, ...extra]);
+  }, [workOrder?.uploaded_files, order?.source_document_url]);
 
   const updateWOMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.WorkOrder.update(id, data),
@@ -261,15 +267,29 @@ export default function WorkOrderViewPage() {
     if (!file) return;
     try {
       const result = await base44.integrations.Core.UploadFile({ file });
-      setFiles([...files, { url: result.file_url, name: file.name }]);
+      const newFile = { url: result.file_url, name: file.name };
+      const currentSaved = workOrder.uploaded_files || [];
+      await updateWOMutation.mutateAsync({
+        id: workOrderId,
+        data: { uploaded_files: [...currentSaved, newFile] }
+      });
       toast.success('Fil uppladdad');
     } catch (err) {
       toast.error('Fel vid uppladdning');
     }
   };
 
-  const handleRemoveFile = (index) => {
-    setFiles(files.filter((_, i) => i !== index));
+  const handleRemoveFile = async (index) => {
+    // Only remove from the saved list (skip the source_document at index 0 if present)
+    const sourceCount = order?.source_document_url ? 1 : 0;
+    const savedIndex = index - sourceCount;
+    if (savedIndex < 0) return; // Can't remove source doc
+    const currentSaved = workOrder.uploaded_files || [];
+    const updated = currentSaved.filter((_, i) => i !== savedIndex);
+    await updateWOMutation.mutateAsync({
+      id: workOrderId,
+      data: { uploaded_files: updated }
+    });
   };
 
   const handleWithdrawFromStock = async () => {
