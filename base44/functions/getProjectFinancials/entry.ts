@@ -39,6 +39,90 @@ async function getFortnoxToken(base44) {
   return data.access_token;
 }
 
+async function fetchAllProjects(accessToken) {
+  const projects = [];
+  let page = 1;
+  let totalPages = 1;
+
+  while (page <= totalPages) {
+    const response = await fetch(
+      `${FORTNOX_API_BASE}/projects?limit=500&page=${page}`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+
+    if (!response.ok) throw new Error(`Failed to fetch projects page ${page}`);
+
+    const data = await response.json();
+    if (data.Projects) {
+      projects.push(...data.Projects);
+    }
+
+    if (data.MetaInformation) {
+      totalPages = data.MetaInformation.TotalPages || 1;
+    }
+
+    page++;
+  }
+
+  return projects;
+}
+
+async function fetchProjectInvoices(accessToken, projectNumber) {
+  const invoices = [];
+  let page = 1;
+  let totalPages = 1;
+
+  while (page <= totalPages) {
+    const response = await fetch(
+      `${FORTNOX_API_BASE}/invoices?project=${projectNumber}&limit=500&page=${page}`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+
+    if (!response.ok) return invoices;
+
+    const data = await response.json();
+    if (data.Invoices) {
+      invoices.push(...data.Invoices);
+    }
+
+    if (data.MetaInformation) {
+      totalPages = data.MetaInformation.TotalPages || 1;
+    }
+
+    page++;
+  }
+
+  return invoices;
+}
+
+async function fetchProjectSupplierInvoices(accessToken, projectNumber) {
+  const invoices = [];
+  let page = 1;
+  let totalPages = 1;
+
+  while (page <= totalPages) {
+    const response = await fetch(
+      `${FORTNOX_API_BASE}/supplierinvoices?project=${projectNumber}&limit=500&page=${page}`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+
+    if (!response.ok) return invoices;
+
+    const data = await response.json();
+    if (data.SupplierInvoices) {
+      invoices.push(...data.SupplierInvoices);
+    }
+
+    if (data.MetaInformation) {
+      totalPages = data.MetaInformation.TotalPages || 1;
+    }
+
+    page++;
+  }
+
+  return invoices;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -50,81 +134,66 @@ Deno.serve(async (req) => {
 
     const accessToken = await getFortnoxToken(base44);
 
-    // Fetch all orders with fortnox_project_number
-    const orders = await base44.asServiceRole.entities.Order.list();
-    const projectMap = {};
+    // Fetch all Fortnox projects
+    const fortnoxProjects = await fetchAllProjects(accessToken);
 
-    // Group orders by project
-    for (const order of orders) {
-      if (order.fortnox_project_number) {
-        if (!projectMap[order.fortnox_project_number]) {
-          projectMap[order.fortnox_project_number] = {
-            projectNumber: order.fortnox_project_number,
-            projectName: order.fortnox_project_name || 'Okänd projekt',
-            customerInvoices: [],
-            supplierInvoices: [],
-            revenue: 0,
-            costs: 0
-          };
-        }
-      }
-    }
+    const results = [];
 
-    const projects = Object.values(projectMap);
+    // Process each project
+    for (const project of fortnoxProjects) {
+      const projectNumber = project.ProjectNumber;
+      const projectName = project.Description || project.ProjectNumber;
+      const projectStatus = project.Status || 'unknown';
 
-    // Fetch invoices and supplier invoices for each project
-    for (const project of projects) {
-      // Fetch customer invoices
-      const invoicesResponse = await fetch(
-        `${FORTNOX_API_BASE}/invoices?project=${project.projectNumber}`,
-        {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
-        }
-      );
+      // Fetch customer and supplier invoices
+      const customerInvoices = await fetchProjectInvoices(accessToken, projectNumber);
+      const supplierInvoices = await fetchProjectSupplierInvoices(accessToken, projectNumber);
 
-      if (invoicesResponse.ok) {
-        const invoicesData = await invoicesResponse.json();
-        if (invoicesData.Invoices) {
-          for (const inv of invoicesData.Invoices) {
-            project.customerInvoices.push({
-              invoiceNumber: inv.DocumentNumber,
-              date: inv.InvoiceDate,
-              amount: inv.Total || 0
-            });
-            project.revenue += inv.Total || 0;
-          }
-        }
+      // Calculate totals
+      let revenue = 0;
+      const customerInvoiceDetails = [];
+      for (const inv of customerInvoices) {
+        revenue += inv.Total || 0;
+        customerInvoiceDetails.push({
+          DocumentNumber: inv.DocumentNumber,
+          CustomerName: inv.CustomerName || 'Unknown',
+          Total: inv.Total || 0,
+          InvoiceDate: inv.InvoiceDate
+        });
       }
 
-      // Fetch supplier invoices
-      const supplierResponse = await fetch(
-        `${FORTNOX_API_BASE}/supplierinvoices?project=${project.projectNumber}`,
-        {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
-        }
-      );
-
-      if (supplierResponse.ok) {
-        const supplierData = await supplierResponse.json();
-        if (supplierData.SupplierInvoices) {
-          for (const inv of supplierData.SupplierInvoices) {
-            project.supplierInvoices.push({
-              invoiceNumber: inv.InvoiceNumber,
-              date: inv.InvoiceDate,
-              amount: inv.Total || 0
-            });
-            project.costs += inv.Total || 0;
-          }
-        }
+      let costs = 0;
+      const supplierInvoiceDetails = [];
+      for (const inv of supplierInvoices) {
+        costs += inv.Total || 0;
+        supplierInvoiceDetails.push({
+          GivenNumber: inv.GivenNumber,
+          SupplierName: inv.SupplierName || 'Unknown',
+          Total: inv.Total || 0,
+          InvoiceDate: inv.InvoiceDate
+        });
       }
 
-      project.result = project.revenue - project.costs;
+      // Only include projects with revenue or costs
+      if (revenue > 0 || costs > 0) {
+        results.push({
+          projectNumber,
+          projectName,
+          projectStatus,
+          revenue,
+          costs,
+          result: revenue - costs,
+          customerInvoices: customerInvoiceDetails,
+          supplierInvoices: supplierInvoiceDetails
+        });
+      }
     }
 
     return Response.json({
-      projects: projects.sort((a, b) => a.projectNumber.localeCompare(b.projectNumber))
+      projects: results.sort((a, b) => a.projectNumber.localeCompare(b.projectNumber))
     });
   } catch (error) {
+    console.error('getProjectFinancials error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
