@@ -127,22 +127,6 @@ export default function PurchaseOrdersPage() {
     }
   });
 
-  const fortnoxSyncMutation = useMutation({
-    mutationFn: async () => {
-      const response = await base44.functions.invoke('fortnoxSyncV2', { 
-        syncType: 'purchaseOrders'
-      });
-      return response.data;
-    },
-    onSuccess: () => {
-      toast.success('Inköpsordrar synkade med Fortnox!');
-      queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
-    },
-    onError: (error) => {
-      toast.error('Synk misslyckades: ' + error.message);
-    }
-  });
-
   const sendEmailMutation = useMutation({
     mutationFn: async ({ poId, emailTo }) => {
       const response = await base44.functions.invoke('sendPurchaseOrderEmail', { 
@@ -239,14 +223,6 @@ export default function PurchaseOrdersPage() {
             </div>
             <div className="flex gap-2">
               <InvoiceScanButton />
-              <Button
-                onClick={() => fortnoxSyncMutation.mutate()}
-                disabled={fortnoxSyncMutation.isPending}
-                className="bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-500/30 transition-all duration-200"
-              >
-                <TrendingUp className="w-4 h-4 mr-2" />
-                {fortnoxSyncMutation.isPending ? "Synkar..." : "Synca med Fortnox"}
-              </Button>
               <Button
                 onClick={() => { setEditingPO(null); setShowForm(true); }}
                 className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/30 transition-all duration-200"
@@ -546,6 +522,19 @@ export default function PurchaseOrdersPage() {
                           )}
                           <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-emerald-400 hover:bg-emerald-500/10 transition-colors" onClick={() => setAccountingModalPO(po)}>
                             <Send className="w-3 h-3" />Till ekonomi
+                          </button>
+                          <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-purple-400 hover:bg-purple-500/10 transition-colors" onClick={async () => {
+                            try {
+                              await base44.functions.invoke('fortnoxSyncV2', { 
+                                purchaseOrderId: po.id
+                              });
+                              toast.success('Order synkad med Fortnox!');
+                              queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+                            } catch (e) {
+                              toast.error('Synk misslyckades');
+                            }
+                          }}>
+                            <TrendingUp className="w-3 h-3" />Synca med Fortnox
                           </button>
                         </div>
                         <div className="flex gap-1 flex-shrink-0 ml-2">
