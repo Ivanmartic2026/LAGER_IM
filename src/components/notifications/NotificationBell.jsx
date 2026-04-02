@@ -8,12 +8,13 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -149,9 +150,15 @@ export default function NotificationBell() {
                               markAsReadMutation.mutate(notification.id);
                             }
                             if (notification.link_to && notification.link_page) {
-                              const param = notification.link_page === 'Inventory' ? 'articleId' : 
-                                          notification.link_page === 'Orders' ? 'orderId' : 'id';
-                              window.location.href = `${createPageUrl(notification.link_page)}?${param}=${notification.link_to}`;
+                              if (notification.link_page === 'PurchaseOrders') {
+                                navigate(`/PurchaseOrders?poId=${notification.link_to}`);
+                              } else if (notification.link_page === 'Orders') {
+                                navigate(`/Orders?orderId=${notification.link_to}`);
+                              } else if (notification.link_page === 'Inventory') {
+                                navigate(`/Inventory?articleId=${notification.link_to}`);
+                              } else {
+                                navigate(`${createPageUrl(notification.link_page)}?id=${notification.link_to}`);
+                              }
                               setOpen(false);
                             }
                           }}
