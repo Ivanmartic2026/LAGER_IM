@@ -57,7 +57,6 @@ async function fetchAllPaginated(accessToken, endpoint) {
 
     const data = await response.json();
     
-    // Extract items based on endpoint type
     let items = [];
     if (endpoint === '/invoices' && data.Invoices) items = data.Invoices;
     else if (endpoint === '/supplierinvoices' && data.SupplierInvoices) items = data.SupplierInvoices;
@@ -85,25 +84,88 @@ Deno.serve(async (req) => {
     }
 
     const accessToken = await getFortnoxToken(base44);
-    
-    const invoiceRes = await fetch(FORTNOX_API_BASE + '/invoices?limit=3', {
-      headers: { 'Authorization': 'Bearer ' + accessToken, 'Accept': 'application/json' }
-    });
-    const invoiceRaw = await invoiceRes.text();
-    
-    const supRes = await fetch(FORTNOX_API_BASE + '/supplierinvoices?limit=3', {
-      headers: { 'Authorization': 'Bearer ' + accessToken, 'Accept': 'application/json' }
-    });
-    const supRaw = await supRes.text();
-    
+
+    // Fetch all data in parallel
+    const [allInvoices, allSupplierInvoices, allProjects] = await Promise.all([
+      fetchAllPaginated(accessToken, '/invoices'),
+      fetchAllPaginated(accessToken, '/supplierinvoices'),
+      fetchAllPaginated(accessToken, '/projects')
+    ]);
+
+    // Group invoices by project
+    const projectInvoiceMap = {};
+    for (const inv of allInvoices) {
+      const projectNum = inv.Project;
+      if (projectNum) {
+        if (!projectInvoiceMap[projectNum]) {
+          projectInvoiceMap[projectNum] = { customer: [], supplier: [] };
+        }
+        projectInvoiceMap[projectNum].customer.push(inv);
+      }
+    }
+
+    for (const inv of allSupplierInvoices) {
+      const projectNum = inv.Project;
+      if (projectNum) {
+        if (!projectInvoiceMap[projectNum]) {
+          projectInvoiceMap[projectNum] = { customer: [], supplier: [] };
+        }
+        projectInvoiceMap[projectNum].supplier.push(inv);
+      }
+    }
+
+    // Build results only for projects with invoices
+    const results = [];
+    for (const project of allProjects) {
+      const projectNumber = project.ProjectNumber;
+      const invoices = projectInvoiceMap[projectNumber];
+
+      if (!invoices) continue;
+
+      let revenue = 0;
+      const customerInvoiceDetails = [];
+      for (const inv of invoices.customer) {
+        revenue += inv.Total || 0;
+        customerInvoiceDetails.push({
+          DocumentNumber: inv.DocumentNumber,
+          CustomerName: inv.CustomerName || 'Unknown',
+          Total: inv.Total || 0,
+          InvoiceDate: inv.InvoiceDate
+        });
+      }
+
+      let costs = 0;
+      const supplierInvoiceDetails = [];
+      for (const inv of invoices.supplier) {
+        costs += inv.Total || 0;
+        supplierInvoiceDetails.push({
+          GivenNumber: inv.GivenNumber,
+          SupplierName: inv.SupplierName || 'Unknown',
+          Total: inv.Total || 0,
+          InvoiceDate: inv.InvoiceDate
+        });
+      }
+
+      // Only include if revenue or costs > 0
+      if (revenue > 0 || costs > 0) {
+        results.push({
+          projectNumber,
+          projectName: project.Description || projectNumber,
+          projectStatus: project.Status || 'unknown',
+          revenue,
+          costs,
+          result: revenue - costs,
+          customerInvoices: customerInvoiceDetails,
+          supplierInvoices: supplierInvoiceDetails
+        });
+      }
+    }
+
     return Response.json({
-      invoiceStatus: invoiceRes.status,
-      invoiceRaw: invoiceRaw.substring(0, 500),
-      supplierInvoiceStatus: supRes.status,
-      supplierInvoiceRaw: supRaw.substring(0, 500)
+      projects: results.sort((a, b) => a.projectNumber.localeCompare(b.projectNumber))
     });
   } catch (error) {
-    console.error('getProjectFinancials debug error:', error);
+    console.error('getProjectFinancials error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
