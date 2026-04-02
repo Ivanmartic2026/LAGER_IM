@@ -1,9 +1,94 @@
 import React, { useState } from 'react';
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { BookOpen, Download, FileText, Code, Users } from "lucide-react";
+import { BookOpen, FileText, Code, Users } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
+
+const USER_MANUAL = `# IMvision Lager & Order - Användarmanual
+
+Denna manual beskriver hur du använder systemet för daglig drift. Systemet hanterar lager, ordrar, inköp och reparationer för LED-skärmar och komponenter.
+
+## Snabbstart
+
+1. Logga in med ditt konto
+2. Installera som PWA-app på din enhet (rekommenderas)
+3. Navigera via menyn längst ner
+
+## Viktiga sidor
+
+- **Inventory** – Se och hantera alla artiklar i lager
+- **Orders** – Hantera kundordrar och plockning
+- **PurchaseOrders** – Skapa och följa upp inköp
+- **WorkOrders** – Arbetsordrar för produktion och montering
+- **Scan** – Kameran för AI-skanning av etiketter
+- **Repairs** – Artiklar på reparation
+- **Admin** – Användarhantering, rapporter, inställningar
+
+## Vanliga arbetsflöden
+
+### Inleverans via skanning
+1. Gå till **Scan** → välj **Inleverans**
+2. Fotografera etiketten
+3. AI extraherar data automatiskt
+4. Granska och spara
+
+### Plocka en order
+1. Gå till **Orders**
+2. Välj order → **Börja plocka**
+3. Följ listan med hyllplatser
+4. Slutför plockning → lagersaldo uppdateras
+
+### Ta emot inköpsorder
+1. Öppna inköpsordern → **Ta emot varor**
+2. Ange mottagen kvantitet per rad
+3. Välj hyllplats
+4. Slutför mottagning
+
+## Tips
+- Använd PWA-läget för offline-stöd och snabbare åtkomst
+- Skanna regelbundet för korrekta lagersaldon
+- Håll hyllplatser uppdaterade för enklare plockning
+`;
+
+const SYSTEM_DOC = `# IMvision – Systemdokumentation
+
+## Systemöversikt
+
+IMvision är ett komplett lager- och orderhanteringssystem för LED-skärmar och komponenter byggt på Base44-plattformen.
+
+## Nyckelentiteter
+
+- **Article** – Alla lagerartiklar med saldo, hyllplats och metadata
+- **StockMovement** – Alla lagertransaktioner (in/ut/justering)
+- **Order / OrderItem** – Kundordrar och orderrader
+- **PurchaseOrder / PurchaseOrderItem** – Inköpsordrar
+- **WorkOrder** – Arbetsordrar för produktion
+- **ReceivingRecord** – Mottagningskvitton
+- **RepairLog** – Reparationshistorik
+- **Supplier / Warehouse / Shelf** – Stöddata
+
+## Backend-funktioner
+
+Alla känsliga operationer körs som Deno-funktioner:
+- Export till Excel/PDF
+- AI-analys av etiketter
+- E-postutskick
+- Fortnox-synkronisering
+- Etikettgenerering
+
+## Integrationer
+
+- **InvokeLLM** – AI-analys och datafyllning
+- **UploadFile** – Fillagring
+- **SendEmail** – E-postnotifieringar
+- **Fortnox** – Fakturasynkronisering
+
+## Säkerhet
+
+- Autentisering via Base44
+- Roller: **admin** (full åtkomst) och **user** (begränsad)
+- Leverantörsportalen använder token-baserad åtkomst utan inloggning
+`;
 
 export default function DocumentationPage() {
   const [activeDoc, setActiveDoc] = useState('user');
@@ -12,38 +97,14 @@ export default function DocumentationPage() {
     user: {
       title: "Användarmanual",
       icon: Users,
-      file: "Anvandarmanual.md",
+      content: USER_MANUAL,
       description: "Komplett guide för daglig användning av systemet"
     },
     system: {
       title: "Systemdokumentation",
       icon: FileText,
-      file: "SystemDokumentation.md",
+      content: SYSTEM_DOC,
       description: "Teknisk dokumentation och systemöversikt"
-    },
-    agent: {
-      title: "AI Agent Guide",
-      icon: Code,
-      file: "Base44AgentDokumentation.md",
-      description: "Hur Base44 AI-agenten arbetar och bygger system"
-    }
-  };
-
-  const handleDownload = async (filename) => {
-    try {
-      const response = await fetch(`/docs/${filename}`);
-      const text = await response.text();
-      const blob = new Blob([text], { type: 'text/markdown' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-    } catch (error) {
-      console.error('Download error:', error);
     }
   };
 
@@ -91,23 +152,13 @@ export default function DocumentationPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-4"
               >
-                <div className="flex items-start justify-between gap-4 p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-                  <div>
-                    <h2 className="text-xl font-semibold text-white mb-2">{doc.title}</h2>
-                    <p className="text-slate-400">{doc.description}</p>
-                  </div>
-                  <Button
-                    onClick={() => handleDownload(doc.file)}
-                    variant="outline"
-                    className="bg-white/5 border-white/20 hover:bg-white/10 text-white"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Ladda ner
-                  </Button>
+                <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+                  <h2 className="text-xl font-semibold text-white mb-1">{doc.title}</h2>
+                  <p className="text-slate-400 text-sm">{doc.description}</p>
                 </div>
 
                 <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-                  <DocumentationViewer filename={doc.file} />
+                  <DocumentationViewer content={doc.content} />
                 </div>
               </motion.div>
             </TabsContent>
@@ -118,34 +169,7 @@ export default function DocumentationPage() {
   );
 }
 
-function DocumentationViewer({ filename }) {
-  const [content, setContent] = React.useState('');
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    const loadDoc = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`/docs/${filename}`);
-        const text = await response.text();
-        setContent(text);
-      } catch (error) {
-        setContent(`# Fel vid laddning\n\nKunde inte ladda dokumentationen. Kontrollera att filen finns.\n\nFel: ${error.message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadDoc();
-  }, [filename]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
-
+function DocumentationViewer({ content }) {
   return (
     <div className="prose prose-invert prose-slate max-w-none">
       <ReactMarkdown
