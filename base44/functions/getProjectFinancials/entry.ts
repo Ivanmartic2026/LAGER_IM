@@ -39,23 +39,31 @@ async function getFortnoxToken(base44) {
   return data.access_token;
 }
 
-async function fetchAllProjects(accessToken) {
-  const projects = [];
+async function fetchAllPaginated(accessToken, endpoint) {
+  const results = [];
   let page = 1;
   let totalPages = 1;
 
   while (page <= totalPages) {
     const response = await fetch(
-      `${FORTNOX_API_BASE}/projects?limit=500&page=${page}`,
+      `${FORTNOX_API_BASE}${endpoint}?limit=500&page=${page}`,
       { headers: { 'Authorization': `Bearer ${accessToken}` } }
     );
 
-    if (!response.ok) throw new Error(`Failed to fetch projects page ${page}`);
+    if (!response.ok) {
+      console.warn(`Failed to fetch ${endpoint} page ${page}`);
+      break;
+    }
 
     const data = await response.json();
-    if (data.Projects) {
-      projects.push(...data.Projects);
-    }
+    
+    // Extract items based on endpoint type
+    let items = [];
+    if (endpoint === '/invoices' && data.Invoices) items = data.Invoices;
+    else if (endpoint === '/supplierinvoices' && data.SupplierInvoices) items = data.SupplierInvoices;
+    else if (endpoint === '/projects' && data.Projects) items = data.Projects;
+
+    results.push(...items);
 
     if (data.MetaInformation) {
       totalPages = data.MetaInformation.TotalPages || 1;
@@ -64,63 +72,7 @@ async function fetchAllProjects(accessToken) {
     page++;
   }
 
-  return projects;
-}
-
-async function fetchProjectInvoices(accessToken, projectNumber) {
-  const invoices = [];
-  let page = 1;
-  let totalPages = 1;
-
-  while (page <= totalPages) {
-    const response = await fetch(
-      `${FORTNOX_API_BASE}/invoices?project=${projectNumber}&limit=500&page=${page}`,
-      { headers: { 'Authorization': `Bearer ${accessToken}` } }
-    );
-
-    if (!response.ok) return invoices;
-
-    const data = await response.json();
-    if (data.Invoices) {
-      invoices.push(...data.Invoices);
-    }
-
-    if (data.MetaInformation) {
-      totalPages = data.MetaInformation.TotalPages || 1;
-    }
-
-    page++;
-  }
-
-  return invoices;
-}
-
-async function fetchProjectSupplierInvoices(accessToken, projectNumber) {
-  const invoices = [];
-  let page = 1;
-  let totalPages = 1;
-
-  while (page <= totalPages) {
-    const response = await fetch(
-      `${FORTNOX_API_BASE}/supplierinvoices?project=${projectNumber}&limit=500&page=${page}`,
-      { headers: { 'Authorization': `Bearer ${accessToken}` } }
-    );
-
-    if (!response.ok) return invoices;
-
-    const data = await response.json();
-    if (data.SupplierInvoices) {
-      invoices.push(...data.SupplierInvoices);
-    }
-
-    if (data.MetaInformation) {
-      totalPages = data.MetaInformation.TotalPages || 1;
-    }
-
-    page++;
-  }
-
-  return invoices;
+  return results;
 }
 
 Deno.serve(async (req) => {
@@ -134,25 +86,46 @@ Deno.serve(async (req) => {
 
     const accessToken = await getFortnoxToken(base44);
 
-    // Fetch all Fortnox projects
-    const fortnoxProjects = await fetchAllProjects(accessToken);
+    // Fetch all data in parallel
+    const [allInvoices, allSupplierInvoices, allProjects] = await Promise.all([
+      fetchAllPaginated(accessToken, '/invoices'),
+      fetchAllPaginated(accessToken, '/supplierinvoices'),
+      fetchAllPaginated(accessToken, '/projects')
+    ]);
 
+    // Group invoices by project
+    const projectInvoiceMap = {};
+    for (const inv of allInvoices) {
+      const projectNum = inv.Project;
+      if (projectNum) {
+        if (!projectInvoiceMap[projectNum]) {
+          projectInvoiceMap[projectNum] = { customer: [], supplier: [] };
+        }
+        projectInvoiceMap[projectNum].customer.push(inv);
+      }
+    }
+
+    for (const inv of allSupplierInvoices) {
+      const projectNum = inv.Project;
+      if (projectNum) {
+        if (!projectInvoiceMap[projectNum]) {
+          projectInvoiceMap[projectNum] = { customer: [], supplier: [] };
+        }
+        projectInvoiceMap[projectNum].supplier.push(inv);
+      }
+    }
+
+    // Build results only for projects with invoices
     const results = [];
-
-    // Process each project
-    for (const project of fortnoxProjects) {
+    for (const project of allProjects) {
       const projectNumber = project.ProjectNumber;
-      const projectName = project.Description || project.ProjectNumber;
-      const projectStatus = project.Status || 'unknown';
+      const invoices = projectInvoiceMap[projectNumber];
 
-      // Fetch customer and supplier invoices
-      const customerInvoices = await fetchProjectInvoices(accessToken, projectNumber);
-      const supplierInvoices = await fetchProjectSupplierInvoices(accessToken, projectNumber);
+      if (!invoices) continue;
 
-      // Calculate totals
       let revenue = 0;
       const customerInvoiceDetails = [];
-      for (const inv of customerInvoices) {
+      for (const inv of invoices.customer) {
         revenue += inv.Total || 0;
         customerInvoiceDetails.push({
           DocumentNumber: inv.DocumentNumber,
@@ -164,7 +137,7 @@ Deno.serve(async (req) => {
 
       let costs = 0;
       const supplierInvoiceDetails = [];
-      for (const inv of supplierInvoices) {
+      for (const inv of invoices.supplier) {
         costs += inv.Total || 0;
         supplierInvoiceDetails.push({
           GivenNumber: inv.GivenNumber,
@@ -174,12 +147,12 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Only include projects with revenue or costs
+      // Only include if revenue or costs > 0
       if (revenue > 0 || costs > 0) {
         results.push({
           projectNumber,
-          projectName,
-          projectStatus,
+          projectName: project.Description || projectNumber,
+          projectStatus: project.Status || 'unknown',
           revenue,
           costs,
           result: revenue - costs,
