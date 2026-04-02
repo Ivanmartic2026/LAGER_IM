@@ -454,49 +454,56 @@ export default function FortnoxSyncPage() {
   };
 
   const executeSync = async (type) => {
-    setSyncing(true);
-    setSyncResult(null);
+   setSyncing(true);
+   setSyncResult(null);
 
-    try {
-      const articlesToSync = type === 'articles' 
-        ? articles.filter(a => selectedArticles.has(a.id))
-        : [];
+   try {
+     const articlesToSync = type === 'articles' 
+       ? articles.filter(a => selectedArticles.has(a.id))
+       : [];
 
-      const result = await base44.functions.invoke('fortnoxSyncV2', {
-        syncType: type,
-        articles: articlesToSync
-      });
+     const result = await base44.functions.invoke('fortnoxSyncV2', {
+       syncType: type,
+       articles: articlesToSync
+     });
 
-      if (result.data.success) {
-        setSyncResult(result.data);
-        toast.success(`${result.data.synced} artiklar synkade framgångsrikt!`);
-        
-        // Markera artiklar som synkade
-        if (type === 'articles') {
-          for (const articleId of selectedArticles) {
-            await base44.entities.Article.update(articleId, { fortnox_synced: true });
-          }
-          await fetchArticles();
-          setSelectedArticles(new Set());
-        }
-      } else {
-        setSyncResult(result.data);
-        toast.error(`Synkronisering misslyckades: ${result.data.error || result.data.errors?.[0]}`);
-      }
-    } catch (error) {
-      console.error('Sync error:', error);
-      const errorMsg = error.response?.data?.error || error.message || 'Okänt fel';
-      toast.error(`Synkronisering misslyckades: ${errorMsg}`);
-      setSyncResult({
-        success: false,
-        error: errorMsg,
-        synced: 0,
-        errors: [errorMsg]
-      });
-    } finally {
-      setSyncing(false);
-      setConfirmDialog(null);
-    }
+     if (result.data.success) {
+       setSyncResult(result.data);
+
+       const successMessage = type === 'articles' 
+         ? `${result.data.synced} artiklar synkade framgångsrikt!`
+         : type === 'suppliers'
+         ? `${result.data.synced} leverantörer synkade framgångsrikt!`
+         : `${result.data.synced} inköpsorder synkade framgångsrikt!`;
+
+       toast.success(successMessage);
+
+       // Markera artiklar som synkade
+       if (type === 'articles') {
+         for (const articleId of selectedArticles) {
+           await base44.entities.Article.update(articleId, { fortnox_synced: true });
+         }
+         await fetchArticles();
+         setSelectedArticles(new Set());
+       }
+     } else {
+       setSyncResult(result.data);
+       toast.error(`Synkronisering misslyckades: ${result.data.error || result.data.errors?.[0]}`);
+     }
+   } catch (error) {
+     console.error('Sync error:', error);
+     const errorMsg = error.response?.data?.error || error.message || 'Okänt fel';
+     toast.error(`Synkronisering misslyckades: ${errorMsg}`);
+     setSyncResult({
+       success: false,
+       error: errorMsg,
+       synced: 0,
+       errors: [errorMsg]
+     });
+   } finally {
+     setSyncing(false);
+     setConfirmDialog(null);
+   }
   };
 
   const toggleAutoSync = async (articleId, currentValue) => {
@@ -1040,31 +1047,70 @@ export default function FortnoxSyncPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10"
+            className="space-y-4"
           >
-            <p className="text-white/70 mb-4">
-              {mode === 'suppliers' 
-                ? 'Synka alla leverantörer till Fortnox'
-                : 'Synka alla inköpsorder till Fortnox'}
-            </p>
-            <Button
-              onClick={() => setConfirmDialog({
-                type: mode,
-                count: mode === 'suppliers' ? 'alla' : 'alla',
-                label: mode === 'suppliers' ? 'leverantörer' : 'inköpsorder'
-              })}
-              disabled={syncing}
-              className="bg-blue-600 hover:bg-blue-500 text-white"
-            >
-              {syncing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Synkar...
-                </>
-              ) : (
-                `Synka ${mode === 'suppliers' ? 'Leverantörer' : 'Inköpsorder'}`
-              )}
-            </Button>
+            <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+              <p className="text-white/70 mb-4">
+                {mode === 'suppliers' 
+                  ? 'Synka alla leverantörer till Fortnox'
+                  : 'Synka alla inköpsorder till Fortnox'}
+              </p>
+              <Button
+                onClick={() => setConfirmDialog({
+                  type: mode,
+                  count: mode === 'suppliers' ? 'alla' : 'alla',
+                  label: mode === 'suppliers' ? 'leverantörer' : 'inköpsorder'
+                })}
+                disabled={syncing}
+                className="bg-blue-600 hover:bg-blue-500 text-white"
+              >
+                {syncing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Synkar...
+                  </>
+                ) : (
+                  `Synka ${mode === 'suppliers' ? 'Leverantörer' : 'Inköpsorder'}`
+                )}
+              </Button>
+            </div>
+
+            {/* Sync Result */}
+            {syncResult && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-6 rounded-2xl backdrop-blur-xl border ${
+                  syncResult.success
+                    ? 'bg-green-500/10 border-green-500/20'
+                    : 'bg-red-500/10 border-red-500/20'
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  {syncResult.success ? (
+                    <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
+                  ) : (
+                    <XCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
+                  )}
+                  <div className="flex-1">
+                    <h3 className={`font-semibold mb-2 ${syncResult.success ? 'text-green-400' : 'text-red-400'}`}>
+                      {syncResult.success ? 'Synkronisering slutförd' : 'Synkronisering misslyckades'}
+                    </h3>
+                    <div className="space-y-1 text-sm text-white/70">
+                      {syncResult.synced > 0 && (
+                        <p>✓ {syncResult.synced} {mode === 'suppliers' ? 'leverantörer' : 'inköpsorder'} synkade framgångsrikt</p>
+                      )}
+                      {syncResult.errors && syncResult.errors.length > 0 && (
+                        <p className="text-red-400">{syncResult.errors.join(', ')}</p>
+                      )}
+                      {syncResult.error && (
+                        <p className="text-red-400">{syncResult.error}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         )}
 
