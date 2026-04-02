@@ -127,6 +127,22 @@ export default function PurchaseOrdersPage() {
     }
   });
 
+  const fortnoxSyncMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke('fortnoxSyncV2', { 
+        syncType: 'purchaseOrders'
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('Inköpsordrar synkade med Fortnox!');
+      queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+    },
+    onError: (error) => {
+      toast.error('Synk misslyckades: ' + error.message);
+    }
+  });
+
   const sendEmailMutation = useMutation({
     mutationFn: async ({ poId, emailTo }) => {
       const response = await base44.functions.invoke('sendPurchaseOrderEmail', { 
@@ -223,6 +239,14 @@ export default function PurchaseOrdersPage() {
             </div>
             <div className="flex gap-2">
               <InvoiceScanButton />
+              <Button
+                onClick={() => fortnoxSyncMutation.mutate()}
+                disabled={fortnoxSyncMutation.isPending}
+                className="bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-500/30 transition-all duration-200"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                {fortnoxSyncMutation.isPending ? "Synkar..." : "Synca med Fortnox"}
+              </Button>
               <Button
                 onClick={() => { setEditingPO(null); setShowForm(true); }}
                 className="bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/30 transition-all duration-200"
