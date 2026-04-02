@@ -156,7 +156,7 @@ async function syncPurchaseOrders(accessToken, base44, poId) {
    let failed = 0;
 
    const orders = poId 
-     ? [await base44.asServiceRole.entities.PurchaseOrder.get('PurchaseOrder', poId)]
+     ? [await base44.asServiceRole.entities.PurchaseOrder.get(poId)]
      : await base44.asServiceRole.entities.PurchaseOrder.list();
 
    for (const order of orders) {
