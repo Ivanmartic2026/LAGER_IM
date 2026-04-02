@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, User, Clock, Truck, CheckCircle2, Printer, FileUp, Download, X } from "lucide-react";
+import { ArrowLeft, Play, User, Clock, Truck, CheckCircle2, Printer, FileUp, Download, X, AlertTriangle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -292,15 +293,19 @@ export default function WorkOrderViewPage() {
     });
   };
 
-  const handleWithdrawFromStock = async () => {
-    if (!orderItems.length) return;
-    
-    const confirmed = window.confirm(
-      `Ta ut ${orderItems.length} artikel(ar) från lagret?\n\n` +
-      orderItems.map(item => `• ${item.article_name}: ${item.quantity_ordered} st`).join('\n')
-    );
-    if (!confirmed) return;
+  const [withdrawConfirmOpen, setWithdrawConfirmOpen] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
 
+  const handleWithdrawFromStock = () => {
+    if (!orderItems.length) {
+      toast.error('Inga artiklar att ta ut');
+      return;
+    }
+    setWithdrawConfirmOpen(true);
+  };
+
+  const doWithdraw = async () => {
+    setWithdrawing(true);
     try {
       const updates = orderItems
         .filter(item => item.article_id)
@@ -326,6 +331,9 @@ export default function WorkOrderViewPage() {
     } catch (e) {
       console.error(e);
       toast.error('Fel vid lagerutdrag');
+    } finally {
+      setWithdrawing(false);
+      setWithdrawConfirmOpen(false);
     }
   };
 
@@ -338,6 +346,7 @@ export default function WorkOrderViewPage() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-3xl mx-auto space-y-4 bg-black">
 
@@ -486,5 +495,41 @@ export default function WorkOrderViewPage() {
 
       </div>
     </div>
+
+    {/* Withdraw Confirm Dialog */}
+    <Dialog open={withdrawConfirmOpen} onOpenChange={setWithdrawConfirmOpen}>
+      <DialogContent className="bg-slate-900 border-slate-700 text-white">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-orange-400" />
+            Ta ut från Lagret
+          </DialogTitle>
+        </DialogHeader>
+        <div className="py-2">
+          <p className="text-slate-300 mb-3">Följande artiklar kommer att tas ut från lagret:</p>
+          <div className="space-y-1 max-h-48 overflow-y-auto">
+            {orderItems.map(item => (
+              <div key={item.id} className="flex justify-between text-sm py-1 border-b border-slate-700/50">
+                <span className="text-white">{item.article_name}</span>
+                <span className="text-slate-400">{item.quantity_ordered} st</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" onClick={() => setWithdrawConfirmOpen(false)} className="text-slate-400 hover:text-white">
+            Avbryt
+          </Button>
+          <Button
+            onClick={doWithdraw}
+            disabled={withdrawing}
+            className="bg-red-600 hover:bg-red-500 text-white"
+          >
+            {withdrawing ? 'Tar ut...' : 'Bekräfta uttag'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
