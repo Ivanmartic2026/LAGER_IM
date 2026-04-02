@@ -33,7 +33,6 @@ Deno.serve(async (req) => {
     
     // Ensure proper UTF-8 font support
     doc.setFont('helvetica', 'normal');
-    doc.internal.setLanguage('sv-SE');
     const W = 210;
     const margin = 15;
     let y = 15;
