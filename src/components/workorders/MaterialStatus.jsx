@@ -1,10 +1,32 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Package, CheckCircle2, AlertTriangle, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function MaterialStatus({ materials = [] }) {
-  if (!materials || materials.length === 0) {
+export default function MaterialStatus({ materials = [], orderItems = [] }) {
+  // Fetch all articles to enrich materials with ETA data
+  const { data: articles = [] } = useQuery({
+    queryKey: ['articles'],
+    queryFn: () => base44.entities.Article.list(),
+    staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+  });
+
+  // Enrich materials with article ETA data
+  const enrichedMaterials = useMemo(() => {
+    return materials.map(material => {
+      if (!material.article_id) return material;
+      
+      const article = articles.find(a => a.id === material.article_id);
+      return {
+        ...material,
+        transit_expected_date: article?.transit_expected_date || material.transit_expected_date
+      };
+    });
+  }, [materials, articles]);
+
+  if (!enrichedMaterials || enrichedMaterials.length === 0) {
     return (
       <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
         <h2 className="font-bold text-white mb-4 flex items-center gap-2">
@@ -16,8 +38,8 @@ export default function MaterialStatus({ materials = [] }) {
     );
   }
 
-  const allReady = materials.every(m => m.in_stock >= m.quantity);
-  const needsPurchase = materials.filter(m => m.needs_purchase).length;
+  const allReady = enrichedMaterials.every(m => m.in_stock >= m.quantity);
+  const needsPurchase = enrichedMaterials.filter(m => m.needs_purchase).length;
 
   return (
     <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
@@ -35,7 +57,7 @@ export default function MaterialStatus({ materials = [] }) {
       </div>
 
       <div className="space-y-2">
-        {materials.map((material, idx) => {
+        {enrichedMaterials.map((material, idx) => {
           const inStock = material.in_stock >= material.quantity;
           const status = inStock ? 'In Stock' : material.needs_purchase ? 'Missing' : 'On the way';
           const statusColor = inStock ? 'text-green-400' : material.needs_purchase ? 'text-red-400' : 'text-yellow-400';
