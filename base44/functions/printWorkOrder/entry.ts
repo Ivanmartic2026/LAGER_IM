@@ -224,7 +224,13 @@ ${sorted.map(act => `
   <span>${esc(wo.name || wo.order_number || '')} &nbsp;|&nbsp; ${fmtDT(new Date())}</span>
 </div>
 
-<script>window.onload = () => window.print();</script>
+<div style="position:fixed;bottom:24px;right:24px;z-index:999;display:flex;gap:10px;" class="no-print">
+  <button onclick="window.print()" style="background:#000;color:#fff;border:none;padding:10px 22px;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;letter-spacing:0.05em;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+    🖨️ Skriv ut
+  </button>
+</div>
+<style>.no-print { } @media print { .no-print { display: none !important; } }</style>
+<script>window.onload = () => {};</script>
 </body>
 </html>`;
 
