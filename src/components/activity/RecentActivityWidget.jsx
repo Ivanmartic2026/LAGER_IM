@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
@@ -14,7 +14,7 @@ export default function RecentActivityWidget() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
-  const [allActivities, setAllActivities] = useState([]);
+
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -148,7 +148,7 @@ export default function RecentActivityWidget() {
   });
 
   // Combine and sort all activities including direct Order and WorkOrder updates
-  React.useEffect(() => {
+  const allActivities = useMemo(() => {
     const directOrderActivities = ordersList.map(o => ({
       ...o,
       entity_type: 'Order',
@@ -167,10 +167,9 @@ export default function RecentActivityWidget() {
       work_order_id: wo.id
     }));
 
-    const combined = [...workOrderActivities, ...poActivities, ...productionActivities, ...directOrderActivities, ...directWOActivities]
+    return [...workOrderActivities, ...poActivities, ...productionActivities, ...directOrderActivities, ...directWOActivities]
       .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
       .slice(0, 8);
-    setAllActivities(combined);
   }, [workOrderActivities, poActivities, productionActivities, ordersList, workOrdersList]);
 
   const getActivityIcon = (type, entity_type) => {
