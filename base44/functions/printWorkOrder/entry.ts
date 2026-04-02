@@ -52,24 +52,24 @@ Deno.serve(async (req) => {
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; font-size: 12px; color: #111; background: #fff; padding: 0; margin: 0; }
   .page { padding: 28px 32px; }
-  h1 { font-size: 22px; color: #1e3a8a; margin: 0; }
-  h2 { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; background: #1e3a8a; color: #fff; padding: 5px 10px; margin: 18px 0 6px; border-radius: 4px; }
-  .top-bar { background: #1e3a8a; color: #fff; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; }
+  h1 { font-size: 22px; color: #111; margin: 0; }
+  h2 { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; background: #111; color: #fff; padding: 5px 10px; margin: 18px 0 6px; border-radius: 4px; }
+  .top-bar { background: #000; color: #fff; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; }
   .top-bar-right { text-align: right; font-size: 11px; opacity: 0.85; }
-  .logo { height: 32px; object-fit: contain; filter: brightness(0) invert(1); }
+  .logo { height: 32px; object-fit: contain; }
   .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px; margin-bottom: 14px; margin-top: 14px; }
   .header-right { text-align: right; color: #555; font-size: 11px; }
   .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  .box { background: #f0f4ff; border: 1px solid #c7d2fe; border-radius: 4px; padding: 6px 8px; }
+  .box { background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 6px 8px; }
   .box .label { font-size: 10px; color: #666; margin-bottom: 2px; }
   .box .value { font-weight: bold; font-size: 12px; }
   .field { display: flex; gap: 8px; margin-bottom: 4px; }
   .field .fl { color: #555; font-weight: bold; min-width: 140px; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  thead tr { background: #e8ecf8; }
+  thead tr { background: #e5e5e5; }
   th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
-  tr:nth-child(even) { background: #f8f9ff; }
+  tr:nth-child(even) { background: #fafafa; }
   .check { margin-bottom: 4px; }
   .check.done { color: #16a34a; }
   .check.todo { color: #999; }
@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
   .act-meta { font-size: 10px; color: #888; margin-bottom: 2px; }
   .act-msg { font-size: 11px; }
   .badge { display: inline-block; font-size: 10px; padding: 1px 5px; border-radius: 10px; font-weight: bold; margin-right: 4px; }
-  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-blue { background: #e5e7eb; color: #111; }
   .badge-purple { background: #ede9fe; color: #6d28d9; }
   .badge-gray { background: #f3f4f6; color: #555; }
   @media print {
@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
 <body>
 
 <div class="top-bar">
-  <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" class="logo" alt="IMvision" />
+  <img src="https://media.base44.com/images/public/69455d52c9eab36b7d26cc74/81c7616fb_LogoLIGGANDE_IMvision_VITtkopia.png" class="logo" alt="IMvision" />
   <div class="top-bar-right">
     <div style="font-size:13px;font-weight:bold;letter-spacing:0.05em">ARBETSORDER</div>
     <div style="margin-top:2px">${esc(wo.name || wo.order_number || '')}</div>
@@ -219,7 +219,7 @@ ${sorted.map(act => `
 
 </div><!-- end .page -->
 
-<div style="background:#1e3a8a;color:rgba(255,255,255,0.7);font-size:10px;padding:8px 32px;display:flex;justify-content:space-between;margin-top:30px;">
+<div style="background:#000;color:rgba(255,255,255,0.7);font-size:10px;padding:8px 32px;display:flex;justify-content:space-between;margin-top:30px;">
   <span>IMvision AB – Arbetsorder</span>
   <span>${esc(wo.name || wo.order_number || '')} &nbsp;|&nbsp; ${fmtDT(new Date())}</span>
 </div>
