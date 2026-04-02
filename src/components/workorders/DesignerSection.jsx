@@ -14,6 +14,7 @@ export default function DesignerSection({ workOrderId }) {
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTaskName, setNewTaskName] = useState('');
   const [newTaskDesc, setNewTaskDesc] = useState('');
+  const [newTaskAssignedTo, setNewTaskAssignedTo] = useState('');
   const [designerNotes, setDesignerNotes] = useState('');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
 
@@ -40,19 +41,18 @@ export default function DesignerSection({ workOrderId }) {
   // Create task mutation
   const createTaskMutation = useMutation({
     mutationFn: async (taskData) => {
-      const user = await base44.auth.me();
       return base44.entities.Task.create({
         ...taskData,
         work_order_id: workOrderId,
         status: 'to_do',
-        assigned_to: user.email,
-        assigned_to_name: user.full_name
+        assigned_to_name: taskData.assigned_to_name || ''
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['designerTasks', workOrderId] });
       setNewTaskName('');
       setNewTaskDesc('');
+      setNewTaskAssignedTo('');
       setIsAddingTask(false);
       toast.success('Task created');
     }
@@ -165,22 +165,28 @@ export default function DesignerSection({ workOrderId }) {
         </div>
 
         {/* Add Task Form */}
-        {isAddingTask && (
-          <div className="bg-white/5 rounded-lg p-3 space-y-2 border border-white/10">
-            <Input
-              placeholder="Task title..."
-              value={newTaskName}
-              onChange={(e) => setNewTaskName(e.target.value)}
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm"
-            />
-            <Textarea
-              placeholder="Description (optional)..."
-              value={newTaskDesc}
-              onChange={(e) => setNewTaskDesc(e.target.value)}
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm resize-none"
-              rows={2}
-            />
-            <div className="flex gap-2">
+         {isAddingTask && (
+           <div className="bg-white/5 rounded-lg p-3 space-y-2 border border-white/10">
+             <Input
+               placeholder="Task title..."
+               value={newTaskName}
+               onChange={(e) => setNewTaskName(e.target.value)}
+               className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm"
+             />
+             <Textarea
+               placeholder="Description (optional)..."
+               value={newTaskDesc}
+               onChange={(e) => setNewTaskDesc(e.target.value)}
+               className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm resize-none"
+               rows={2}
+             />
+             <Input
+               placeholder="Assigned to (e.g., John Doe, Design Team)..."
+               value={newTaskAssignedTo}
+               onChange={(e) => setNewTaskAssignedTo(e.target.value)}
+               className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm"
+             />
+             <div className="flex gap-2">
               <Button
                 size="sm"
                 onClick={() => {
@@ -190,7 +196,8 @@ export default function DesignerSection({ workOrderId }) {
                   }
                   createTaskMutation.mutate({
                     name: newTaskName,
-                    description: newTaskDesc
+                    description: newTaskDesc,
+                    assigned_to_name: newTaskAssignedTo
                   });
                 }}
                 disabled={createTaskMutation.isPending}
@@ -202,10 +209,11 @@ export default function DesignerSection({ workOrderId }) {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setIsAddingTask(false);
-                  setNewTaskName('');
-                  setNewTaskDesc('');
-                }}
+                   setIsAddingTask(false);
+                   setNewTaskName('');
+                   setNewTaskDesc('');
+                   setNewTaskAssignedTo('');
+                 }}
                 className="text-white/60 hover:text-white hover:bg-white/5 text-xs"
               >
                 Cancel
@@ -238,29 +246,32 @@ export default function DesignerSection({ workOrderId }) {
                 </button>
 
                 <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-sm font-medium ${
-                      task.status === 'completed'
-                        ? 'text-white/50 line-through'
-                        : 'text-white'
-                    }`}
-                  >
-                    {task.name}
-                  </p>
-                  {task.description && (
-                    <p className="text-xs text-white/40 mt-1">{task.description}</p>
-                  )}
-                  {task.due_date && (
-                    <p className="text-xs text-white/40 mt-1">
-                      Due: {format(new Date(task.due_date), 'PPP', { locale: sv })}
-                    </p>
-                  )}
-                  {task.status === 'completed' && task.completed_date && (
-                    <p className="text-xs text-green-400/70 mt-1">
-                      ✓ Completed {format(new Date(task.completed_date), 'PPP HH:mm', { locale: sv })}
-                    </p>
-                  )}
-                </div>
+                   <p
+                     className={`text-sm font-medium ${
+                       task.status === 'completed'
+                         ? 'text-white/50 line-through'
+                         : 'text-white'
+                     }`}
+                   >
+                     {task.name}
+                   </p>
+                   {task.assigned_to_name && (
+                     <p className="text-xs text-blue-400 mt-1">Assigned to: {task.assigned_to_name}</p>
+                   )}
+                   {task.description && (
+                     <p className="text-xs text-white/40 mt-1">{task.description}</p>
+                   )}
+                   {task.due_date && (
+                     <p className="text-xs text-white/40 mt-1">
+                       Due: {format(new Date(task.due_date), 'PPP', { locale: sv })}
+                     </p>
+                   )}
+                   {task.status === 'completed' && task.completed_date && (
+                     <p className="text-xs text-green-400/70 mt-1">
+                       ✓ Completed {format(new Date(task.completed_date), 'PPP HH:mm', { locale: sv })}
+                     </p>
+                   )}
+                 </div>
 
                 <button
                   onClick={() => {
