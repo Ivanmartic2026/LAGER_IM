@@ -15,13 +15,23 @@ Deno.serve(async (req) => {
     const wo = woList[0];
     if (!wo) return Response.json({ error: 'Not found' }, { status: 404 });
 
-    const [orderList, orderItems, activities, designerTasks] = await Promise.all([
+    const [orderList, orderItems, activities, designerTasks, articles] = await Promise.all([
       base44.asServiceRole.entities.Order.filter({ id: wo.order_id }),
       base44.asServiceRole.entities.OrderItem.filter({ order_id: wo.order_id }),
       base44.asServiceRole.entities.WorkOrderActivity.filter({ work_order_id }),
       base44.asServiceRole.entities.Task.filter({ work_order_id }),
+      base44.asServiceRole.entities.Article.list(),
     ]);
     const order = orderList[0] || {};
+    
+    // Enrich orderItems with article ETA data
+    const enrichedItems = orderItems.map(item => {
+      const article = articles.find(a => a.id === item.article_id);
+      return {
+        ...item,
+        transit_expected_date: article?.transit_expected_date || item.transit_expected_date
+      };
+    });
 
     const stageLabels = { picking: 'Picking', production: 'Production', delivery: 'Delivery', completed: 'Completed' };
     const priorityLabels = { låg: 'Low', normal: 'Normal', hög: 'High', brådskande: 'Urgent', low: 'Low', high: 'High', urgent: 'Urgent' };
@@ -161,12 +171,12 @@ ${designerTasks && designerTasks.length > 0 ? `
   </tbody>
 </table>` : ''}
 
-${orderItems.length > 0 ? `
+${enrichedItems.length > 0 ? `
 <h2>Articles / Material List</h2>
 <table>
   <thead><tr><th>Article</th><th>Batch</th><th>Shelf</th><th>Ordered</th><th>Picked</th><th>ETA</th></tr></thead>
   <tbody>
-    ${orderItems.map(item => `
+    ${enrichedItems.map(item => `
     <tr>
       <td>${esc(item.article_name || item.article_id || '—')}</td>
       <td>${esc(item.article_batch_number || '—')}</td>
