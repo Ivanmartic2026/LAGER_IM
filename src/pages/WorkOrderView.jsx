@@ -356,15 +356,12 @@ export default function WorkOrderViewPage() {
             onClick={async () => {
               try {
                 const res = await base44.functions.invoke('printWorkOrder', { work_order_id: workOrderId });
-                const blob = new Blob([res.data], { type: 'application/pdf' });
+                const html = typeof res.data === 'string' ? res.data : JSON.stringify(res.data);
+                const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `arbetsorder_${workOrder.order_number || workOrderId.slice(0,8)}.pdf`;
-                a.click();
-                URL.revokeObjectURL(url);
+                window.open(url, '_blank');
               } catch (e) {
-                toast.error('Kunde inte skapa PDF');
+                toast.error('Kunde inte skapa utskrift');
               }
             }}
           >

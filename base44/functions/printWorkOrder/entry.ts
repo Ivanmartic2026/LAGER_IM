@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
-import { jsPDF } from 'npm:jspdf@2.5.2';
 
 Deno.serve(async (req) => {
   try {
@@ -9,7 +8,6 @@ Deno.serve(async (req) => {
 
     const { work_order_id } = await req.json();
 
-    // Fetch all data in parallel
     const [woList] = await Promise.all([
       base44.asServiceRole.entities.WorkOrder.filter({ id: work_order_id }),
     ]);
@@ -20,407 +18,186 @@ Deno.serve(async (req) => {
     const [orderList, orderItems, activities] = await Promise.all([
       base44.asServiceRole.entities.Order.filter({ id: wo.order_id }),
       base44.asServiceRole.entities.OrderItem.filter({ order_id: wo.order_id }),
-      base44.asServiceRole.entities.WorkOrderActivity.filter({ work_order_id: work_order_id }),
+      base44.asServiceRole.entities.WorkOrderActivity.filter({ work_order_id }),
     ]);
     const order = orderList[0] || {};
-
-    const doc = new jsPDF({ 
-      orientation: 'portrait', 
-      unit: 'mm', 
-      format: 'a4',
-      compress: true
-    });
-    
-    // Ensure proper UTF-8 font support
-    doc.setFont('helvetica', 'normal');
-    const W = 210;
-    const margin = 15;
-    let y = 15;
-
-    // Ensure proper UTF-8 handling for Swedish characters
-    const fix = (str) => {
-      if (!str) return '';
-      // Convert to string and ensure UTF-8 handling
-      const text = String(str).trim();
-      // Explicitly handle encoding by using the string directly
-      // jsPDF natively supports UTF-8 with helvetica font
-      return text;
-    };
-
-    const addLine = (h = 4) => { y += h; };
-    const checkPage = (needed = 20) => {
-      if (y + needed > 280) { doc.addPage(); y = 15; }
-    };
-
-    // ── Header bar ──────────────────────────────────────────
-    doc.setFillColor(245, 245, 250);
-    doc.rect(0, 0, W, 36, 'F');
-    
-    // Header border
-    doc.setDrawColor(37, 99, 235);
-    doc.setLineWidth(2);
-    doc.line(0, 36, W, 36);
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(24);
-    doc.setTextColor(20, 20, 40);
-    doc.text('ARBETSORDER', margin, 13);
-
-    // WO number on second line, right aligned
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(37, 99, 235);
-    const woLabel = wo.name || wo.order_number || work_order_id.slice(0, 8);
-    doc.text(woLabel, W - margin, 23, { align: 'right' });
-
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 120);
-    doc.text(`Utskriven: ${new Date().toLocaleDateString('sv-SE')} ${new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`, margin, 30);
-
-    y = 42;
-    doc.setTextColor(20, 20, 20);
-
-    // ── Info grid ───────────────────────────────────────────
-    const infoBox = (label, value, x, boxY, w = 85) => {
-      doc.setFillColor(245, 247, 255);
-      doc.setDrawColor(180, 190, 220);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(x, boxY, w, 16, 2, 2, 'FD');
-      
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(110, 110, 140);
-      doc.text(fix(label), x + 4, boxY + 5);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(20, 20, 40);
-      const val = doc.splitTextToSize(fix(value) || '-', w - 8);
-      doc.text(val[0], x + 4, boxY + 12);
-    };
 
     const stageLabels = { picking: 'Plockning', production: 'Produktion', delivery: 'Leverans', completed: 'Klar' };
     const priorityLabels = { låg: 'Låg', normal: 'Normal', hög: 'Hög', brådskande: 'Brådskande' };
     const statusLabels = { väntande: 'Väntande', pågår: 'Pågår', klar: 'Klar', avbruten: 'Avbruten' };
+    const typeLabels = { comment: 'Kommentar', system: 'System', decision: 'Beslut', assignment: 'Tilldelning', file_upload: 'Fil', status_change: 'Status', field_change: 'Fält' };
 
-    infoBox('Kund', order.customer_name || '—', margin, y, 55);
-    infoBox('Kundreferens', order.customer_reference || wo.customer_reference || '—', margin + 60, y, 55);
-    infoBox('Arbetsorder', wo.name || wo.order_number || '—', margin + 120, y, 75);
-    y += 20;
+    const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('sv-SE') : '—';
+    const fmtDT = (d) => d ? new Date(d).toLocaleString('sv-SE') : '—';
 
-    infoBox('Ordernummer', order.order_number || '—', margin, y, 55);
-    infoBox('Leverans', wo.delivery_date || order.delivery_date || '—', margin + 60, y, 55);
-    infoBox('Prioritet', priorityLabels[wo.priority] || wo.priority || 'Normal', margin + 120, y, 75);
-    y += 20;
+    const checkRows = wo.checklist ? [
+      ['Plockat', wo.checklist.picked],
+      ['Monterat', wo.checklist.assembled],
+      ['Testat', wo.checklist.tested],
+      ['Paketerat', wo.checklist.packed],
+      ['Redo för leverans', wo.checklist.ready_for_delivery],
+    ] : [];
 
-    if (wo.technician_name || wo.assigned_to_production_name) {
-      infoBox('Tekniker', wo.technician_name || wo.assigned_to_production_name || '—', margin, y, 85);
-      infoBox('Telefon', wo.technician_phone || '—', margin + 90, y, 85);
-      y += 18;
-    }
+    const sorted = [...(activities || [])].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
-    if (wo.delivery_contact_name) {
-      infoBox('Leveranskontakt', wo.delivery_contact_name || '—', margin, y, 85);
-      infoBox('Telefon', wo.delivery_contact_phone || '—', margin + 90, y, 85);
-      y += 18;
-    }
+    const html = `<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arbetsorder – ${esc(wo.name || wo.order_number || '')}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 12px; color: #111; background: #fff; padding: 20px; }
+  h1 { font-size: 22px; color: #1e3a8a; }
+  h2 { font-size: 13px; background: #1e3a8a; color: #fff; padding: 5px 8px; margin: 16px 0 6px; border-radius: 3px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 14px; }
+  .header-right { text-align: right; color: #555; font-size: 11px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .box { background: #f0f4ff; border: 1px solid #c7d2fe; border-radius: 4px; padding: 6px 8px; }
+  .box .label { font-size: 10px; color: #666; margin-bottom: 2px; }
+  .box .value { font-weight: bold; font-size: 12px; }
+  .field { display: flex; gap: 8px; margin-bottom: 4px; }
+  .field .fl { color: #555; font-weight: bold; min-width: 140px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  thead tr { background: #e8ecf8; }
+  th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
+  tr:nth-child(even) { background: #f8f9ff; }
+  .check { margin-bottom: 4px; }
+  .check.done { color: #16a34a; }
+  .check.todo { color: #999; }
+  .act-row { border-bottom: 1px solid #eee; padding: 5px 0; }
+  .act-meta { font-size: 10px; color: #888; margin-bottom: 2px; }
+  .act-msg { font-size: 11px; }
+  .badge { display: inline-block; font-size: 10px; padding: 1px 5px; border-radius: 10px; font-weight: bold; margin-right: 4px; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-purple { background: #ede9fe; color: #6d28d9; }
+  .badge-gray { background: #f3f4f6; color: #555; }
+  @media print {
+    body { padding: 10px; }
+    @page { margin: 15mm; }
+  }
+</style>
+</head>
+<body>
 
-    // ── Section helper ──────────────────────────────────────
-    const sectionHeader = (title) => {
-      checkPage(12);
-      doc.setFillColor(37, 99, 235);
-      doc.setDrawColor(37, 99, 235);
-      doc.setLineWidth(0.2);
-      doc.rect(margin, y, W - margin * 2, 8, 'F');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(255, 255, 255);
-      doc.text(fix(title).toUpperCase(), margin + 3, y + 5.5);
-      y += 11;
-      doc.setTextColor(20, 20, 20);
-    };
+<div class="header">
+  <div>
+    <div style="font-size:10px;color:#888;margin-bottom:4px;">ARBETSORDER</div>
+    <h1>${esc(wo.name || wo.order_number || work_order_id.slice(0,8))}</h1>
+    <div style="margin-top:4px;font-size:11px;color:#555;">
+      Status: <strong>${esc(statusLabels[wo.status] || wo.status || '—')}</strong>
+      &nbsp;|&nbsp; Fas: <strong>${esc(stageLabels[wo.current_stage] || wo.current_stage || '—')}</strong>
+      &nbsp;|&nbsp; Prioritet: <strong>${esc(priorityLabels[wo.priority] || wo.priority || 'Normal')}</strong>
+    </div>
+  </div>
+  <div class="header-right">
+    <div>Utskriven: ${fmtDT(new Date())}</div>
+    ${order.order_number ? `<div>Ordernr: <strong>${esc(order.order_number)}</strong></div>` : ''}
+    ${wo.delivery_date || order.delivery_date ? `<div>Leverans: <strong>${esc(wo.delivery_date || order.delivery_date)}</strong></div>` : ''}
+  </div>
+</div>
 
-    const field = (label, value) => {
-      checkPage(8);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.setTextColor(80, 80, 100);
-      doc.text(fix(label) + ':', margin, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(20, 20, 20);
-      const lines = doc.splitTextToSize(fix(value) || '-', W - margin * 2 - 40);
-      doc.text(lines, margin + 40, y);
-      y += lines.length * 5 + 1;
-    };
+<div class="grid">
+  <div class="box"><div class="label">Kund</div><div class="value">${esc(order.customer_name || wo.customer_name || '—')}</div></div>
+  <div class="box"><div class="label">Kundreferens</div><div class="value">${esc(order.customer_reference || wo.customer_reference || '—')}</div></div>
+  <div class="box"><div class="label">Leveransdatum</div><div class="value">${esc(wo.delivery_date || order.delivery_date || '—')}</div></div>
+</div>
 
-    // ── Project Description ────────────────────────────────
-    if (wo.project_description) {
-      sectionHeader('Projektbeskrivning');
-      field('Beskrivning', wo.project_description);
-      y += 4;
-    }
+${wo.technician_name || wo.assigned_to_production_name ? `
+<div class="grid2">
+  <div class="box"><div class="label">Tekniker</div><div class="value">${esc(wo.technician_name || wo.assigned_to_production_name)}</div></div>
+  ${wo.technician_phone ? `<div class="box"><div class="label">Telefon</div><div class="value">${esc(wo.technician_phone)}</div></div>` : ''}
+</div>` : ''}
 
-    // ── Order Info ──────────────────────────────────────────
-    sectionHeader('Orderinformation');
-    if (order.customer_name) field('Kund', order.customer_name);
-    if (order.customer_reference || wo.customer_reference) field('Kundreferens', order.customer_reference || wo.customer_reference);
-    if (order.fortnox_customer_number) field('Fortnox kundnr', order.fortnox_customer_number);
-    if (order.delivery_address) field('Leveransadress', order.delivery_address);
-    if (order.delivery_method) field('Leveranssätt', order.delivery_method);
-    if (order.shipping_company) field('Speditör', order.shipping_company);
-    if (order.notes) field('Anteckningar (order)', order.notes);
-    if (order.rm_system_id) field('RM System ID', order.rm_system_id);
-    if (order.fortnox_project_number) field('Fortnox Projekt', order.fortnox_project_number);
+${wo.delivery_contact_name ? `
+<div class="grid2">
+  <div class="box"><div class="label">Leveranskontakt</div><div class="value">${esc(wo.delivery_contact_name)}</div></div>
+  ${wo.delivery_contact_phone ? `<div class="box"><div class="label">Telefon</div><div class="value">${esc(wo.delivery_contact_phone)}</div></div>` : ''}
+</div>` : ''}
 
-    // ── Work Order Info ─────────────────────────────────────
-    sectionHeader('Arbetsorder detaljer');
-    field('Arbetsorder', wo.name || '—');
-    field('Status', statusLabels[wo.status] || wo.status || '—');
-    field('Fas', stageLabels[wo.current_stage] || wo.current_stage || '—');
-    field('Prioritet', priorityLabels[wo.priority] || wo.priority || 'Normal');
-    if (wo.production_status) field('Produktionsstatus', wo.production_status);
-    if (wo.picking_notes) field('Plockanteckningar', wo.picking_notes);
-    if (wo.production_notes) field('Produktionsanteckningar', wo.production_notes);
-    if (wo.deviations) field('Avvikelser', wo.deviations);
+${wo.project_description ? `<h2>Projektbeskrivning</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.project_description)}</p>` : ''}
 
-    // ── Materials / artiklar ────────────────────────────────
-    if (orderItems.length > 0) {
-      sectionHeader('Artiklar / Materiallista');
-      // Table header
-      doc.setFillColor(240, 240, 250);
-      doc.setDrawColor(200, 200, 220);
-      doc.setLineWidth(0.3);
-      doc.rect(margin, y, W - margin * 2, 7, 'FD');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.setTextColor(40, 40, 60);
-      doc.text('Artikel', margin + 2, y + 5);
-      doc.text('Batch', margin + 90, y + 5);
-      doc.text('Hylla', margin + 125, y + 5);
-      doc.text('Best.', W - margin - 18, y + 5, { align: 'right' });
-      doc.text('Plockat', W - margin - 2, y + 5, { align: 'right' });
+<h2>Orderinformation</h2>
+${order.delivery_address ? `<div class="field"><span class="fl">Leveransadress</span><span>${esc(order.delivery_address)}</span></div>` : ''}
+${order.delivery_method ? `<div class="field"><span class="fl">Leveranssätt</span><span>${esc(order.delivery_method)}</span></div>` : ''}
+${order.fortnox_project_number ? `<div class="field"><span class="fl">Fortnox Projekt</span><span>${esc(order.fortnox_project_number)}</span></div>` : ''}
+${order.notes ? `<div class="field"><span class="fl">Anteckningar</span><span>${esc(order.notes)}</span></div>` : ''}
 
-      y += 8;
+${wo.picking_notes ? `<h2>Plockanteckningar</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.picking_notes)}</p>` : ''}
+${wo.production_notes ? `<h2>Produktionsanteckningar</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.production_notes)}</p>` : ''}
+${wo.deviations ? `<h2>Avvikelser</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.deviations)}</p>` : ''}
 
-      orderItems.forEach((item, idx) => {
-        checkPage(7);
-        if (idx % 2 === 0) {
-          doc.setFillColor(250, 250, 255);
-          doc.rect(margin, y - 1, W - margin * 2, 7, 'F');
-        }
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(20, 20, 20);
-        const name = doc.splitTextToSize(fix(item.article_name || item.article_id) || '-', 85);
-        doc.text(name[0], margin + 2, y + 4);
-        doc.text(fix(item.article_batch_number) || '-', margin + 90, y + 4);
-        doc.text(fix(item.shelf_address) || '-', margin + 125, y + 4);
-        doc.text(String(item.quantity_ordered || 0), W - margin - 18, y + 4, { align: 'right' });
-        
-        // Color picked qty
-        const picked = item.quantity_picked || 0;
-        const ordered = item.quantity_ordered || 0;
-        if (picked >= ordered) doc.setTextColor(34, 197, 94);
-        else if (picked > 0) doc.setTextColor(217, 119, 6);
-        else doc.setTextColor(120, 120, 140);
-        doc.text(String(picked), W - margin - 2, y + 4, { align: 'right' });
-        doc.setTextColor(20, 20, 20);
-        y += 7;
-      });
-      y += 4;
-    }
+${orderItems.length > 0 ? `
+<h2>Artiklar / Materiallista</h2>
+<table>
+  <thead><tr><th>Artikel</th><th>Batch</th><th>Hylla</th><th>Beställt</th><th>Plockat</th></tr></thead>
+  <tbody>
+    ${orderItems.map(item => `
+    <tr>
+      <td>${esc(item.article_name || item.article_id || '—')}</td>
+      <td>${esc(item.article_batch_number || '—')}</td>
+      <td>${esc(item.shelf_address || '—')}</td>
+      <td>${item.quantity_ordered || 0}</td>
+      <td style="color:${(item.quantity_picked||0)>=(item.quantity_ordered||0)?'#16a34a':(item.quantity_picked||0)>0?'#d97706':'#999'}">${item.quantity_picked || 0}</td>
+    </tr>`).join('')}
+  </tbody>
+</table>` : ''}
 
-    // ── WO Tasks ────────────────────────────────────────────
-    if (wo.tasks && wo.tasks.length > 0) {
-      sectionHeader('Arbetsmoment');
-      const taskStatusLabels = { pending: 'Vantar', in_progress: 'Pagar', completed: 'Klar' };
-      const taskTypeLabels = { buy: 'Kop', manufacture: 'Tillverka', assemble: 'Montera' };
+${wo.tasks && wo.tasks.length > 0 ? `
+<h2>Arbetsmoment</h2>
+<table>
+  <thead><tr><th>Moment</th><th>Typ</th><th>Ansvarig</th><th>Status</th></tr></thead>
+  <tbody>
+    ${wo.tasks.map(task => `
+    <tr>
+      <td>${esc(task.title || '—')}</td>
+      <td>${esc(task.type || '—')}</td>
+      <td>${esc(task.assigned_name || task.assigned_to || '—')}</td>
+      <td>${esc(task.status || '—')}</td>
+    </tr>`).join('')}
+  </tbody>
+</table>` : ''}
 
-      doc.setFillColor(240, 240, 250);
-      doc.setDrawColor(200, 200, 220);
-      doc.setLineWidth(0.3);
-      doc.rect(margin, y, W - margin * 2, 7, 'FD');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.setTextColor(40, 40, 60);
-      doc.text('Moment', margin + 2, y + 5);
-      doc.text('Typ', margin + 100, y + 5);
-      doc.text('Ansvarig', margin + 125, y + 5);
-      doc.text('Status', W - margin - 2, y + 5, { align: 'right' });
+${checkRows.length > 0 ? `
+<h2>Checklista</h2>
+${checkRows.map(([label, done]) => `
+<div class="check ${done ? 'done' : 'todo'}">${done ? '✓' : '○'} ${label}</div>
+`).join('')}` : ''}
 
-      y += 8;
+${wo.picking_started_date || wo.production_started_date ? `
+<h2>Tider</h2>
+${wo.picking_started_date ? `<div class="field"><span class="fl">Plockning startad</span><span>${fmtDT(wo.picking_started_date)}</span></div>` : ''}
+${wo.picking_completed_date ? `<div class="field"><span class="fl">Plockning klar</span><span>${fmtDT(wo.picking_completed_date)}</span></div>` : ''}
+${wo.production_started_date ? `<div class="field"><span class="fl">Produktion startad</span><span>${fmtDT(wo.production_started_date)}</span></div>` : ''}
+${wo.production_completed_date ? `<div class="field"><span class="fl">Produktion klar</span><span>${fmtDT(wo.production_completed_date)}</span></div>` : ''}` : ''}
 
-      wo.tasks.forEach((task, idx) => {
-        checkPage(7);
-        if (idx % 2 === 0) {
-          doc.setFillColor(250, 250, 255);
-          doc.rect(margin, y - 1, W - margin * 2, 7, 'F');
-        }
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(20, 20, 20);
-        const title = doc.splitTextToSize(fix(task.title) || '-', 95);
-        doc.text(title[0], margin + 2, y + 4);
-        doc.text(fix(taskTypeLabels[task.type] || task.type) || '-', margin + 100, y + 4);
-        doc.text(fix(task.assigned_name || task.assigned_to) || '-', margin + 125, y + 4);
-        const s = task.status || 'pending';
-        if (s === 'completed') doc.setTextColor(34, 197, 94);
-        else if (s === 'in_progress') doc.setTextColor(217, 119, 6);
-        else doc.setTextColor(120, 120, 140);
-        doc.text(taskStatusLabels[s] || s, W - margin - 2, y + 4, { align: 'right' });
-        doc.setTextColor(20, 20, 20);
-        y += 7;
-      });
-      y += 4;
-    }
+${sorted.length > 0 ? `
+<h2>Aktivitetslogg</h2>
+${sorted.map(act => `
+<div class="act-row">
+  <div class="act-meta">
+    <span class="badge ${act.is_decision ? 'badge-purple' : act.type === 'system' ? 'badge-gray' : 'badge-blue'}">${esc(typeLabels[act.type] || act.type)}${act.is_decision ? ' ★ BESLUT' : ''}</span>
+    ${esc(act.actor_name || act.actor_email || '')} &nbsp; ${fmtDT(act.created_date)}
+  </div>
+  <div class="act-msg">${esc(act.message || '—')}</div>
+  ${act.type === 'field_change' && act.old_value && act.new_value ? `<div style="font-size:10px;color:#888">${esc(act.field_name||'')}: "${esc(act.old_value)}" → "${esc(act.new_value)}"</div>` : ''}
+</div>`).join('')}` : ''}
 
-    // ── Checklist ───────────────────────────────────────────
-    if (wo.checklist) {
-      sectionHeader('Checklista');
-      const checks = [
-        ['Plockat', wo.checklist.picked],
-        ['Monterat', wo.checklist.assembled],
-        ['Testat', wo.checklist.tested],
-        ['Paketerat', wo.checklist.packed],
-        ['Redo för leverans', wo.checklist.ready_for_delivery],
-      ];
-      checks.forEach(([label, done]) => {
-        checkPage(8);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(done ? 34 : 120, done ? 197 : 120, done ? 94 : 140);
-        doc.text(done ? '✓' : '○', margin + 2, y);
-        doc.setTextColor(20, 20, 20);
-        doc.text(label, margin + 10, y);
-        y += 7;
-      });
-      y += 2;
-    }
+<div style="margin-top:30px;border-top:1px solid #ccc;padding-top:6px;font-size:10px;color:#888;display:flex;justify-content:space-between;">
+  <span>IMvision – Arbetsorder</span>
+  <span>${esc(wo.name || wo.order_number || '')}</span>
+</div>
 
-    // ── Total Overview ──────────────────────────────────────
-    if (wo.total_items || wo.total_weight_kg || wo.total_volume_m3) {
-      sectionHeader('Sammanfattning');
-      if (wo.total_items) field('Totalt antal artiklar', String(wo.total_items));
-      if (wo.total_weight_kg) field('Total vikt', `${wo.total_weight_kg} kg`);
-      if (wo.total_volume_m3) field('Total volym', `${wo.total_volume_m3} m³`);
-      y += 4;
-    }
+<script>window.onload = () => window.print();</script>
+</body>
+</html>`;
 
-    // ── Timeline ─────────────────────────────────────────────
-    if (wo.planned_start_date || wo.planned_deadline) {
-      sectionHeader('Tidsplan');
-      if (wo.planned_start_date) field('Planerat start', new Date(wo.planned_start_date).toLocaleDateString('sv-SE'));
-      if (wo.planned_deadline) field('Deadline', new Date(wo.planned_deadline).toLocaleDateString('sv-SE'));
-      y += 4;
-    }
-
-    // ── Sign-off ────────────────────────────────────────────
-    if (wo.signed_off_by || wo.signed_off_date) {
-      sectionHeader('Godkännande');
-      if (wo.signed_off_by) field('Godkänt av', wo.signed_off_by);
-      if (wo.signed_off_date) field('Godkännandedatum', new Date(wo.signed_off_date).toLocaleString('sv-SE'));
-      y += 4;
-    }
-
-    // ── Timestamps ──────────────────────────────────────────
-    sectionHeader('Tider');
-    if (wo.picking_started_date) field('Plockning startad', new Date(wo.picking_started_date).toLocaleString('sv-SE'));
-    if (wo.picking_completed_date) field('Plockning klar', new Date(wo.picking_completed_date).toLocaleString('sv-SE'));
-    if (wo.production_started_date) field('Produktion startad', new Date(wo.production_started_date).toLocaleString('sv-SE'));
-    if (wo.production_completed_date) field('Produktion klar', new Date(wo.production_completed_date).toLocaleString('sv-SE'));
-
-    // ── Activity log ────────────────────────────────────────
-    if (activities && activities.length > 0) {
-      sectionHeader('Aktivitetslogg / Kommentarer');
-
-
-      const typeLabels = {
-        comment: 'Kommentar',
-        system: 'System',
-        decision: 'Beslut',
-        assignment: 'Tilldelning',
-        file_upload: 'Fil uppladdad',
-        status_change: 'Statusändring',
-        field_change: 'Fältändring'
-      };
-
-      // Sort oldest first
-      const sorted = [...activities].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-
-      sorted.forEach((act, idx) => {
-        checkPage(16);
-
-        // Row background
-        if (idx % 2 === 0) {
-          doc.setFillColor(250, 250, 255);
-          doc.rect(margin, y - 1, W - margin * 2, 14, 'F');
-        }
-
-        // Type badge color
-        const isDecision = act.is_decision;
-        const type = act.type || 'comment';
-        if (isDecision) doc.setTextColor(139, 92, 246);
-        else if (type === 'system') doc.setTextColor(100, 100, 120);
-        else if (type === 'status_change') doc.setTextColor(37, 99, 235);
-        else doc.setTextColor(20, 20, 20);
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7);
-        doc.text(`[${fix(typeLabels[type] || type)}]${isDecision ? ' * BESLUT' : ''}`, margin + 2, y + 4);
-
-        // Actor + time
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(7);
-        doc.setTextColor(100, 100, 120);
-        const timeStr = act.created_date ? new Date(act.created_date).toLocaleString('sv-SE') : '';
-        const actor = fix(act.actor_name || act.actor_email || '');
-        doc.text(`${actor}  ${timeStr}`, W - margin - 2, y + 4, { align: 'right' });
-
-        // Message
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(20, 20, 20);
-        const msgLines = doc.splitTextToSize(fix(act.message) || '-', W - margin * 2 - 4);
-        msgLines.slice(0, 2).forEach((line, li) => {
-          doc.text(line, margin + 2, y + 9 + li * 4);
-        });
-
-        // Field change extra info
-        if (type === 'field_change' && act.old_value && act.new_value) {
-          doc.setFontSize(7);
-          doc.setTextColor(100, 100, 120);
-          const changeText = fix(`${act.field_name || ''}: "${act.old_value}" -> "${act.new_value}"`);
-          const changeLines = doc.splitTextToSize(changeText, W - margin * 2 - 4);
-          doc.text(changeLines[0], margin + 2, y + (msgLines.length > 0 ? 13 : 9));
-        }
-
-        y += 15;
-      });
-      y += 4;
-    }
-
-    // ── Footer on each page ─────────────────────────────────
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFillColor(245, 245, 250);
-      doc.setDrawColor(37, 99, 235);
-      doc.setLineWidth(0.5);
-      doc.line(0, 285, W, 285);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.setTextColor(100, 100, 120);
-      doc.text('IMvision - Arbetsorder', margin, 291);
-      doc.text(`Sida ${i} av ${pageCount}`, W - margin, 291, { align: 'right' });
-    }
-
-    const pdfBytes = doc.output('arraybuffer');
-    const filename = `arbetsorder_${(wo.order_number || work_order_id.slice(0, 8)).replace(/[^a-z0-9]/gi, '_')}.pdf`;
-
-    return new Response(pdfBytes, {
+    return new Response(html, {
       headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Type': 'text/html; charset=utf-8',
       }
     });
   } catch (error) {
