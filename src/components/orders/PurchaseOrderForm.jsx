@@ -37,6 +37,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [customBatchNumber, setCustomBatchNumber] = useState('');
   const [customSku, setCustomSku] = useState('');
   const [isScanningInvoice, setIsScanningInvoice] = useState(false);
+  const [isReceiving, setIsReceiving] = useState(false);
   const invoiceInputRef = React.useRef(null);
 
   const queryClient = useQueryClient();
@@ -387,6 +388,55 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
       if (invoiceInputRef.current) {
         invoiceInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleReceiveGoods = async () => {
+    if (poItems.length === 0) {
+      toast.error("Inga artiklar att ta emot");
+      return;
+    }
+
+    setIsReceiving(true);
+    try {
+      // Update article stock for each item
+      for (const item of poItems) {
+        if (item.article_id) {
+          const article = articles.find(a => a.id === item.article_id);
+          const newStock = (article?.stock_qty || 0) + (item.quantity_ordered || 0);
+          
+          await base44.entities.Article.update(item.article_id, {
+            stock_qty: newStock,
+            status: newStock > 0 ? 'active' : 'out_of_stock'
+          });
+
+          // Create stock movement record
+          await base44.entities.StockMovement.create({
+            article_id: item.article_id,
+            movement_type: 'inbound',
+            quantity: item.quantity_ordered,
+            previous_qty: article?.stock_qty || 0,
+            new_qty: newStock,
+            reason: `Mottagning från inköpsorder ${formData.po_number || 'N/A'}`
+          });
+        }
+      }
+
+      // Update PO status to received
+      await base44.entities.PurchaseOrder.update(purchaseOrder.id, {
+        status: 'received',
+        received_date: new Date().toISOString()
+      });
+
+      toast.success("Varor mottagna och inventory uppdaterad!");
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+      onClose();
+    } catch (error) {
+      console.error('Error receiving goods:', error);
+      toast.error('Kunde inte uppdatera inventory: ' + error.message);
+    } finally {
+      setIsReceiving(false);
     }
   };
 
@@ -951,7 +1001,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+           <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
             <Button
               type="button"
               variant="outline"
@@ -960,6 +1010,16 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
             >
               Avbryt
             </Button>
+            {purchaseOrder && formData.status !== 'received' && (
+              <Button
+                type="button"
+                onClick={handleReceiveGoods}
+                disabled={isReceiving}
+                className="bg-emerald-600 hover:bg-emerald-500"
+              >
+                {isReceiving ? 'Uppdaterar inventory...' : 'Ta emot varor'}
+              </Button>
+            )}
             <Button
               type="submit"
               disabled={savePOMutation.isPending}
