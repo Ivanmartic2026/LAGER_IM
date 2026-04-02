@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { AlertCircle, CheckCircle2, XCircle, Loader2, Settings, Package, ShoppingCart, Users, Download, Link2, Unlink2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, XCircle, Loader2, Settings, Package, ShoppingCart, Users, Download, Link2, Unlink2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 function FortnoxConnectionPanel({ onConnected }) {
@@ -668,21 +668,37 @@ export default function FortnoxSyncPage() {
       <div className="max-w-7xl mx-auto">
         
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-700 to-blue-800 flex items-center justify-center">
-              <Settings className="w-6 h-6 text-blue-300" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Fortnox Synkronisering</h1>
-              <p className="text-sm text-white/50">Synka artiklar mellan appen och Fortnox</p>
-            </div>
-          </div>
-        </motion.div>
+         <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           className="mb-8"
+         >
+           <div className="flex items-center justify-between">
+             <div className="flex items-center gap-3">
+               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-700 to-blue-800 flex items-center justify-center">
+                 <Settings className="w-6 h-6 text-blue-300" />
+               </div>
+               <div>
+                 <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Fortnox Synkronisering</h1>
+                 <p className="text-sm text-white/50">Synka artiklar mellan appen och Fortnox</p>
+               </div>
+             </div>
+             <div className="group relative">
+               <Button
+                 onClick={() => window.open('https://apps.fortnox.se/oauth-v1/auth?client_id=mp08u6gAFPz2&redirect_uri=https%3A%2F%2Flager-ai-7d26cc74.base44.app%2FFortnoxSync&scope=companyinformation+invoice+supplierinvoice+article+project+purchase+settings&state=fortnox_connect&access_type=offline&response_type=code', '_blank')}
+                 variant="outline"
+                 size="sm"
+                 className="bg-white/5 border-white/20 hover:bg-white/10 text-white/70 hover:text-white"
+               >
+                 <RefreshCw className="w-4 h-4 mr-2" />
+                 Återanslut Fortnox
+               </Button>
+               <div className="absolute bottom-full right-0 mb-2 px-2 py-1 rounded text-xs text-white bg-black/80 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                 Klicka för att uppdatera Fortnox-behörigheter
+               </div>
+             </div>
+           </div>
+         </motion.div>
 
         {/* Mode Tabs */}
         <motion.div
