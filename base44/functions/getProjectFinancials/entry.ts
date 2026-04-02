@@ -86,30 +86,21 @@ Deno.serve(async (req) => {
 
     const accessToken = await getFortnoxToken(base44);
     
-    // Fetch first 3 invoices to inspect structure
     const invoiceRes = await fetch(FORTNOX_API_BASE + '/invoices?limit=3', {
       headers: { 'Authorization': 'Bearer ' + accessToken, 'Accept': 'application/json' }
     });
-    const invoiceData = await invoiceRes.json();
+    const invoiceRaw = await invoiceRes.text();
     
-    // Also test project filter on project "1"
-    const projectInvoiceRes = await fetch(FORTNOX_API_BASE + '/invoices?project=1&limit=3', {
-      headers: { 'Authorization': 'Bearer ' + accessToken, 'Accept': 'application/json' }
-    });
-    const projectInvoiceData = await projectInvoiceRes.json();
-    
-    // Also fetch supplier invoices sample
     const supRes = await fetch(FORTNOX_API_BASE + '/supplierinvoices?limit=3', {
       headers: { 'Authorization': 'Bearer ' + accessToken, 'Accept': 'application/json' }
     });
-    const supData = await supRes.json();
+    const supRaw = await supRes.text();
     
     return Response.json({
-      debug: true,
-      sampleInvoice: invoiceData.Invoices ? invoiceData.Invoices[0] : null,
-      totalInvoices: invoiceData.MetaInformation,
-      invoicesForProject1: projectInvoiceData.Invoices || [],
-      sampleSupplierInvoice: supData.SupplierInvoices ? supData.SupplierInvoices[0] : null,
+      invoiceStatus: invoiceRes.status,
+      invoiceRaw: invoiceRaw.substring(0, 500),
+      supplierInvoiceStatus: supRes.status,
+      supplierInvoiceRaw: supRaw.substring(0, 500)
     });
   } catch (error) {
     console.error('getProjectFinancials debug error:', error);
