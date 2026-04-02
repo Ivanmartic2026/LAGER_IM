@@ -357,9 +357,9 @@ export default function WorkOrderViewPage() {
               try {
                 const res = await base44.functions.invoke('printWorkOrder', { work_order_id: workOrderId });
                 const html = typeof res.data === 'string' ? res.data : JSON.stringify(res.data);
-                const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
+                const tab = window.open('', '_blank');
+                tab.document.write(html);
+                tab.document.close();
               } catch (e) {
                 toast.error('Could not create print');
               }
