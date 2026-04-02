@@ -111,11 +111,11 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
                     <span>Ordered: {item.quantity_ordered} pcs</span>
                     {item.article_sku && <span>SKU: {item.article_sku}</span>}
                     {item.transit_expected_date && (
-                      <span className="flex items-center gap-1 text-blue-600 font-medium">
-                        <Clock className="w-3 h-3" />
-                        ETA: {format(new Date(item.transit_expected_date), 'd MMM yyyy')}
-                      </span>
-                    )}
+                       <span className="flex items-center gap-1 text-blue-600 font-medium print:text-blue-900 print:block">
+                         <Clock className="w-3 h-3 print:inline" />
+                         ETA: {format(new Date(item.transit_expected_date), 'd MMM yyyy')}
+                       </span>
+                     )}
                   </div>
                 </div>
 
