@@ -21,7 +21,9 @@ import DesignerSection from "@/components/workorders/DesignerSection";
 import ActivityFeed from "@/components/activity/ActivityFeed";
 
 export default function WorkOrderViewPage() {
-  const { workOrderId } = useParams();
+  const { workOrderId: workOrderIdParam } = useParams();
+  const urlSearchParams = new URLSearchParams(window.location.search);
+  const workOrderId = workOrderIdParam || urlSearchParams.get('id');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [uploadingImages, setUploadingImages] = useState(false);
