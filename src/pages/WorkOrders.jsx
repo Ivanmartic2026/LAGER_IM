@@ -237,7 +237,12 @@ export default function WorkOrdersPage() {
                              size="sm"
                              onClick={(e) => {
                                e.preventDefault();
-                               base44.functions.invoke('printWorkOrder', { work_order_id: wo.id });
+                               base44.functions.invoke('printWorkOrder', { work_order_id: wo.id }).then(res => {
+                                 const html = typeof res.data === 'string' ? res.data : JSON.stringify(res.data);
+                                 const tab = window.open('', '_blank');
+                                 tab.document.write(html);
+                                 tab.document.close();
+                               });
                              }}
                              className="text-white/50 hover:text-purple-400 hover:bg-purple-500/10 gap-1"
                            >
