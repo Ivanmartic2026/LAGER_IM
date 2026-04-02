@@ -25,19 +25,19 @@ Deno.serve(async (req) => {
     });
 
     const enrichedItems = await Promise.all(items.map(async (item) => {
+      let enrichedItem = { ...item };
+      
       if (item.article_id) {
         const articles = await base44.asServiceRole.entities.Article.filter({ id: item.article_id });
         if (articles.length > 0) {
           const article = articles[0];
-          return {
-            ...item,
-            article_sku: item.article_sku || article.sku,
-            transit_expected_date: article.transit_expected_date || null,
-            article_status: article.status || null,
-          };
+          enrichedItem.article_sku = item.article_sku || article.sku;
+          enrichedItem.transit_expected_date = article.transit_expected_date;
+          enrichedItem.article_status = article.status;
         }
       }
-      return item;
+      
+      return enrichedItem;
     }));
 
     let supplier = null;
