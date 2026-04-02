@@ -31,6 +31,7 @@ export default function RecentActivityWidget() {
         return [];
       }
     },
+    staleTime: 120000,
   });
 
   const { data: poActivities = [] } = useQuery({
@@ -43,6 +44,7 @@ export default function RecentActivityWidget() {
         return [];
       }
     },
+    staleTime: 120000,
   });
 
   const { data: productionActivities = [] } = useQuery({
@@ -55,6 +57,7 @@ export default function RecentActivityWidget() {
         return [];
       }
     },
+    staleTime: 120000,
   });
 
   // Real-time listeners for activity updates
@@ -99,6 +102,7 @@ export default function RecentActivityWidget() {
         return {};
       }
     },
+    staleTime: 120000,
   });
 
   const { data: purchaseOrders = {} } = useQuery({
@@ -111,6 +115,7 @@ export default function RecentActivityWidget() {
         return {};
       }
     },
+    staleTime: 120000,
   });
 
   const { data: orders = {} } = useQuery({
@@ -123,6 +128,7 @@ export default function RecentActivityWidget() {
         return {};
       }
     },
+    staleTime: 120000,
   });
 
   const { data: ordersList = [] } = useQuery({
@@ -134,6 +140,7 @@ export default function RecentActivityWidget() {
         return [];
       }
     },
+    staleTime: 120000,
   });
 
   const { data: workOrdersList = [] } = useQuery({
@@ -145,6 +152,7 @@ export default function RecentActivityWidget() {
         return [];
       }
     },
+    staleTime: 120000,
   });
 
   // Combine and sort all activities including direct Order and WorkOrder updates
