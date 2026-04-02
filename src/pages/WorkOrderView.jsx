@@ -314,6 +314,11 @@ export default function WorkOrderViewPage() {
           if (!article) return;
           const newQty = Math.max(0, (article.stock_qty || 0) - item.quantity_ordered);
           await base44.entities.Article.update(item.article_id, { stock_qty: newQty });
+          // Update OrderItem status to "picked"
+          await base44.entities.OrderItem.update(item.id, { 
+            status: 'picked',
+            quantity_picked: item.quantity_ordered
+          });
           await base44.entities.StockMovement.create({
             article_id: item.article_id,
             movement_type: 'outbound',
@@ -327,6 +332,7 @@ export default function WorkOrderViewPage() {
 
       await Promise.all(updates);
       queryClient.invalidateQueries({ queryKey: ['articles'] });
+      queryClient.invalidateQueries({ queryKey: ['orderItems', workOrder?.order_id] });
       toast.success('Artiklar uttagna från lagret');
     } catch (e) {
       console.error(e);
