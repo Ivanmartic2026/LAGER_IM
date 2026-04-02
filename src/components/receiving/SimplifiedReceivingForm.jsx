@@ -95,20 +95,21 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
     queryFn: () => base44.auth.me()
   });
 
-  // Initialize receiving data
-  React.useEffect(() => {
-    const initialData = {};
-    items.forEach(item => {
-      initialData[item.id] = {
-        quantity_received: item.quantity_ordered - (item.quantity_received || 0),
-        has_discrepancy: false,
-        discrepancy_reason: "",
-        quality_check_passed: true,
-        image_urls: []
-      };
-    });
-    setReceivingData(initialData);
-  }, [items]);
+  // Initialize receiving data with full quantities
+   React.useEffect(() => {
+     const initialData = {};
+     items.forEach(item => {
+       const remaining = item.quantity_ordered - (item.quantity_received || 0);
+       initialData[item.id] = {
+         quantity_received: remaining > 0 ? remaining : 0,
+         has_discrepancy: false,
+         discrepancy_reason: "",
+         quality_check_passed: true,
+         image_urls: []
+       };
+     });
+     setReceivingData(initialData);
+   }, [items]);
 
   const receiveMutation = useMutation({
     mutationFn: async (data) => {
@@ -185,7 +186,9 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
       await base44.entities.PurchaseOrder.update(purchaseOrder.id, {
         status: allItemsReceived ? "received" : "partially_received",
         received_date: new Date().toISOString(),
-        received_by: user?.email || "unknown"
+        received_by: user?.email || "unknown",
+        expected_delivery_date: null,
+        confirmed_delivery_date: null
       });
 
       return results;
