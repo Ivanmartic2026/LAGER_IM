@@ -38,6 +38,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [customSku, setCustomSku] = useState('');
   const [isScanningInvoice, setIsScanningInvoice] = useState(false);
   const [isReceiving, setIsReceiving] = useState(false);
+  const [receivedQuantities, setReceivedQuantities] = useState({});
   const invoiceInputRef = React.useRef(null);
 
   const queryClient = useQueryClient();
@@ -395,50 +396,52 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
     }
   };
 
-  const handleReceiveGoods = async () => {
-    if (poItems.length === 0) {
-      toast.error("Inga artiklar att ta emot");
+  const handleReceiveItem = async (item, index) => {
+    const received = parseFloat(receivedQuantities[index] || 0);
+    if (received <= 0) {
+      toast.error("Ange antal som mottagits");
       return;
     }
 
     setIsReceiving(true);
     try {
-      // Update article stock for each item
-      for (const item of poItems) {
-        if (item.article_id) {
-          const article = articles.find(a => a.id === item.article_id);
-          const newStock = (article?.stock_qty || 0) + (item.quantity_ordered || 0);
-          
-          await base44.entities.Article.update(item.article_id, {
-            stock_qty: newStock,
-            status: newStock > 0 ? 'active' : 'out_of_stock'
-          });
+      if (item.article_id) {
+        const article = articles.find(a => a.id === item.article_id);
+        const newStock = (article?.stock_qty || 0) + received;
+        
+        await base44.entities.Article.update(item.article_id, {
+          stock_qty: newStock,
+          status: 'active'
+        });
 
-          // Create stock movement record
-          await base44.entities.StockMovement.create({
-            article_id: item.article_id,
-            movement_type: 'inbound',
-            quantity: item.quantity_ordered,
-            previous_qty: article?.stock_qty || 0,
-            new_qty: newStock,
-            reason: `Mottagning från inköpsorder ${formData.po_number || 'N/A'}`
+        await base44.entities.StockMovement.create({
+          article_id: item.article_id,
+          movement_type: 'inbound',
+          quantity: received,
+          previous_qty: article?.stock_qty || 0,
+          new_qty: newStock,
+          reason: `Mottagning från inköpsorder ${formData.po_number || 'N/A'}`
+        });
+
+        // Update PO item received quantity
+        if (item.id) {
+          await base44.entities.PurchaseOrderItem.update(item.id, {
+            quantity_received: (item.quantity_received || 0) + received
           });
         }
+
+        toast.success(`${received} st mottaget och lagret uppdaterat!`);
+        queryClient.invalidateQueries({ queryKey: ['articles'] });
+        queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+        
+        setReceivedQuantities({
+          ...receivedQuantities,
+          [index]: 0
+        });
       }
-
-      // Update PO status to received
-      await base44.entities.PurchaseOrder.update(purchaseOrder.id, {
-        status: 'received',
-        received_date: new Date().toISOString()
-      });
-
-      toast.success("Varor mottagna och inventory uppdaterad!");
-      queryClient.invalidateQueries({ queryKey: ['articles'] });
-      queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
-      onClose();
     } catch (error) {
-      console.error('Error receiving goods:', error);
-      toast.error('Kunde inte uppdatera inventory: ' + error.message);
+      console.error('Error receiving item:', error);
+      toast.error('Kunde inte uppdatera: ' + error.message);
     } finally {
       setIsReceiving(false);
     }
@@ -908,81 +911,113 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                 </div>
                 {poItems.map((item, index) => {
                    const itemTotal = item.quantity_ordered * (item.unit_price || 0);
-                   // Get latest article data if article_id exists
-                   const currentArticle = item.article_id ? articles.find(a => a.id === item.article_id) : null;
-                   const displaySku = currentArticle?.sku || item.article_sku || '';
-                   return (
-                    <div
-                      key={index}
-                      className="grid grid-cols-[110px_110px_minmax(160px,1fr)_90px_80px_90px_auto] gap-3 p-4 rounded-lg bg-slate-800/50 border border-slate-700 items-center"
-                    >
-                      <div className="flex gap-1 items-center">
-                         <Input
-                           value={displaySku}
-                           onChange={(e) => handleUpdateItem(index, 'article_sku', e.target.value)}
-                           placeholder="Article Number"
-                           className="bg-slate-800 border-slate-700 text-white text-sm h-9 flex-1"
-                         />
-                        <button
-                          type="button"
-                          title="Auto-generera SKU"
-                          onClick={() => generateSku(item, index)}
-                          className="h-9 w-9 flex-shrink-0 flex items-center justify-center rounded-md bg-slate-700 hover:bg-amber-500/20 hover:text-amber-400 text-slate-400 border border-slate-600 transition-colors"
-                        >
-                          <Zap className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      <div>
-                        <Input
-                          value={item.article_batch_number || ''}
-                          onChange={(e) => handleUpdateItem(index, 'article_batch_number', e.target.value)}
-                          placeholder="Batch ID"
-                              className="bg-slate-800 border-slate-700 text-white text-sm h-9"
-                        />
-                      </div>
-                      <div>
-                        <Input
-                          value={item.article_name}
-                          onChange={(e) => handleUpdateItem(index, 'article_name', e.target.value)}
-                          placeholder="Benämning"
-                          className="bg-slate-800 border-slate-700 text-white text-sm h-9"
-                        />
-                      </div>
-                      <div>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={item.unit_price ?? ''}
-                          onChange={(e) => handleUpdateItem(index, 'unit_price', e.target.value === '' ? 0 : parseFloat(e.target.value))}
-                          className="bg-slate-800 border-slate-700 text-white text-sm h-9"
-                        />
-                      </div>
-                      <div>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="any"
-                          value={item.quantity_ordered}
-                          onChange={(e) => handleUpdateItem(index, 'quantity_ordered', parseFloat(e.target.value) || 0)}
-                          className="bg-slate-800 border-slate-700 text-white text-sm h-9"
-                        />
-                      </div>
-                      <div className="text-sm font-semibold text-white text-right">
-                        {itemTotal.toLocaleString('sv-SE')} kr
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleRemoveItem(index)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-9 w-9"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
+                    // Get latest article data if article_id exists
+                    const currentArticle = item.article_id ? articles.find(a => a.id === item.article_id) : null;
+                    const displaySku = currentArticle?.sku || item.article_sku || '';
+                    const alreadyReceived = item.quantity_received || 0;
+                    const stillNeedReceive = item.quantity_ordered - alreadyReceived;
+                    return (
+                     <div
+                       key={index}
+                       className="rounded-lg bg-slate-800/50 border border-slate-700 p-4 space-y-3"
+                     >
+                       <div className="grid grid-cols-[110px_110px_minmax(160px,1fr)_90px_80px_90px_auto] gap-3 items-center">
+                         <div className="flex gap-1 items-center">
+                            <Input
+                              value={displaySku}
+                              onChange={(e) => handleUpdateItem(index, 'article_sku', e.target.value)}
+                              placeholder="Article Number"
+                              className="bg-slate-800 border-slate-700 text-white text-sm h-9 flex-1"
+                            />
+                           <button
+                             type="button"
+                             title="Auto-generera SKU"
+                             onClick={() => generateSku(item, index)}
+                             className="h-9 w-9 flex-shrink-0 flex items-center justify-center rounded-md bg-slate-700 hover:bg-amber-500/20 hover:text-amber-400 text-slate-400 border border-slate-600 transition-colors"
+                           >
+                             <Zap className="w-3.5 h-3.5" />
+                           </button>
+                         </div>
+                         <div>
+                           <Input
+                             value={item.article_batch_number || ''}
+                             onChange={(e) => handleUpdateItem(index, 'article_batch_number', e.target.value)}
+                             placeholder="Batch ID"
+                                 className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                           />
+                         </div>
+                         <div>
+                           <Input
+                             value={item.article_name}
+                             onChange={(e) => handleUpdateItem(index, 'article_name', e.target.value)}
+                             placeholder="Benämning"
+                             className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                           />
+                         </div>
+                         <div>
+                           <Input
+                             type="number"
+                             min="0"
+                             step="0.01"
+                             value={item.unit_price ?? ''}
+                             onChange={(e) => handleUpdateItem(index, 'unit_price', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+                             className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                           />
+                         </div>
+                         <div>
+                           <Input
+                             type="number"
+                             min="0"
+                             step="any"
+                             value={item.quantity_ordered}
+                             onChange={(e) => handleUpdateItem(index, 'quantity_ordered', parseFloat(e.target.value) || 0)}
+                             className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                           />
+                         </div>
+                         <div className="text-sm font-semibold text-white text-right">
+                           {itemTotal.toLocaleString('sv-SE')} kr
+                         </div>
+                         <div className="flex items-center gap-1">
+                           <Button
+                             type="button"
+                             size="icon"
+                             variant="ghost"
+                             onClick={() => handleRemoveItem(index)}
+                             className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-9 w-9"
+                           >
+                             <Trash2 className="w-4 h-4" />
+                           </Button>
+                         </div>
+                       </div>
+
+                       {purchaseOrder && stillNeedReceive > 0 && (
+                         <div className="bg-slate-700/50 rounded p-3 flex items-center gap-3">
+                           <div className="flex-1">
+                             <div className="text-xs text-slate-400 mb-1">Mottagning: {alreadyReceived}/{item.quantity_ordered} mottaget</div>
+                             <div className="flex gap-2">
+                               <Input
+                                 type="number"
+                                 min="1"
+                                 max={stillNeedReceive}
+                                 value={receivedQuantities[index] || ''}
+                                 onChange={(e) => setReceivedQuantities({...receivedQuantities, [index]: e.target.value})}
+                                 placeholder={`Max ${stillNeedReceive}`}
+                                 className="bg-slate-800 border-slate-700 text-white text-sm h-8 flex-1"
+                               />
+                               <Button
+                                 type="button"
+                                 size="sm"
+                                 onClick={() => handleReceiveItem(item, index)}
+                                 disabled={isReceiving}
+                                 className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm"
+                               >
+                                 Ta emot
+                               </Button>
+                             </div>
+                           </div>
+                         </div>
+                       )}
+                     </div>
                   );
                 })}
                 
@@ -1014,16 +1049,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
             >
               Avbryt
             </Button>
-            {purchaseOrder && purchaseOrder.status !== 'received' && (
-              <Button
-                type="button"
-                onClick={handleReceiveGoods}
-                disabled={isReceiving}
-                className="bg-emerald-600 hover:bg-emerald-500"
-              >
-                {isReceiving ? 'Uppdaterar inventory...' : 'Ta emot varor'}
-              </Button>
-            )}
+
             <Button
               type="submit"
               disabled={savePOMutation.isPending}
