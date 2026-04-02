@@ -216,17 +216,7 @@ ${wo.picking_completed_date ? `<div class="field"><span class="fl">Picking compl
 ${wo.production_started_date ? `<div class="field"><span class="fl">Production started</span><span>${fmtDT(wo.production_started_date)}</span></div>` : ''}
 ${wo.production_completed_date ? `<div class="field"><span class="fl">Production completed</span><span>${fmtDT(wo.production_completed_date)}</span></div>` : ''}` : ''}
 
-${sorted.length > 0 ? `
-<h2>Activity Log</h2>
-${sorted.map(act => `
-<div class="act-row">
-  <div class="act-meta">
-    <span class="badge ${act.is_decision ? 'badge-purple' : act.type === 'system' ? 'badge-gray' : 'badge-blue'}">${esc(typeLabels[act.type] || act.type)}${act.is_decision ? ' ★ BESLUT' : ''}</span>
-    ${esc(act.actor_name || act.actor_email || '')} &nbsp; ${fmtDT(act.created_date)}
-  </div>
-  <div class="act-msg">${esc(act.message || '—')}</div>
-  ${act.type === 'field_change' && act.old_value && act.new_value ? `<div style="font-size:10px;color:#888">${esc(act.field_name||'')}: "${esc(act.old_value)}" → "${esc(act.new_value)}"</div>` : ''}
-</div>`).join('')}` : ''}
+
 
 </div><!-- end .page -->
 
