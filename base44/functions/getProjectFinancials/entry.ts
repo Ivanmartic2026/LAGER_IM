@@ -93,6 +93,11 @@ Deno.serve(async (req) => {
       fetchAllPaginated(accessToken, '/projects')
     ]);
 
+    console.log('First 3 invoices:', JSON.stringify(allInvoices.slice(0, 3)));
+    console.log('First 3 supplier invoices:', JSON.stringify(allSupplierInvoices.slice(0, 3)));
+    console.log('Total invoices fetched:', allInvoices.length);
+    console.log('Total supplier invoices fetched:', allSupplierInvoices.length);
+
     // Group invoices by project
     const projectInvoiceMap = {};
     for (const inv of allInvoices) {
@@ -117,6 +122,9 @@ Deno.serve(async (req) => {
 
     // Build results only for projects with invoices
     const results = [];
+    const projectsWithData = Object.keys(projectInvoiceMap);
+    console.log('Projects with invoices:', projectsWithData.length);
+
     for (const project of allProjects) {
       const projectNumber = project.ProjectNumber;
       const invoices = projectInvoiceMap[projectNumber];
