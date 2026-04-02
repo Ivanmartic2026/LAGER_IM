@@ -270,6 +270,43 @@ export default function WorkOrderViewPage() {
     setFiles(files.filter((_, i) => i !== index));
   };
 
+  const handleWithdrawFromStock = async () => {
+    if (!orderItems.length) return;
+    
+    const confirmed = window.confirm(
+      `Ta ut ${orderItems.length} artikel(ar) från lagret?\n\n` +
+      orderItems.map(item => `• ${item.article_name}: ${item.quantity_ordered} st`).join('\n')
+    );
+    if (!confirmed) return;
+
+    try {
+      const updates = orderItems
+        .filter(item => item.article_id)
+        .map(async (item) => {
+          const article = articles.find(a => a.id === item.article_id);
+          if (!article) return;
+          const newQty = Math.max(0, (article.stock_qty || 0) - item.quantity_ordered);
+          await base44.entities.Article.update(item.article_id, { stock_qty: newQty });
+          await base44.entities.StockMovement.create({
+            article_id: item.article_id,
+            movement_type: 'outbound',
+            quantity: -item.quantity_ordered,
+            previous_qty: article.stock_qty || 0,
+            new_qty: newQty,
+            reason: `Uttag för arbetsorder ${workOrder.order_number || workOrderId.slice(0,8)}`,
+            reference: workOrder.order_number || workOrderId.slice(0,8)
+          });
+        });
+
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      toast.success('Artiklar uttagna från lagret');
+    } catch (e) {
+      console.error(e);
+      toast.error('Fel vid lagerutdrag');
+    }
+  };
+
   if (isLoading || !workOrder) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -358,7 +395,7 @@ export default function WorkOrderViewPage() {
         ) : null}
 
         {/* Articles List */}
-        <ArticlesList items={orderItems} articles={articles} />
+        <ArticlesList items={orderItems} articles={articles} onWithdraw={handleWithdrawFromStock} />
 
         {/* Notes */}
         <NotesSection 

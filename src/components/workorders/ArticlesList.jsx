@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 
-export default function ArticlesList({ items = [], articles = [] }) {
+export default function ArticlesList({ items = [], articles = [], onWithdraw }) {
   const navigate = useNavigate();
   if (items.length === 0) return null;
 
@@ -103,7 +103,7 @@ export default function ArticlesList({ items = [], articles = [] }) {
   };
 
   const handleWithdraw = () => {
-    toast.info("Ta ut från Lagret - funktion under utveckling");
+    if (onWithdraw) onWithdraw();
   };
 
   return (
