@@ -14,6 +14,7 @@ import OrderEdit from '@/pages/OrderEdit';
 import OrderDetail from '@/pages/OrderDetail';
 import WorkOrderViewPage from '@/pages/WorkOrderView';
 import SupplierDashboard from '@/pages/SupplierDashboard';
+import ProjectResults from '@/pages/ProjectResults';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -109,6 +110,12 @@ function App() {
             <Route path="/SupplierDashboard" element={
               <LayoutWrapper currentPageName="Admin">
                 <SupplierDashboard />
+              </LayoutWrapper>
+            } />
+            {/* Project Results */}
+            <Route path="/ProjectResults" element={
+              <LayoutWrapper currentPageName="Reports">
+                <ProjectResults />
               </LayoutWrapper>
             } />
             {/* All other routes require auth */}
