@@ -7,35 +7,35 @@ const FORTNOX_API_BASE = 'https://api.fortnox.se/3';
 async function getFortnoxToken(base44) {
   const configs = await base44.asServiceRole.entities.FortnoxConfig.list();
   if (!configs || configs.length === 0) throw new Error('Fortnox inte ansluten');
-  
+
   const config = configs[0];
   const now = Date.now();
-  
+
   if (config.access_token && config.token_expires_at && (config.token_expires_at - 300000) > now) {
     return config.access_token;
   }
-  
+
   if (!config.refresh_token) throw new Error('Ingen refresh token');
-  
+
   const credentials = btoa(CLIENT_ID + ':' + CLIENT_SECRET);
   const response = await fetch('https://apps.fortnox.se/oauth-v1/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic ' + credentials },
     body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(config.refresh_token)
   });
-  
+
   const text = await response.text();
   if (!response.ok) throw new Error('Token refresh failed: ' + text);
-  
+
   const data = JSON.parse(text);
   const expiresAt = now + ((data.expires_in || 3600) * 1000);
-  
+
   await base44.asServiceRole.entities.FortnoxConfig.update(config.id, {
     access_token: data.access_token,
     token_expires_at: expiresAt,
     refresh_token: data.refresh_token || config.refresh_token
   });
-  
+
   return data.access_token;
 }
 
@@ -83,30 +83,55 @@ async function processBatch(accessToken, projects) {
 
     let revenue = 0;
     const customerInvoices = invoices.map(inv => {
-      revenue += parseFloat(inv.Total) || 0;
+      const total = parseFloat(inv.Total) || 0;
+      const balance = parseFloat(inv.Balance) || 0;
+      revenue += total;
       return {
+        invoiceNumber: inv.DocumentNumber || '',
+        customerName: inv.CustomerName || '',
+        invoiceDate: inv.InvoiceDate || '',
+        dueDate: inv.DueDate || '',
+        total,
+        balance,
+        isPaid: balance === 0,
+        // legacy fields kept for backward compat
         DocumentNumber: inv.DocumentNumber,
         CustomerName: inv.CustomerName || 'Unknown',
-        Total: parseFloat(inv.Total) || 0,
+        Total: total,
         InvoiceDate: inv.InvoiceDate
       };
     });
 
     let costs = 0;
     const supplierInvoiceDetails = supplierInvoices.map(inv => {
-      costs += parseFloat(inv.Total) || 0;
+      const total = parseFloat(inv.Total) || 0;
+      const balance = parseFloat(inv.Balance) || 0;
+      costs += total;
       return {
+        invoiceNumber: inv.GivenNumber || inv.DocumentNumber || '',
+        supplierName: inv.SupplierName || '',
+        invoiceDate: inv.InvoiceDate || '',
+        dueDate: inv.DueDate || '',
+        total,
+        balance,
+        isPaid: balance === 0,
+        // legacy fields kept for backward compat
         GivenNumber: inv.GivenNumber,
         SupplierName: inv.SupplierName || 'Unknown',
-        Total: parseFloat(inv.Total) || 0,
+        Total: total,
         InvoiceDate: inv.InvoiceDate
-        };
-        });
+      };
+    });
+
+    const customerName = customerInvoices.length > 0 ? (customerInvoices[0].customerName || '') : '';
 
     return {
       projectNumber: project.ProjectNumber,
       projectName: project.Description || project.ProjectNumber,
       projectStatus: project.Status || 'unknown',
+      startDate: project.StartDate || '',
+      endDate: project.EndDate || '',
+      customerName,
       revenue,
       costs,
       result: revenue - costs,
