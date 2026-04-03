@@ -45,7 +45,7 @@ async function fetchAllProjects(accessToken) {
   let totalPages = 1;
 
   while (page <= totalPages) {
-    const res = await fetch(`https://api.fortnox.se/3/projects?limit=500&filter=all&page=${page}`, {
+    const res = await fetch(`https://api.fortnox.se/3/projects?limit=500&page=${page}`, {
       headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json' }
     });
     if (!res.ok) break;
