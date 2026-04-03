@@ -1,0 +1,63 @@
+{
+  "name": "ProjectExpense",
+  "type": "object",
+  "properties": {
+    "projectNumber": {
+      "type": "string",
+      "description": "Projektnummer"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum f\u00f6r utgiften"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "driving",
+        "material",
+        "other"
+      ],
+      "description": "Typ av utgift"
+    },
+    "distanceKm": {
+      "type": "number",
+      "description": "Antal km k\u00f6rda"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beskrivning"
+    },
+    "driverName": {
+      "type": "string",
+      "description": "F\u00f6rarens namn"
+    },
+    "vehicleReg": {
+      "type": "string",
+      "description": "Fordons registreringsnummer"
+    },
+    "costSEK": {
+      "type": "number",
+      "description": "Kostnad i SEK"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "imworkspace",
+        "manual"
+      ],
+      "default": "manual",
+      "description": "K\u00e4lla f\u00f6r posten"
+    },
+    "reporter": {
+      "type": "string",
+      "description": "Rapport\u00f6r (email)"
+    }
+  },
+  "required": [
+    "projectNumber",
+    "date",
+    "type",
+    "costSEK"
+  ]
+}

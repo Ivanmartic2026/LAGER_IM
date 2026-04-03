@@ -15,7 +15,14 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
     queryFn: () => base44.entities.ProjectTime.filter({ projectNumber: project.projectNumber }),
   });
 
+  // Fetch driving expenses
+  const { data: expenses = [] } = useQuery({
+    queryKey: ['projectExpenses', project.projectNumber],
+    queryFn: () => base44.entities.ProjectExpense.filter({ projectNumber: project.projectNumber }),
+  });
+
   const totalHours = timeEntries.reduce((sum, t) => sum + (t.hours || 0), 0);
+  const totalExpenseCost = expenses.reduce((sum, e) => sum + (e.costSEK || 0), 0);
 
   const handleLoggaTidSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['projectTime', project.projectNumber] });
@@ -125,6 +132,43 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                 </div>
               ) : (
                 <p className="text-xs text-white/30 italic py-4">Ingen tidslogg registrerad</p>
+              )}
+            </div>
+
+            {/* Resekostnader section */}
+            <div>
+              <h4 className="text-xs font-semibold text-white/70 uppercase mb-3 tracking-wider">Resekostnader ({totalExpenseCost.toLocaleString('sv-SE')} kr totalt)</h4>
+              {expenses.length > 0 ? (
+                <div className="overflow-x-auto rounded border border-white/10">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-white/10 text-white/40">
+                        <th className="text-left px-2 py-2">Datum</th>
+                        <th className="text-left px-2 py-2">Förare</th>
+                        <th className="text-left px-2 py-2">Fordon</th>
+                        <th className="text-right px-2 py-2">Km</th>
+                        <th className="text-right px-2 py-2">Kostnad kr</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {expenses.map((e, i) => (
+                        <tr key={i} className="border-b border-white/5 hover:bg-white/[0.05]">
+                          <td className="px-2 py-1.5 text-white/70 font-mono">{e.date}</td>
+                          <td className="px-2 py-1.5 text-white/60">{e.driverName || '–'}</td>
+                          <td className="px-2 py-1.5 text-white/60">{e.vehicleReg || '–'}</td>
+                          <td className="px-2 py-1.5 text-right text-white/70">{e.distanceKm || '–'}</td>
+                          <td className="px-2 py-1.5 text-right text-white/70 font-semibold">{e.costSEK?.toLocaleString('sv-SE') || '–'}</td>
+                        </tr>
+                      ))}
+                      <tr className="border-t border-white/20 bg-white/[0.05] font-semibold">
+                        <td colSpan={4} className="px-2 py-2 text-white/40 text-xs">Totalt</td>
+                        <td className="px-2 py-2 text-right text-white">{totalExpenseCost.toLocaleString('sv-SE')} kr</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-xs text-white/30 italic py-4">Inga resekostnader registrerade</p>
               )}
             </div>
           </div>
