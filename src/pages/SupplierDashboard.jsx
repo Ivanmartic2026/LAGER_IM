@@ -9,19 +9,18 @@ import { Badge } from '@/components/ui/badge';
 import { Package, Search, LogOut, ExternalLink, RefreshCw, AlertCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { sv } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 const STATUS_CONFIG = {
   draft: { label: 'Draft', color: 'bg-slate-100 text-slate-700 border-slate-300' },
-  sent: { label: 'Skickad', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-  confirmed: { label: 'Bekräftad', color: 'bg-green-100 text-green-800 border-green-300' },
-  waiting_for_supplier_documentation: { label: 'Väntar på dokument', color: 'bg-amber-100 text-amber-800 border-amber-300' },
-  in_production: { label: 'I produktion', color: 'bg-purple-100 text-purple-800 border-purple-300' },
-  shipped: { label: 'Skickad', color: 'bg-cyan-100 text-cyan-800 border-cyan-300' },
-  ready_for_reception: { label: 'Redo för mottagning', color: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
-  received: { label: 'Mottagen', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-  cancelled: { label: 'Avbokad', color: 'bg-red-100 text-red-800 border-red-300' },
+  sent: { label: 'Sent', color: 'bg-blue-100 text-blue-800 border-blue-300' },
+  confirmed: { label: 'Confirmed', color: 'bg-green-100 text-green-800 border-green-300' },
+  waiting_for_supplier_documentation: { label: 'Waiting for Documents', color: 'bg-amber-100 text-amber-800 border-amber-300' },
+  in_production: { label: 'In Production', color: 'bg-purple-100 text-purple-800 border-purple-300' },
+  shipped: { label: 'Shipped', color: 'bg-cyan-100 text-cyan-800 border-cyan-300' },
+  ready_for_reception: { label: 'Ready for Reception', color: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
+  received: { label: 'Received', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+  cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800 border-red-300' },
 };
 
 export default function SupplierDashboard() {
@@ -58,7 +57,7 @@ export default function SupplierDashboard() {
     localStorage.removeItem('supplier_email');
     localStorage.removeItem('supplier_full_name');
     navigate('/SupplierLogin');
-    toast.info('Du har loggats ut.');
+    toast.info('You have been logged out.');
   };
 
   if (!supplierId) return null;
@@ -71,18 +70,18 @@ export default function SupplierDashboard() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
               <Package className="w-6 h-6 text-blue-600" />
-              Mina Inköpsorder
+              My Purchase Orders
             </h1>
-            <p className="text-sm text-slate-600 mt-0.5">Välkommen, {supplierFullName}!</p>
+            <p className="text-sm text-slate-600 mt-0.5">Welcome, {supplierFullName}!</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading} className="border-slate-300 bg-white">
               <RefreshCw className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")} />
-              Uppdatera
+              Refresh
             </Button>
             <Button variant="outline" size="sm" onClick={handleLogout} className="text-red-600 border-red-200 bg-red-50 hover:bg-red-100">
               <LogOut className="w-4 h-4 mr-2" />
-              Logga ut
+              Log out
             </Button>
           </div>
         </div>
@@ -93,7 +92,7 @@ export default function SupplierDashboard() {
           <Input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Sök på PO-nummer eller kundreferens..."
+            placeholder="Search by PO number or customer reference..."
             className="pl-10 h-10 bg-white border-slate-300 text-slate-900 placeholder:text-slate-500"
           />
         </div>
@@ -102,18 +101,18 @@ export default function SupplierDashboard() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-500">
             <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-600" />
-            <p className="text-sm">Laddar inköpsorder...</p>
+            <p className="text-sm">Loading purchase orders...</p>
           </div>
         ) : isError ? (
           <div className="flex flex-col items-center justify-center py-20 text-red-600">
             <AlertCircle className="w-8 h-8 mb-4" />
-            <p className="text-sm">Kunde inte ladda inköpsorder. Försök igen.</p>
+            <p className="text-sm">Could not load purchase orders. Please try again.</p>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-500">
             <Package className="w-12 h-12 mb-4 text-slate-300" />
-            <p className="text-lg font-semibold mb-1">Inga inköpsorder hittades</p>
-            <p className="text-sm">Kontakta IMvision om du tror att detta är fel.</p>
+            <p className="text-lg font-semibold mb-1">No purchase orders found</p>
+            <p className="text-sm">Contact IMvision if you believe this is an error.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -138,19 +137,19 @@ export default function SupplierDashboard() {
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       {order.customer_reference && (
                         <div>
-                          <p className="text-slate-500 text-xs mb-0.5">Kundreferens</p>
+                          <p className="text-slate-500 text-xs mb-0.5">Customer Reference</p>
                           <p className="text-slate-800 font-medium">{order.customer_reference}</p>
                         </div>
                       )}
                       {order.expected_delivery_date && (
                         <div>
-                          <p className="text-slate-500 text-xs mb-0.5">Förväntat leveransdatum</p>
-                          <p className="text-slate-800 font-medium">{format(new Date(order.expected_delivery_date), 'd MMM yyyy', { locale: sv })}</p>
+                          <p className="text-slate-500 text-xs mb-0.5">Expected Delivery</p>
+                           <p className="text-slate-800 font-medium">{format(new Date(order.expected_delivery_date), 'd MMM yyyy')}</p>
                         </div>
                       )}
                       {order.fortnox_project_number && (
                         <div>
-                          <p className="text-slate-500 text-xs mb-0.5">Projektnummer</p>
+                          <p className="text-slate-500 text-xs mb-0.5">Project Number</p>
                           <p className="text-slate-800 font-medium">{order.fortnox_project_number}</p>
                         </div>
                       )}

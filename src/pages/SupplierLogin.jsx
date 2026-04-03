@@ -23,13 +23,13 @@ export default function SupplierLogin() {
         localStorage.setItem('supplier_id', response.data.supplier_id);
         localStorage.setItem('supplier_email', response.data.email);
         localStorage.setItem('supplier_full_name', response.data.full_name);
-        toast.success('Inloggning lyckades!');
+        toast.success('Login successful!');
         navigate('/SupplierDashboard');
       } else {
-        toast.error('Felaktig e-post eller lösenord.');
+        toast.error('Invalid email or password.');
       }
     } catch (error) {
-      toast.error(error.message || 'Ett fel uppstod vid inloggning.');
+      toast.error(error.message || 'An error occurred during login.');
     } finally {
       setLoading(false);
     }
@@ -44,17 +44,17 @@ export default function SupplierLogin() {
             alt="IMvision"
             className="h-10 object-contain mx-auto mb-4"
           />
-          <CardTitle className="text-2xl font-bold text-slate-900">Leverantörsinloggning</CardTitle>
-          <CardDescription className="text-slate-600">Logga in för att se dina inköpsorder.</CardDescription>
+          <CardTitle className="text-2xl font-bold text-slate-900">Supplier Login</CardTitle>
+          <CardDescription className="text-slate-600">Log in to view your purchase orders.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">E-post</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="din.epost@example.com"
+                placeholder="your.email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -62,7 +62,7 @@ export default function SupplierLogin() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Lösenord</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -75,7 +75,7 @@ export default function SupplierLogin() {
             </div>
             <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white" disabled={loading}>
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
-              Logga in
+              Log in
             </Button>
           </form>
         </CardContent>
