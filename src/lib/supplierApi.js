@@ -1,19 +1,14 @@
-// Direct HTTP calls to supplier backend functions (no auth required, works in all environments)
-const APP_ID = import.meta.env.VITE_BASE44_APP_ID;
-const BASE_URL = `https://app--${APP_ID}.base44.app/api/functions`;
+import { base44 } from '@/api/base44Client';
 
 export async function supplierFetch(functionName, body) {
-  const res = await fetch(`${BASE_URL}/${functionName}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error || `Request failed: ${res.status}`);
-  return data;
+  const response = await base44.functions.invoke(functionName, body);
+  return response.data;
 }
 
 export async function supplierUploadFile(file, token) {
+  const APP_ID = import.meta.env.VITE_BASE44_APP_ID;
+  const BASE_URL = `https://app--${APP_ID}.base44.app/api/functions`;
+
   const formData = new FormData();
   formData.append('file', file);
   formData.append('token', token);
