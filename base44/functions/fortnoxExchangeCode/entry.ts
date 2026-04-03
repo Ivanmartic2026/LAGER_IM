@@ -21,6 +21,9 @@ Deno.serve(async (req) => {
     const text = await response.text();
     if (!response.ok) throw new Error('Token exchange failed: ' + text);
     const data = JSON.parse(text);
+    if (!data.access_token || !data.refresh_token) {
+      return Response.json({ error: 'Fortnox token exchange failed: ' + (data.error_description || data.error || text) }, { status: 400 });
+    }
     const now = Date.now();
     const expiresAt = now + ((data.expires_in || 3600) * 1000);
     const configs = await base44.entities.FortnoxConfig.list();
