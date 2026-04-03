@@ -39,39 +39,81 @@ async function getFortnoxToken(base44) {
   return data.access_token;
 }
 
-async function fetchAllPaginated(accessToken, endpoint) {
-  const results = [];
+async function fetchAllProjects(accessToken) {
+  const projects = [];
   let page = 1;
   let totalPages = 1;
 
   while (page <= totalPages) {
-    const response = await fetch(
-      `${FORTNOX_API_BASE}${endpoint}?limit=500&page=${page}`,
-      { headers: { 'Authorization': `Bearer ${accessToken}` } }
-    );
-
-    if (!response.ok) {
-      console.warn(`Failed to fetch ${endpoint} page ${page}`);
-      break;
-    }
-
-    const data = await response.json();
-    
-    let items = [];
-    if (endpoint === '/invoices' && data.Invoices) items = data.Invoices;
-    else if (endpoint === '/supplierinvoices' && data.SupplierInvoices) items = data.SupplierInvoices;
-    else if (endpoint === '/projects' && data.Projects) items = data.Projects;
-
-    results.push(...items);
-
-    if (data.MetaInformation) {
-      totalPages = data.MetaInformation.TotalPages || 1;
-    }
-
+    const res = await fetch(`${FORTNOX_API_BASE}/projects?limit=500&page=${page}`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    if (!res.ok) break;
+    const data = await res.json();
+    if (data.Projects) projects.push(...data.Projects);
+    totalPages = data.MetaInformation?.TotalPages || 1;
     page++;
   }
 
-  return results;
+  return projects;
+}
+
+async function fetchProjectInvoices(accessToken, projectNumber) {
+  const [invRes, supRes] = await Promise.all([
+    fetch(`${FORTNOX_API_BASE}/invoices?project=${projectNumber}&limit=500`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    }),
+    fetch(`${FORTNOX_API_BASE}/supplierinvoices?project=${projectNumber}&limit=500`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    })
+  ]);
+
+  const invData = invRes.ok ? await invRes.json() : {};
+  const supData = supRes.ok ? await supRes.json() : {};
+
+  return {
+    invoices: invData.Invoices || [],
+    supplierInvoices: supData.SupplierInvoices || []
+  };
+}
+
+async function processBatch(accessToken, projects) {
+  return Promise.all(projects.map(async (project) => {
+    const { invoices, supplierInvoices } = await fetchProjectInvoices(accessToken, project.ProjectNumber);
+
+    let revenue = 0;
+    const customerInvoices = invoices.map(inv => {
+      revenue += inv.Total || 0;
+      return {
+        DocumentNumber: inv.DocumentNumber,
+        CustomerName: inv.CustomerName || 'Unknown',
+        Total: inv.Total || 0,
+        InvoiceDate: inv.InvoiceDate
+      };
+    });
+
+    let costs = 0;
+    const supplierInvoiceDetails = supplierInvoices.map(inv => {
+      costs += inv.Total || 0;
+      return {
+        GivenNumber: inv.GivenNumber,
+        SupplierName: inv.SupplierName || 'Unknown',
+        Total: inv.Total || 0,
+        InvoiceDate: inv.InvoiceDate
+      };
+    });
+
+    return {
+      projectNumber: project.ProjectNumber,
+      projectName: project.Description || project.ProjectNumber,
+      projectStatus: project.Status || 'unknown',
+      revenue,
+      costs,
+      result: revenue - costs,
+      customerInvoices,
+      supplierInvoices: supplierInvoiceDetails
+    };
+  }));
 }
 
 Deno.serve(async (req) => {
@@ -84,86 +126,20 @@ Deno.serve(async (req) => {
     }
 
     const accessToken = await getFortnoxToken(base44);
+    const allProjects = await fetchAllProjects(accessToken);
 
-    // Fetch all data in parallel
-    const [allInvoices, allSupplierInvoices, allProjects] = await Promise.all([
-      fetchAllPaginated(accessToken, '/invoices'),
-      fetchAllPaginated(accessToken, '/supplierinvoices'),
-      fetchAllPaginated(accessToken, '/projects')
-    ]);
-
-    // Group invoices by project
-    const projectInvoiceMap = {};
-    for (const inv of allInvoices) {
-      const projectNum = inv.Project;
-      if (projectNum) {
-        if (!projectInvoiceMap[projectNum]) {
-          projectInvoiceMap[projectNum] = { customer: [], supplier: [] };
-        }
-        projectInvoiceMap[projectNum].customer.push(inv);
-      }
-    }
-
-    for (const inv of allSupplierInvoices) {
-      const projectNum = inv.Project;
-      if (projectNum) {
-        if (!projectInvoiceMap[projectNum]) {
-          projectInvoiceMap[projectNum] = { customer: [], supplier: [] };
-        }
-        projectInvoiceMap[projectNum].supplier.push(inv);
-      }
-    }
-
-    // Build results only for projects with invoices
     const results = [];
-    for (const project of allProjects) {
-      const projectNumber = project.ProjectNumber;
-      const invoices = projectInvoiceMap[projectNumber];
+    const BATCH_SIZE = 5;
 
-      if (!invoices) continue;
-
-      let revenue = 0;
-      const customerInvoiceDetails = [];
-      for (const inv of invoices.customer) {
-        revenue += inv.Total || 0;
-        customerInvoiceDetails.push({
-          DocumentNumber: inv.DocumentNumber,
-          CustomerName: inv.CustomerName || 'Unknown',
-          Total: inv.Total || 0,
-          InvoiceDate: inv.InvoiceDate
-        });
-      }
-
-      let costs = 0;
-      const supplierInvoiceDetails = [];
-      for (const inv of invoices.supplier) {
-        costs += inv.Total || 0;
-        supplierInvoiceDetails.push({
-          GivenNumber: inv.GivenNumber,
-          SupplierName: inv.SupplierName || 'Unknown',
-          Total: inv.Total || 0,
-          InvoiceDate: inv.InvoiceDate
-        });
-      }
-
-      // Only include if revenue or costs > 0
-      if (revenue > 0 || costs > 0) {
-        results.push({
-          projectNumber,
-          projectName: project.Description || projectNumber,
-          projectStatus: project.Status || 'unknown',
-          revenue,
-          costs,
-          result: revenue - costs,
-          customerInvoices: customerInvoiceDetails,
-          supplierInvoices: supplierInvoiceDetails
-        });
-      }
+    for (let i = 0; i < allProjects.length; i += BATCH_SIZE) {
+      const batch = allProjects.slice(i, i + BATCH_SIZE);
+      const batchResults = await processBatch(accessToken, batch);
+      results.push(...batchResults);
     }
 
-    return Response.json({
-      projects: results.sort((a, b) => a.projectNumber.localeCompare(b.projectNumber))
-    });
+    results.sort((a, b) => a.projectNumber.localeCompare(b.projectNumber));
+
+    return Response.json({ projects: results });
   } catch (error) {
     console.error('getProjectFinancials error:', error);
     return Response.json({ error: error.message }, { status: 500 });
