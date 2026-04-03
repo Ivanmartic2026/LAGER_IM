@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const body = await req.json();
-    const base44 = createClientFromRequest(req);
+    const base44 = createClientFromRequest(req, { skipAuth: true });
     const { token, confirmedDate, supplierComments, items } = body;
 
     if (!token) {
