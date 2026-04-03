@@ -567,7 +567,7 @@ function TabKundlonsamhet({ projects }) {
     return Object.values(map).sort((a, b) => b.revenue - a.revenue);
   }, [projects]);
 
-  const top10 = customers.slice(0, 10).map(c => ({ name: c.name?.slice(0, 18), Intäkter: c.revenue, Kostnader: c.costs }));
+  const top10 = customers.map(c => ({ name: c.name?.slice(0, 18), Intäkter: c.revenue, Kostnader: c.costs }));
   const totals = customers.reduce((s, c) => ({ revenue: s.revenue + c.revenue, costs: s.costs + c.costs }), { revenue: 0, costs: 0 });
 
   return (
@@ -652,7 +652,7 @@ function TabLeverantorsanalys({ projects }) {
     return { suppliers: sorted, totalCost: total };
   }, [projects]);
 
-  const top10 = suppliers.slice(0, 10).map(s => ({ name: s.name?.slice(0, 18), Kostnad: s.total }));
+  const top10 = suppliers.map(s => ({ name: s.name?.slice(0, 18), Kostnad: s.total }));
 
   return (
     <div className="space-y-4">
@@ -707,7 +707,7 @@ function TabGantt({ projects }) {
 
   const statusColors = { ONGOING: '#3b82f6', COMPLETED: '#64748b', NOTSTARTED: '#22c55e' };
 
-  const data = datedProjects.slice(0, 15).map(p => {
+  const data = datedProjects.map(p => {
     const start = new Date(p.startDate).getTime();
     const end = new Date(p.endDate).getTime();
     return {
