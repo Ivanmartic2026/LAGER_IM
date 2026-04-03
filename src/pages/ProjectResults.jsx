@@ -17,7 +17,7 @@ import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, Prin
 const TODAY = new Date();
 const fmt = (n) => (n || 0).toLocaleString('sv-SE', { maximumFractionDigits: 0 }) + ' kr';
 const fmtNum = (n) => (n || 0).toLocaleString('sv-SE', { maximumFractionDigits: 0 });
-const fmtPct = (n) => (isFinite(n) && !isNaN(n) ? n.toFixed(1) + ' %' : '–');
+const fmtPct = (n) => (n != null && isFinite(n) && !isNaN(n) ? n.toFixed(1) + ' %' : '–');
 const tb = (rev, res) => rev > 0 ? (res / rev) * 100 : null;
 const isOverdue = (dueDate) => dueDate && new Date(dueDate) < TODAY;
 
