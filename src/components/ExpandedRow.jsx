@@ -7,6 +7,7 @@ import LoggaTidModal from './LoggaTidModal';
 
 export default function ExpandedRow({ project, onInvoiceClick }) {
   const [showLoggaTid, setShowLoggaTid] = useState(false);
+  const [linkStatus, setLinkStatus] = React.useState('idle'); // idle | linking | linked | already_linked | error
   const queryClient = useQueryClient();
 
   // Fetch time entries
@@ -30,11 +31,48 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
     setShowLoggaTid(false);
   };
 
+
+  const handleLinkToWorkspace = async () => {
+    setLinkStatus('linking');
+    try {
+      const res = await fetch('https://app--6951895d1643f7057890a865.base44.app/functions/createProjectFromLager', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fortnoxProjectNumber: project.projectNumber,
+          name: project.description || project.projectNumber,
+          description: project.description || ''
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLinkStatus(data.message === 'already exists' ? 'already_linked' : 'linked');
+      } else {
+        setLinkStatus('error');
+      }
+    } catch (e) {
+      setLinkStatus('error');
+    }
+  };
+
   return (
     <>
       <tr className="bg-white/[0.02] border-b border-white/5">
         <td colSpan={11} className="px-3 py-4">
           <div className="space-y-6">
+    {/* Länka till IM Workspace */}
+    <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-3">
+      <span className="text-sm font-medium text-gray-600">IM Workspace:</span>
+      {linkStatus === 'idle' && (
+        <button onClick={handleLinkToWorkspace} className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+          🔗 Länka projekt till Workspace
+        </button>
+      )}
+      {linkStatus === 'linking' && <span className="text-sm text-gray-500">Länkar...</span>}
+      {linkStatus === 'linked' && <span className="text-sm text-green-600 font-medium">✓ Länkat till Workspace!</span>}
+      {linkStatus === 'already_linked' && <span className="text-sm text-green-600 font-medium">✓ Redan länkat</span>}
+      {linkStatus === 'error' && <span className="text-sm text-red-500">Fel vid länkning — försök igen</span>}
+    </div>
             {/* Invoices section - kept for reference but can be hidden if not needed */}
             <div className="grid grid-cols-2 gap-6">
               {/* Customer invoices */}
