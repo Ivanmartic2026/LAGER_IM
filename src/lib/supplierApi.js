@@ -1,8 +1,15 @@
 const APP_ID = import.meta.env.VITE_BASE44_APP_ID;
-const FUNCTIONS_BASE = `/functions`;
+
+function getFunctionsBase() {
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/functions`;
+  }
+  return `/functions`;
+}
 
 export async function supplierFetch(functionName, body) {
-  const res = await fetch(`${FUNCTIONS_BASE}/${functionName}`, {
+  const functionsBase = getFunctionsBase();
+  const res = await fetch(`${functionsBase}/${functionName}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -20,7 +27,8 @@ export async function supplierUploadFile(file, token) {
   formData.append('file', file);
   formData.append('token', token);
 
-  const res = await fetch(`${FUNCTIONS_BASE}/supplierUploadFile`, {
+  const functionsBase = getFunctionsBase();
+  const res = await fetch(`${functionsBase}/supplierUploadFile`, {
     method: 'POST',
     headers: { 'X-App-Id': APP_ID },
     body: formData,
