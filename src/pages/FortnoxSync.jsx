@@ -40,7 +40,7 @@ function FortnoxConnectionPanel({ onConnected }) {
   };
 
   const handleAuthorize = () => {
-    const authUrl = 'https://apps.fortnox.se/oauth-v1/auth?client_id=mp08u6gAFPz2&redirect_uri=https%3A%2F%2Flager-ai-7d26cc74.base44.app%2FFortnoxSync&scope=companyinformation%20invoice%20supplierinvoice%20article%20project%20purchase&state=fortnox_connect&access_type=offline&response_type=code';
+    const authUrl = 'https://apps.fortnox.se/oauth-v1/auth?client_id=mp08u6gAFPz2&redirect_uri=https%3A%2F%2Flager-ai-7d26cc74.base44.app%2FFortnoxSync&scope=companyinformation%20article%20project%20purchase&state=fortnox_connect&access_type=offline&response_type=code';
     window.open(authUrl, '_blank');
   };
 
@@ -228,7 +228,7 @@ function FortnoxConnectionPanelInline() {
   }, []);
 
   const handleAuthorize = () => {
-    window.open('https://apps.fortnox.se/oauth-v1/auth?client_id=mp08u6gAFPz2&redirect_uri=https%3A%2F%2Flager-ai-7d26cc74.base44.app%2FFortnoxSync&scope=companyinformation%20invoice%20supplierinvoice%20article%20project%20purchase&state=fortnox_connect&access_type=offline&response_type=code', '_blank');
+    window.open('https://apps.fortnox.se/oauth-v1/auth?client_id=mp08u6gAFPz2&redirect_uri=https%3A%2F%2Flager-ai-7d26cc74.base44.app%2FFortnoxSync&scope=companyinformation%20article%20project%20purchase&state=fortnox_connect&access_type=offline&response_type=code', '_blank');
   };
 
   const handleSaveCode = async () => {
@@ -685,7 +685,7 @@ export default function FortnoxSyncPage() {
              </div>
              <div className="group relative">
                <Button
-                 onClick={() => window.open('https://apps.fortnox.se/oauth-v1/auth?client_id=mp08u6gAFPz2&redirect_uri=https%3A%2F%2Flager-ai-7d26cc74.base44.app%2FFortnoxSync&scope=companyinformation+invoice+supplierinvoice+article+project+purchase+settings&state=fortnox_connect&access_type=offline&response_type=code', '_blank')}
+                 onClick={() => window.open('https://apps.fortnox.se/oauth-v1/auth?client_id=mp08u6gAFPz2&redirect_uri=https%3A%2F%2Flager-ai-7d26cc74.base44.app%2FFortnoxSync&scope=companyinformation+article+project+purchase&state=fortnox_connect&access_type=offline&response_type=code', '_blank')}
                  variant="outline"
                  size="sm"
                  className="bg-white/5 border-white/20 hover:bg-white/10 text-white/70 hover:text-white"
