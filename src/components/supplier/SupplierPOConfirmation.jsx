@@ -38,7 +38,11 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['supplier-po'] });
+      // Manually update cache instead of invalidating to keep token in URL
+      queryClient.setQueryData(['supplier-po', poToken], (oldData) => ({
+        ...oldData,
+        purchaseOrder: { ...oldData?.purchaseOrder, status: 'confirmed' }
+      }));
       toast.success('Purchase Order confirmed!');
     },
     onError: (err) => {
