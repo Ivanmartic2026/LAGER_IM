@@ -45,13 +45,15 @@ async function fetchAllProjects(accessToken) {
   let totalPages = 1;
 
   while (page <= totalPages) {
-    const res = await fetch(`${FORTNOX_API_BASE}/projects?limit=500&page=${page}`, {
-      headers: { 'Authorization': `Bearer ${accessToken}` }
+    const res = await fetch(`https://api.fortnox.se/3/projects?limit=500&page=${page}`, {
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json' }
     });
     if (!res.ok) break;
     const data = await res.json();
     if (data.Projects) projects.push(...data.Projects);
-    totalPages = data.MetaInformation?.TotalPages || 1;
+    if (data.MetaInformation && data.MetaInformation.TotalPages) {
+      totalPages = data.MetaInformation.TotalPages;
+    }
     page++;
   }
 
