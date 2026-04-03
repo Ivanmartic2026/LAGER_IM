@@ -97,7 +97,7 @@ export default function SupplierPOView() {
         <div className="flex items-center justify-between p-4 border-b border-slate-200 sticky top-0 bg-white/90 backdrop-blur z-10 shadow-sm">
           <h2 className="text-lg font-bold text-slate-900">Edit Order</h2>
           <button
-            onClick={() => window.location.href = `?token=${poToken}`}
+            onClick={() => window.location.href = `?po=${poId}&token=${poToken}`}
             className="text-slate-400 hover:text-slate-600 text-2xl leading-none"
           >
             ×
@@ -166,7 +166,7 @@ export default function SupplierPOView() {
         <motion.div
           whileHover={{ scale: 1.005 }}
           className="p-5 rounded-2xl border bg-white border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all cursor-pointer shadow-sm"
-          onClick={() => window.location.href = `?token=${poToken}&edit=true`}
+          onClick={() => window.location.href = `?po=${poId}&token=${poToken}&edit=true`}
         >
           <div className="flex flex-col gap-4">
             {/* Header Row */}
