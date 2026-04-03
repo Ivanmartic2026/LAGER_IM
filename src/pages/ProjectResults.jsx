@@ -12,9 +12,11 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
-import { RefreshCw, AlertTriangle, CheckCircle2, Printer, TrendingUp, TrendingDown, Activity, Percent, Plus } from 'lucide-react';
+import { RefreshCw, AlertTriangle, CheckCircle2, Printer, TrendingUp, TrendingDown, Activity, Percent, Plus, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import ProjectTableRow from '@/components/ProjectTableRow';
+import LoggaTidModal from '@/components/LoggaTidModal';
+import ExpandedRow from '@/components/ExpandedRow';
 
 const TODAY = new Date();
 const fmt = (n) => (n || 0).toLocaleString('sv-SE', { maximumFractionDigits: 0 }) + ' kr';
@@ -328,6 +330,7 @@ function TabOverview({ projects }) {
     [projects]);
 
   const toggleRow = (id) => setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const [loggaTidModal, setLoggaTidModal] = useState(null);
 
   return (
     <div className="space-y-4">
@@ -402,15 +405,17 @@ function TabOverview({ projects }) {
                 const isExp = expanded.has(p.projectNumber);
                 const tbPct = tb(p.revenue, p.result);
                 return (
-                  <ProjectTableRow 
-                    key={p.projectNumber}
-                    p={p}
-                    isExp={isExp}
-                    tbPct={tbPct}
-                    toggleRow={toggleRow}
-                    setSlutModal={setSlutModal}
-                    onInvoiceClick={(inv, type, proj) => setInvoiceModal({ inv, type, proj })}
-                  />
+                  <React.Fragment key={p.projectNumber}>
+                    <ProjectTableRow 
+                      p={p}
+                      isExp={isExp}
+                      tbPct={tbPct}
+                      toggleRow={toggleRow}
+                      setSlutModal={setSlutModal}
+                      onInvoiceClick={(inv, type, proj) => setInvoiceModal({ inv, type, proj })}
+                    />
+                    {isExp && <ExpandedRow project={p} onInvoiceClick={(inv, type, proj) => setInvoiceModal({ inv, type, proj })} />}
+                  </React.Fragment>
                 );
               })}
               {filtered.length === 0 && (

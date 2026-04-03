@@ -1,13 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import ExpandedRow from './ExpandedRow';
+import { Button } from '@/components/ui/button';
 
-const tb = (rev, res) => rev > 0 ? (res / rev) * 100 : null;
 const fmtNum = (n) => (n || 0).toLocaleString('sv-SE', { maximumFractionDigits: 0 });
 const fmtPct = (n) => (n != null && isFinite(n) && !isNaN(n) ? n.toFixed(1) + ' %' : '–');
+const tb = (rev, res) => rev > 0 ? (res / rev) * 100 : null;
 
 function StatusBadge({ status }) {
   const STATUS_MAP = {
@@ -21,40 +20,36 @@ function StatusBadge({ status }) {
 }
 
 export default function ProjectTableRow({ p, isExp, tbPct, toggleRow, setSlutModal, onInvoiceClick }) {
-  const { data: timeData = [] } = useQuery({
+  // Fetch time entries for this project
+  const { data: timeEntries = [] } = useQuery({
     queryKey: ['projectTime', p.projectNumber],
-    queryFn: async () => {
-      const res = await base44.entities.ProjectTime.filter({ projectNumber: p.projectNumber });
-      return res || [];
-    },
-    enabled: isExp
+    queryFn: () => base44.entities.ProjectTime.filter({ projectNumber: p.projectNumber }),
+    enabled: isExp,
   });
 
-  const totalHours = useMemo(() => timeData.reduce((s, t) => s + (t.hours || 0), 0), [timeData]);
+  const totalHours = timeEntries.reduce((sum, t) => sum + (t.hours || 0), 0);
+  const hoursDisplay = totalHours > 0 ? `${totalHours}h` : '–';
 
   return (
-    <React.Fragment>
-      <tr className="border-b border-white/5 hover:bg-white/[0.04] transition-colors">
-        <td className="px-3 py-3 text-white/30 cursor-pointer" onClick={() => toggleRow(p.projectNumber)}>
-          {isExp ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-        </td>
-        <td className="px-3 py-3 text-white/50 font-mono text-xs">{p.projectNumber}</td>
-        <td className="px-3 py-3 text-white font-medium max-w-[160px] truncate">{p.projectName}</td>
-        <td className="px-3 py-3 text-white/60 max-w-[100px] truncate text-xs">{p.customerName || '–'}</td>
-        <td className="px-3 py-3"><StatusBadge status={p.projectStatus} /></td>
-        <td className="px-3 py-3 text-right text-white/80">{fmtNum(p.revenue)}</td>
-        <td className="px-3 py-3 text-right text-white/80">{fmtNum(p.costs)}</td>
-        <td className={`px-3 py-3 text-right font-semibold ${p.result >= 0 ? 'text-green-400' : 'text-red-400'}`}>{fmtNum(p.result)}</td>
-        <td className={`px-3 py-3 text-right text-xs ${tbPct == null ? 'text-white/30' : tbPct >= 0 ? 'text-green-400/80' : 'text-red-400/80'}`}>{fmtPct(tbPct)}</td>
-        <td className="px-3 py-3 text-right text-white/80">{totalHours > 0 ? totalHours + ' h' : '–'}</td>
-        <td className="px-3 py-3 text-center">
-          <Button variant="outline" size="sm" onClick={() => setSlutModal(p)}
-            className="text-xs border-white/20 text-white/60 bg-white/5 hover:bg-white/10 h-7 px-2">
-            Slutrapport
-          </Button>
-        </td>
-      </tr>
-      {isExp && <ExpandedRow project={p} onInvoiceClick={onInvoiceClick} />}
-    </React.Fragment>
+    <tr className="border-b border-white/5 hover:bg-white/[0.04] transition-colors">
+      <td className="px-3 py-3 text-white/30 cursor-pointer" onClick={() => toggleRow(p.projectNumber)}>
+        {isExp ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+      </td>
+      <td className="px-3 py-3 text-white/50 font-mono text-xs">{p.projectNumber}</td>
+      <td className="px-3 py-3 text-white font-medium max-w-[160px] truncate">{p.projectName}</td>
+      <td className="px-3 py-3 text-white/60 max-w-[100px] truncate text-xs">{p.customerName || '–'}</td>
+      <td className="px-3 py-3"><StatusBadge status={p.projectStatus} /></td>
+      <td className="px-3 py-3 text-right text-white/80">{fmtNum(p.revenue)}</td>
+      <td className="px-3 py-3 text-right text-white/80">{fmtNum(p.costs)}</td>
+      <td className={`px-3 py-3 text-right font-semibold ${p.result >= 0 ? 'text-green-400' : 'text-red-400'}`}>{fmtNum(p.result)}</td>
+      <td className={`px-3 py-3 text-right text-xs ${tbPct == null ? 'text-white/30' : tbPct >= 0 ? 'text-green-400/80' : 'text-red-400/80'}`}>{fmtPct(tbPct)}</td>
+      <td className="px-3 py-3 text-right text-white/70 text-sm font-medium">{hoursDisplay}</td>
+      <td className="px-3 py-3 text-center">
+        <Button variant="outline" size="sm" onClick={() => setSlutModal(p)}
+          className="text-xs border-white/20 text-white/60 bg-white/5 hover:bg-white/10 hover:text-white h-7 px-2">
+          Slutrapport
+        </Button>
+      </td>
+    </tr>
   );
 }
