@@ -83,25 +83,25 @@ async function processBatch(accessToken, projects) {
 
     let revenue = 0;
     const customerInvoices = invoices.map(inv => {
-      revenue += inv.Total || 0;
+      revenue += parseFloat(inv.Total) || 0;
       return {
         DocumentNumber: inv.DocumentNumber,
         CustomerName: inv.CustomerName || 'Unknown',
-        Total: inv.Total || 0,
+        Total: parseFloat(inv.Total) || 0,
         InvoiceDate: inv.InvoiceDate
       };
     });
 
     let costs = 0;
     const supplierInvoiceDetails = supplierInvoices.map(inv => {
-      costs += inv.Total || 0;
+      costs += parseFloat(inv.Total) || 0;
       return {
         GivenNumber: inv.GivenNumber,
         SupplierName: inv.SupplierName || 'Unknown',
-        Total: inv.Total || 0,
+        Total: parseFloat(inv.Total) || 0,
         InvoiceDate: inv.InvoiceDate
-      };
-    });
+        };
+        });
 
     return {
       projectNumber: project.ProjectNumber,
