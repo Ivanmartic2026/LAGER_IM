@@ -22,13 +22,15 @@ Deno.serve(async (req) => {
 
     // Fallback: try matching by PO id directly (if poId provided and token didn't match)
     if (!purchaseOrder && poId) {
-      const orders = await base44.asServiceRole.entities.PurchaseOrder.filter({ id: poId });
-      // Only return if token also matches (security check)
-      const match = orders[0];
-      if (match && token && match.supplier_portal_token === token) {
-        purchaseOrder = match;
-      } else if (match && !token) {
-        purchaseOrder = match;
+      try {
+        const match = await base44.asServiceRole.entities.PurchaseOrder.get(poId);
+        if (match && token && match.supplier_portal_token === token) {
+          purchaseOrder = match;
+        } else if (match && !token) {
+          purchaseOrder = match;
+        }
+      } catch (e) {
+        // PO not found by id, ignore
       }
     }
 

@@ -245,7 +245,7 @@ export default function SupplierPOView() {
               <RequirementsSection onContinue={() => setActiveTab('upload')} />
             )}
             {activeTab === 'upload' && (
-              <SupplierDocumentUploadHub purchaseOrder={purchaseOrder} poToken={poToken} />
+              <SupplierDocumentUploadHub purchaseOrder={purchaseOrder} poToken={poToken || purchaseOrder.supplier_portal_token} />
             )}
           </div>
         </div>

@@ -64,7 +64,7 @@ export default function SupplierPOConfirmation({ purchaseOrder, items, poToken }
     setConfirmedItems(updated);
   };
 
-  const isConfirmed = purchaseOrder.status === 'confirmed';
+  const isConfirmed = !['draft', 'sent'].includes(purchaseOrder.status);
 
   return (
     <form className="space-y-6">
