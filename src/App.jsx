@@ -14,6 +14,7 @@ import OrderEdit from '@/pages/OrderEdit';
 import OrderDetail from '@/pages/OrderDetail';
 import WorkOrderViewPage from '@/pages/WorkOrderView';
 import SupplierDashboard from '@/pages/SupplierDashboard';
+import SupplierLogin from '@/pages/SupplierLogin';
 import ProjectResults from '@/pages/ProjectResults';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -82,6 +83,9 @@ function App() {
           <Routes>
             {/* Public supplier portal - no auth required */}
             <Route path="/SupplierPOView" element={<SupplierPOView />} />
+            {/* Supplier Login & Dashboard - no auth required */}
+            <Route path="/SupplierLogin" element={<SupplierLogin />} />
+            <Route path="/SupplierDashboard" element={<SupplierDashboard />} />
             {/* Fortnox Sync - admin only */}
             <Route path="/FortnoxSync" element={
               <LayoutWrapper currentPageName="FortnoxSync">
@@ -106,12 +110,7 @@ function App() {
                 <WorkOrderViewPage />
               </LayoutWrapper>
             } />
-            {/* Supplier Dashboard */}
-            <Route path="/SupplierDashboard" element={
-              <LayoutWrapper currentPageName="Admin">
-                <SupplierDashboard />
-              </LayoutWrapper>
-            } />
+
             {/* Project Results */}
             <Route path="/ProjectResults" element={
               <LayoutWrapper currentPageName="Reports">
