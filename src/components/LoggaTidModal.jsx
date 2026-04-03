@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -45,6 +45,7 @@ export default function LoggaTidModal({ projectNumber, projectName, onClose, onS
       <DialogContent className="bg-slate-900 border-white/10 text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="text-white">Logga tid — {projectName}</DialogTitle>
+          <DialogDescription className="sr-only">Formulär för att logga arbetstid på projektet</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
