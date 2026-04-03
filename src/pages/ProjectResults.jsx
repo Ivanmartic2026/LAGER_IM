@@ -323,14 +323,72 @@ function TabOverview({ projects }) {
   const totalResult = totalRevenue - totalCosts;
   const totalTb = tb(totalRevenue, totalResult);
 
-  const top5 = useMemo(() =>
-    [...projects].filter(p => p.revenue > 0 || p.costs > 0)
-      .sort((a, b) => b.revenue - a.revenue).slice(0, 5)
-      .map(p => ({ name: (p.projectName || p.projectNumber)?.slice(0, 20), Intäkter: p.revenue, Kostnader: p.costs })),
-    [projects]);
-
   const toggleRow = (id) => setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const [loggaTidModal, setLoggaTidModal] = useState(null);
+
+  // Split by active/completed
+  const activeProjects = filtered.filter(p => p.projectStatus?.toUpperCase() !== 'COMPLETED');
+  const completedProjects = filtered.filter(p => p.projectStatus?.toUpperCase() === 'COMPLETED');
+
+  const renderProjectTable = (projects, title, icon) => {
+    const tableRevenue = projects.reduce((s, p) => s + p.revenue, 0);
+    const tableCosts = projects.reduce((s, p) => s + p.costs, 0);
+    const tableResult = tableRevenue - tableCosts;
+    const tableTb = tb(tableRevenue, tableResult);
+
+    if (projects.length === 0) {
+      return <p className="text-white/30 text-sm italic py-4">Inga projekt</p>;
+    }
+
+    return (
+      <Card className="bg-white/5 border-white/10 overflow-hidden">
+        <CardHeader className="pb-2"><CardTitle className="text-white text-sm">{title}</CardTitle></CardHeader>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/10 text-white/40 text-xs uppercase tracking-wider">
+                <th className="px-3 py-3 w-8" />
+                <th className="text-left px-3 py-3">Nr</th>
+                <th className="text-left px-3 py-3">Projektnamn</th>
+                <th className="text-left px-3 py-3">Kund</th>
+                <th className="text-right px-3 py-3">Intäkter</th>
+                <th className="text-right px-3 py-3">Kostnader</th>
+                <th className="text-right px-3 py-3">Resultat</th>
+                <th className="text-right px-3 py-3">TB%</th>
+                <th className="text-center px-3 py-3">Åtgärder</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map(p => {
+                const isExp = expanded.has(p.projectNumber);
+                const tbPct = tb(p.revenue, p.result);
+                return (
+                  <React.Fragment key={p.projectNumber}>
+                    <ProjectTableRow 
+                      p={p}
+                      isExp={isExp}
+                      tbPct={tbPct}
+                      toggleRow={toggleRow}
+                      setSlutModal={setSlutModal}
+                      onInvoiceClick={(inv, type, proj) => setInvoiceModal({ inv, type, proj })}
+                    />
+                    {isExp && <ExpandedRow project={p} onInvoiceClick={(inv, type, proj) => setInvoiceModal({ inv, type, proj })} />}
+                  </React.Fragment>
+                );
+              })}
+              <tr className="border-t-2 border-white/20 bg-white/5 font-semibold text-sm">
+                <td colSpan={4} className="px-3 py-3 text-white/40 text-xs uppercase tracking-wider">Totalt ({projects.length})</td>
+                <td className="px-3 py-3 text-right text-white">{fmtNum(tableRevenue)}</td>
+                <td className="px-3 py-3 text-right text-white">{fmtNum(tableCosts)}</td>
+                <td className={`px-3 py-3 text-right ${tableResult >= 0 ? 'text-green-400' : 'text-red-400'}`}>{fmtNum(tableResult)}</td>
+                <td className={`px-3 py-3 text-right text-xs ${tableTb >= 0 ? 'text-green-400' : 'text-red-400'}`}>{fmtPct(tableTb)}</td>
+                <td />
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -362,79 +420,17 @@ function TabOverview({ projects }) {
         <span className="text-xs text-white/30 ml-auto">Visar {filtered.length} av {projects.length}</span>
       </div>
 
-      {/* Top 5 chart */}
-      {top5.length > 0 && (
-        <Card className="bg-white/5 border-white/10">
-          <CardHeader className="pb-1"><CardTitle className="text-white text-sm">Top 5 projekt efter intäkter</CardTitle></CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={top5} layout="vertical" margin={{ left: 120, right: 20, top: 5, bottom: 5 }}>
-                <XAxis type="number" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} tickFormatter={v => fmtNum(v)} />
-                <YAxis type="category" dataKey="name" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }} width={120} />
-                <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }} formatter={(v, n) => [fmtNum(v) + ' kr', n]} />
-                <Legend wrapperStyle={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }} />
-                <Bar dataKey="Intäkter" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-                <Bar dataKey="Kostnader" fill="#f97316" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
+      {/* Active Projects */}
+      <div>
+        <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Aktiva projekt ({activeProjects.length})</h3>
+        {renderProjectTable(activeProjects, 'Pågående och ej startade')}
+      </div>
 
-      {/* Table */}
-      <Card className="bg-white/5 border-white/10 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-white/10 text-white/40 text-xs uppercase tracking-wider">
-                <th className="px-3 py-3 w-8" />
-                <th className="text-left px-3 py-3">Nr</th>
-                <th className="text-left px-3 py-3">Projektnamn</th>
-                <th className="text-left px-3 py-3">Kund</th>
-                <th className="text-left px-3 py-3">Status</th>
-                <th className="text-right px-3 py-3">Intäkter</th>
-                <th className="text-right px-3 py-3">Kostnader</th>
-                <th className="text-right px-3 py-3">Resultat</th>
-                <th className="text-right px-3 py-3">TB%</th>
-                <th className="text-right px-3 py-3">Timmar</th>
-                <th className="text-center px-3 py-3">Åtgärder</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(p => {
-                const isExp = expanded.has(p.projectNumber);
-                const tbPct = tb(p.revenue, p.result);
-                return (
-                  <React.Fragment key={p.projectNumber}>
-                    <ProjectTableRow 
-                      p={p}
-                      isExp={isExp}
-                      tbPct={tbPct}
-                      toggleRow={toggleRow}
-                      setSlutModal={setSlutModal}
-                      onInvoiceClick={(inv, type, proj) => setInvoiceModal({ inv, type, proj })}
-                    />
-                    {isExp && <ExpandedRow project={p} onInvoiceClick={(inv, type, proj) => setInvoiceModal({ inv, type, proj })} />}
-                  </React.Fragment>
-                );
-              })}
-              {filtered.length === 0 && (
-                <tr><td colSpan={11} className="px-4 py-16 text-center text-white/30">Inga projekt matchar filtret</td></tr>
-              )}
-              {filtered.length > 0 && (
-                <tr className="border-t-2 border-white/20 bg-white/5 font-semibold text-sm">
-                  <td colSpan={5} className="px-3 py-3 text-white/40 text-xs uppercase tracking-wider">Totalt ({filtered.length})</td>
-                  <td className="px-3 py-3 text-right text-white">{fmtNum(totalRevenue)}</td>
-                  <td className="px-3 py-3 text-right text-white">{fmtNum(totalCosts)}</td>
-                  <td className={`px-3 py-3 text-right ${totalResult >= 0 ? 'text-green-400' : 'text-red-400'}`}>{fmtNum(totalResult)}</td>
-                  <td className={`px-3 py-3 text-right text-xs ${totalTb >= 0 ? 'text-green-400' : 'text-red-400'}`}>{fmtPct(totalTb)}</td>
-                  <td />
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      {/* Completed Projects */}
+      <div>
+        <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Avslutade projekt ({completedProjects.length})</h3>
+        {renderProjectTable(completedProjects, 'Avslutade')}
+      </div>
 
       {invoiceModal && (
         <InvoiceDetailModal
