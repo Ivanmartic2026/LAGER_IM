@@ -19,17 +19,22 @@ export default function SupplierLogin() {
     setLoading(true);
     try {
       const response = await base44.functions.invoke('supplierLogin', { email, password });
-      if (response.data && response.data.supplier_id) {
-        localStorage.setItem('supplier_id', response.data.supplier_id);
-        localStorage.setItem('supplier_email', response.data.email);
-        localStorage.setItem('supplier_full_name', response.data.full_name);
+      const data = response.data;
+      if (data && data.supplier_id) {
+        localStorage.setItem('supplier_id', data.supplier_id);
+        localStorage.setItem('supplier_email', data.email);
+        localStorage.setItem('supplier_full_name', data.full_name);
         toast.success('Login successful!');
         navigate('/SupplierDashboard');
+      } else if (data && data.error) {
+        toast.error(data.error);
       } else {
         toast.error('Invalid email or password.');
       }
     } catch (error) {
-      toast.error(error.message || 'An error occurred during login.');
+      // axios throws on 4xx — extract the error message from response
+      const errMsg = error?.response?.data?.error || error.message || 'An error occurred during login.';
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
