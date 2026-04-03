@@ -1,5 +1,5 @@
 const APP_ID = import.meta.env.VITE_BASE44_APP_ID;
-const FUNCTIONS_BASE = `https://app--${APP_ID}.base44.app/functions`;
+const FUNCTIONS_BASE = `/functions`;
 
 export async function supplierFetch(functionName, body) {
   const res = await fetch(`${FUNCTIONS_BASE}/${functionName}`, {
