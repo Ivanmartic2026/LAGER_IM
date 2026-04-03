@@ -12,7 +12,9 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
-import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, Printer, TrendingUp, TrendingDown, Activity, Percent } from 'lucide-react';
+import { RefreshCw, AlertTriangle, CheckCircle2, Printer, TrendingUp, TrendingDown, Activity, Percent, Plus } from 'lucide-react';
+import { toast } from 'sonner';
+import ProjectTableRow from '@/components/ProjectTableRow';
 
 const TODAY = new Date();
 const fmt = (n) => (n || 0).toLocaleString('sv-SE', { maximumFractionDigits: 0 }) + ' kr';
@@ -216,79 +218,77 @@ function SlutrapportModal({ project, onClose }) {
   );
 }
 
-function ExpandedRow({ project, onInvoiceClick }) {
-  return (
-    <tr>
-      <td colSpan={9} className="bg-white/[0.02] border-b border-white/5 px-6 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Customer invoices */}
-          <div>
-            <p className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-2">Kundfakturor</p>
-            {project.customerInvoices.length ? (
-              <table className="w-full text-xs">
-                <thead><tr className="text-white/30 border-b border-white/10">
-                  <th className="text-left py-1">Nr</th>
-                  <th className="text-left py-1">Kund</th>
-                  <th className="text-left py-1">Datum</th>
-                  <th className="text-left py-1">Förfaller</th>
-                  <th className="text-right py-1">Belopp</th>
-                  <th className="text-right py-1">Återstår</th>
-                  <th className="text-left py-1 pl-2">Status</th>
-                </tr></thead>
-                <tbody>
-                  {project.customerInvoices.map((inv, i) => (
-                    <tr key={i} onClick={() => onInvoiceClick(inv, 'customer', project)} className="border-b border-white/5 text-white/70 cursor-pointer hover:bg-white/5 transition-colors">
-                      <td className="py-1.5 font-mono">{inv.invoiceNumber}</td>
-                      <td className="py-1.5 truncate max-w-[90px]">{inv.customerName}</td>
-                      <td className="py-1.5">{inv.invoiceDate}</td>
-                      <td className="py-1.5">{inv.dueDate}</td>
-                      <td className="py-1.5 text-right text-green-400/80">{fmtNum(inv.total)}</td>
-                      <td className="py-1.5 text-right">{fmtNum(inv.balance)}</td>
-                      <td className="py-1.5 pl-2"><InvoiceStatusBadge inv={inv} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : <p className="text-white/25 italic text-xs">Inga fakturor</p>}
-          </div>
+function CreateProjectModal({ onClose, onSuccess }) {
+  const [form, setForm] = useState({ description: '', status: 'NOTSTARTED', projectNumber: '', startDate: '', endDate: '' });
+  const [loading, setLoading] = useState(false);
 
-          {/* Supplier invoices */}
+  const handleSubmit = async () => {
+    if (!form.description.trim()) {
+      toast.error('Projektnamn krävs');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await base44.functions.invoke('createFortnoxProject', {
+        projectNumber: form.projectNumber || undefined,
+        description: form.description,
+        status: form.status,
+        startDate: form.startDate || undefined,
+        endDate: form.endDate || undefined
+      });
+      toast.success('Projekt skapat');
+      onSuccess();
+      onClose();
+    } catch (err) {
+      toast.error(err.message || 'Fel vid skapande av projekt');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="bg-slate-900 border-white/10 text-white max-w-md">
+        <DialogHeader><DialogTitle className="text-white">Skapa nytt projekt</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-4">
           <div>
-            <p className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-2">Leverantörsfakturor</p>
-            {project.supplierInvoices.length ? (
-              <table className="w-full text-xs">
-                <thead><tr className="text-white/30 border-b border-white/10">
-                  <th className="text-left py-1">Nr</th>
-                  <th className="text-left py-1">Leverantör</th>
-                  <th className="text-left py-1">Datum</th>
-                  <th className="text-left py-1">Förfaller</th>
-                  <th className="text-right py-1">Belopp</th>
-                  <th className="text-right py-1">Återstår</th>
-                  <th className="text-left py-1 pl-2">Status</th>
-                </tr></thead>
-                <tbody>
-                  {project.supplierInvoices.map((inv, i) => (
-                    <tr key={i} onClick={() => onInvoiceClick(inv, 'supplier', project)} className="border-b border-white/5 text-white/70 cursor-pointer hover:bg-white/5 transition-colors">
-                      <td className="py-1.5 font-mono">{inv.invoiceNumber}</td>
-                      <td className="py-1.5 truncate max-w-[90px]">{inv.supplierName}</td>
-                      <td className="py-1.5">{inv.invoiceDate}</td>
-                      <td className="py-1.5">{inv.dueDate}</td>
-                      <td className="py-1.5 text-right text-orange-400/80">{fmtNum(inv.total)}</td>
-                      <td className="py-1.5 text-right">{fmtNum(inv.balance)}</td>
-                      <td className="py-1.5 pl-2"><InvoiceStatusBadge inv={inv} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : <p className="text-white/25 italic text-xs">Inga fakturor</p>}
+            <label className="text-xs text-white/50 uppercase">Projektnummer (valfritt)</label>
+            <Input placeholder="Genereras automatiskt av Fortnox" value={form.projectNumber} onChange={e => setForm({ ...form, projectNumber: e.target.value })} className="bg-white/5 border-white/20 text-white mt-1" />
+          </div>
+          <div>
+            <label className="text-xs text-white/50 uppercase">Projektnamn (obligatoriskt)</label>
+            <Input placeholder="T.ex. LED-skärm installation" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="bg-white/5 border-white/20 text-white mt-1" />
+          </div>
+          <div>
+            <label className="text-xs text-white/50 uppercase">Status</label>
+            <Select value={form.status} onValueChange={v => setForm({ ...form, status: v })}>
+              <SelectTrigger className="bg-white/5 border-white/20 text-white mt-1"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-slate-900 border-white/10 text-white">
+                <SelectItem value="NOTSTARTED">Ej startad</SelectItem>
+                <SelectItem value="ONGOING">Pågående</SelectItem>
+                <SelectItem value="COMPLETED">Avslutad</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-white/50 uppercase">Startdatum</label>
+            <Input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} className="bg-white/5 border-white/20 text-white mt-1" />
+          </div>
+          <div>
+            <label className="text-xs text-white/50 uppercase">Slutdatum</label>
+            <Input type="date" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} className="bg-white/5 border-white/20 text-white mt-1" />
           </div>
         </div>
-      </td>
-    </tr>
+        <div className="flex justify-end gap-2 mt-6">
+          <Button onClick={onClose} variant="outline" className="border-white/20 text-white bg-white/5 hover:bg-white/10">Avbryt</Button>
+          <Button onClick={handleSubmit} disabled={loading} className="bg-blue-600 hover:bg-blue-500 text-white">{loading ? 'Skapar...' : 'Skapa projekt'}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-// ---- TABS ----
+          // ---- TABS ----
 
 function TabOverview({ projects }) {
   const [search, setSearch] = useState('');
@@ -393,6 +393,7 @@ function TabOverview({ projects }) {
                 <th className="text-right px-3 py-3">Kostnader</th>
                 <th className="text-right px-3 py-3">Resultat</th>
                 <th className="text-right px-3 py-3">TB%</th>
+                <th className="text-right px-3 py-3">Timmar</th>
                 <th className="text-center px-3 py-3">Åtgärder</th>
               </tr>
             </thead>
@@ -401,32 +402,19 @@ function TabOverview({ projects }) {
                 const isExp = expanded.has(p.projectNumber);
                 const tbPct = tb(p.revenue, p.result);
                 return (
-                  <React.Fragment key={p.projectNumber}>
-                    <tr className="border-b border-white/5 hover:bg-white/[0.04] transition-colors">
-                      <td className="px-3 py-3 text-white/30 cursor-pointer" onClick={() => toggleRow(p.projectNumber)}>
-                        {isExp ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                      </td>
-                      <td className="px-3 py-3 text-white/50 font-mono text-xs">{p.projectNumber}</td>
-                      <td className="px-3 py-3 text-white font-medium max-w-[160px] truncate">{p.projectName}</td>
-                      <td className="px-3 py-3 text-white/60 max-w-[100px] truncate text-xs">{p.customerName || '–'}</td>
-                      <td className="px-3 py-3"><StatusBadge status={p.projectStatus} /></td>
-                      <td className="px-3 py-3 text-right text-white/80">{fmtNum(p.revenue)}</td>
-                      <td className="px-3 py-3 text-right text-white/80">{fmtNum(p.costs)}</td>
-                      <td className={`px-3 py-3 text-right font-semibold ${p.result >= 0 ? 'text-green-400' : 'text-red-400'}`}>{fmtNum(p.result)}</td>
-                      <td className={`px-3 py-3 text-right text-xs ${tbPct == null ? 'text-white/30' : tbPct >= 0 ? 'text-green-400/80' : 'text-red-400/80'}`}>{fmtPct(tbPct)}</td>
-                      <td className="px-3 py-3 text-center">
-                        <Button variant="outline" size="sm" onClick={() => setSlutModal(p)}
-                          className="text-xs border-white/20 text-white/60 bg-white/5 hover:bg-white/10 hover:text-white h-7 px-2">
-                          Slutrapport
-                        </Button>
-                      </td>
-                    </tr>
-                    {isExp && <ExpandedRow project={p} onInvoiceClick={(inv, type, proj) => setInvoiceModal({ inv, type, proj })} />}
-                  </React.Fragment>
+                  <ProjectTableRow 
+                    key={p.projectNumber}
+                    p={p}
+                    isExp={isExp}
+                    tbPct={tbPct}
+                    toggleRow={toggleRow}
+                    setSlutModal={setSlutModal}
+                    onInvoiceClick={(inv, type, proj) => setInvoiceModal({ inv, type, proj })}
+                  />
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={10} className="px-4 py-16 text-center text-white/30">Inga projekt matchar filtret</td></tr>
+                <tr><td colSpan={11} className="px-4 py-16 text-center text-white/30">Inga projekt matchar filtret</td></tr>
               )}
               {filtered.length > 0 && (
                 <tr className="border-t-2 border-white/20 bg-white/5 font-semibold text-sm">
@@ -766,6 +754,7 @@ function TabGantt({ projects }) {
 // ---- MAIN PAGE ----
 
 export default function ProjectResults() {
+  const [showCreateProject, setShowCreateProject] = useState(false);
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['projectFinancials'],
     queryFn: async () => {
@@ -801,15 +790,21 @@ export default function ProjectResults() {
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">Projektresultat</h1>
             <p className="text-sm text-white/40 mt-0.5">Ekonomisk översikt per projekt från Fortnox</p>
           </div>
-          <Button onClick={() => refetch()} disabled={isFetching} className="bg-blue-600 hover:bg-blue-500 text-white gap-2">
-            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-            Hämta data
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowCreateProject(true)} className="bg-green-600 hover:bg-green-500 text-white gap-2">
+              <Plus className="w-4 h-4" />
+              Nytt projekt
+            </Button>
+            <Button onClick={() => refetch()} disabled={isFetching} className="bg-blue-600 hover:bg-blue-500 text-white gap-2">
+              <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+              Hämta data
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -849,7 +844,8 @@ export default function ProjectResults() {
             </Tabs>
           </>
         )}
-      </div>
-    </div>
-  );
-}
+        </div>
+        {showCreateProject && <CreateProjectModal onClose={() => setShowCreateProject(false)} onSuccess={() => refetch()} />}
+        </div>
+        );
+        }
