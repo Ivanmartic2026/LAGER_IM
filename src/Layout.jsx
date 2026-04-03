@@ -1,7 +1,7 @@
 import React, { useEffect, useState as useReactState } from 'react';
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck, Clipboard } from "lucide-react";
+import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck, Clipboard, BarChart2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
@@ -60,6 +60,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: "SiteReports", label: t('nav_site', language), icon: MapPin, module: "SiteReports" },
 
     { name: "Repairs", label: t('nav_repairs', language), icon: Activity, module: "Repairs" },
+    { name: "ProjectResults", label: "Projekt", icon: BarChart2, module: null },
     { name: "Admin", label: t('nav_admin', language), icon: FileText, module: null }
   ];
 
