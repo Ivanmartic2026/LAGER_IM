@@ -111,7 +111,7 @@ function SlutrapportModal({ project, onClose }) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div><p className="text-white/40 text-xs mb-1">Projektnr</p><p className="text-white font-medium">{project.projectNumber}</p></div>
               <div><p className="text-white/40 text-xs mb-1">Kund</p><p className="text-white font-medium">{project.customerName || '–'}</p></div>
-              <div><p className="text-white/40 text-xs mb-1">Status</p><StatusBadge status={project.projectStatus} /></div>
+              <div><p className="text-white/40 text-xs mb-1">Status</p><StatusBadge status={project.Status} /></div>
               <div><p className="text-white/40 text-xs mb-1">Period</p><p className="text-white">{project.startDate || '?'} → {project.endDate || '?'}</p></div>
             </div>
           </div>
@@ -295,7 +295,7 @@ function CreateProjectModal({ onClose, onSuccess }) {
 function TabOverview({ projects }) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [hideEmpty, setHideEmpty] = useState(true);
+  const [hideEmpty, setHideEmpty] = useState(false);
   const [sortBy, setSortBy] = useState('result');
   const [expanded, setExpanded] = useState(new Set());
   const [invoiceModal, setInvoiceModal] = useState(null);
@@ -304,7 +304,7 @@ function TabOverview({ projects }) {
   const filtered = useMemo(() => {
     let list = [...projects];
     if (hideEmpty) list = list.filter(p => p.revenue !== 0 || p.costs !== 0);
-    if (statusFilter !== 'all') list = list.filter(p => (p.projectStatus || '').toUpperCase() === statusFilter);
+    if (statusFilter !== 'all') list = list.filter(p => (p.Status || '').toUpperCase() === statusFilter);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(p => p.projectNumber?.toLowerCase().includes(q) || p.projectName?.toLowerCase().includes(q) || p.customerName?.toLowerCase().includes(q));
@@ -326,8 +326,8 @@ function TabOverview({ projects }) {
   const toggleRow = (id) => setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   // Split by active/completed
-  const activeProjects = filtered.filter(p => p.projectStatus?.toUpperCase() !== 'COMPLETED');
-  const completedProjects = filtered.filter(p => p.projectStatus?.toUpperCase() === 'COMPLETED');
+  const activeProjects = filtered.filter(p => p.Status?.toUpperCase() !== 'COMPLETED');
+  const completedProjects = filtered.filter(p => p.Status?.toUpperCase() === 'COMPLETED');
 
   const renderProjectTable = (projects, title, icon) => {
     const tableRevenue = projects.reduce((s, p) => s + p.revenue, 0);
@@ -714,7 +714,7 @@ function TabGantt({ projects }) {
       name: (p.projectName || p.projectNumber)?.slice(0, 22),
       start,
       duration: Math.max(end - start, 86400000),
-      color: statusColors[(p.projectStatus || '').toUpperCase()] || '#64748b'
+      color: statusColors[(p.Status || '').toUpperCase()] || '#64748b'
     };
   }).sort((a, b) => a.start - b.start);
 
@@ -728,20 +728,20 @@ function TabGantt({ projects }) {
   return (
     <Card className="bg-white/5 border-white/10">
       <CardHeader className="pb-1"><CardTitle className="text-white text-sm">Projekttidslinje (Gantt)</CardTitle></CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={Math.max(200, datedProjects.length * 40)}>
-          <BarChart data={normalizedData} layout="vertical" margin={{ left: 140, right: 20 }}>
-            <XAxis type="number" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} tickFormatter={v => { const d = new Date(minStart + v); return d.toLocaleDateString('sv-SE', { month: 'short', year: '2-digit' }); }} />
-            <YAxis type="category" dataKey="name" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }} width={140} />
-            <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }}
-              formatter={(v) => [Math.round(v / 86400000) + ' dagar']}
-              labelFormatter={(label) => label} />
-            <Bar dataKey="offset" fill="transparent" stackId="a" />
-            <Bar dataKey="duration" stackId="a" radius={[4, 4, 4, 4]}>
-              {normalizedData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+       <CardContent>
+         <ResponsiveContainer width="100%" height={Math.max(200, datedProjects.length * 40)}>
+           <BarChart data={normalizedData} layout="vertical" margin={{ left: 140, right: 20 }}>
+             <XAxis type="number" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} tickFormatter={v => { const d = new Date(minStart + v); return d.toLocaleDateString('sv-SE', { month: 'short', year: '2-digit' }); }} />
+             <YAxis type="category" dataKey="name" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }} width={140} />
+             <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }}
+               formatter={(v) => [Math.round(v / 86400000) + ' dagar']}
+               labelFormatter={(label) => label} />
+             <Bar dataKey="offset" fill="transparent" stackId="a" />
+             <Bar dataKey="duration" stackId="a" radius={[4, 4, 4, 4]}>
+               {normalizedData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+             </Bar>
+           </BarChart>
+         </ResponsiveContainer>
         <div className="flex items-center gap-4 mt-3 text-xs text-white/40">
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-blue-500" />Pågående</span>
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-slate-500" />Avslutad</span>
