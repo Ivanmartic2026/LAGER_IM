@@ -32,23 +32,24 @@ const STATUS_CONFIG = {
 export default function SupplierPOView() {
   const urlParams = new URLSearchParams(window.location.search);
   const poToken = urlParams.get('token');
+  const poId = urlParams.get('po');
   const editMode = urlParams.get('edit') === 'true';
   const [activeTab, setActiveTab] = useState('confirm');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['supplier-po', poToken],
+    queryKey: ['supplier-po', poToken, poId],
     queryFn: async () => {
-      return await supplierFetch('getSupplierPO', { token: poToken });
+      return await supplierFetch('getSupplierPO', { token: poToken, poId: poId });
     },
-    enabled: !!poToken
+    enabled: !!(poToken || poId)
   });
 
   const purchaseOrder = data?.purchaseOrder || null;
   const items = data?.items || [];
 
-  if (!poToken) {
+  if (!poToken && !poId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
         <div className="max-w-md text-center bg-white rounded-2xl border border-slate-200 shadow-lg p-8">

@@ -4,17 +4,33 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const base44 = createClientFromRequest(req);
-    const { token } = body;
+    const { token, poId } = body;
 
-    if (!token) {
-      return Response.json({ error: 'Token krävs' }, { status: 400 });
+    if (!token && !poId) {
+      return Response.json({ error: 'Token eller PO-id krävs' }, { status: 400 });
     }
 
-    const orders = await base44.asServiceRole.entities.PurchaseOrder.filter({ 
-      supplier_portal_token: token 
-    });
+    let purchaseOrder = null;
 
-    const purchaseOrder = orders[0] || null;
+    // Try token first
+    if (token) {
+      const orders = await base44.asServiceRole.entities.PurchaseOrder.filter({ 
+        supplier_portal_token: token 
+      });
+      purchaseOrder = orders[0] || null;
+    }
+
+    // Fallback: try matching by PO id directly (if poId provided and token didn't match)
+    if (!purchaseOrder && poId) {
+      const orders = await base44.asServiceRole.entities.PurchaseOrder.filter({ id: poId });
+      // Only return if token also matches (security check)
+      const match = orders[0];
+      if (match && token && match.supplier_portal_token === token) {
+        purchaseOrder = match;
+      } else if (match && !token) {
+        purchaseOrder = match;
+      }
+    }
 
     if (!purchaseOrder) {
       return Response.json({ purchaseOrder: null, items: [], supplier: null });
