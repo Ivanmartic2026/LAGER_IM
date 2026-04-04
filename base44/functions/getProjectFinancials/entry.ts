@@ -60,28 +60,33 @@ async function fetchAllProjects(accessToken) {
   return projects;
 }
 
-async function fetchProjectInvoices(accessToken, projectNumber) {
-  const [invRes, supRes] = await Promise.all([
+async function fetchProjectData(accessToken, projectNumber) {
+  const [invRes, supRes, ordRes] = await Promise.all([
     fetch(`${FORTNOX_API_BASE}/invoices?project=${projectNumber}&limit=500`, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     }),
     fetch(`${FORTNOX_API_BASE}/supplierinvoices?project=${projectNumber}&limit=500`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    }),
+    fetch(`${FORTNOX_API_BASE}/orders?project=${projectNumber}&limit=500`, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     })
   ]);
 
   const invData = invRes.ok ? await invRes.json() : {};
   const supData = supRes.ok ? await supRes.json() : {};
+  const ordData = ordRes.ok ? await ordRes.json() : {};
 
   return {
     invoices: invData.Invoices || [],
-    supplierInvoices: supData.SupplierInvoices || []
+    supplierInvoices: supData.SupplierInvoices || [],
+    orders: ordData.Orders || []
   };
 }
 
 async function processBatch(accessToken, projects) {
   return Promise.all(projects.map(async (project) => {
-    const { invoices, supplierInvoices } = await fetchProjectInvoices(accessToken, project.ProjectNumber);
+    const { invoices, supplierInvoices, orders } = await fetchProjectData(accessToken, project.ProjectNumber);
 
     let revenue = 0;
     const customerInvoices = invoices.map(inv => {
@@ -96,7 +101,6 @@ async function processBatch(accessToken, projects) {
         total,
         balance,
         isPaid: balance === 0,
-        // legacy fields kept for backward compat
         DocumentNumber: inv.DocumentNumber,
         CustomerName: inv.CustomerName || 'Unknown',
         Total: total,
@@ -117,7 +121,6 @@ async function processBatch(accessToken, projects) {
         total,
         balance,
         isPaid: balance === 0,
-        // legacy fields kept for backward compat
         GivenNumber: inv.GivenNumber,
         SupplierName: inv.SupplierName || 'Unknown',
         Total: total,
@@ -126,6 +129,27 @@ async function processBatch(accessToken, projects) {
     });
 
     const customerName = customerInvoices.length > 0 ? (customerInvoices[0].customerName || '') : '';
+
+    // Order value
+    const orderValue = orders.reduce((sum, o) => !o.Cancelled ? sum + (parseFloat(o.Total) || 0) : sum, 0);
+
+    // Cashflow
+    const paidAmount = customerInvoices.reduce((sum, inv) => inv.balance === 0 ? sum + inv.total : sum, 0);
+    const unpaidAmount = customerInvoices.reduce((sum, inv) => inv.balance > 0 ? sum + inv.total : sum, 0);
+    const today = new Date().toISOString().split('T')[0];
+    const overdueInvoices = customerInvoices.filter(inv => inv.balance > 0 && inv.dueDate < today);
+    const overdueAmount = overdueInvoices.reduce((sum, inv) => sum + inv.balance, 0);
+    const overdueCount = overdueInvoices.length;
+
+    // Warning flags
+    const result = revenue - costs;
+    const unfactured = Math.max(0, orderValue - revenue);
+    const marginPct = revenue > 0 ? ((revenue - costs) / revenue * 100) : null;
+    const warnings = [];
+    if (result < 0) warnings.push('negative_margin');
+    if (orderValue > 0 && unfactured / orderValue > 0.2) warnings.push('unfactured_high');
+    if (overdueCount > 0) warnings.push('overdue_invoice');
+    if (costs === 0 && revenue > 0) warnings.push('no_costs');
 
     return {
       projectNumber: project.ProjectNumber,
@@ -136,7 +160,15 @@ async function processBatch(accessToken, projects) {
       customerName,
       revenue,
       costs,
-      result: revenue - costs,
+      result,
+      orderValue,
+      paidAmount,
+      unpaidAmount,
+      overdueAmount,
+      overdueCount,
+      unfactured,
+      marginPct,
+      warnings,
       customerInvoices,
       supplierInvoices: supplierInvoiceDetails
     };
