@@ -510,6 +510,7 @@ function MainTable({ projects, onSlutModal, onInvoiceClick }) {
 export default function ProjectResults() {
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [activeTab, setActiveTab] = useState('ongoing');
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['projectFinancials'],
@@ -523,14 +524,25 @@ export default function ProjectResults() {
 
   const projects = data?.projects || [];
 
+  const ongoingProjects = useMemo(() =>
+    projects.filter(p => (p.projectStatus || '').toUpperCase() !== 'COMPLETED'),
+    [projects]
+  );
+  const completedProjects = useMemo(() =>
+    projects.filter(p => (p.projectStatus || '').toUpperCase() === 'COMPLETED'),
+    [projects]
+  );
+
+  const tabProjects = activeTab === 'ongoing' ? ongoingProjects : completedProjects;
+
   const kpis = useMemo(() => ({
-    orderValue: projects.reduce((s, p) => s + (p.orderValue || 0), 0),
-    revenue: projects.reduce((s, p) => s + p.revenue, 0),
-    unfactured: projects.reduce((s, p) => s + (p.unfactured || 0), 0),
-    costs: projects.reduce((s, p) => s + p.costs, 0),
-    result: projects.reduce((s, p) => s + p.result, 0),
-    unpaid: projects.reduce((s, p) => s + (p.unpaidAmount || 0), 0),
-  }), [projects]);
+    orderValue: tabProjects.reduce((s, p) => s + (p.orderValue || 0), 0),
+    revenue: tabProjects.reduce((s, p) => s + p.revenue, 0),
+    unfactured: tabProjects.reduce((s, p) => s + (p.unfactured || 0), 0),
+    costs: tabProjects.reduce((s, p) => s + p.costs, 0),
+    result: tabProjects.reduce((s, p) => s + p.result, 0),
+    unpaid: tabProjects.reduce((s, p) => s + (p.unpaidAmount || 0), 0),
+  }), [tabProjects]);
 
   return (
     <div className="min-h-screen bg-black p-4 md:p-6">
@@ -555,6 +567,30 @@ export default function ProjectResults() {
           </div>
         </div>
 
+        {/* Tab switcher */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab('ongoing')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'ongoing'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white/10 text-white/50 hover:text-white hover:bg-white/15'
+            }`}
+          >
+            Pågående projekt ({ongoingProjects.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('avslutade')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              activeTab === 'avslutade'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white/10 text-white/50 hover:text-white hover:bg-white/15'
+            }`}
+          >
+            Avslutade projekt ({completedProjects.length})
+          </button>
+        </div>
+
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-48 gap-3">
             <RefreshCw className="w-10 h-10 text-blue-400 animate-spin" />
@@ -573,7 +609,7 @@ export default function ProjectResults() {
             </div>
 
             {/* Main table */}
-            <MainTable projects={projects} />
+            <MainTable projects={tabProjects} />
           </>
         )}
       </div>
