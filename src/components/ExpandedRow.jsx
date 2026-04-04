@@ -8,9 +8,10 @@ import LoggaTidModal from './LoggaTidModal';
 export default function ExpandedRow({ project, onInvoiceClick }) {
   const [showLoggaTid, setShowLoggaTid] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
-  const [workspaceProjects, setWorkspaceProjects] = useState([]);
-  const [loadingProjects, setLoadingProjects] = useState(false);
-  const [linkResult, setLinkResult] = useState(null); // null | { success: true, name } | { error: true }
+  const [wsProjects, setWsProjects] = useState([]);
+  const [wsLoading, setWsLoading] = useState(false);
+  const [linkResult, setLinkResult] = useState(null); // null | 'linked' | 'created' | 'error'
+  const [linkedName, setLinkedName] = useState('');
   const queryClient = useQueryClient();
 
   // Fetch time entries
@@ -37,59 +38,39 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
 
   const openLinkModal = async () => {
     setShowLinkModal(true);
+    setWsLoading(true);
     setLinkResult(null);
-    setLoadingProjects(true);
     try {
       const res = await fetch('https://app--6951895d1643f7057890a865.base44.app/functions/listWorkspaceProjects');
       const data = await res.json();
-      setWorkspaceProjects(Array.isArray(data) ? data : (data.projects || []));
-    } catch (e) {
-      setWorkspaceProjects([]);
-    } finally {
-      setLoadingProjects(false);
-    }
+      setWsProjects(data.projects || []);
+    } catch(e) { setWsProjects([]); }
+    setWsLoading(false);
   };
 
-  const handleLinkExisting = async (wp) => {
+  const linkToExisting = async (wp) => {
     try {
-      const res = await fetch('https://app--6951895d1643f7057890a865.base44.app/functions/linkProjectToLager', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          workspaceProjectId: wp.id,
-          fortnoxProjectNumber: project.projectNumber,
-          name: project.description || project.projectNumber
-        })
+      await fetch('https://app--6951895d1643f7057890a865.base44.app/functions/linkProjectToLager', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ workspaceProjectId: wp.id, fortnoxProjectNumber: project.projectNumber, name: wp.name })
       });
-      const data = await res.json();
-      setLinkResult({ success: true, name: wp.name || wp.id });
-      setTimeout(() => setShowLinkModal(false), 1500);
-    } catch (e) {
-      setLinkResult({ error: true });
-    }
+      setLinkedName(wp.name);
+      setLinkResult('linked');
+      setShowLinkModal(false);
+    } catch(e) { setLinkResult('error'); }
   };
 
-  const handleCreateNew = async () => {
+  const createInWorkspace = async () => {
     try {
       const res = await fetch('https://app--6951895d1643f7057890a865.base44.app/functions/createProjectFromLager', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fortnoxProjectNumber: project.projectNumber,
-          name: project.description || project.projectNumber,
-          description: project.description || ''
-        })
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber, name: project.description || project.projectNumber, description: project.description || '' })
       });
       const data = await res.json();
-      if (data.success || data.id) {
-        setLinkResult({ success: true, name: project.description || project.projectNumber });
-        setTimeout(() => setShowLinkModal(false), 1500);
-      } else {
-        setLinkResult({ error: true });
-      }
-    } catch (e) {
-      setLinkResult({ error: true });
-    }
+      setLinkedName(project.description || project.projectNumber);
+      setLinkResult('created');
+      setShowLinkModal(false);
+    } catch(e) { setLinkResult('error'); }
   };
 
   return (
@@ -97,70 +78,43 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       <tr className="bg-white/[0.02] border-b border-white/5">
         <td colSpan={11} className="px-3 py-4">
           <div className="space-y-6">
-    {/* Länka till IM Workspace */}
-    <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10 flex items-center gap-3">
-      <span className="text-sm font-medium text-white/60">IM Workspace:</span>
-      <button onClick={openLinkModal} className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-        🔗 Länka projekt till Workspace
-      </button>
-    </div>
-
-    {/* Link Modal */}
-    {showLinkModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowLinkModal(false)}>
-        <div className="bg-slate-900 border border-white/15 rounded-xl p-5 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
-          <h3 className="text-white font-semibold text-base mb-4">Länka till IM Workspace-projekt</h3>
-
-          {linkResult?.success && (
-            <div className="mb-3 p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-sm">
-              ✓ Länkat till: {linkResult.name}
-            </div>
-          )}
-          {linkResult?.error && (
-            <div className="mb-3 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm">
-              Fel vid länkning — försök igen
-            </div>
-          )}
-
-          {loadingProjects ? (
-            <p className="text-white/50 text-sm py-6 text-center">Hämtar projekt...</p>
-          ) : (
-            <div className="space-y-1 max-h-64 overflow-y-auto mb-4">
-              {workspaceProjects.length === 0 && !linkResult && (
-                <p className="text-white/30 text-sm italic py-4 text-center">Inga projekt hittades</p>
-              )}
-              {workspaceProjects.map((wp) => (
-                <button
-                  key={wp.id}
-                  onClick={() => handleLinkExisting(wp)}
-                  className="w-full text-left px-3 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
-                >
-                  <p className="text-white text-sm font-medium">{wp.name || wp.id}</p>
-                  {wp.fortnoxProjectNumber && (
-                    <p className="text-white/40 text-xs mt-0.5">Fortnox: {wp.fortnoxProjectNumber}</p>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className="flex flex-col gap-2 mt-2">
-            <button
-              onClick={handleCreateNew}
-              className="w-full px-3 py-2 text-sm bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors"
-            >
-              ➕ Skapa nytt projekt i Workspace
-            </button>
-            <button
-              onClick={() => setShowLinkModal(false)}
-              className="w-full px-3 py-2 text-sm bg-white/5 hover:bg-white/10 text-white/60 rounded-lg transition-colors"
-            >
-              Avbryt
-            </button>
-          </div>
-        </div>
+    <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-sm font-medium text-gray-600">IM Workspace:</span>
+        {!linkResult && (
+          <button onClick={openLinkModal} className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+            🔗 Länka projekt till Workspace
+          </button>
+        )}
+        {linkResult === 'linked' && <span className="text-sm text-green-600 font-medium">✓ Länkat till: {linkedName}</span>}
+        {linkResult === 'created' && <span className="text-sm text-green-600 font-medium">✓ Skapat i Workspace: {linkedName}</span>}
+        {linkResult === 'error' && (
+          <><span className="text-sm text-red-500">Fel — försök igen</span>
+          <button onClick={openLinkModal} className="text-sm text-blue-600 underline ml-2">Försök igen</button></>
+        )}
       </div>
-    )}
+      {showLinkModal && (
+        <div className="mt-3 border border-gray-200 rounded bg-white p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold">Välj ett Workspace-projekt att länka:</span>
+            <button onClick={() => setShowLinkModal(false)} className="text-gray-400 hover:text-gray-600 text-xs">✕ Stäng</button>
+          </div>
+          {wsLoading && <p className="text-sm text-gray-500">Hämtar projekt...</p>}
+          {!wsLoading && wsProjects.length === 0 && <p className="text-sm text-gray-400 italic">Inga Workspace-projekt hittades</p>}
+          {!wsLoading && wsProjects.map(wp => (
+            <div key={wp.id} onClick={() => linkToExisting(wp)}
+              className="flex items-center justify-between px-3 py-2 rounded hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-0">
+              <span className="text-sm font-medium">{wp.name}</span>
+              {wp.fortnoxProjectNumber && <span className="text-xs text-gray-400">#{wp.fortnoxProjectNumber}</span>}
+            </div>
+          ))}
+          <button onClick={createInWorkspace}
+            className="mt-3 w-full flex items-center justify-center gap-1 px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700">
+            ➕ Skapa nytt projekt i Workspace
+          </button>
+        </div>
+      )}
+    </div>
             {/* Invoices section - kept for reference but can be hidden if not needed */}
             <div className="grid grid-cols-2 gap-6">
               {/* Customer invoices */}
