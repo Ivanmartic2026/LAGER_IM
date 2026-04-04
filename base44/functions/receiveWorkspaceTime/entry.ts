@@ -19,6 +19,12 @@ Deno.serve(async (req) => {
 
     const base44 = createClientFromRequest(req);
 
+    // Check for duplicate
+    const existing = await base44.asServiceRole.entities.ProjectTime.filter({ projectNumber, date, hours, reporter });
+    if (existing.length > 0) {
+      return Response.json({ success: true, entry: existing[0], duplicate: true });
+    }
+
     // Create time entry
     const entry = await base44.asServiceRole.entities.ProjectTime.create({
       projectNumber,

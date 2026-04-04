@@ -59,6 +59,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       });
       const data = await res.json();
       setSyncStatus(`synced:${data.timesSynced || 0}:${data.drivingSynced || 0}`);
+      queryClient.invalidateQueries({ queryKey: ['projectTime', project.projectNumber] });
     } catch(e) { setSyncStatus('error'); }
   };
 
