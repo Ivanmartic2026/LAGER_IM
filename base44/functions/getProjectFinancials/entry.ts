@@ -146,10 +146,10 @@ async function processBatch(accessToken, projects) {
     const unfactured = Math.max(0, orderValue - revenue);
     const marginPct = revenue > 0 ? ((revenue - costs) / revenue * 100) : null;
     const warnings = [];
-    if (result < 0) warnings.push('negative_margin');
-    if (orderValue > 0 && unfactured / orderValue > 0.2) warnings.push('unfactured_high');
-    if (overdueCount > 0) warnings.push('overdue_invoice');
-    if (costs === 0 && revenue > 0) warnings.push('no_costs');
+    if (marginPct !== null && marginPct < 0) warnings.push('Negativ marginal');
+    if (unfactured > 5000) warnings.push('Ej fakturerat');
+    if (overdueCount > 0) warnings.push('Förfallen faktura');
+    if (costs === 0 && revenue > 0) warnings.push('Inga kostnader');
 
     return {
       projectNumber: project.ProjectNumber,

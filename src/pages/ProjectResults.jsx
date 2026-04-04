@@ -328,9 +328,9 @@ function MainTable({ projects, onSlutModal, onInvoiceClick }) {
   const toggleRow = (id) => setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   // Warning counts
-  const negativeCount = filtered.filter(p => p.warnings?.includes('negative_margin')).length;
-  const overdueCount = filtered.filter(p => p.warnings?.includes('overdue_invoice')).length;
-  const unfacturedCount = filtered.filter(p => p.warnings?.includes('unfactured_high')).length;
+  const negativeCount = filtered.filter(p => p.warnings?.includes('Negativ marginal')).length;
+  const overdueCount = filtered.filter(p => p.warnings?.includes('Förfallen faktura')).length;
+  const unfacturedCount = filtered.filter(p => p.warnings?.includes('Ej fakturerat')).length;
   const hasWarnings = negativeCount > 0 || overdueCount > 0 || unfacturedCount > 0;
 
   // Totals
@@ -450,10 +450,10 @@ function MainTable({ projects, onSlutModal, onInvoiceClick }) {
                       {fmtNum(p.unpaidAmount || 0)}
                     </td>
                     <td className="px-3 py-2.5 text-center">
-                      {p.warnings?.includes('negative_margin') && <span title="Negativ marginal">🔴</span>}
-                      {p.warnings?.includes('overdue_invoice') && <span title="Förfallen faktura">🟠</span>}
-                      {p.warnings?.includes('unfactured_high') && <span title="Hög ej fakturerad andel">🟡</span>}
-                      {p.warnings?.includes('no_costs') && <span title="Inga kostnader">⚠️</span>}
+                      {p.warnings?.includes('Negativ marginal') && <span title="Negativ marginal">🔴</span>}
+                      {p.warnings?.includes('Förfallen faktura') && <span title="Förfallen faktura">🟠</span>}
+                      {p.warnings?.includes('Ej fakturerat') && <span title="Ej fakturerat >5000 kr">🟡</span>}
+                      {p.warnings?.includes('Inga kostnader') && <span title="Inga kostnader">⚠️</span>}
                     </td>
                     <td className="px-3 py-2.5 text-center" onClick={e => e.stopPropagation()}>
                       <Button
