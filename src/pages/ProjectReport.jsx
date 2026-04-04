@@ -40,7 +40,7 @@ function InvStatusBadge({ balance, dueDate }) {
 function KpiCard({ label, value, valueColor }) {
   return (
     <div style={{ background: '#1e2132', border: '1px solid #2a2d3e' }} className="rounded-xl p-6 print:bg-white print:border-gray-200">
-      <div style={{ color: '#8b90a7' }} className="text-xs uppercase tracking-widest mb-2 print:text-gray-500">{label}</div>
+      <div className="text-xs uppercase tracking-widest text-gray-400 mb-1">{label}</div>
       <div style={{ color: valueColor || '#f0f2f8' }} className="text-3xl font-bold tabular-nums print:text-black">{value}</div>
     </div>
   );
@@ -278,13 +278,11 @@ export default function ProjectReport() {
               {/* Buttons */}
               <div className="flex gap-2 no-print shrink-0">
                 <button onClick={() => window.print()}
-                  style={{ color: '#8b90a7', border: '1px solid #2a2d3e' }}
-                  className="px-4 py-2 rounded-lg text-sm hover:opacity-70 transition-opacity">
+                  className="border border-gray-600 text-gray-300 px-4 py-2 rounded text-sm hover:bg-gray-800 transition-colors">
                   Skriv ut
                 </button>
                 <button onClick={() => window.history.back()}
-                  style={{ color: '#8b90a7', border: '1px solid #2a2d3e' }}
-                  className="px-4 py-2 rounded-lg text-sm hover:opacity-70 transition-opacity">
+                  className="border border-gray-600 text-gray-300 px-4 py-2 rounded text-sm hover:bg-gray-800 transition-colors">
                   Tillbaka
                 </button>
               </div>
