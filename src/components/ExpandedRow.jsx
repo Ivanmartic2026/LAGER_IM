@@ -11,33 +11,36 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
   const [wsProjects, setWsProjects] = useState([]);
   const [wsLoading, setWsLoading] = useState(false);
   const [wsSearch, setWsSearch] = useState('');
-  const [linkResult, setLinkResult] = useState(null); // null | 'linked' | 'created' | 'error'
+  const [linkResult, setLinkResult] = useState(null);
   const [linkedName, setLinkedName] = useState('');
   const [syncStatus, setSyncStatus] = useState(null);
   const [linkedWsProjectId, setLinkedWsProjectId] = useState('');
   const queryClient = useQueryClient();
 
-  // Fetch time entries
   const { data: timeEntries = [] } = useQuery({
     queryKey: ['projectTime', project.projectNumber],
     queryFn: () => base44.entities.ProjectTime.filter({ projectNumber: project.projectNumber }),
   });
 
-  // Fetch driving expenses
   const { data: expenses = [] } = useQuery({
     queryKey: ['projectExpenses', project.projectNumber],
     queryFn: () => base44.entities.ProjectExpense.filter({ projectNumber: project.projectNumber }),
   });
 
+  const { data: drivingEntries = [] } = useQuery({
+    queryKey: ['drivingJournal', project.projectNumber],
+    queryFn: () => base44.entities.DrivingJournalEntry.filter({ projectNumber: project.projectNumber }).catch(() => []),
+  });
+
   const totalHours = timeEntries.reduce((sum, t) => sum + (t.hours || 0), 0);
   const totalExpenseCost = expenses.reduce((sum, e) => sum + (e.costSEK || 0), 0);
+  const totalKm = drivingEntries.reduce((sum, d) => sum + (d.distanceKm || 0), 0);
 
   const handleLoggaTidSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['projectTime', project.projectNumber] });
     queryClient.invalidateQueries({ queryKey: ['projectFinancials'] });
     setShowLoggaTid(false);
   };
-
 
   const openLinkModal = async () => {
     setShowLinkModal(true);
@@ -104,79 +107,81 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       <tr className="bg-white/[0.02] border-b border-white/5">
         <td colSpan={11} className="px-3 py-4">
           <div className="space-y-6">
-    <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-      <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-sm font-medium text-gray-600">IM Workspace:</span>
-        {!linkResult && (
-          <button onClick={openLinkModal} className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-            🔗 Länka projekt till Workspace
-          </button>
-        )}
-        {linkResult === 'linked' && <span className="text-sm text-green-600 font-medium">✓ Länkat till: {linkedName}</span>}
-        {linkResult === 'created' && <span className="text-sm text-green-600 font-medium">✓ Skapat i Workspace: {linkedName}</span>}
-        {(linkResult === 'linked' || linkResult === 'created') && (
-          <button
-            onClick={syncFromWorkspace}
-            disabled={syncStatus === 'syncing'}
-            className="flex items-center gap-1 px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-60"
-          >
-            {syncStatus === 'syncing' ? 'Synkar...' :
-             syncStatus?.startsWith('synced:') ? `✓ Synkat! ${syncStatus.split(':')[1]} tider, ${syncStatus.split(':')[2]} resor` :
-             syncStatus === 'error' ? 'Fel vid synk' :
-             '🔄 Synka från Workspace'}
-          </button>
-        )}
-        {linkResult === 'error' && (
-          <><span className="text-sm text-red-500">Fel — försök igen</span>
-          <button onClick={openLinkModal} className="text-sm text-blue-600 underline ml-2">Försök igen</button></>
-        )}
-      </div>
-      {showLinkModal && (
-        <div className="mt-3 border border-gray-200 rounded bg-white p-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold">Välj ett Workspace-projekt att länka:</span>
-            <button onClick={() => { setShowLinkModal(false); setWsSearch(''); }} className="text-gray-400 hover:text-gray-600 text-xs">✕ Stäng</button>
-          </div>
-          {wsLoading && <p className="text-sm text-gray-500">Hämtar projekt...</p>}
-          {!wsLoading && (
-            <input
-              type="text"
-              autoFocus
-              placeholder="Sök projekt..."
-              value={wsSearch}
-              onChange={e => setWsSearch(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded mb-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          )}
-          {!wsLoading && wsProjects.length === 0 && <p className="text-sm text-gray-400 italic">Inga Workspace-projekt hittades</p>}
-          {!wsLoading && (() => {
-            const q = wsSearch.toLowerCase();
-            const filtered = wsProjects.filter(wp =>
-              wp.name?.toLowerCase().includes(q) ||
-              wp.id?.toLowerCase().includes(q) ||
-              wp.fortnoxProjectNumber?.toLowerCase().includes(q)
-            );
-            if (wsProjects.length > 0 && filtered.length === 0) {
-              return <p className="text-sm text-gray-400 italic">Inga resultat</p>;
-            }
-            return filtered.map(wp => (
-              <div key={wp.id} onClick={() => linkToExisting(wp)}
-                className="flex items-center justify-between px-3 py-2 rounded hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-0">
-                <span className="text-sm font-medium">{wp.name}</span>
-                {wp.fortnoxProjectNumber && <span className="text-xs text-gray-400">#{wp.fortnoxProjectNumber}</span>}
+
+            {/* IM Workspace link section */}
+            <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-sm font-medium text-gray-600">IM Workspace:</span>
+                {!linkResult && (
+                  <button onClick={openLinkModal} className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                    🔗 Länka projekt till Workspace
+                  </button>
+                )}
+                {linkResult === 'linked' && <span className="text-sm text-green-600 font-medium">✓ Länkat till: {linkedName}</span>}
+                {linkResult === 'created' && <span className="text-sm text-green-600 font-medium">✓ Skapat i Workspace: {linkedName}</span>}
+                {(linkResult === 'linked' || linkResult === 'created') && (
+                  <button
+                    onClick={syncFromWorkspace}
+                    disabled={syncStatus === 'syncing'}
+                    className="flex items-center gap-1 px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-60"
+                  >
+                    {syncStatus === 'syncing' ? 'Synkar...' :
+                     syncStatus?.startsWith('synced:') ? `✓ Synkat! ${syncStatus.split(':')[1]} tider, ${syncStatus.split(':')[2]} resor` :
+                     syncStatus === 'error' ? 'Fel vid synk' :
+                     '🔄 Synka från Workspace'}
+                  </button>
+                )}
+                {linkResult === 'error' && (
+                  <><span className="text-sm text-red-500">Fel — försök igen</span>
+                  <button onClick={openLinkModal} className="text-sm text-blue-600 underline ml-2">Försök igen</button></>
+                )}
               </div>
-            ));
-          })()}
-          <button onClick={createInWorkspace}
-            className="mt-3 w-full flex items-center justify-center gap-1 px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700">
-            ➕ Skapa nytt projekt i Workspace
-          </button>
-        </div>
-      )}
-    </div>
-            {/* Invoices section - kept for reference but can be hidden if not needed */}
+              {showLinkModal && (
+                <div className="mt-3 border border-gray-200 rounded bg-white p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold">Välj ett Workspace-projekt att länka:</span>
+                    <button onClick={() => { setShowLinkModal(false); setWsSearch(''); }} className="text-gray-400 hover:text-gray-600 text-xs">✕ Stäng</button>
+                  </div>
+                  {wsLoading && <p className="text-sm text-gray-500">Hämtar projekt...</p>}
+                  {!wsLoading && (
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Sök projekt..."
+                      value={wsSearch}
+                      onChange={e => setWsSearch(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded mb-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                  )}
+                  {!wsLoading && wsProjects.length === 0 && <p className="text-sm text-gray-400 italic">Inga Workspace-projekt hittades</p>}
+                  {!wsLoading && (() => {
+                    const q = wsSearch.toLowerCase();
+                    const filtered = wsProjects.filter(wp =>
+                      wp.name?.toLowerCase().includes(q) ||
+                      wp.id?.toLowerCase().includes(q) ||
+                      wp.fortnoxProjectNumber?.toLowerCase().includes(q)
+                    );
+                    if (wsProjects.length > 0 && filtered.length === 0) {
+                      return <p className="text-sm text-gray-400 italic">Inga resultat</p>;
+                    }
+                    return filtered.map(wp => (
+                      <div key={wp.id} onClick={() => linkToExisting(wp)}
+                        className="flex items-center justify-between px-3 py-2 rounded hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-0">
+                        <span className="text-sm font-medium">{wp.name}</span>
+                        {wp.fortnoxProjectNumber && <span className="text-xs text-gray-400">#{wp.fortnoxProjectNumber}</span>}
+                      </div>
+                    ));
+                  })()}
+                  <button onClick={createInWorkspace}
+                    className="mt-3 w-full flex items-center justify-center gap-1 px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700">
+                    ➕ Skapa nytt projekt i Workspace
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Invoices */}
             <div className="grid grid-cols-2 gap-6">
-              {/* Customer invoices */}
               {project.customerInvoices?.length > 0 && (
                 <div>
                   <h4 className="text-xs font-semibold text-white/70 uppercase mb-3 tracking-wider">Kundfakturor</h4>
@@ -202,8 +207,6 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                   </div>
                 </div>
               )}
-
-              {/* Supplier invoices */}
               {project.supplierInvoices?.length > 0 && (
                 <div>
                   <h4 className="text-xs font-semibold text-white/70 uppercase mb-3 tracking-wider">Leverantörsfakturor</h4>
@@ -231,12 +234,12 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
               )}
             </div>
 
-            {/* Tidslogg section */}
+            {/* Tidslogg */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-xs font-semibold text-white/70 uppercase tracking-wider">Tidslogg ({totalHours}h totalt)</h4>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => setShowLoggaTid(true)}
                   className="text-xs border-white/20 text-white/60 bg-white/5 hover:bg-white/10 hover:text-white h-7 px-2 gap-1"
@@ -245,7 +248,6 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                   Logga tid
                 </Button>
               </div>
-
               {timeEntries.length > 0 ? (
                 <div className="overflow-x-auto rounded border border-white/10">
                   <table className="w-full text-xs">
@@ -274,7 +276,49 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
               )}
             </div>
 
-            {/* Resekostnader section */}
+            {/* Körjournal */}
+            <div>
+              <h4 className="text-xs font-semibold text-white/70 uppercase mb-3 tracking-wider">
+                Körjournal ({drivingEntries.length} resor, {totalKm.toLocaleString('sv-SE')} km totalt)
+              </h4>
+              {drivingEntries.length > 0 ? (
+                <div className="overflow-x-auto rounded border border-white/10">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-white/10 text-white/40">
+                        <th className="text-left px-2 py-2">Datum</th>
+                        <th className="text-left px-2 py-2">Förare</th>
+                        <th className="text-left px-2 py-2">Från</th>
+                        <th className="text-left px-2 py-2">Till</th>
+                        <th className="text-right px-2 py-2">Km</th>
+                        <th className="text-left px-2 py-2">Syfte</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {drivingEntries.map((d, i) => (
+                        <tr key={i} className="border-b border-white/5 hover:bg-white/[0.05]">
+                          <td className="px-2 py-1.5 text-white/70 font-mono">{d.date}</td>
+                          <td className="px-2 py-1.5 text-white/60">{d.driverName || '–'}</td>
+                          <td className="px-2 py-1.5 text-white/60">{d.fromLocation || '–'}</td>
+                          <td className="px-2 py-1.5 text-white/60">{d.toLocation || '–'}</td>
+                          <td className="px-2 py-1.5 text-right text-white/70 font-semibold">{d.distanceKm || '–'}</td>
+                          <td className="px-2 py-1.5 text-white/60 max-w-[200px] truncate">{d.purpose || d.description || '–'}</td>
+                        </tr>
+                      ))}
+                      <tr className="border-t border-white/20 bg-white/[0.05] font-semibold">
+                        <td colSpan={4} className="px-2 py-2 text-white/40 text-xs">Totalt</td>
+                        <td className="px-2 py-2 text-right text-white">{totalKm.toLocaleString('sv-SE')} km</td>
+                        <td />
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-xs text-white/30 italic py-4">Ingen körjournal registrerad</p>
+              )}
+            </div>
+
+            {/* Resekostnader */}
             <div>
               <h4 className="text-xs font-semibold text-white/70 uppercase mb-3 tracking-wider">Resekostnader ({totalExpenseCost.toLocaleString('sv-SE')} kr totalt)</h4>
               {expenses.length > 0 ? (
@@ -310,12 +354,23 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                 <p className="text-xs text-white/30 italic py-4">Inga resekostnader registrerade</p>
               )}
             </div>
+
+            {/* Full report button */}
+            <div className="pt-2 border-t border-white/10">
+              <button
+                onClick={() => { window.location.href = '/ProjectReport?projectNumber=' + project.projectNumber; }}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 hover:text-blue-200 font-medium transition-all text-sm"
+              >
+                📄 Öppna fullständig rapport
+              </button>
+            </div>
+
           </div>
         </td>
       </tr>
 
       {showLoggaTid && (
-        <LoggaTidModal 
+        <LoggaTidModal
           projectNumber={project.projectNumber}
           projectName={project.projectName}
           onClose={() => setShowLoggaTid(false)}

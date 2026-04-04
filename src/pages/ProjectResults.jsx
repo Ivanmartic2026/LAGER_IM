@@ -459,7 +459,7 @@ function MainTable({ projects, onSlutModal, onInvoiceClick }) {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setSlutModal(p)}
+                        onClick={() => { window.location.href = '/ProjectReport?projectNumber=' + p.projectNumber; }}
                         className="text-xs border-white/20 text-white/60 bg-white/5 hover:bg-white/10 hover:text-white h-6 px-2"
                       >
                         Slutrapport
