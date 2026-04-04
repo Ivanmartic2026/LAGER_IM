@@ -13,6 +13,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
   const [linkResult, setLinkResult] = useState(null); // null | 'linked' | 'created' | 'error'
   const [linkedName, setLinkedName] = useState('');
   const [syncStatus, setSyncStatus] = useState(null);
+  const [linkedWsProjectId, setLinkedWsProjectId] = useState('');
   const queryClient = useQueryClient();
 
   // Fetch time entries
@@ -54,7 +55,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
     try {
       const res = await fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
         method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber })
+        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber, wsProjectId: linkedWsProjectId })
       });
       const data = await res.json();
       setSyncStatus(`synced:${data.timesSynced || 0}:${data.drivingSynced || 0}`);
@@ -69,10 +70,11 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       });
       setLinkedName(wp.name);
       setLinkResult('linked');
+      setLinkedWsProjectId(wp.id);
       setShowLinkModal(false);
       fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
         method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber })
+        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber, wsProjectId: wp.id })
       });
     } catch(e) { setLinkResult('error'); }
   };
@@ -89,7 +91,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       setShowLinkModal(false);
       fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
         method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber })
+        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber, wsProjectId: data.id })
       });
     } catch(e) { setLinkResult('error'); }
   };
