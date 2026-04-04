@@ -1,0 +1,57 @@
+{
+  "name": "DrivingJournalEntry",
+  "type": "object",
+  "properties": {
+    "projectNumber": {
+      "type": "string",
+      "description": "Projektnummer"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum f\u00f6r resan"
+    },
+    "driverName": {
+      "type": "string",
+      "description": "F\u00f6rarens namn"
+    },
+    "fromLocation": {
+      "type": "string",
+      "description": "Startplats"
+    },
+    "toLocation": {
+      "type": "string",
+      "description": "Destination"
+    },
+    "distanceKm": {
+      "type": "number",
+      "description": "K\u00f6rstr\u00e4cka i km"
+    },
+    "purpose": {
+      "type": "string",
+      "description": "Syfte med resan"
+    },
+    "vehicleReg": {
+      "type": "string",
+      "description": "Fordonets registreringsnummer"
+    },
+    "reporter": {
+      "type": "string",
+      "description": "Rapport\u00f6r (email)"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "imworkspace",
+        "manual"
+      ],
+      "default": "manual",
+      "description": "K\u00e4lla f\u00f6r posten"
+    }
+  },
+  "required": [
+    "projectNumber",
+    "date",
+    "distanceKm"
+  ]
+}
