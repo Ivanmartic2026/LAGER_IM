@@ -41,7 +41,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
     setWsLoading(true);
     setLinkResult(null);
     try {
-      const res = await fetch('https://app--6951895d1643f7057890a865.base44.app/functions/listWorkspaceProjects');
+      const res = await fetch('https://medarbetarappen-7890a865.base44.app/functions/listWorkspaceProjects');
       const data = await res.json();
       setWsProjects(data.projects || []);
     } catch(e) { setWsProjects([]); }
@@ -50,7 +50,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
 
   const linkToExisting = async (wp) => {
     try {
-      await fetch('https://app--6951895d1643f7057890a865.base44.app/functions/linkProjectToLager', {
+      await fetch('https://medarbetarappen-7890a865.base44.app/functions/linkProjectToLager', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ workspaceProjectId: wp.id, fortnoxProjectNumber: project.projectNumber, name: wp.name })
       });
@@ -62,7 +62,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
 
   const createInWorkspace = async () => {
     try {
-      const res = await fetch('https://app--6951895d1643f7057890a865.base44.app/functions/createProjectFromLager', {
+      const res = await fetch('https://medarbetarappen-7890a865.base44.app/functions/createProjectFromLager', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber, name: project.description || project.projectNumber, description: project.description || '' })
       });
