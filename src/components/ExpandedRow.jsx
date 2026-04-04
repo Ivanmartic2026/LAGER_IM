@@ -12,6 +12,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
   const [wsLoading, setWsLoading] = useState(false);
   const [linkResult, setLinkResult] = useState(null); // null | 'linked' | 'created' | 'error'
   const [linkedName, setLinkedName] = useState('');
+  const [syncStatus, setSyncStatus] = useState(null);
   const queryClient = useQueryClient();
 
   // Fetch time entries
@@ -48,6 +49,18 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
     setWsLoading(false);
   };
 
+  const syncFromWorkspace = async () => {
+    setSyncStatus('syncing');
+    try {
+      const res = await fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber })
+      });
+      const data = await res.json();
+      setSyncStatus(`synced:${data.timesSynced || 0}:${data.drivingSynced || 0}`);
+    } catch(e) { setSyncStatus('error'); }
+  };
+
   const linkToExisting = async (wp) => {
     try {
       await fetch('https://medarbetarappen-7890a865.base44.app/functions/linkProjectToLager', {
@@ -57,6 +70,10 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       setLinkedName(wp.name);
       setLinkResult('linked');
       setShowLinkModal(false);
+      fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber })
+      });
     } catch(e) { setLinkResult('error'); }
   };
 
@@ -70,6 +87,10 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       setLinkedName(project.description || project.projectNumber);
       setLinkResult('created');
       setShowLinkModal(false);
+      fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber })
+      });
     } catch(e) { setLinkResult('error'); }
   };
 
@@ -88,6 +109,18 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
         )}
         {linkResult === 'linked' && <span className="text-sm text-green-600 font-medium">✓ Länkat till: {linkedName}</span>}
         {linkResult === 'created' && <span className="text-sm text-green-600 font-medium">✓ Skapat i Workspace: {linkedName}</span>}
+        {(linkResult === 'linked' || linkResult === 'created') && (
+          <button
+            onClick={syncFromWorkspace}
+            disabled={syncStatus === 'syncing'}
+            className="flex items-center gap-1 px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-60"
+          >
+            {syncStatus === 'syncing' ? 'Synkar...' :
+             syncStatus?.startsWith('synced:') ? `✓ Synkat! ${syncStatus.split(':')[1]} tider, ${syncStatus.split(':')[2]} resor` :
+             syncStatus === 'error' ? 'Fel vid synk' :
+             '🔄 Synka från Workspace'}
+          </button>
+        )}
         {linkResult === 'error' && (
           <><span className="text-sm text-red-500">Fel — försök igen</span>
           <button onClick={openLinkModal} className="text-sm text-blue-600 underline ml-2">Försök igen</button></>
