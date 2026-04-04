@@ -10,6 +10,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [wsProjects, setWsProjects] = useState([]);
   const [wsLoading, setWsLoading] = useState(false);
+  const [wsSearch, setWsSearch] = useState('');
   const [linkResult, setLinkResult] = useState(null); // null | 'linked' | 'created' | 'error'
   const [linkedName, setLinkedName] = useState('');
   const [syncStatus, setSyncStatus] = useState(null);
@@ -42,6 +43,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
     setShowLinkModal(true);
     setWsLoading(true);
     setLinkResult(null);
+    setWsSearch('');
     try {
       const res = await fetch('https://medarbetarappen-7890a865.base44.app/functions/listWorkspaceProjects');
       const data = await res.json();
@@ -133,17 +135,38 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
         <div className="mt-3 border border-gray-200 rounded bg-white p-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold">Välj ett Workspace-projekt att länka:</span>
-            <button onClick={() => setShowLinkModal(false)} className="text-gray-400 hover:text-gray-600 text-xs">✕ Stäng</button>
+            <button onClick={() => { setShowLinkModal(false); setWsSearch(''); }} className="text-gray-400 hover:text-gray-600 text-xs">✕ Stäng</button>
           </div>
           {wsLoading && <p className="text-sm text-gray-500">Hämtar projekt...</p>}
+          {!wsLoading && (
+            <input
+              type="text"
+              autoFocus
+              placeholder="Sök projekt..."
+              value={wsSearch}
+              onChange={e => setWsSearch(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded mb-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          )}
           {!wsLoading && wsProjects.length === 0 && <p className="text-sm text-gray-400 italic">Inga Workspace-projekt hittades</p>}
-          {!wsLoading && wsProjects.map(wp => (
-            <div key={wp.id} onClick={() => linkToExisting(wp)}
-              className="flex items-center justify-between px-3 py-2 rounded hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-0">
-              <span className="text-sm font-medium">{wp.name}</span>
-              {wp.fortnoxProjectNumber && <span className="text-xs text-gray-400">#{wp.fortnoxProjectNumber}</span>}
-            </div>
-          ))}
+          {!wsLoading && (() => {
+            const q = wsSearch.toLowerCase();
+            const filtered = wsProjects.filter(wp =>
+              wp.name?.toLowerCase().includes(q) ||
+              wp.id?.toLowerCase().includes(q) ||
+              wp.fortnoxProjectNumber?.toLowerCase().includes(q)
+            );
+            if (wsProjects.length > 0 && filtered.length === 0) {
+              return <p className="text-sm text-gray-400 italic">Inga resultat</p>;
+            }
+            return filtered.map(wp => (
+              <div key={wp.id} onClick={() => linkToExisting(wp)}
+                className="flex items-center justify-between px-3 py-2 rounded hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-0">
+                <span className="text-sm font-medium">{wp.name}</span>
+                {wp.fortnoxProjectNumber && <span className="text-xs text-gray-400">#{wp.fortnoxProjectNumber}</span>}
+              </div>
+            ));
+          })()}
           <button onClick={createInWorkspace}
             className="mt-3 w-full flex items-center justify-center gap-1 px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700">
             ➕ Skapa nytt projekt i Workspace

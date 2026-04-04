@@ -49,7 +49,6 @@
  */
 import Admin from './pages/Admin';
 import Analytics from './pages/Analytics';
-import Documentation from './pages/Documentation';
 import EmailOrderSetup from './pages/EmailOrderSetup';
 import Find from './pages/Find';
 import Home from './pages/Home';
@@ -92,7 +91,6 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "Admin": Admin,
     "Analytics": Analytics,
-    "Documentation": Documentation,
     "EmailOrderSetup": EmailOrderSetup,
     "Find": Find,
     "Home": Home,
