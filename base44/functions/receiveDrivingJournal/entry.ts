@@ -22,7 +22,30 @@ Deno.serve(async (req) => {
     // Calculate cost if not provided
     const calculatedCost = costSEK || (distanceKm * 25);
 
-    // Create expense entry
+    // Check for duplicate DrivingJournalEntry
+    const existing = await base44.asServiceRole.entities.DrivingJournalEntry.filter({
+      projectNumber,
+      date,
+      distanceKm,
+    });
+
+    let journalEntry;
+    if (!existing || existing.length === 0) {
+      // Create driving journal entry (for display in ExpandedRow / ProjectReport)
+      journalEntry = await base44.asServiceRole.entities.DrivingJournalEntry.create({
+        projectNumber,
+        date,
+        distanceKm,
+        driverName: driverName || '',
+        vehicleReg: vehicleReg || '',
+        purpose: description || '',
+        source: source || 'imworkspace',
+      });
+    } else {
+      journalEntry = existing[0];
+    }
+
+    // Create expense entry for cost tracking
     const expense = await base44.asServiceRole.entities.ProjectExpense.create({
       projectNumber,
       date,
@@ -35,7 +58,7 @@ Deno.serve(async (req) => {
       type: 'driving',
     });
 
-    return Response.json({ success: true, expense });
+    return Response.json({ success: true, expense, journalEntry });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
