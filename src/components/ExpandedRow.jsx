@@ -245,18 +245,36 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                       <thead>
                         <tr className="border-b border-white/10 text-white/40">
                           <th className="text-left px-2 py-2">Nr</th>
+                          <th className="text-left px-2 py-2">Leverantör</th>
                           <th className="text-left px-2 py-2">Datum</th>
+                          <th className="text-left px-2 py-2">Förfallodatum</th>
                           <th className="text-right px-2 py-2">Belopp</th>
+                          <th className="text-left px-2 py-2">Status</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {project.supplierInvoices.map((inv, i) => (
-                          <tr key={i} className="border-b border-white/5 hover:bg-white/[0.05] cursor-pointer" onClick={() => onInvoiceClick(inv, 'supplier', project)}>
-                            <td className="px-2 py-1.5 font-mono text-white/60">{inv.invoiceNumber}</td>
-                            <td className="px-2 py-1.5 text-white/60">{inv.invoiceDate}</td>
-                            <td className="px-2 py-1.5 text-right text-white/70">{inv.total?.toLocaleString('sv-SE')}</td>
-                          </tr>
-                        ))}
+                        {project.supplierInvoices.map((inv, i) => {
+                          const today = new Date().toISOString().split('T')[0];
+                          const isPaid = inv.balance === 0;
+                          const isOverdue = inv.balance > 0 && inv.dueDate && inv.dueDate < today;
+                          return (
+                            <tr key={i} className="border-b border-white/5 hover:bg-white/[0.05] cursor-pointer" onClick={() => onInvoiceClick(inv, 'supplier', project)}>
+                              <td className="px-2 py-1.5 font-mono text-white/60">{inv.invoiceNumber}</td>
+                              <td className="px-2 py-1.5 text-white/80">{inv.supplierName || '–'}</td>
+                              <td className="px-2 py-1.5 text-white/60">{inv.invoiceDate || '–'}</td>
+                              <td className="px-2 py-1.5 text-white/60">{inv.dueDate || '–'}</td>
+                              <td className="px-2 py-1.5 text-right text-white/70">{inv.total?.toLocaleString('sv-SE')}</td>
+                              <td className="px-2 py-1.5">
+                                {isPaid
+                                  ? <span className="text-green-400 text-xs">Betald</span>
+                                  : isOverdue
+                                    ? <span className="text-red-400 text-xs">Förfallen</span>
+                                    : <span className="text-orange-400 text-xs">Obetald</span>
+                                }
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

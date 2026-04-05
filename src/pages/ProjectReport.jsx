@@ -196,7 +196,7 @@ export default function ProjectReport() {
   ];
   const supRows = (project.supplierInvoices || []).map(inv => [
     <span style={{ color: '#a78bfa' }} className="font-mono text-xs">{inv.invoiceNumber}</span>,
-    <span style={{ color: '#8b90a7' }}>{inv.supplierName || '–'}</span>,
+    <span style={{ color: '#f0f2f8' }}>{inv.supplierName || '–'}</span>,
     <span style={{ color: '#8b90a7' }}>{inv.invoiceDate || '–'}</span>,
     <span style={{ color: '#8b90a7' }}>{inv.dueDate || '–'}</span>,
     <span className="font-semibold tabular-nums">{fmtNum(inv.total)}</span>,
