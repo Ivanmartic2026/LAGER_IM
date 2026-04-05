@@ -22,11 +22,11 @@ Deno.serve(async (req) => {
     // Calculate cost if not provided
     const calculatedCost = costSEK || (distanceKm * 25);
 
-    // Check for duplicate DrivingJournalEntry
+    // Check for duplicate DrivingJournalEntry (by projectNumber + date + driverName)
     const existing = await base44.asServiceRole.entities.DrivingJournalEntry.filter({
       projectNumber,
       date,
-      distanceKm,
+      driverName: driverName || '',
     });
 
     let journalEntry;

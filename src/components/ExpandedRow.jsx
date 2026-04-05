@@ -65,6 +65,8 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       const data = await res.json();
       setSyncStatus(`synced:${data.timesSynced || 0}:${data.drivingSynced || 0}`);
       queryClient.invalidateQueries({ queryKey: ['projectTime', project.projectNumber] });
+      queryClient.invalidateQueries({ queryKey: ['drivingJournal', project.projectNumber] });
+      queryClient.invalidateQueries({ queryKey: ['projectExpenses', project.projectNumber] });
     } catch(e) { setSyncStatus('error'); }
   };
 
@@ -78,9 +80,14 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       setLinkResult('linked');
       setLinkedWsProjectId(wp.id);
       setShowLinkModal(false);
+      // Sync and then invalidate queries so UI refreshes
       fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber, wsProjectId: wp.id })
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['projectTime', project.projectNumber] });
+        queryClient.invalidateQueries({ queryKey: ['drivingJournal', project.projectNumber] });
+        queryClient.invalidateQueries({ queryKey: ['projectExpenses', project.projectNumber] });
       });
     } catch(e) { setLinkResult('error'); }
   };
@@ -98,6 +105,10 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber, wsProjectId: data.id })
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['projectTime', project.projectNumber] });
+        queryClient.invalidateQueries({ queryKey: ['drivingJournal', project.projectNumber] });
+        queryClient.invalidateQueries({ queryKey: ['projectExpenses', project.projectNumber] });
       });
     } catch(e) { setLinkResult('error'); }
   };
