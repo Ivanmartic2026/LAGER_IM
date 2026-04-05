@@ -353,24 +353,22 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
             </div>
 
             {/* Workspace Summering */}
-            {(totalHours > 0 || drivingEntries.length > 0) && (
-              <div>
-                <h4 className="text-xs font-semibold text-white/70 uppercase mb-3 tracking-wider">Workspace Summering</h4>
-                <div className="grid grid-cols-4 gap-3">
-                  {[
-                    { label: 'Total timmar', value: `${totalHours} h` },
-                    { label: 'Total km körda', value: `${totalKm.toLocaleString('sv-SE')} km` },
-                    { label: 'Antal resor', value: drivingEntries.length },
-                    { label: 'Genomsnittlig resa', value: drivingEntries.length > 0 ? `${(totalKm / drivingEntries.length).toFixed(1)} km` : '–' },
-                  ].map((stat, i) => (
-                    <div key={i} className="rounded-lg bg-white/[0.04] border border-white/10 px-4 py-3">
-                      <div className="text-[10px] uppercase tracking-widest text-white/40 mb-1">{stat.label}</div>
-                      <div className="text-lg font-bold text-white/90 tabular-nums">{stat.value}</div>
-                    </div>
-                  ))}
-                </div>
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-gray-400 border-b border-gray-700 pb-2 mb-4">WORKSPACE SUMMERING</h4>
+              <div className="grid grid-cols-4 gap-3 mb-6">
+                {[
+                  { label: 'Total timmar', value: `${totalHours} h` },
+                  { label: 'Total km körda', value: `${totalKm.toLocaleString('sv-SE')} km` },
+                  { label: 'Antal resor', value: drivingEntries.length },
+                  { label: 'Genomsnittlig resa', value: drivingEntries.length > 0 ? `${(totalKm / drivingEntries.length).toFixed(1)} km` : '0 km' },
+                ].map((stat, i) => (
+                  <div key={i} className="bg-gray-800 rounded-lg p-4 text-center">
+                    <div className="text-xs text-gray-400 uppercase mb-2">{stat.label}</div>
+                    <div className="text-2xl font-bold text-white">{stat.value}</div>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
 
             {/* Resekostnader */}
             <div>
