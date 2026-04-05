@@ -45,6 +45,19 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
     staleTime: 0,
   });
 
+  const formatDuration = (startTime, endTime) => {
+    if (!startTime || !endTime) return '–';
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const diffMs = end - start;
+    if (diffMs <= 0) return '–';
+    const totalMinutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours > 0) return `${hours}h ${minutes}min`;
+    return `${minutes}min`;
+  };
+
   const totalHours = timeEntries.reduce((sum, t) => sum + (t.hours || 0), 0);
   const totalExpenseCost = expenses.reduce((sum, e) => sum + (e.costSEK || 0), 0);
   const totalKm = drivingEntries.reduce((sum, d) => sum + (d.distanceKm || 0), 0);
@@ -331,12 +344,13 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
               </h4>
               {drivingEntries.length > 0 ? (
                 <div className="overflow-x-auto rounded border border-white/10">
-                  <table className="w-full text-xs">
+      <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-white/10 text-white/40">
                         <th className="text-left px-2 py-2">Datum</th>
                         <th className="text-left px-2 py-2">Starttid</th>
                         <th className="text-left px-2 py-2">Stopptid</th>
+                        <th className="text-left px-2 py-2">Körtid</th>
                         <th className="text-left px-2 py-2">Förare</th>
                         <th className="text-left px-2 py-2">Från (adress)</th>
                         <th className="text-left px-2 py-2">Till (adress)</th>
@@ -350,6 +364,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                           <td className="px-2 py-1.5 text-white/70 font-mono">{d.date}</td>
                           <td className="px-2 py-1.5 text-white/60 font-mono">{d.startTime ? d.startTime.slice(11, 16) : '–'}</td>
                           <td className="px-2 py-1.5 text-white/60 font-mono">{d.endTime ? d.endTime.slice(11, 16) : '–'}</td>
+                          <td className="px-2 py-1.5 text-blue-400 font-medium">{formatDuration(d.startTime, d.endTime)}</td>
                           <td className="px-2 py-1.5 text-white/60">{d.driverName || '–'}</td>
                           <td className="px-2 py-1.5 text-white/60 max-w-[180px] truncate">{d.fromAddress || d.fromLocation || '–'}</td>
                           <td className="px-2 py-1.5 text-white/60 max-w-[180px] truncate">{d.toAddress || d.toLocation || '–'}</td>
@@ -358,7 +373,21 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                         </tr>
                       ))}
                       <tr className="border-t border-white/20 bg-white/[0.05] font-semibold">
-                        <td colSpan={6} className="px-2 py-2 text-white/40 text-xs">Totalt</td>
+                        <td colSpan={3} className="px-2 py-2 text-white/40 text-xs">Totalt</td>
+                        <td className="px-2 py-2 text-blue-400 font-medium">
+                          {(() => {
+                            const totalMin = drivingEntries.reduce((sum, d) => {
+                              if (!d.startTime || !d.endTime) return sum;
+                              const diff = new Date(d.endTime) - new Date(d.startTime);
+                              return diff > 0 ? sum + Math.floor(diff / 60000) : sum;
+                            }, 0);
+                            if (totalMin === 0) return '–';
+                            const h = Math.floor(totalMin / 60);
+                            const m = totalMin % 60;
+                            return h > 0 ? `${h}h ${m}min` : `${m}min`;
+                          })()}
+                        </td>
+                        <td colSpan={3} />
                         <td className="px-2 py-2 text-right text-white">{totalKm.toLocaleString('sv-SE')} km</td>
                         <td />
                       </tr>

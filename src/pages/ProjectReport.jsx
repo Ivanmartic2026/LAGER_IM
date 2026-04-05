@@ -223,14 +223,40 @@ export default function ProjectReport() {
 
   // Driving
   const fmtTime = (iso) => iso ? iso.slice(11, 16) : '–';
+
+  const formatDuration = (startTime, endTime) => {
+    if (!startTime || !endTime) return '–';
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const diffMs = end - start;
+    if (diffMs <= 0) return '–';
+    const totalMinutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours > 0) return `${hours}h ${minutes}min`;
+    return `${minutes}min`;
+  };
+
+  const totalDrivingMinutes = drivingEntries.reduce((sum, d) => {
+    if (!d.startTime || !d.endTime) return sum;
+    const diffMs = new Date(d.endTime) - new Date(d.startTime);
+    return diffMs > 0 ? sum + Math.floor(diffMs / 60000) : sum;
+  }, 0);
+  const totalDurationStr = totalDrivingMinutes > 0
+    ? (Math.floor(totalDrivingMinutes / 60) > 0
+        ? `${Math.floor(totalDrivingMinutes / 60)}h ${totalDrivingMinutes % 60}min`
+        : `${totalDrivingMinutes}min`)
+    : '–';
+
   const driveHeaders = [
-    { label: 'Datum' }, { label: 'Starttid' }, { label: 'Stopptid' }, { label: 'Förare' },
+    { label: 'Datum' }, { label: 'Starttid' }, { label: 'Stopptid' }, { label: 'Körtid' }, { label: 'Förare' },
     { label: 'Från (adress)' }, { label: 'Till (adress)' }, { label: 'Km', right: true }, { label: 'Syfte' }
   ];
   const driveRows = drivingEntries.map(d => [
     <span className="font-mono text-xs" style={{ color: '#8b90a7' }}>{d.date}</span>,
     <span className="font-mono" style={{ color: '#8b90a7' }}>{fmtTime(d.startTime)}</span>,
     <span className="font-mono" style={{ color: '#8b90a7' }}>{fmtTime(d.endTime)}</span>,
+    <span style={{ color: '#60a5fa' }} className="font-medium tabular-nums">{formatDuration(d.startTime, d.endTime)}</span>,
     d.driverName || '–',
     <span style={{ color: '#8b90a7' }}>{d.fromAddress || d.fromLocation || '–'}</span>,
     <span style={{ color: '#8b90a7' }}>{d.toAddress || d.toLocation || '–'}</span>,
@@ -238,7 +264,7 @@ export default function ProjectReport() {
     <span style={{ color: '#8b90a7' }}>{d.purpose || d.description || '–'}</span>
   ]);
   const driveFooter = drivingEntries.length > 0
-    ? ['', '', '', '', '', '', <span style={{ color: '#fb923c' }} className="tabular-nums">{fmtNum(totalKm)} km</span>, '']
+    ? ['', '', '', <span style={{ color: '#60a5fa' }} className="tabular-nums">{totalDurationStr}</span>, '', '', '', <span style={{ color: '#fb923c' }} className="tabular-nums">{fmtNum(totalKm)} km</span>, '']
     : null;
 
   return (
