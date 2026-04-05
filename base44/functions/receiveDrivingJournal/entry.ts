@@ -22,12 +22,15 @@ Deno.serve(async (req) => {
     // Calculate cost if not provided
     const calculatedCost = costSEK || (distanceKm * 25);
 
-    // Check for duplicate DrivingJournalEntry (by projectNumber + date + driverName)
-    const existing = await base44.asServiceRole.entities.DrivingJournalEntry.filter({
+    // Check for duplicate DrivingJournalEntry (by projectNumber + date only — driverName can vary)
+    const allForProject = await base44.asServiceRole.entities.DrivingJournalEntry.filter({
       projectNumber,
-      date,
-      driverName: driverName || '',
     });
+    console.log(`[receiveDrivingJournal] projectNumber=${projectNumber} date=${date} driverName=${driverName} distanceKm=${distanceKm}`);
+    console.log(`[receiveDrivingJournal] existing records for project: ${allForProject.length}`);
+    
+    const existing = allForProject.filter(e => e.date === date && e.driverName === (driverName || '') && e.distanceKm === distanceKm);
+    console.log(`[receiveDrivingJournal] matching dedup records: ${existing.length}`);
 
     let journalEntry;
     if (!existing || existing.length === 0) {
@@ -41,8 +44,10 @@ Deno.serve(async (req) => {
         purpose: description || '',
         source: source || 'imworkspace',
       });
+      console.log(`[receiveDrivingJournal] CREATED new entry id=${journalEntry.id}`);
     } else {
       journalEntry = existing[0];
+      console.log(`[receiveDrivingJournal] SKIPPED duplicate id=${journalEntry.id}`);
     }
 
     // Create expense entry for cost tracking
