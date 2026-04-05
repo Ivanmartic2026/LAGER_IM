@@ -21,6 +21,8 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       const results = await base44.entities.ProjectLink.filter({ projectNumber: project.projectNumber });
       return results?.[0] || null;
     },
+    staleTime: 0,
+    gcTime: 0,
   });
 
   const linkedWsProjectId = projectLink?.wsProjectId || '';
@@ -39,7 +41,8 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
 
   const { data: drivingEntries = [] } = useQuery({
     queryKey: ['drivingJournal', project.projectNumber],
-    queryFn: () => base44.entities.DrivingJournalEntry.filter({ projectNumber: project.projectNumber }).catch(() => []),
+    queryFn: () => base44.entities.DrivingJournalEntry.filter({ projectNumber: project.projectNumber }),
+    staleTime: 0,
   });
 
   const totalHours = timeEntries.reduce((sum, t) => sum + (t.hours || 0), 0);
@@ -73,9 +76,12 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
       });
       const data = await res.json();
       setSyncStatus(`synced:${data.timesSynced || 0}:${data.drivingSynced || 0}`);
-      queryClient.invalidateQueries({ queryKey: ['projectTime', project.projectNumber] });
-      queryClient.invalidateQueries({ queryKey: ['drivingJournal', project.projectNumber] });
-      queryClient.invalidateQueries({ queryKey: ['projectExpenses', project.projectNumber] });
+      await queryClient.invalidateQueries({ queryKey: ['projectTime', project.projectNumber] });
+      await queryClient.refetchQueries({ queryKey: ['projectTime', project.projectNumber] });
+      await queryClient.invalidateQueries({ queryKey: ['drivingJournal', project.projectNumber] });
+      await queryClient.refetchQueries({ queryKey: ['drivingJournal', project.projectNumber] });
+      await queryClient.invalidateQueries({ queryKey: ['projectExpenses', project.projectNumber] });
+      await queryClient.refetchQueries({ queryKey: ['projectExpenses', project.projectNumber] });
     } catch(e) { setSyncStatus('error'); }
   };
 
