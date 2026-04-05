@@ -317,9 +317,11 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                     <thead>
                       <tr className="border-b border-white/10 text-white/40">
                         <th className="text-left px-2 py-2">Datum</th>
+                        <th className="text-left px-2 py-2">Starttid</th>
+                        <th className="text-left px-2 py-2">Stopptid</th>
                         <th className="text-left px-2 py-2">Förare</th>
-                        <th className="text-left px-2 py-2">Från</th>
-                        <th className="text-left px-2 py-2">Till</th>
+                        <th className="text-left px-2 py-2">Från (adress)</th>
+                        <th className="text-left px-2 py-2">Till (adress)</th>
                         <th className="text-right px-2 py-2">Km</th>
                         <th className="text-left px-2 py-2">Syfte</th>
                       </tr>
@@ -328,15 +330,17 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                       {drivingEntries.map((d, i) => (
                         <tr key={i} className="border-b border-white/5 hover:bg-white/[0.05]">
                           <td className="px-2 py-1.5 text-white/70 font-mono">{d.date}</td>
+                          <td className="px-2 py-1.5 text-white/60 font-mono">{d.startTime ? d.startTime.slice(11, 16) : '–'}</td>
+                          <td className="px-2 py-1.5 text-white/60 font-mono">{d.endTime ? d.endTime.slice(11, 16) : '–'}</td>
                           <td className="px-2 py-1.5 text-white/60">{d.driverName || '–'}</td>
-                          <td className="px-2 py-1.5 text-white/60">{d.fromLocation || '–'}</td>
-                          <td className="px-2 py-1.5 text-white/60">{d.toLocation || '–'}</td>
+                          <td className="px-2 py-1.5 text-white/60 max-w-[180px] truncate">{d.fromAddress || d.fromLocation || '–'}</td>
+                          <td className="px-2 py-1.5 text-white/60 max-w-[180px] truncate">{d.toAddress || d.toLocation || '–'}</td>
                           <td className="px-2 py-1.5 text-right text-white/70 font-semibold">{d.distanceKm || '–'}</td>
-                          <td className="px-2 py-1.5 text-white/60 max-w-[200px] truncate">{d.purpose || d.description || '–'}</td>
+                          <td className="px-2 py-1.5 text-white/60 max-w-[150px] truncate">{d.purpose || d.description || '–'}</td>
                         </tr>
                       ))}
                       <tr className="border-t border-white/20 bg-white/[0.05] font-semibold">
-                        <td colSpan={4} className="px-2 py-2 text-white/40 text-xs">Totalt</td>
+                        <td colSpan={6} className="px-2 py-2 text-white/40 text-xs">Totalt</td>
                         <td className="px-2 py-2 text-right text-white">{totalKm.toLocaleString('sv-SE')} km</td>
                         <td />
                       </tr>
@@ -347,6 +351,26 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                 <p className="text-xs text-white/30 italic py-4">Ingen körjournal registrerad</p>
               )}
             </div>
+
+            {/* Workspace Summering */}
+            {(totalHours > 0 || drivingEntries.length > 0) && (
+              <div>
+                <h4 className="text-xs font-semibold text-white/70 uppercase mb-3 tracking-wider">Workspace Summering</h4>
+                <div className="grid grid-cols-4 gap-3">
+                  {[
+                    { label: 'Total timmar', value: `${totalHours} h` },
+                    { label: 'Total km körda', value: `${totalKm.toLocaleString('sv-SE')} km` },
+                    { label: 'Antal resor', value: drivingEntries.length },
+                    { label: 'Genomsnittlig resa', value: drivingEntries.length > 0 ? `${(totalKm / drivingEntries.length).toFixed(1)} km` : '–' },
+                  ].map((stat, i) => (
+                    <div key={i} className="rounded-lg bg-white/[0.04] border border-white/10 px-4 py-3">
+                      <div className="text-[10px] uppercase tracking-widest text-white/40 mb-1">{stat.label}</div>
+                      <div className="text-lg font-bold text-white/90 tabular-nums">{stat.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Resekostnader */}
             <div>

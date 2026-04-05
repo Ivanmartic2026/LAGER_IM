@@ -7,7 +7,8 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { projectNumber, date, distanceKm, description, driverName, vehicleReg, costSEK, source } = body;
+    const { projectNumber, date, distanceKm, description, driverName, vehicleReg, costSEK, source,
+            fromAddress, toAddress, fromLat, fromLng, toLat, toLng, startTime, endTime } = body;
 
     // Validate required fields
     if (!projectNumber || !date || distanceKm === undefined) {
@@ -43,6 +44,14 @@ Deno.serve(async (req) => {
         vehicleReg: vehicleReg || '',
         purpose: description || '',
         source: source || 'imworkspace',
+        ...(fromAddress && { fromAddress }),
+        ...(toAddress && { toAddress }),
+        ...(fromLat !== undefined && { fromLat }),
+        ...(fromLng !== undefined && { fromLng }),
+        ...(toLat !== undefined && { toLat }),
+        ...(toLng !== undefined && { toLng }),
+        ...(startTime && { startTime }),
+        ...(endTime && { endTime }),
       });
       console.log(`[receiveDrivingJournal] CREATED new entry id=${journalEntry.id}`);
     } else {

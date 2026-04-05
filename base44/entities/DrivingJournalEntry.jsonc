@@ -17,11 +17,43 @@
     },
     "fromLocation": {
       "type": "string",
-      "description": "Startplats"
+      "description": "Startplats (fritext)"
     },
     "toLocation": {
       "type": "string",
-      "description": "Destination"
+      "description": "Destination (fritext)"
+    },
+    "fromAddress": {
+      "type": "string",
+      "description": "Startadress (strukturerad adress)"
+    },
+    "toAddress": {
+      "type": "string",
+      "description": "Destinationsadress (strukturerad adress)"
+    },
+    "fromLat": {
+      "type": "number",
+      "description": "Startplats latitud"
+    },
+    "fromLng": {
+      "type": "number",
+      "description": "Startplats longitud"
+    },
+    "toLat": {
+      "type": "number",
+      "description": "Destination latitud"
+    },
+    "toLng": {
+      "type": "number",
+      "description": "Destination longitud"
+    },
+    "startTime": {
+      "type": "string",
+      "description": "Starttid (ISO-str\u00e4ng)"
+    },
+    "endTime": {
+      "type": "string",
+      "description": "Stopptid (ISO-str\u00e4ng)"
     },
     "distanceKm": {
       "type": "number",

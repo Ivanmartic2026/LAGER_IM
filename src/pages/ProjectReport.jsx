@@ -222,20 +222,23 @@ export default function ProjectReport() {
     : null;
 
   // Driving
+  const fmtTime = (iso) => iso ? iso.slice(11, 16) : '–';
   const driveHeaders = [
-    { label: 'Datum' }, { label: 'Förare' }, { label: 'Från' },
-    { label: 'Till' }, { label: 'Km', right: true }, { label: 'Syfte' }
+    { label: 'Datum' }, { label: 'Starttid' }, { label: 'Stopptid' }, { label: 'Förare' },
+    { label: 'Från (adress)' }, { label: 'Till (adress)' }, { label: 'Km', right: true }, { label: 'Syfte' }
   ];
   const driveRows = drivingEntries.map(d => [
     <span className="font-mono text-xs" style={{ color: '#8b90a7' }}>{d.date}</span>,
+    <span className="font-mono" style={{ color: '#8b90a7' }}>{fmtTime(d.startTime)}</span>,
+    <span className="font-mono" style={{ color: '#8b90a7' }}>{fmtTime(d.endTime)}</span>,
     d.driverName || '–',
-    <span style={{ color: '#8b90a7' }}>{d.fromLocation || '–'}</span>,
-    <span style={{ color: '#8b90a7' }}>{d.toLocation || '–'}</span>,
+    <span style={{ color: '#8b90a7' }}>{d.fromAddress || d.fromLocation || '–'}</span>,
+    <span style={{ color: '#8b90a7' }}>{d.toAddress || d.toLocation || '–'}</span>,
     <span style={{ color: '#fb923c' }} className="font-semibold tabular-nums">{d.distanceKm || '–'}</span>,
     <span style={{ color: '#8b90a7' }}>{d.purpose || d.description || '–'}</span>
   ]);
   const driveFooter = drivingEntries.length > 0
-    ? ['', '', '', '', <span style={{ color: '#fb923c' }} className="tabular-nums">{fmtNum(totalKm)} km</span>, '']
+    ? ['', '', '', '', '', '', <span style={{ color: '#fb923c' }} className="tabular-nums">{fmtNum(totalKm)} km</span>, '']
     : null;
 
   return (
