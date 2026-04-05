@@ -1,0 +1,22 @@
+{
+  "name": "ProjectLink",
+  "type": "object",
+  "properties": {
+    "projectNumber": {
+      "type": "string",
+      "description": "Fortnox projektnummer"
+    },
+    "wsProjectId": {
+      "type": "string",
+      "description": "Workspace projekt-ID"
+    },
+    "wsProjectName": {
+      "type": "string",
+      "description": "Workspace projektnamn"
+    }
+  },
+  "required": [
+    "projectNumber",
+    "wsProjectId"
+  ]
+}

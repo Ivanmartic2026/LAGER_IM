@@ -11,11 +11,21 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
   const [wsProjects, setWsProjects] = useState([]);
   const [wsLoading, setWsLoading] = useState(false);
   const [wsSearch, setWsSearch] = useState('');
-  const [linkResult, setLinkResult] = useState(null);
-  const [linkedName, setLinkedName] = useState('');
   const [syncStatus, setSyncStatus] = useState(null);
-  const [linkedWsProjectId, setLinkedWsProjectId] = useState('');
   const queryClient = useQueryClient();
+
+  // Load persisted link from DB
+  const { data: projectLink, refetch: refetchLink } = useQuery({
+    queryKey: ['projectLink', project.projectNumber],
+    queryFn: async () => {
+      const results = await base44.entities.ProjectLink.filter({ projectNumber: project.projectNumber });
+      return results?.[0] || null;
+    },
+  });
+
+  const linkedWsProjectId = projectLink?.wsProjectId || '';
+  const linkedName = projectLink?.wsProjectName || '';
+  const linkResult = projectLink ? 'linked' : null;
 
   const { data: timeEntries = [] } = useQuery({
     queryKey: ['projectTime', project.projectNumber],
@@ -45,7 +55,6 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
   const openLinkModal = async () => {
     setShowLinkModal(true);
     setWsLoading(true);
-    setLinkResult(null);
     setWsSearch('');
     try {
       const res = await fetch('https://medarbetarappen-7890a865.base44.app/functions/listWorkspaceProjects');
@@ -70,17 +79,23 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
     } catch(e) { setSyncStatus('error'); }
   };
 
+  const saveLink = async (wsProjectId, wsProjectName) => {
+    if (projectLink?.id) {
+      await base44.entities.ProjectLink.update(projectLink.id, { wsProjectId, wsProjectName });
+    } else {
+      await base44.entities.ProjectLink.create({ projectNumber: project.projectNumber, wsProjectId, wsProjectName });
+    }
+    await refetchLink();
+  };
+
   const linkToExisting = async (wp) => {
     try {
       await fetch('https://medarbetarappen-7890a865.base44.app/functions/linkProjectToLager', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ workspaceProjectId: wp.id, fortnoxProjectNumber: project.projectNumber, name: wp.name })
       });
-      setLinkedName(wp.name);
-      setLinkResult('linked');
-      setLinkedWsProjectId(wp.id);
+      await saveLink(wp.id, wp.name);
       setShowLinkModal(false);
-      // Sync and then invalidate queries so UI refreshes
       fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber, wsProjectId: wp.id })
@@ -89,18 +104,18 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
         queryClient.invalidateQueries({ queryKey: ['drivingJournal', project.projectNumber] });
         queryClient.invalidateQueries({ queryKey: ['projectExpenses', project.projectNumber] });
       });
-    } catch(e) { setLinkResult('error'); }
+    } catch(e) { /* silent */ }
   };
 
   const createInWorkspace = async () => {
     try {
+      const name = project.description || project.projectNumber;
       const res = await fetch('https://medarbetarappen-7890a865.base44.app/functions/createProjectFromLager', {
         method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber, name: project.description || project.projectNumber, description: project.description || '' })
+        body: JSON.stringify({ fortnoxProjectNumber: project.projectNumber, name, description: project.description || '' })
       });
       const data = await res.json();
-      setLinkedName(project.description || project.projectNumber);
-      setLinkResult('created');
+      await saveLink(data.id, name);
       setShowLinkModal(false);
       fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
         method: 'POST', headers: {'Content-Type':'application/json'},
@@ -110,7 +125,7 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
         queryClient.invalidateQueries({ queryKey: ['drivingJournal', project.projectNumber] });
         queryClient.invalidateQueries({ queryKey: ['projectExpenses', project.projectNumber] });
       });
-    } catch(e) { setLinkResult('error'); }
+    } catch(e) { /* silent */ }
   };
 
   return (
@@ -128,23 +143,21 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                     🔗 Länka projekt till Workspace
                   </button>
                 )}
-                {linkResult === 'linked' && <span className="text-sm text-green-600 font-medium">✓ Länkat till: {linkedName}</span>}
-                {linkResult === 'created' && <span className="text-sm text-green-600 font-medium">✓ Skapat i Workspace: {linkedName}</span>}
-                {(linkResult === 'linked' || linkResult === 'created') && (
-                  <button
-                    onClick={syncFromWorkspace}
-                    disabled={syncStatus === 'syncing'}
-                    className="flex items-center gap-1 px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-60"
-                  >
-                    {syncStatus === 'syncing' ? 'Synkar...' :
-                     syncStatus?.startsWith('synced:') ? `✓ Synkat! ${syncStatus.split(':')[1]} tider, ${syncStatus.split(':')[2]} resor` :
-                     syncStatus === 'error' ? 'Fel vid synk' :
-                     '🔄 Synka från Workspace'}
-                  </button>
-                )}
-                {linkResult === 'error' && (
-                  <><span className="text-sm text-red-500">Fel — försök igen</span>
-                  <button onClick={openLinkModal} className="text-sm text-blue-600 underline ml-2">Försök igen</button></>
+                {linkResult === 'linked' && (
+                  <>
+                    <span className="text-sm text-green-600 font-medium">✓ Länkat till: {linkedName}</span>
+                    <button onClick={openLinkModal} className="text-xs text-gray-400 underline hover:text-gray-600">Byt</button>
+                    <button
+                      onClick={syncFromWorkspace}
+                      disabled={syncStatus === 'syncing'}
+                      className="flex items-center gap-1 px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-60"
+                    >
+                      {syncStatus === 'syncing' ? 'Synkar...' :
+                       syncStatus?.startsWith('synced:') ? `✓ Synkat! ${syncStatus.split(':')[1]} tider, ${syncStatus.split(':')[2]} resor` :
+                       syncStatus === 'error' ? 'Fel vid synk' :
+                       '🔄 Synka från Workspace'}
+                    </button>
+                  </>
                 )}
               </div>
               {showLinkModal && (
