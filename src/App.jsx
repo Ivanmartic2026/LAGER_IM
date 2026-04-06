@@ -19,6 +19,7 @@ import ProjectResults from '@/pages/ProjectResults';
 import ProjectReport from '@/pages/ProjectReport';
 import WorkspaceProjects from '@/pages/WorkspaceProjects';
 import MedarbetarOversikt from '@/pages/MedarbetarOversikt';
+import TidsRapport from '@/pages/TidsRapport';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -126,6 +127,12 @@ function App() {
             <Route path="/MedarbetarOversikt" element={
               <LayoutWrapper currentPageName="MedarbetarOversikt">
                 <MedarbetarOversikt />
+              </LayoutWrapper>
+            } />
+            {/* Tidrapport */}
+            <Route path="/TidsRapport" element={
+              <LayoutWrapper currentPageName="TidsRapport">
+                <TidsRapport />
               </LayoutWrapper>
             } />
             {/* Project Results */}

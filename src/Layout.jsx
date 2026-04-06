@@ -1,7 +1,7 @@
 import React, { useEffect, useState as useReactState } from 'react';
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck, Clipboard, BarChart2, Layers, Users } from "lucide-react";
+import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck, Clipboard, BarChart2, Layers, Users, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
@@ -67,6 +67,7 @@ function LayoutContent({ children, currentPageName }) {
   const ADMIN_SUB_ITEMS = [
     { name: "WorkspaceProjects", label: "Workspace", icon: Layers },
     { name: "MedarbetarOversikt", label: "Medarbetare", icon: Users },
+    { name: "TidsRapport", label: "Tidrapport", icon: Clock },
   ];
 
   const visibleNavItems = NAV_ITEMS.filter(item => !item.module || userModules.includes(item.module));
