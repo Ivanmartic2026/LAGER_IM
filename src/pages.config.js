@@ -48,6 +48,10 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import Admin from './pages/Admin';
+import KilometerErsattning from './pages/KilometerErsattning';
+import MedarbetarOversikt from './pages/MedarbetarOversikt';
+import TidsRapport from './pages/TidsRapport';
+import WorkspaceProjects from './pages/WorkspaceProjects';
 import Analytics from './pages/Analytics';
 import EmailOrderSetup from './pages/EmailOrderSetup';
 import Find from './pages/Find';
@@ -90,6 +94,10 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "Admin": Admin,
+    "KilometerErsattning": KilometerErsattning,
+    "MedarbetarOversikt": MedarbetarOversikt,
+    "TidsRapport": TidsRapport,
+    "WorkspaceProjects": WorkspaceProjects,
     "Analytics": Analytics,
     "EmailOrderSetup": EmailOrderSetup,
     "Find": Find,
