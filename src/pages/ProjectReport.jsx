@@ -264,7 +264,9 @@ export default function ProjectReport() {
     <span style={{ color: '#8b90a7' }}>{d.purpose || d.description || '–'}</span>
   ]);
   const driveFooter = drivingEntries.length > 0
-    ? ['', '', '', <span style={{ color: '#60a5fa' }} className="tabular-nums">{totalDurationStr}</span>, '', '', '', <span style={{ color: '#fb923c' }} className="tabular-nums">{fmtNum(totalKm)} km</span>, '']
+    ? ['', '', '',
+       <span style={{ color: '#60a5fa' }} className="font-mono tabular-nums">{`${totalDurationStr} | ${fmtNum(totalKm)} km`}</span>,
+       '', '', '', '', '']
     : null;
 
   return (

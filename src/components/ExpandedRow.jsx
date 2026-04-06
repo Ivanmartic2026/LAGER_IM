@@ -374,21 +374,19 @@ export default function ExpandedRow({ project, onInvoiceClick }) {
                       ))}
                       <tr className="border-t border-white/20 bg-white/[0.05] font-semibold">
                         <td colSpan={3} className="px-2 py-2 text-white/40 text-xs">Totalt</td>
-                        <td className="px-2 py-2 text-blue-400 font-medium">
+                        <td colSpan={5} className="px-2 py-2 text-blue-400 font-mono text-sm">
                           {(() => {
                             const totalMin = drivingEntries.reduce((sum, d) => {
                               if (!d.startTime || !d.endTime) return sum;
                               const diff = new Date(d.endTime) - new Date(d.startTime);
                               return diff > 0 ? sum + Math.floor(diff / 60000) : sum;
                             }, 0);
-                            if (totalMin === 0) return '–';
                             const h = Math.floor(totalMin / 60);
                             const m = totalMin % 60;
-                            return h > 0 ? `${h}h ${m}min` : `${m}min`;
+                            const durationStr = totalMin === 0 ? '–' : (h > 0 ? `${h}h ${m}min` : `${m}min`);
+                            return `${durationStr} | ${totalKm.toLocaleString('sv-SE')} km`;
                           })()}
                         </td>
-                        <td colSpan={3} />
-                        <td className="px-2 py-2 text-right text-white">{totalKm.toLocaleString('sv-SE')} km</td>
                         <td />
                       </tr>
                     </tbody>
