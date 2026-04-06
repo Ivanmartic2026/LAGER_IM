@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { RefreshCw, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 
 function formatDuration(totalMinutes) {
   if (!totalMinutes || totalMinutes <= 0) return '–';
@@ -12,9 +12,9 @@ function formatDuration(totalMinutes) {
   return h > 0 ? `${h}h ${m}min` : `${m}min`;
 }
 
-function SummaryCard({ label, value, color = 'text-white' }) {
+function SummaryCard({ label, value, color = 'text-white', warn = false }) {
   return (
-    <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+    <div className={`rounded-xl border p-4 ${warn ? 'bg-yellow-900/20 border-yellow-700/40' : 'bg-gray-800 border-gray-700'}`}>
       <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">{label}</p>
       <p className={`text-2xl font-bold ${color}`}>{value}</p>
     </div>
@@ -36,10 +36,12 @@ function ReporterChip({ name }) {
   );
 }
 
-function ProjectCard({ projectNumber, timeEntries, drivingEntries, link }) {
+function ProjectCard({ wsProject, timeEntries, drivingEntries, link, onSync, syncing }) {
   const [expanded, setExpanded] = useState(false);
 
-  const projectName = link?.wsProjectName || `Projekt ${projectNumber}`;
+  const projectName = wsProject.name || link?.wsProjectName || `Projekt ${wsProject.id}`;
+  const projectNumber = link?.projectNumber || null;
+  const isSynced = timeEntries.length > 0 || drivingEntries.length > 0;
   const isLinked = !!link;
 
   const totalHours = timeEntries.reduce((s, t) => s + (t.hours || 0), 0);
@@ -63,37 +65,55 @@ function ProjectCard({ projectNumber, timeEntries, drivingEntries, link }) {
   const hasMore = sortedTimeEntries.length > 5;
 
   return (
-    <div className="bg-gray-800 rounded-xl border border-gray-700 p-5 space-y-4">
+    <div className={`rounded-xl border p-5 space-y-4 ${isSynced ? 'bg-gray-800 border-gray-700' : 'bg-gray-800/60 border-gray-700/50'}`}>
       {/* Top row */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <span className="text-blue-400 font-mono text-sm font-semibold">{projectNumber}</span>
-          <p className="text-white font-medium mt-0.5">{projectName}</p>
+          {projectNumber && (
+            <span className="text-blue-400 font-mono text-sm font-semibold">{projectNumber} · </span>
+          )}
+          <span className="text-white font-medium">{projectName}</span>
+          {wsProject.fortnoxProjectNumber && !projectNumber && (
+            <p className="text-xs text-gray-500 mt-0.5">FN: {wsProject.fortnoxProjectNumber}</p>
+          )}
         </div>
-        {isLinked ? (
-          <span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">WS Länkat</span>
-        ) : (
-          <span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-600/40 text-gray-400 border border-gray-600/40">Ej länkat</span>
-        )}
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
+          {isLinked ? (
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">WS Länkat</span>
+          ) : (
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-600/40 text-gray-400 border border-gray-600/40">Ej länkat</span>
+          )}
+          {isSynced ? (
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">Synkad</span>
+          ) : (
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" /> Ej synkad
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-2">
         <div className="bg-gray-700/50 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Timmar</p>
-          <p className="text-blue-400 font-bold text-lg">{totalHours.toLocaleString('sv-SE', { maximumFractionDigits: 1 })} h</p>
+          <p className={`font-bold text-lg ${isSynced ? 'text-blue-400' : 'text-gray-500'}`}>
+            {totalHours.toLocaleString('sv-SE', { maximumFractionDigits: 1 })} h
+          </p>
         </div>
         <div className="bg-gray-700/50 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Resor</p>
-          <p className="text-white font-bold text-lg">{drivingEntries.length}</p>
+          <p className={`font-bold text-lg ${isSynced ? 'text-white' : 'text-gray-500'}`}>{drivingEntries.length}</p>
         </div>
         <div className="bg-gray-700/50 rounded-lg p-3 text-center">
           <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Km</p>
-          <p className="text-blue-400 font-bold text-lg">{Math.round(totalKm).toLocaleString('sv-SE')} km</p>
+          <p className={`font-bold text-lg ${isSynced ? 'text-blue-400' : 'text-gray-500'}`}>
+            {Math.round(totalKm).toLocaleString('sv-SE')} km
+          </p>
         </div>
       </div>
 
-      {/* Körtid */}
+      {/* Driving time */}
       {totalDrivingMin > 0 && (
         <p className="text-xs text-gray-400">
           Total körtid: <span className="text-blue-400 font-mono">{formatDuration(totalDrivingMin)}</span>
@@ -112,6 +132,19 @@ function ProjectCard({ projectNumber, timeEntries, drivingEntries, link }) {
         <p className="text-xs text-gray-500">
           Senast aktiv: <span className="text-gray-300">{lastActive}</span>
         </p>
+      )}
+
+      {/* Sync button if linked but not synced */}
+      {isLinked && !isSynced && (
+        <Button
+          size="sm"
+          onClick={() => onSync(link.projectNumber, link.wsProjectId)}
+          disabled={syncing}
+          className="w-full bg-indigo-600 hover:bg-indigo-500 text-white gap-2"
+        >
+          <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
+          Synka nu
+        </Button>
       )}
 
       {/* Time entries mini list */}
@@ -145,7 +178,10 @@ function ProjectCard({ projectNumber, timeEntries, drivingEntries, link }) {
 
 export default function WorkspaceProjects() {
   const [search, setSearch] = useState('');
-  const [onlyLinked, setOnlyLinked] = useState(false);
+  const [filterTab, setFilterTab] = useState('alla'); // 'alla' | 'synkade' | 'ej_synkade'
+  const [syncingAll, setSyncingAll] = useState(false);
+  const [syncingId, setSyncingId] = useState(null);
+  const [syncStatus, setSyncStatus] = useState(null);
 
   const { data: allProjectTime = [], isFetching: fetchingTime, refetch: refetchTime } = useQuery({
     queryKey: ['ws_allProjectTime'],
@@ -165,63 +201,141 @@ export default function WorkspaceProjects() {
     staleTime: 2 * 60 * 1000,
   });
 
-  const isFetching = fetchingTime || fetchingDriving || fetchingLinks;
+  const { data: wsProjects = [], isFetching: fetchingWs, refetch: refetchWs } = useQuery({
+    queryKey: ['ws_workspaceProjects'],
+    queryFn: async () => {
+      const res = await fetch('https://medarbetarappen-7890a865.base44.app/functions/listWorkspaceProjects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      return data.projects || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const isFetching = fetchingTime || fetchingDriving || fetchingLinks || fetchingWs;
 
   const refetch = () => {
     refetchTime();
     refetchDriving();
     refetchLinks();
+    refetchWs();
   };
 
-  const linkMap = useMemo(() => {
+  // Build lookup maps
+  const linkByProjectNumber = useMemo(() => {
     const m = {};
     allLinks.forEach(l => { m[l.projectNumber] = l; });
     return m;
   }, [allLinks]);
 
-  // Group by projectNumber
-  const projectNumbers = useMemo(() => {
-    const nums = new Set([
-      ...allProjectTime.map(t => t.projectNumber),
-      ...allDriving.map(d => d.projectNumber),
-    ].filter(Boolean));
-    return [...nums];
-  }, [allProjectTime, allDriving]);
+  const linkByWsId = useMemo(() => {
+    const m = {};
+    allLinks.forEach(l => { if (l.wsProjectId) m[l.wsProjectId] = l; });
+    return m;
+  }, [allLinks]);
 
-  // Summary KPIs
-  const totalHours = allProjectTime.reduce((s, t) => s + (t.hours || 0), 0);
-  const totalKm = allDriving.reduce((s, d) => s + (d.distanceKm || 0), 0);
-  const uniqueReporters = new Set(allProjectTime.map(t => t.reporter).filter(Boolean)).size;
-
-  // Build project entries
+  // Build merged project entries from WS projects as the primary source
   const projectEntries = useMemo(() => {
-    return projectNumbers.map(pn => {
-      const timeEntries = allProjectTime.filter(t => t.projectNumber === pn);
-      const drivingEntries = allDriving.filter(d => d.projectNumber === pn);
-      const link = linkMap[pn] || null;
+    return wsProjects.map(wp => {
+      // Find link: by wsProjectId
+      const link = linkByWsId[wp.id] || null;
+      const projectNumber = link?.projectNumber || wp.fortnoxProjectNumber || null;
+
+      // Find time/driving entries by projectNumber
+      const timeEntries = projectNumber
+        ? allProjectTime.filter(t => t.projectNumber === projectNumber)
+        : [];
+      const drivingEntries = projectNumber
+        ? allDriving.filter(d => d.projectNumber === projectNumber)
+        : [];
+
+      const isSynced = timeEntries.length > 0 || drivingEntries.length > 0;
+
       const allDates = [
         ...timeEntries.map(t => t.date),
         ...drivingEntries.map(d => d.date),
       ].filter(Boolean).sort().reverse();
       const lastActive = allDates[0] || '';
-      return { projectNumber: pn, timeEntries, drivingEntries, link, lastActive };
+
+      return { wsProject: wp, timeEntries, drivingEntries, link, projectNumber, isSynced, lastActive };
     });
-  }, [projectNumbers, allProjectTime, allDriving, linkMap]);
+  }, [wsProjects, allProjectTime, allDriving, linkByWsId]);
+
+  // Summary KPIs
+  const syncedCount = projectEntries.filter(p => p.isSynced).length;
+  const unsyncedCount = projectEntries.length - syncedCount;
+  const totalHours = allProjectTime.reduce((s, t) => s + (t.hours || 0), 0);
+  const totalKm = allDriving.reduce((s, d) => s + (d.distanceKm || 0), 0);
+
+  const handleSync = async (projectNumber, wsProjectId) => {
+    setSyncingId(wsProjectId);
+    try {
+      await fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fortnoxProjectNumber: projectNumber, wsProjectId })
+      });
+      refetchTime();
+      refetchDriving();
+    } finally {
+      setSyncingId(null);
+    }
+  };
+
+  const handleSyncAll = async () => {
+    setSyncingAll(true);
+    setSyncStatus(null);
+    let count = 0;
+    for (const link of allLinks) {
+      if (link.projectNumber && link.wsProjectId) {
+        await fetch('https://medarbetarappen-7890a865.base44.app/functions/syncProjectToLager', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fortnoxProjectNumber: link.projectNumber, wsProjectId: link.wsProjectId })
+        });
+        count++;
+      }
+    }
+    setSyncingAll(false);
+    setSyncStatus(`✓ Synkade ${count} projekt`);
+    refetchTime();
+    refetchDriving();
+    setTimeout(() => setSyncStatus(null), 4000);
+  };
 
   const filtered = useMemo(() => {
     let list = [...projectEntries];
-    if (onlyLinked) list = list.filter(p => !!p.link);
+
+    if (filterTab === 'synkade') list = list.filter(p => p.isSynced);
+    else if (filterTab === 'ej_synkade') list = list.filter(p => !p.isSynced);
+
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(p =>
-        p.projectNumber.toLowerCase().includes(q) ||
-        (p.link?.wsProjectName || '').toLowerCase().includes(q)
+        (p.wsProject.name || '').toLowerCase().includes(q) ||
+        (p.projectNumber || '').toLowerCase().includes(q) ||
+        (p.wsProject.id || '').toLowerCase().includes(q)
       );
     }
-    // Sort by most recently active
-    list.sort((a, b) => (b.lastActive || '').localeCompare(a.lastActive || ''));
+
+    // Sort: synced (most recent first), then unsynced
+    list.sort((a, b) => {
+      if (a.isSynced && !b.isSynced) return -1;
+      if (!a.isSynced && b.isSynced) return 1;
+      return (b.lastActive || '').localeCompare(a.lastActive || '');
+    });
+
     return list;
-  }, [projectEntries, onlyLinked, search]);
+  }, [projectEntries, filterTab, search]);
+
+  const tabs = [
+    { key: 'alla', label: `Alla (${projectEntries.length})` },
+    { key: 'synkade', label: `Synkade (${syncedCount})` },
+    { key: 'ej_synkade', label: `Ej synkade (${unsyncedCount})` },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-900 p-4 md:p-6">
@@ -231,40 +345,59 @@ export default function WorkspaceProjects() {
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">Workspace Projekt</h1>
-            <p className="text-sm text-gray-400 mt-0.5">Översikt över alla projekt med Workspace-aktivitet</p>
+            <p className="text-sm text-gray-400 mt-0.5">Alla projekt från IM Workspace</p>
           </div>
-          <Button onClick={refetch} disabled={isFetching} className="bg-blue-600 hover:bg-blue-500 text-white gap-2">
-            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-            Uppdatera
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {syncStatus && (
+              <span className="text-sm text-green-400">{syncStatus}</span>
+            )}
+            <Button
+              onClick={handleSyncAll}
+              disabled={syncingAll || allLinks.length === 0}
+              variant="outline"
+              className="border-indigo-600/50 text-indigo-300 hover:bg-indigo-600/20 gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${syncingAll ? 'animate-spin' : ''}`} />
+              {syncingAll ? 'Synkar...' : `Synka alla länkade (${allLinks.length})`}
+            </Button>
+            <Button onClick={refetch} disabled={isFetching} className="bg-blue-600 hover:bg-blue-500 text-white gap-2">
+              <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+              Uppdatera
+            </Button>
+          </div>
         </div>
 
         {/* Summary cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <SummaryCard label="Synkade projekt" value={projectNumbers.length} color="text-white" />
+          <SummaryCard label="Workspace-projekt" value={projectEntries.length} color="text-white" />
+          <SummaryCard label="Synkade" value={syncedCount} color="text-green-400" />
+          <SummaryCard label="Ej synkade" value={unsyncedCount} color="text-yellow-400" warn={unsyncedCount > 0} />
           <SummaryCard label="Total arbetstid" value={`${totalHours.toLocaleString('sv-SE', { maximumFractionDigits: 1 })} h`} color="text-blue-400" />
-          <SummaryCard label="Total körsträcka" value={`${Math.round(totalKm).toLocaleString('sv-SE')} km`} color="text-blue-400" />
-          <SummaryCard label="Aktiva medarbetare" value={uniqueReporters} color="text-white" />
         </div>
 
-        {/* Filters */}
+        {/* Filter tabs + search */}
         <div className="flex flex-wrap items-center gap-3">
+          <div className="flex rounded-lg border border-gray-700 overflow-hidden">
+            {tabs.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setFilterTab(tab.key)}
+                className={`px-3 py-2 text-sm font-medium transition-colors ${
+                  filterTab === tab.key
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-800 text-gray-400 hover:text-white'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
           <Input
             placeholder="Sök projektnr eller namn..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 w-60"
           />
-          <button
-            onClick={() => setOnlyLinked(v => !v)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-              onlyLinked
-                ? 'bg-blue-600/30 text-blue-300 border-blue-500/40'
-                : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-white'
-            }`}
-          >
-            Visa endast länkade
-          </button>
           <span className="text-xs text-gray-500 ml-auto">
             Visar {filtered.length} av {projectEntries.length} projekt
           </span>
@@ -281,11 +414,13 @@ export default function WorkspaceProjects() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filtered.map(p => (
               <ProjectCard
-                key={p.projectNumber}
-                projectNumber={p.projectNumber}
+                key={p.wsProject.id}
+                wsProject={p.wsProject}
                 timeEntries={p.timeEntries}
                 drivingEntries={p.drivingEntries}
                 link={p.link}
+                onSync={handleSync}
+                syncing={syncingId === p.wsProject.id}
               />
             ))}
           </div>
