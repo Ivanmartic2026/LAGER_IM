@@ -17,6 +17,7 @@ import SupplierDashboard from '@/pages/SupplierDashboard';
 import SupplierLogin from '@/pages/SupplierLogin';
 import ProjectResults from '@/pages/ProjectResults';
 import ProjectReport from '@/pages/ProjectReport';
+import WorkspaceProjects from '@/pages/WorkspaceProjects';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -114,6 +115,12 @@ function App() {
 
             {/* Project Report */}
             <Route path="/ProjectReport" element={<ProjectReport />} />
+            {/* Workspace Projects */}
+            <Route path="/WorkspaceProjects" element={
+              <LayoutWrapper currentPageName="WorkspaceProjects">
+                <WorkspaceProjects />
+              </LayoutWrapper>
+            } />
             {/* Project Results */}
             <Route path="/ProjectResults" element={
               <LayoutWrapper currentPageName="Reports">
