@@ -18,6 +18,7 @@ import SupplierLogin from '@/pages/SupplierLogin';
 import ProjectResults from '@/pages/ProjectResults';
 import ProjectReport from '@/pages/ProjectReport';
 import WorkspaceProjects from '@/pages/WorkspaceProjects';
+import MedarbetarOversikt from '@/pages/MedarbetarOversikt';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -119,6 +120,12 @@ function App() {
             <Route path="/WorkspaceProjects" element={
               <LayoutWrapper currentPageName="WorkspaceProjects">
                 <WorkspaceProjects />
+              </LayoutWrapper>
+            } />
+            {/* Medarbetar Oversikt */}
+            <Route path="/MedarbetarOversikt" element={
+              <LayoutWrapper currentPageName="MedarbetarOversikt">
+                <MedarbetarOversikt />
               </LayoutWrapper>
             } />
             {/* Project Results */}

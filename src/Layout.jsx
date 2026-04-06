@@ -1,7 +1,7 @@
 import React, { useEffect, useState as useReactState } from 'react';
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck, Clipboard, BarChart2, Layers } from "lucide-react";
+import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck, Clipboard, BarChart2, Layers, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
@@ -58,11 +58,15 @@ function LayoutContent({ children, currentPageName }) {
     { name: "WorkOrders", label: "WorkOrders", icon: ClipboardList, module: null },
     { name: "PurchaseOrders", label: "Purchase Order", icon: ShoppingCart, module: "PurchaseOrders" },
     { name: "SiteReports", label: t('nav_site', language), icon: MapPin, module: "SiteReports" },
-
     { name: "Repairs", label: t('nav_repairs', language), icon: Activity, module: "Repairs" },
     { name: "ProjectResults", label: "Projekt", icon: BarChart2, module: null },
-    { name: "WorkspaceProjects", label: "Workspace", icon: Layers, module: null },
     { name: "Admin", label: t('nav_admin', language), icon: FileText, module: null }
+  ];
+
+  // Admin sub-links shown when on Admin page
+  const ADMIN_SUB_ITEMS = [
+    { name: "WorkspaceProjects", label: "Workspace", icon: Layers },
+    { name: "MedarbetarOversikt", label: "Medarbetare", icon: Users },
   ];
 
   const visibleNavItems = NAV_ITEMS.filter(item => !item.module || userModules.includes(item.module));
@@ -190,9 +194,34 @@ function LayoutContent({ children, currentPageName }) {
               )}>
                 {item.label}
               </span>
+            </button>
+          ))}
+          {/* Admin sub-items — always visible after Admin */}
+          <div className="flex items-center gap-1 border-l border-white/10 pl-2 ml-1">
+            {ADMIN_SUB_ITEMS.map(item => (
+              <button
+                key={item.name}
+                onClick={() => handleTabClick(item.name)}
+                className="flex flex-col items-center gap-1"
+              >
+                <div className={cn(
+                  "w-9 h-9 rounded-xl flex items-center justify-center md:transition-all duration-300",
+                  currentPageName === item.name
+                    ? "bg-purple-600 text-white shadow-lg shadow-purple-500/50"
+                    : "text-white/30 hover:text-white hover:bg-white/10"
+                )}>
+                  <item.icon className="w-4 h-4" />
+                </div>
+                <span className={cn(
+                  "text-[10px] font-medium md:transition-colors whitespace-nowrap tracking-tight",
+                  currentPageName === item.name ? "text-purple-400" : "text-white/30"
+                )}>
+                  {item.label}
+                </span>
               </button>
-              ))}
-              </div>
+            ))}
+          </div>
+        </div>
       </nav>
 
       {/* Mobile Header */}
@@ -256,7 +285,29 @@ function LayoutContent({ children, currentPageName }) {
                <span className="font-medium tracking-tight">{item.label}</span>
              </button>
              ))}
-             </nav>
+             {/* Admin sub-items */}
+             <div className="pt-2 border-t border-white/10">
+               <p className="text-xs text-white/30 uppercase tracking-widest px-4 py-1">Admin</p>
+               {ADMIN_SUB_ITEMS.map(item => (
+                 <button
+                   key={item.name}
+                   onClick={() => {
+                     handleTabClick(item.name);
+                     setMobileMenuOpen(false);
+                   }}
+                   className={cn(
+                     "w-full text-left flex items-center gap-4 p-4 rounded-xl",
+                     currentPageName === item.name
+                       ? "bg-purple-600 text-white"
+                       : "text-white/50 hover:text-white hover:bg-white/10"
+                   )}
+                 >
+                   <item.icon className="w-5 h-5" />
+                   <span className="font-medium tracking-tight">{item.label}</span>
+                 </button>
+               ))}
+             </div>
+         </nav>
        </div>
       )}
 
