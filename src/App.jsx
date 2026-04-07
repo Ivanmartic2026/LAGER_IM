@@ -21,6 +21,7 @@ import WorkspaceProjects from '@/pages/WorkspaceProjects';
 import MedarbetarOversikt from '@/pages/MedarbetarOversikt';
 import TidsRapport from '@/pages/TidsRapport';
 import KilometerErsattning from '@/pages/KilometerErsattning';
+import OrderDashboard from '@/pages/OrderDashboard';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -86,6 +87,8 @@ function App() {
         <Router>
           <NavigationTracker />
           <Routes>
+            {/* Public order dashboard - no auth required */}
+            <Route path="/OrderDashboard" element={<OrderDashboard />} />
             {/* Public supplier portal - no auth required */}
             <Route path="/SupplierPOView" element={<SupplierPOView />} />
             {/* Supplier Login & Dashboard - no auth required */}
