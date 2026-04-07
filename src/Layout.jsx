@@ -356,7 +356,10 @@ function LayoutContent({ children, currentPageName }) {
             </nav>
 
       {/* Main Content */}
-      <main className="md:pt-20 pb-24 md:pb-24 min-h-screen will-change-auto" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
+      <main 
+        className="md:pt-20 pb-24 md:pb-24 min-h-screen will-change-auto transition-all duration-300" 
+        style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))', paddingLeft: navCollapsed ? '0px' : '0px' }}
+      >
         <ErrorBoundary>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
