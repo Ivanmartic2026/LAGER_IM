@@ -230,25 +230,70 @@ export default function OrderEdit() {
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-6 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/Orders')}
-            className="text-white/70 hover:text-white"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-3xl font-bold text-white">
-            {orderId ? 'Redigera order' : 'Ny order'}
-          </h1>
-          {formData.sales_completed && (
-            <div className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg bg-green-900/30 border border-green-600/50">
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-              <span className="text-sm font-medium text-green-400">Försäljning slutförd</span>
-            </div>
-          )}
-        </div>
+         <div className="mb-6 flex items-center gap-4">
+           <Button
+             variant="ghost"
+             size="icon"
+             onClick={() => navigate('/Orders')}
+             className="text-white/70 hover:text-white"
+           >
+             <ArrowLeft className="w-5 h-5" />
+           </Button>
+           <h1 className="text-3xl font-bold text-white">
+             {orderId ? 'Redigera order' : 'Ny order'}
+           </h1>
+           {formData.sales_completed && (
+             <div className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg bg-green-900/30 border border-green-600/50">
+               <CheckCircle2 className="w-5 h-5 text-green-500" />
+               <span className="text-sm font-medium text-green-400">Försäljning slutförd</span>
+             </div>
+           )}
+         </div>
+
+         {/* Pipeline Progress Bar */}
+         <div className="mb-8 bg-white/5 border border-white/10 rounded-2xl p-6">
+           <h3 className="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wide">Progress Bar</h3>
+           <div className="flex items-center justify-between gap-2">
+             {['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'].map((stage, idx) => {
+               const isCompleted = formData.selected_stages.includes(stage);
+               const stageColors = {
+                 'SÄLJ': 'from-purple-600 to-purple-500',
+                 'KONSTRUKTION': 'from-blue-600 to-blue-500',
+                 'PRODUKTION': 'from-orange-600 to-orange-500',
+                 'LAGER': 'from-yellow-600 to-yellow-500',
+                 'MONTERING': 'from-green-600 to-green-500',
+               };
+               return (
+                 <div key={stage} className="flex-1 flex items-center gap-2">
+                   <button
+                     type="button"
+                     onClick={() => {
+                       setFormData({
+                         ...formData,
+                         selected_stages: formData.selected_stages.includes(stage)
+                           ? formData.selected_stages.filter(s => s !== stage)
+                           : [...formData.selected_stages, stage]
+                       });
+                     }}
+                     className={`flex-1 py-3 px-3 rounded-lg font-medium text-sm transition-all border ${
+                       isCompleted
+                         ? `bg-gradient-to-r ${stageColors[stage]} border-white/20 text-white shadow-lg`
+                         : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600'
+                     }`}
+                   >
+                     <CheckCircle2 className={`w-4 h-4 mr-2 inline ${isCompleted ? 'text-white' : 'opacity-0'}`} />
+                     {stage}
+                   </button>
+                   {idx < 4 && (
+                     <div className={`h-1 flex-1 rounded-full transition-colors ${
+                       isCompleted && formData.selected_stages.includes(['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'][idx + 1]) ? 'bg-gradient-to-r from-slate-400 to-slate-500' : 'bg-slate-700'
+                     }`} />
+                   )}
+                 </div>
+               );
+             })}
+           </div>
+         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
