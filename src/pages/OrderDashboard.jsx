@@ -81,65 +81,151 @@ function DeliveryBadge({ dateStr }) {
   );
 }
 
+function DetailRow({ label, value }) {
+  if (!value) return null;
+  return (
+    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+      <span style={{ fontSize: 'clamp(10px, 0.9vw, 12px)', color: '#444', minWidth: '120px', flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 'clamp(11px, 1vw, 13px)', color: '#ccc' }}>{value}</span>
+    </div>
+  );
+}
+
 function OrderRow({ order, index }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const DELIVERY_METHODS = {
+    truck: 'Lastbil', courier: 'Kurir', pickup: 'Upphämtning',
+    air_freight: 'Flygfrakt', sea_freight: 'Sjöfrakt', other: 'Annat',
+  };
+  const PRIORITY_LABELS = { low: 'Låg', normal: 'Normal', high: 'Hög', urgent: 'Brådskande' };
+
   return (
     <div style={{
       backgroundColor: '#0f0f0f',
-      border: '1px solid #1e1e1e',
+      border: `1px solid ${expanded ? '#2a2a2a' : '#1e1e1e'}`,
       borderRadius: '10px',
-      padding: 'clamp(10px, 1.2vw, 16px) clamp(14px, 2vw, 24px)',
-      display: 'grid',
-      gridTemplateColumns: '28px 1fr auto auto',
-      alignItems: 'center',
-      gap: 'clamp(8px, 1.5vw, 20px)',
+      overflow: 'hidden',
       transition: 'border-color 0.2s',
     }}>
-      {/* Index */}
-      <span style={{
-        fontSize: 'clamp(10px, 0.9vw, 12px)',
-        fontWeight: 700,
-        color: '#2a2a2a',
-        fontFamily: 'monospace',
-        textAlign: 'center',
-      }}>
-        {index}
-      </span>
-
-      {/* Customer + details */}
-      <div style={{ minWidth: 0 }}>
-        <div style={{
-          fontSize: 'clamp(13px, 1.4vw, 17px)',
+      {/* Main row - clickable */}
+      <div
+        onClick={() => setExpanded(v => !v)}
+        style={{
+          padding: 'clamp(10px, 1.2vw, 16px) clamp(14px, 2vw, 24px)',
+          display: 'grid',
+          gridTemplateColumns: '28px 1fr auto auto 24px',
+          alignItems: 'center',
+          gap: 'clamp(8px, 1.5vw, 20px)',
+          cursor: 'pointer',
+        }}
+      >
+        {/* Index */}
+        <span style={{
+          fontSize: 'clamp(10px, 0.9vw, 12px)',
           fontWeight: 700,
-          color: '#fff',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          color: '#2a2a2a',
+          fontFamily: 'monospace',
+          textAlign: 'center',
         }}>
-          {order.customer_name}
+          {index}
+        </span>
+
+        {/* Customer + details */}
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            fontSize: 'clamp(13px, 1.4vw, 17px)',
+            fontWeight: 700,
+            color: '#fff',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {order.customer_name}
+          </div>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '3px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {order.order_number && (
+              <span style={{ fontSize: 'clamp(10px, 0.9vw, 12px)', color: '#444', fontFamily: 'monospace' }}>
+                {order.order_number}
+              </span>
+            )}
+            {order.fortnox_project_name && (
+              <span style={{ fontSize: 'clamp(10px, 0.9vw, 12px)', color: '#2563eb' }}>
+                {order.fortnox_project_name}
+              </span>
+            )}
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '10px', marginTop: '3px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {order.order_number && (
-            <span style={{ fontSize: 'clamp(10px, 0.9vw, 12px)', color: '#444', fontFamily: 'monospace' }}>
-              {order.order_number}
-            </span>
-          )}
-          {order.fortnox_project_name && (
-            <span style={{ fontSize: 'clamp(10px, 0.9vw, 12px)', color: '#2563eb' }}>
-              {order.fortnox_project_name}
-            </span>
-          )}
+
+        {/* Delivery */}
+        <div style={{ minWidth: 'clamp(80px, 8vw, 120px)' }}>
+          <DeliveryBadge dateStr={order.delivery_date} />
         </div>
+
+        {/* Status */}
+        <div style={{ minWidth: 'clamp(100px, 12vw, 180px)', textAlign: 'right' }}>
+          <StatusBadge status={order.status} />
+        </div>
+
+        {/* Chevron */}
+        <div style={{
+          color: '#333',
+          fontSize: '14px',
+          transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+          transition: 'transform 0.2s',
+          textAlign: 'center',
+        }}>▼</div>
       </div>
 
-      {/* Delivery */}
-      <div style={{ minWidth: 'clamp(80px, 8vw, 120px)' }}>
-        <DeliveryBadge dateStr={order.delivery_date} />
-      </div>
+      {/* Expanded details */}
+      {expanded && (
+        <div style={{
+          borderTop: '1px solid #1a1a1a',
+          padding: 'clamp(12px, 1.5vw, 20px) clamp(14px, 2vw, 24px)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: 'clamp(12px, 1.5vw, 20px)',
+          backgroundColor: '#0a0a0a',
+        }}>
+          {/* Kolumn 1: Orderinfo */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 4px 0' }}>Orderinfo</p>
+            <DetailRow label="Kundnamn" value={order.customer_name} />
+            <DetailRow label="Kundref." value={order.customer_reference} />
+            <DetailRow label="Ordernr" value={order.order_number} />
+            <DetailRow label="Fortnox Order" value={order.fortnox_order_id} />
+            <DetailRow label="Fortnox Projekt" value={order.fortnox_project_number ? `${order.fortnox_project_number}${order.fortnox_project_name ? ' – ' + order.fortnox_project_name : ''}` : null} />
+            <DetailRow label="Prioritet" value={PRIORITY_LABELS[order.priority] || order.priority} />
+            {order.needs_ordering && (
+              <div style={{ fontSize: '11px', color: '#f97316', fontWeight: 600 }}>⚠ Kräver beställning{order.ordering_completed ? ' (klar)' : ''}</div>
+            )}
+          </div>
 
-      {/* Status */}
-      <div style={{ minWidth: 'clamp(100px, 12vw, 180px)', textAlign: 'right' }}>
-        <StatusBadge status={order.status} />
-      </div>
+          {/* Kolumn 2: Leverans */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 4px 0' }}>Leverans</p>
+            <DetailRow label="Leveransadress" value={order.delivery_address} />
+            <DetailRow label="Leveranssätt" value={DELIVERY_METHODS[order.delivery_method] || order.delivery_method} />
+            <DetailRow label="Speditör" value={order.shipping_company} />
+            <DetailRow label="Spårningsnr" value={order.tracking_number} />
+            <DetailRow label="Site besök" value={order.site_visit_info} />
+          </div>
+
+          {/* Kolumn 3: Övrigt */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <p style={{ fontSize: '10px', fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 4px 0' }}>Övrigt</p>
+            <DetailRow label="Plockad av" value={order.picked_by} />
+            <DetailRow label="Plockdatum" value={order.picked_date ? new Date(order.picked_date).toLocaleDateString('sv-SE') : null} />
+            <DetailRow label="Fakturanr" value={order.fortnox_invoice_number} />
+            {order.notes && (
+              <div>
+                <p style={{ fontSize: '10px', color: '#444', margin: '0 0 4px 0' }}>Anteckningar</p>
+                <p style={{ fontSize: '12px', color: '#888', margin: 0, whiteSpace: 'pre-wrap' }}>{order.notes}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
