@@ -24,7 +24,7 @@ export default function OrderEdit() {
     fortnox_customer_number: '',
     rm_system_id: '',
     rm_system_url: '',
-    status: 'draft',
+    status: 'SÄLJ',
     priority: 'normal',
     delivery_date: '',
     delivery_address: '',
@@ -68,7 +68,7 @@ export default function OrderEdit() {
         fortnox_customer_number: order.fortnox_customer_number || '',
         rm_system_id: order.rm_system_id || '',
         rm_system_url: order.rm_system_url || '',
-        status: order.status || 'draft',
+        status: order.status || 'SÄLJ',
         priority: order.priority || 'normal',
         delivery_date: order.delivery_date || '',
         delivery_address: order.delivery_address || '',
@@ -356,19 +356,11 @@ export default function OrderEdit() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">🧾 Utkast</SelectItem>
-                    <SelectItem value="ready_for_handover">Klar för överlämning</SelectItem>
-                    <SelectItem value="handed_over">📐 Överlämnad</SelectItem>
-                    <SelectItem value="planning">Planering</SelectItem>
-                    <SelectItem value="construction">Konstruktion</SelectItem>
-                    <SelectItem value="ready_for_production">Klar för produktion</SelectItem>
-                    <SelectItem value="in_production">🏗️ I produktion</SelectItem>
-                    <SelectItem value="ready_for_warehouse">Klar för lager</SelectItem>
-                    <SelectItem value="picking">📦 Plockas</SelectItem>
-                    <SelectItem value="ready_for_delivery">Klar för leverans</SelectItem>
-                    <SelectItem value="shipped">🚚 Skickad</SelectItem>
-                    <SelectItem value="delivered">Levererad</SelectItem>
-                    <SelectItem value="cancelled">Avbruten</SelectItem>
+                    <SelectItem value="SÄLJ">SÄLJ</SelectItem>
+                    <SelectItem value="KONSTRUKTION">KONSTRUKTION</SelectItem>
+                    <SelectItem value="PRODUKTION">PRODUKTION</SelectItem>
+                    <SelectItem value="LAGER">LAGER</SelectItem>
+                    <SelectItem value="MONTERING">MONTERING</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
