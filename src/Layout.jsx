@@ -29,6 +29,7 @@ function LayoutContent({ children, currentPageName }) {
   const [loadingUser, setLoadingUser] = useReactState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const [navCollapsed, setNavCollapsed] = useReactState(() => localStorage.getItem('nav_collapsed') === 'true');
   
   // Independent navigation stacks for each tab
   const [navigationStacks, setNavigationStacks] = useReactState(() => {
@@ -173,56 +174,76 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Desktop Navigation - Bottom - No transition on mobile */}
       <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4">
-        <div className="flex items-center gap-2 min-w-max mx-auto">
+        <div className="flex items-center gap-2 min-w-max mx-auto relative">
+          <button
+            onClick={() => {
+              setNavCollapsed(!navCollapsed);
+              localStorage.setItem('nav_collapsed', !navCollapsed);
+            }}
+            className="absolute -left-16 w-12 h-12 rounded-xl flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+            title={navCollapsed ? "Expandera" : "Minimera"}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {navCollapsed ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              )}
+            </svg>
+          </button>
           {visibleNavItems.map(item => (
             <button
               key={item.name}
               onClick={() => handleTabClick(item.name)}
-              className="flex flex-col items-center gap-1"
+              className={cn("flex items-center gap-2 transition-all duration-300", navCollapsed ? "flex-col" : "flex-row")}
             >
               <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center md:transition-all duration-300",
+                "w-10 h-10 rounded-xl flex items-center justify-center md:transition-all duration-300 flex-shrink-0",
                 currentPageName === item.name
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-500/50"
                   : "text-white/50 hover:text-white hover:bg-white/10"
               )}>
                 <item.icon className="w-4 h-4" />
               </div>
-              <span className={cn(
-                "text-xs font-medium md:transition-colors whitespace-nowrap tracking-tight",
-                currentPageName === item.name
-                  ? "text-blue-400"
-                  : "text-white/50"
-              )}>
-                {item.label}
-              </span>
-            </button>
-          ))}
-          {/* Admin sub-items — always visible after Admin */}
-          <div className="flex items-center gap-1 border-l border-white/10 pl-2 ml-1">
-            {ADMIN_SUB_ITEMS.map(item => (
-              <button
-                key={item.name}
-                onClick={() => handleTabClick(item.name)}
-                className="flex flex-col items-center gap-1"
-              >
-                <div className={cn(
-                  "w-9 h-9 rounded-xl flex items-center justify-center md:transition-all duration-300",
-                  currentPageName === item.name
-                    ? "bg-purple-600 text-white shadow-lg shadow-purple-500/50"
-                    : "text-white/30 hover:text-white hover:bg-white/10"
-                )}>
-                  <item.icon className="w-4 h-4" />
-                </div>
+              {!navCollapsed && (
                 <span className={cn(
-                  "text-[10px] font-medium md:transition-colors whitespace-nowrap tracking-tight",
-                  currentPageName === item.name ? "text-purple-400" : "text-white/30"
+                  "text-xs font-medium md:transition-colors whitespace-nowrap tracking-tight min-w-fit",
+                  currentPageName === item.name
+                    ? "text-blue-400"
+                    : "text-white/50"
                 )}>
                   {item.label}
                 </span>
-              </button>
-            ))}
-          </div>
+              )}
+            </button>
+          ))}
+          {/* Admin sub-items — always visible after Admin */}
+          {!navCollapsed && (
+            <div className="flex items-center gap-1 border-l border-white/10 pl-2 ml-1">
+              {ADMIN_SUB_ITEMS.map(item => (
+                <button
+                  key={item.name}
+                  onClick={() => handleTabClick(item.name)}
+                  className="flex flex-col items-center gap-1"
+                >
+                  <div className={cn(
+                    "w-9 h-9 rounded-xl flex items-center justify-center md:transition-all duration-300",
+                    currentPageName === item.name
+                      ? "bg-purple-600 text-white shadow-lg shadow-purple-500/50"
+                      : "text-white/30 hover:text-white hover:bg-white/10"
+                  )}>
+                    <item.icon className="w-4 h-4" />
+                  </div>
+                  <span className={cn(
+                    "text-[10px] font-medium md:transition-colors whitespace-nowrap tracking-tight",
+                    currentPageName === item.name ? "text-purple-400" : "text-white/30"
+                  )}>
+                    {item.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </nav>
 
