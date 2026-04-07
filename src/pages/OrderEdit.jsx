@@ -419,7 +419,7 @@ export default function OrderEdit() {
                   {/* Stage checkboxes */}
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                     {STAGES.map((stage, i) => {
-                      const isActive = i <= currentIdx;
+                      const isActive = i === currentIdx;
                       return (
                         <button
                           key={stage}
