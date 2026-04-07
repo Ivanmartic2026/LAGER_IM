@@ -127,15 +127,16 @@ function StatusGroup({ status, orders }) {
     return () => clearInterval(intervalRef.current);
   }, [sorted.length, needsScroll]);
 
-  // Build visible window — wrap around
+  // Build visible window — only show as many rows as there are orders (max ROWS_PER_GROUP)
+  const visibleCount = Math.min(sorted.length, ROWS_PER_GROUP);
   const visible = [];
-  for (let i = 0; i < ROWS_PER_GROUP; i++) {
+  for (let i = 0; i < visibleCount; i++) {
     visible.push(sorted[(offset + i) % sorted.length]);
   }
 
   const ROW_H = 56;
   const GAP = 6;
-  const containerH = ROWS_PER_GROUP * ROW_H + (ROWS_PER_GROUP - 1) * GAP;
+  const containerH = visibleCount * ROW_H + (visibleCount - 1) * GAP;
 
   return (
     <div style={{ marginBottom: '20px' }}>
