@@ -234,18 +234,7 @@ export default function OrderDashboard() {
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            {[
-              { label: 'Försenad', color: '#ef4444' },
-              { label: '≤7 dagar', color: '#f97316' },
-              { label: '≤14 dagar', color: '#eab308' },
-            ].map(item => (
-              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: item.color }} />
-                <span style={{ fontSize: '11px', color: '#555' }}>{item.label}</span>
-              </div>
-            ))}
-          </div>
+
           <div style={{
             fontSize: '15px',
             fontWeight: 700,
