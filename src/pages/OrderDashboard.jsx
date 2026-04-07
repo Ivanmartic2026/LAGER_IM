@@ -90,7 +90,7 @@ function OrderRow({ order }) {
         </div>
         <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
           {order.fortnox_project_name && (
-            <span style={{ fontSize: '11px', color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: '11px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {order.customer_name}
             </span>
           )}
