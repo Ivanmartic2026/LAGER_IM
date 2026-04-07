@@ -49,12 +49,13 @@ function DeliveryBadge({ dateStr }) {
   else if (daysLeft <= 7) color = '#f97316';
   else if (daysLeft <= 14) color = '#eab308';
 
+  const textColor = color === '#aaa' ? '#888' : color;
   return (
     <div style={{ textAlign: 'right', minWidth: '90px' }}>
-      <div style={{ fontSize: '12px', fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>
+      <div style={{ fontSize: '13px', fontWeight: 700, color: textColor, fontVariantNumeric: 'tabular-nums' }}>
         {formatted}
       </div>
-      <div style={{ fontSize: '10px', color: color === '#aaa' ? '#444' : color }}>
+      <div style={{ fontSize: '11px', fontWeight: 600, color: textColor, opacity: 0.85 }}>
         {daysLeft < 0 ? `${Math.abs(daysLeft)}d försenad` : daysLeft === 0 ? 'Idag' : `${daysLeft}d kvar`}
       </div>
     </div>
