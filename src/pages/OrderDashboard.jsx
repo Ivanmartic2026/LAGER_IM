@@ -48,22 +48,25 @@ function StageProgressBar({ selectedStages = [] }) {
   const percentage = Math.round((completedCount / totalStages) * 100);
   
   return (
-    <div style={{ marginTop: '12px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+    <div style={{ marginTop: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <span style={{ fontSize: '13px', fontWeight: 600, color: '#aaa' }}>
-          Steg {completedCount} av {totalStages}
+          {percentage}% färdig
         </span>
-        <span style={{ fontSize: '13px', fontWeight: 600, color: '#aaa' }}>
-          {percentage}%
+        <span style={{ fontSize: '12px', color: '#666' }}>
+          {completedCount} av {totalStages} steg
         </span>
       </div>
+      
+      {/* Progress bar */}
       <div style={{
         width: '100%',
-        height: '8px',
+        height: '12px',
         borderRadius: '20px',
-        backgroundColor: '#1e1e1e',
+        backgroundColor: '#1a1a1a',
         overflow: 'hidden',
         position: 'relative',
+        marginBottom: '16px',
       }}>
         <div
           style={{
@@ -74,6 +77,44 @@ function StageProgressBar({ selectedStages = [] }) {
             transition: 'width 0.3s ease',
           }}
         />
+      </div>
+      
+      {/* Milestone labels */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '4px',
+      }}>
+        {STAGES.map((stage, idx) => {
+          const isCompleted = selectedStages.includes(stage);
+          return (
+            <div
+              key={stage}
+              style={{
+                flex: 1,
+                textAlign: 'center',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: isCompleted ? STAGE_COLORS[stage] : '#555',
+                  backgroundColor: isCompleted ? `${STAGE_COLORS[stage]}15` : 'transparent',
+                  padding: '4px 6px',
+                  borderRadius: '4px',
+                  border: isCompleted ? `1px solid ${STAGE_COLORS[stage]}40` : '1px solid transparent',
+                  transition: 'all 0.3s ease',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {stage}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
