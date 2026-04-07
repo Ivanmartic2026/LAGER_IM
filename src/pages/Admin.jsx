@@ -163,6 +163,18 @@ export default function AdminPage() {
     }
   ];
 
+  const externalLinks = [
+    {
+      label: "Order Dashboard (TV)",
+      description: "Öppna orderdashboard i ny flik – optimerad för stor skärm",
+      icon: Monitor,
+      color: "from-green-600 to-green-700",
+      iconBg: "bg-green-500/20",
+      iconColor: "text-green-400",
+      href: "/OrderDashboard"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
@@ -220,6 +232,31 @@ export default function AdminPage() {
                 </div>
               </motion.div>
             </Link>
+          ))}
+        </div>
+
+        {/* External Links */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          {externalLinks.map((link, index) => (
+            <a key={index} href={link.href} target="_blank" rel="noopener noreferrer">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300 p-6 cursor-pointer"
+              >
+                <div className={cn("absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity", `bg-gradient-to-br ${link.color}`)} />
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={cn("w-14 h-14 rounded-xl flex items-center justify-center", link.iconBg)}>
+                      <link.icon className={cn("w-7 h-7", link.iconColor)} />
+                    </div>
+                    <span className="text-xs text-white/30 group-hover:text-white/60 transition-all bg-white/5 rounded-lg px-2 py-1">Öppnas i ny flik ↗</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2 tracking-tight">{link.label}</h3>
+                  <p className="text-sm text-white/50">{link.description}</p>
+                </div>
+              </motion.div>
+            </a>
           ))}
         </div>
 
