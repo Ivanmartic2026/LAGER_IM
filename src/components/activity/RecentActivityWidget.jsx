@@ -253,8 +253,8 @@ export default function RecentActivityWidget() {
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="fixed right-0 top-20 w-96 bg-gradient-to-b from-slate-800/90 via-slate-900/85 to-black/70 backdrop-blur-2xl border-l border-white/20 z-30 hidden lg:flex flex-col max-h-[calc(100vh-120px)] overflow-hidden shadow-2xl"
-      style={{ boxShadow: '0 0 40px rgba(59, 130, 246, 0.1)' }}
+      className="fixed right-0 top-20 w-96 bg-gradient-to-b from-slate-800/90 via-slate-900/85 to-black/70 backdrop-blur-2xl border-l border-white/20 z-30 hidden lg:flex flex-col overflow-hidden shadow-2xl"
+      style={{ boxShadow: '0 0 40px rgba(59, 130, 246, 0.1)', maxHeight: 'calc(100vh - 120px)' }}
     >
       {/* Header */}
       <div className="px-4 py-3 border-b border-white/15 flex-shrink-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent">
