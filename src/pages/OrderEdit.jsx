@@ -251,9 +251,9 @@ export default function OrderEdit() {
          </div>
 
          {/* Pipeline Progress Bar */}
-         <div className="mb-8 bg-white/5 border border-white/10 rounded-2xl p-6">
-           <h3 className="text-sm font-semibold text-slate-400 mb-6 uppercase tracking-wide">Ordersteg</h3>
-           <div className="flex items-center justify-between gap-1.5">
+         <div className="mb-8">
+           <h3 className="text-sm font-semibold text-slate-400 mb-8 uppercase tracking-wide">Ordersteg</h3>
+           <div className="flex items-start justify-between relative">
              {['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'].map((stage, idx) => {
                const isCompleted = formData.selected_stages.includes(stage);
                const stageColors = {
@@ -264,7 +264,19 @@ export default function OrderEdit() {
                  'MONTERING': '#22c55e',
                };
                return (
-                 <div key={stage} className="flex-1 flex items-center gap-1.5">
+                 <div key={stage} className="flex flex-col items-center flex-1">
+                   {/* Line connector before this step */}
+                   {idx > 0 && (
+                     <div className="absolute top-7 h-0.5" style={{
+                       left: `${(idx - 0.5) * (100 / 5)}%`,
+                       right: `${(4.5 - idx) * (100 / 5)}%`,
+                       backgroundColor: formData.selected_stages.includes(['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'][idx - 1]) && isCompleted
+                         ? stageColors[['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'][idx - 1]]
+                         : '#e5e7eb'
+                     }} />
+                   )}
+
+                   {/* Step circle */}
                    <button
                      type="button"
                      onClick={() => {
@@ -275,42 +287,25 @@ export default function OrderEdit() {
                            : [...formData.selected_stages, stage]
                        });
                      }}
-                     title={stage}
-                     className={`flex-1 py-2 px-2 rounded-lg font-medium text-xs transition-all border relative group ${
-                       isCompleted
-                         ? 'bg-white/10 border-white/30 text-white shadow-lg'
-                         : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:border-white/20'
-                     }`}
+                     className="relative z-10 flex-shrink-0 w-14 h-14 rounded-full border-4 transition-all duration-300 flex items-center justify-center cursor-pointer hover:scale-110"
+                     style={{
+                       backgroundColor: isCompleted ? stageColors[stage] : '#ffffff',
+                       borderColor: isCompleted ? stageColors[stage] : '#d1d5db',
+                     }}
                    >
-                     <div className="absolute inset-0 rounded-lg" style={{
-                       background: isCompleted ? `linear-gradient(135deg, ${stageColors[stage]}20, ${stageColors[stage]}10)` : 'transparent',
-                       pointerEvents: 'none'
-                     }} />
-                     <div className="relative flex items-center justify-center gap-1">
-                       <span style={{
-                         width: '8px',
-                         height: '8px',
-                         borderRadius: '50%',
-                         backgroundColor: isCompleted ? stageColors[stage] : 'rgba(255,255,255,0.3)',
-                         transition: 'all 0.3s ease'
-                       }} />
-                       <span className="hidden sm:inline">{stage.split('')[0]}</span>
-                     </div>
-                     <div className="absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded whitespace-nowrap z-50">
-                       {isCompleted ? `✓ ${stage}` : stage}
-                     </div>
+                     {isCompleted ? (
+                       <CheckCircle2 className="w-6 h-6 text-white" />
+                     ) : (
+                       <span className="text-sm font-bold" style={{ color: '#9ca3af' }}>
+                         {idx + 1}
+                       </span>
+                     )}
                    </button>
-                   {idx < 4 && (
-                     <div className={`h-0.5 flex-1 rounded-full transition-all ${
-                       isCompleted && formData.selected_stages.includes(['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'][idx + 1]) 
-                         ? 'opacity-100' 
-                         : 'opacity-30'
-                     }`} style={{
-                       backgroundColor: isCompleted 
-                         ? stageColors[stage]
-                         : 'rgba(255,255,255,0.1)'
-                     }} />
-                   )}
+
+                   {/* Step label */}
+                   <div className="mt-4 text-center">
+                     <p className="text-xs font-medium text-slate-400 whitespace-nowrap">{stage}</p>
+                   </div>
                  </div>
                );
              })}
