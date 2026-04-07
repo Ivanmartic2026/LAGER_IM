@@ -387,20 +387,66 @@ export default function OrderEdit() {
             </div>
           </div>
 
-          {/* Sales Completed */}
+          {/* Pipeline Progress */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-            <div className="flex items-center gap-3">
-              <Checkbox
-                id="sales_completed"
-                checked={formData.sales_completed}
-                onCheckedChange={(checked) => setFormData({ ...formData, sales_completed: checked })}
-                className="w-6 h-6"
-              />
-              <label htmlFor="sales_completed" className="text-base font-medium text-white cursor-pointer">
-                ✅ Försäljning slutförd
-              </label>
-            </div>
-            <p className="text-sm text-slate-400 mt-2 ml-9">Markera när säljaren är klar med sin del av ordern</p>
+            <h2 className="text-lg font-semibold text-white mb-4">Pipeline</h2>
+            {(() => {
+              const STAGES = ['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'];
+              const STAGE_COLORS = {
+                'SÄLJ': '#8b5cf6',
+                'KONSTRUKTION': '#3b82f6',
+                'PRODUKTION': '#f97316',
+                'LAGER': '#eab308',
+                'MONTERING': '#22c55e',
+              };
+              const currentIdx = STAGES.indexOf(formData.status);
+              const progress = currentIdx >= 0 ? ((currentIdx + 1) / STAGES.length) * 100 : 0;
+              return (
+                <div className="space-y-4">
+                  {/* Progress bar */}
+                  <div className="flex gap-2">
+                    {STAGES.map((stage, i) => (
+                      <button
+                        key={stage}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, status: stage })}
+                        title={stage}
+                        style={{ backgroundColor: i <= currentIdx ? STAGE_COLORS[stage] : '#1e293b' }}
+                        className="flex-1 h-2 rounded-full transition-all hover:opacity-80"
+                      />
+                    ))}
+                  </div>
+                  {/* Stage checkboxes */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    {STAGES.map((stage, i) => {
+                      const isActive = i <= currentIdx;
+                      return (
+                        <button
+                          key={stage}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, status: stage })}
+                          className="flex items-center gap-2 p-2 rounded-lg border transition-all hover:opacity-80"
+                          style={{
+                            borderColor: isActive ? STAGE_COLORS[stage] + '60' : '#1e293b',
+                            backgroundColor: isActive ? STAGE_COLORS[stage] + '20' : 'transparent',
+                          }}
+                        >
+                          <div
+                            className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
+                            style={{ backgroundColor: isActive ? STAGE_COLORS[stage] : '#1e293b' }}
+                          >
+                            {isActive && <span style={{ color: '#fff', fontSize: '10px', fontWeight: 700 }}>✓</span>}
+                          </div>
+                          <span className="text-xs font-medium" style={{ color: isActive ? STAGE_COLORS[stage] : '#64748b' }}>
+                            {stage}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Address & Notes */}
