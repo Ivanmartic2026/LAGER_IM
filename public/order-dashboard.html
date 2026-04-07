@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080" />
+  <title>Order Dashboard – IMvision</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 1080px;
+      min-height: 1920px;
+      background: #0a0a0a;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 60px 50px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1f1f1f;
+      padding-bottom: 40px;
+      margin-bottom: 50px;
+    }
+
+    header h1 {
+      font-size: 64px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    header p {
+      font-size: 30px;
+      color: #555;
+      margin-top: 10px;
+    }
+
+    .header-right {
+      text-align: right;
+    }
+
+    .order-count {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2563eb;
+      background: #2563eb18;
+      border: 1px solid #2563eb33;
+      border-radius: 16px;
+      padding: 16px 32px;
+    }
+
+    .last-updated {
+      font-size: 22px;
+      color: #444;
+      margin-top: 10px;
+    }
+
+    .orders {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .order-card {
+      background: #111;
+      border: 1px solid #1f1f1f;
+      border-radius: 20px;
+      padding: 36px 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .order-left {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .order-top {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 10px;
+    }
+
+    .order-index {
+      font-size: 24px;
+      font-weight: 700;
+      color: #333;
+      background: #1a1a1a;
+      border-radius: 10px;
+      padding: 4px 14px;
+      font-family: monospace;
+    }
+
+    .order-customer {
+      font-size: 34px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 480px;
+    }
+
+    .order-meta {
+      display: flex;
+      gap: 20px;
+      font-size: 24px;
+      color: #555;
+    }
+
+    .order-meta .proj {
+      color: #3b82f6;
+    }
+
+    .order-date {
+      text-align: center;
+      min-width: 180px;
+    }
+
+    .order-date .label {
+      font-size: 22px;
+      color: #444;
+      margin-bottom: 4px;
+    }
+
+    .order-date .value {
+      font-size: 30px;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+
+    .status-badge {
+      border-radius: 999px;
+      padding: 8px 24px;
+      font-size: 28px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .empty, .loading {
+      text-align: center;
+      color: #444;
+      font-size: 40px;
+      padding-top: 200px;
+    }
+
+    footer {
+      margin-top: 60px;
+      padding-top: 30px;
+      border-top: 1px solid #1a1a1a;
+      text-align: center;
+      color: #2a2a2a;
+      font-size: 22px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>Order Dashboard</h1>
+      <p>Aktiva ordrar · IMvision</p>
+    </div>
+    <div class="header-right">
+      <div class="order-count" id="order-count">– ordrar</div>
+      <div class="last-updated" id="last-updated"></div>
+    </div>
+  </header>
+
+  <div class="orders" id="orders">
+    <div class="loading">Laddar ordrar...</div>
+  </div>
+
+  <footer>IMvision · Automatisk uppdatering var 30:e sekund</footer>
+
+  <script>
+    const STATUS_LABELS = {
+      draft: { label: 'Utkast', color: '#6b7280' },
+      ready_for_handover: { label: 'Redo för överlämning', color: '#8b5cf6' },
+      handed_over: { label: 'Överlämnad', color: '#a78bfa' },
+      planning: { label: 'Planering', color: '#3b82f6' },
+      construction: { label: 'Konstruktion', color: '#06b6d4' },
+      ready_for_production: { label: 'Redo för produktion', color: '#f59e0b' },
+      in_production: { label: 'I produktion', color: '#f97316' },
+      ready_for_warehouse: { label: 'Redo för lager', color: '#eab308' },
+      picking: { label: 'Plockning', color: '#84cc16' },
+      ready_for_delivery: { label: 'Redo för leverans', color: '#22c55e' },
+      shipped: { label: 'Skickad', color: '#10b981' },
+      delivered: { label: 'Levererad', color: '#059669' },
+      cancelled: { label: 'Avbokad', color: '#ef4444' },
+    };
+
+    // REPLACE THIS with your actual Base44 app ID and entity API endpoint
+    const APP_ID = 'YOUR_APP_ID';
+    const API_BASE = `https://api.base44.com/api/apps/${APP_ID}/entities/Order`;
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '–';
+      return new Date(dateStr).toLocaleDateString('sv-SE');
+    }
+
+    function renderBadge(status) {
+      const s = STATUS_LABELS[status] || { label: status, color: '#6b7280' };
+      return `<span class="status-badge" style="background:${s.color}22;color:${s.color};border:1px solid ${s.color}55">${s.label}</span>`;
+    }
+
+    async function fetchOrders() {
+      const res = await fetch(`${API_BASE}?sort=-updated_date&limit=50`);
+      const data = await res.json();
+      return (data || []).filter(o => o.status !== 'cancelled' && o.status !== 'delivered');
+    }
+
+    async function render() {
+      const orders = await fetchOrders();
+      const container = document.getElementById('orders');
+      const countEl = document.getElementById('order-count');
+      const updatedEl = document.getElementById('last-updated');
+
+      countEl.textContent = `${orders.length} ordrar`;
+      updatedEl.textContent = `Uppdaterad ${new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`;
+
+      if (orders.length === 0) {
+        container.innerHTML = '<div class="empty">Inga aktiva ordrar</div>';
+        return;
+      }
+
+      container.innerHTML = orders.map((order, i) => `
+        <div class="order-card">
+          <div class="order-left">
+            <div class="order-top">
+              <span class="order-index">#${i + 1}</span>
+              <span class="order-customer">${order.customer_name || '–'}</span>
+            </div>
+            <div class="order-meta">
+              ${order.order_number ? `<span>${order.order_number}</span>` : ''}
+              ${order.fortnox_project_name ? `<span class="proj">${order.fortnox_project_name}</span>` : ''}
+            </div>
+          </div>
+          <div class="order-date">
+            ${order.delivery_date
+              ? `<div class="label">Leverans</div><div class="value">${formatDate(order.delivery_date)}</div>`
+              : '<div class="value" style="color:#333">–</div>'
+            }
+          </div>
+          <div>${renderBadge(order.status)}</div>
+        </div>
+      `).join('');
+    }
+
+    render();
+    setInterval(render, 30000);
+  </script>
+</body>
+</html>
