@@ -42,33 +42,41 @@ function DeliveryBadge({ dateStr }) {
   );
 }
 
-function StageProgressBar({ status }) {
-  const currentIdx = STAGES.indexOf(status);
+function StageProgressBar({ selectedStages = [] }) {
+  const completedCount = selectedStages.length;
+  const totalStages = STAGES.length;
+  
   return (
-    <div style={{ display: 'flex', gap: '3px', marginTop: '5px' }}>
-      {STAGES.map((stage, i) => {
-        const isActive = i <= currentIdx;
-        const isCurrent = i === currentIdx;
-        return (
-          <div
-            key={stage}
-            title={stage}
-            style={{
-              flex: 1,
-              height: '4px',
-              borderRadius: '2px',
-              backgroundColor: isActive ? STAGE_COLORS[stage] : '#1e1e1e',
-              opacity: isCurrent ? 1 : isActive ? 0.6 : 1,
-              transition: 'background-color 0.3s',
-            }}
-          />
-        );
-      })}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+      <div style={{ display: 'flex', gap: '3px', flex: 1 }}>
+        {STAGES.map((stage) => {
+          const isCompleted = selectedStages.includes(stage);
+          return (
+            <div
+              key={stage}
+              title={stage}
+              style={{
+                flex: 1,
+                height: '4px',
+                borderRadius: '2px',
+                backgroundColor: isCompleted ? STAGE_COLORS[stage] : '#1e1e1e',
+                opacity: isCompleted ? 1 : 0.5,
+                transition: 'background-color 0.3s',
+              }}
+            />
+          );
+        })}
+      </div>
+      <span style={{ fontSize: '12px', fontWeight: 600, color: '#aaa', minWidth: '45px', textAlign: 'right' }}>
+        {completedCount}/{totalStages}
+      </span>
     </div>
   );
 }
 
 function OrderRow({ order }) {
+  const selectedStages = Array.isArray(order.selected_stages) ? order.selected_stages : [];
+  
   return (
     <div style={{
       padding: '10px 16px',
@@ -97,7 +105,7 @@ function OrderRow({ order }) {
         </div>
         <DeliveryBadge dateStr={order.delivery_date} />
       </div>
-      <StageProgressBar status={order.status} />
+      <StageProgressBar selectedStages={selectedStages} />
     </div>
   );
 }
