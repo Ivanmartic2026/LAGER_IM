@@ -92,11 +92,6 @@ function OrderRow({ order }) {
               {order.customer_name}
             </span>
           )}
-          {order.order_number && (
-            <span style={{ fontSize: '11px', color: '#444', fontFamily: 'monospace', flexShrink: 0 }}>
-              {order.order_number}
-            </span>
-          )}
         </div>
       </div>
       <DeliveryBadge dateStr={order.delivery_date} />
