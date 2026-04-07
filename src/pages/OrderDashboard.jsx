@@ -45,31 +45,36 @@ function DeliveryBadge({ dateStr }) {
 function StageProgressBar({ selectedStages = [] }) {
   const completedCount = selectedStages.length;
   const totalStages = STAGES.length;
+  const percentage = Math.round((completedCount / totalStages) * 100);
   
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-      <div style={{ display: 'flex', gap: '3px', flex: 1 }}>
-        {STAGES.map((stage) => {
-          const isCompleted = selectedStages.includes(stage);
-          return (
-            <div
-              key={stage}
-              title={stage}
-              style={{
-                flex: 1,
-                height: '4px',
-                borderRadius: '2px',
-                backgroundColor: isCompleted ? STAGE_COLORS[stage] : '#1e1e1e',
-                opacity: isCompleted ? 1 : 0.5,
-                transition: 'background-color 0.3s',
-              }}
-            />
-          );
-        })}
+    <div style={{ marginTop: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: '#aaa' }}>
+          Steg {completedCount} av {totalStages}
+        </span>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: '#aaa' }}>
+          {percentage}%
+        </span>
       </div>
-      <span style={{ fontSize: '12px', fontWeight: 600, color: '#aaa', minWidth: '45px', textAlign: 'right' }}>
-        {completedCount}/{totalStages}
-      </span>
+      <div style={{
+        width: '100%',
+        height: '8px',
+        borderRadius: '20px',
+        backgroundColor: '#1e1e1e',
+        overflow: 'hidden',
+        position: 'relative',
+      }}>
+        <div
+          style={{
+            height: '100%',
+            width: `${percentage}%`,
+            background: `linear-gradient(90deg, #2563eb 0%, #06b6d4 50%, #10b981 100%)`,
+            borderRadius: '20px',
+            transition: 'width 0.3s ease',
+          }}
+        />
+      </div>
     </div>
   );
 }
