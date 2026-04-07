@@ -84,17 +84,17 @@ function OrderRow({ order }) {
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
         }}>
-          {order.customer_name}
+          {order.fortnox_project_name || order.customer_name}
         </div>
         <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
-          {order.order_number && (
-            <span style={{ fontSize: '11px', color: '#444', fontFamily: 'monospace' }}>
-              {order.order_number}
+          {order.fortnox_project_name && (
+            <span style={{ fontSize: '11px', color: '#666', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {order.customer_name}
             </span>
           )}
-          {order.fortnox_project_name && (
-            <span style={{ fontSize: '11px', color: '#2563eb' }}>
-              {order.fortnox_project_name}
+          {order.order_number && (
+            <span style={{ fontSize: '11px', color: '#444', fontFamily: 'monospace', flexShrink: 0 }}>
+              {order.order_number}
             </span>
           )}
         </div>
