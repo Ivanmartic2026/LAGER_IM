@@ -901,19 +901,62 @@ export default function OrdersPage() {
                     </div>
 
                     {/* Pipeline progress bar */}
-                    <div className="flex gap-1.5 mb-3">
-                      {PIPELINE_STAGES.map((stage) => {
+                    <div className="mb-4 bg-white/5 border border-white/10 rounded-xl p-4">
+                      <div className="flex items-center justify-between relative mb-3">
+                        {PIPELINE_STAGES.map((stage, idx) => {
+                          const selectedStages = Array.isArray(order.selected_stages) ? order.selected_stages : (order.status ? [order.status] : []);
+                          const isCompleted = selectedStages.includes(stage);
+                          
+                          return (
+                            <div key={stage} className="flex flex-col items-center flex-1 relative">
+                              {/* Connector line */}
+                              {idx > 0 && (
+                                <div 
+                                  className="absolute top-6 h-0.5" 
+                                  style={{
+                                    left: `${(idx - 0.5) * (100 / 5)}%`,
+                                    right: `${(4.5 - idx) * (100 / 5)}%`,
+                                    backgroundColor: selectedStages.includes(PIPELINE_STAGES[idx - 1]) && isCompleted
+                                      ? STAGE_COLORS_HEX[PIPELINE_STAGES[idx - 1]]
+                                      : '#e5e7eb'
+                                  }}
+                                />
+                              )}
+                              
+                              {/* Circle */}
+                              <div 
+                                className="relative z-10 w-12 h-12 rounded-full border-3 flex items-center justify-center transition-all"
+                                style={{
+                                  backgroundColor: isCompleted ? STAGE_COLORS_HEX[stage] : '#ffffff',
+                                  borderColor: isCompleted ? STAGE_COLORS_HEX[stage] : '#d1d5db',
+                                }}
+                              >
+                                {isCompleted ? (
+                                  <CheckCircle2 className="w-6 h-6 text-white" />
+                                ) : (
+                                  <span className="text-xs font-bold text-gray-400">
+                                    {idx + 1}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {/* Label */}
+                              <p className="text-xs font-medium text-slate-400 whitespace-nowrap mt-2">
+                                {stage}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {(() => {
                         const selectedStages = Array.isArray(order.selected_stages) ? order.selected_stages : (order.status ? [order.status] : []);
-                        const isActive = selectedStages.includes(stage);
+                        const completedCount = PIPELINE_STAGES.filter(s => selectedStages.includes(s)).length;
                         return (
-                          <div
-                            key={stage}
-                            title={stage}
-                            style={{ backgroundColor: isActive ? STAGE_COLORS_HEX[stage] : '#1e293b' }}
-                            className="flex-1 h-1.5 rounded-full"
-                          />
+                          <div className="text-xs text-slate-500 text-center">
+                            {completedCount} av {PIPELINE_STAGES.length} steg
+                          </div>
                         );
-                      })}
+                      })()}
                     </div>
 
                     <div className="flex items-start justify-between">
