@@ -901,22 +901,20 @@ export default function OrdersPage() {
                     </div>
 
                     {/* Pipeline progress bar */}
-                    {PIPELINE_STAGES.includes(order.status) && (
-                      <div className="flex gap-1.5 mb-3">
-                        {PIPELINE_STAGES.map((stage, i) => {
-                          const currentIdx = PIPELINE_STAGES.indexOf(order.status);
-                          const isActive = i <= currentIdx;
-                          return (
-                            <div
-                              key={stage}
-                              title={stage}
-                              style={{ backgroundColor: isActive ? STAGE_COLORS_HEX[stage] : '#1e293b' }}
-                              className="flex-1 h-1.5 rounded-full"
-                            />
-                          );
-                        })}
-                      </div>
-                    )}
+                    <div className="flex gap-1.5 mb-3">
+                      {PIPELINE_STAGES.map((stage) => {
+                        const selectedStages = Array.isArray(order.selected_stages) ? order.selected_stages : (order.status ? [order.status] : []);
+                        const isActive = selectedStages.includes(stage);
+                        return (
+                          <div
+                            key={stage}
+                            title={stage}
+                            style={{ backgroundColor: isActive ? STAGE_COLORS_HEX[stage] : '#1e293b' }}
+                            className="flex-1 h-1.5 rounded-full"
+                          />
+                        );
+                      })}
+                    </div>
 
                     <div className="flex items-start justify-between">
                       <div></div>

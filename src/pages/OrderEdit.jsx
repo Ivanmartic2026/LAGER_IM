@@ -24,7 +24,7 @@ export default function OrderEdit() {
     fortnox_customer_number: '',
     rm_system_id: '',
     rm_system_url: '',
-    status: 'SÄLJ',
+    selected_stages: ['SÄLJ'],
     priority: 'normal',
     delivery_date: '',
     delivery_address: '',
@@ -68,7 +68,7 @@ export default function OrderEdit() {
         fortnox_customer_number: order.fortnox_customer_number || '',
         rm_system_id: order.rm_system_id || '',
         rm_system_url: order.rm_system_url || '',
-        status: order.status || 'SÄLJ',
+        selected_stages: Array.isArray(order.selected_stages) ? order.selected_stages : (order.status ? [order.status] : ['SÄLJ']),
         priority: order.priority || 'normal',
         delivery_date: order.delivery_date || '',
         delivery_address: order.delivery_address || '',
@@ -348,22 +348,35 @@ export default function OrderEdit() {
                 <label className="text-sm font-medium text-slate-300 mb-2 block">
                   Status
                 </label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                >
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SÄLJ">SÄLJ</SelectItem>
-                    <SelectItem value="KONSTRUKTION">KONSTRUKTION</SelectItem>
-                    <SelectItem value="PRODUKTION">PRODUKTION</SelectItem>
-                    <SelectItem value="LAGER">LAGER</SelectItem>
-                    <SelectItem value="MONTERING">MONTERING</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="col-span-full">
+                  <label className="text-sm font-medium text-slate-300 mb-3 block">
+                    Pipelines Steg (välj flera)
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    {['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'].map((stage) => (
+                      <button
+                        key={stage}
+                        type="button"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            selected_stages: formData.selected_stages.includes(stage)
+                              ? formData.selected_stages.filter(s => s !== stage)
+                              : [...formData.selected_stages, stage]
+                          });
+                        }}
+                        className={`p-3 rounded-lg border transition-all font-medium text-sm ${
+                          formData.selected_stages.includes(stage)
+                            ? 'bg-blue-600/30 border-blue-500 text-blue-300'
+                            : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:border-slate-500'
+                        }`}
+                      >
+                        <Checkbox checked={formData.selected_stages.includes(stage)} className="mr-2 inline" />
+                        {stage}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
               <div>
                 <label className="text-sm font-medium text-slate-300 mb-2 block">
@@ -385,68 +398,6 @@ export default function OrderEdit() {
                 </Select>
               </div>
             </div>
-          </div>
-
-          {/* Pipeline Progress */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Pipeline</h2>
-            {(() => {
-              const STAGES = ['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'];
-              const STAGE_COLORS = {
-                'SÄLJ': '#8b5cf6',
-                'KONSTRUKTION': '#3b82f6',
-                'PRODUKTION': '#f97316',
-                'LAGER': '#eab308',
-                'MONTERING': '#22c55e',
-              };
-              const currentIdx = STAGES.indexOf(formData.status);
-              const progress = currentIdx >= 0 ? ((currentIdx + 1) / STAGES.length) * 100 : 0;
-              return (
-                <div className="space-y-4">
-                  {/* Progress bar */}
-                  <div className="flex gap-2">
-                    {STAGES.map((stage, i) => (
-                      <button
-                        key={stage}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, status: stage })}
-                        title={stage}
-                        style={{ backgroundColor: i <= currentIdx ? STAGE_COLORS[stage] : '#1e293b' }}
-                        className="flex-1 h-2 rounded-full transition-all hover:opacity-80"
-                      />
-                    ))}
-                  </div>
-                  {/* Stage checkboxes */}
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                    {STAGES.map((stage, i) => {
-                      const isActive = i === currentIdx;
-                      return (
-                        <button
-                          key={stage}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, status: stage })}
-                          className="flex items-center gap-2 p-2 rounded-lg border transition-all hover:opacity-80"
-                          style={{
-                            borderColor: isActive ? STAGE_COLORS[stage] + '60' : '#1e293b',
-                            backgroundColor: isActive ? STAGE_COLORS[stage] + '20' : 'transparent',
-                          }}
-                        >
-                          <div
-                            className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: isActive ? STAGE_COLORS[stage] : '#1e293b' }}
-                          >
-                            {isActive && <span style={{ color: '#fff', fontSize: '10px', fontWeight: 700 }}>✓</span>}
-                          </div>
-                          <span className="text-xs font-medium" style={{ color: isActive ? STAGE_COLORS[stage] : '#64748b' }}>
-                            {stage}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
           </div>
 
           {/* Address & Notes */}
