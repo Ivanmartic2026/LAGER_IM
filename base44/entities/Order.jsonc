@@ -29,21 +29,13 @@
     "status": {
       "type": "string",
       "enum": [
-        "draft",
-        "ready_for_handover",
-        "handed_over",
-        "planning",
-        "construction",
-        "ready_for_production",
-        "in_production",
-        "ready_for_warehouse",
-        "picking",
-        "ready_for_delivery",
-        "shipped",
-        "delivered",
-        "cancelled"
+        "S\u00c4LJ",
+        "KONSTRUKTION",
+        "PRODUKTION",
+        "LAGER",
+        "MONTERING"
       ],
-      "default": "draft",
+      "default": "S\u00c4LJ",
       "description": "Operativ orderstatus"
     },
     "financial_status": {
@@ -55,17 +47,6 @@
       ],
       "default": "unbilled",
       "description": "Ekonomisk status \u2013 faktureringsl\u00e4ge"
-    },
-    "priority": {
-      "type": "string",
-      "enum": [
-        "low",
-        "normal",
-        "high",
-        "urgent"
-      ],
-      "default": "normal",
-      "description": "Prioritet"
     },
     "delivery_date": {
       "type": "string",
@@ -106,18 +87,18 @@
       "items": {
         "type": "string"
       },
-      "description": "Kopplade siter (SiteReport-IDs eller site-namn)"
+      "description": "Kopplade siter"
     },
     "site_names": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Kopplade sitenamn (f\u00f6r enklare visning)"
+      "description": "Kopplade sitenamn"
     },
     "site_visit_info": {
       "type": "string",
-      "description": "Information om platsbes\u00f6k (Site Visit) \u2013 datum, kontaktperson, vad som ska g\u00f6ras m.m."
+      "description": "Information om platsbes\u00f6k"
     },
     "notes": {
       "type": "string",
@@ -144,12 +125,12 @@
     "production_started_date": {
       "type": "string",
       "format": "date-time",
-      "description": "N\u00e4r produktionen (hos oss) startade"
+      "description": "N\u00e4r produktionen startade"
     },
     "production_completed_date": {
       "type": "string",
       "format": "date-time",
-      "description": "N\u00e4r produktionen (hos oss) avslutades"
+      "description": "N\u00e4r produktionen avslutades"
     },
     "needs_ordering": {
       "type": "boolean",
@@ -202,7 +183,7 @@
     "is_incomplete": {
       "type": "boolean",
       "default": false,
-      "description": "Order \u00e4r ofullst\u00e4ndig och kan beh\u00f6va kompletteras"
+      "description": "Order \u00e4r ofullst\u00e4ndig"
     },
     "cancellation_reason": {
       "type": "string",
@@ -210,12 +191,12 @@
     },
     "source_document_url": {
       "type": "string",
-      "description": "Originalfil som ordern skapades fr\u00e5n (PDF/bild)"
+      "description": "Originalfil som ordern skapades fr\u00e5n"
     },
     "sales_completed": {
       "type": "boolean",
       "default": false,
-      "description": "F\u00f6rs\u00e4ljning slutf\u00f6rd - markera n\u00e4r s\u00e4ljaren \u00e4r klar med sin del"
+      "description": "F\u00f6rs\u00e4ljning slutf\u00f6rd"
     }
   },
   "required": [

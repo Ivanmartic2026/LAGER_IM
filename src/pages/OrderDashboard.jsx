@@ -1,33 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 
-const STATUS_CONFIG = {
-  draft:                { label: 'Utkast',              color: '#6b7280', order: 10 },
-  ready_for_handover:   { label: 'Redo för överlämning', color: '#8b5cf6', order: 2 },
-  handed_over:          { label: 'Överlämnad',           color: '#a78bfa', order: 3 },
-  planning:             { label: 'Planering',            color: '#3b82f6', order: 4 },
-  construction:         { label: 'Konstruktion',         color: '#06b6d4', order: 5 },
-  ready_for_production: { label: 'Redo för produktion',  color: '#f59e0b', order: 6 },
-  in_production:        { label: 'I produktion',         color: '#f97316', order: 7 },
-  ready_for_warehouse:  { label: 'Redo för lager',       color: '#eab308', order: 8 },
-  picking:              { label: 'Plockning',            color: '#84cc16', order: 9 },
-  ready_for_delivery:   { label: 'Redo för leverans',    color: '#22c55e', order: 1 },
-  shipped:              { label: 'Skickad',              color: '#10b981', order: 11 },
-};
+const STAGES = ['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'];
 
-const STATUS_GROUP_ORDER = [
-  'ready_for_delivery',
-  'ready_for_handover',
-  'handed_over',
-  'planning',
-  'construction',
-  'ready_for_production',
-  'in_production',
-  'ready_for_warehouse',
-  'picking',
-  'shipped',
-  'draft',
-];
+const STAGE_COLORS = {
+  'SÄLJ':         '#8b5cf6',
+  'KONSTRUKTION': '#3b82f6',
+  'PRODUKTION':   '#f97316',
+  'LAGER':        '#eab308',
+  'MONTERING':    '#22c55e',
+};
 
 const ROWS_PER_GROUP = 3;
 const SCROLL_INTERVAL_MS = 3500;
@@ -48,17 +30,40 @@ function DeliveryBadge({ dateStr }) {
   if (daysLeft < 0) color = '#ef4444';
   else if (daysLeft <= 7) color = '#f97316';
   else if (daysLeft <= 14) color = '#eab308';
-
-  const textColor = color === '#aaa' ? '#888' : color;
-  const dateColor = '#ffffff';
   return (
     <div style={{ textAlign: 'right', minWidth: '90px' }}>
-      <div style={{ fontSize: '13px', fontWeight: 700, color: dateColor, fontVariantNumeric: 'tabular-nums' }}>
+      <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', fontVariantNumeric: 'tabular-nums' }}>
         {formatted}
       </div>
-      <div style={{ fontSize: '11px', fontWeight: 600, color: textColor, opacity: 0.85 }}>
+      <div style={{ fontSize: '11px', fontWeight: 600, color, opacity: 0.85 }}>
         {daysLeft < 0 ? `${Math.abs(daysLeft)}d försenad` : daysLeft === 0 ? 'Idag' : `${daysLeft}d kvar`}
       </div>
+    </div>
+  );
+}
+
+function StageProgressBar({ status }) {
+  const currentIdx = STAGES.indexOf(status);
+  return (
+    <div style={{ display: 'flex', gap: '3px', marginTop: '5px' }}>
+      {STAGES.map((stage, i) => {
+        const isActive = i <= currentIdx;
+        const isCurrent = i === currentIdx;
+        return (
+          <div
+            key={stage}
+            title={stage}
+            style={{
+              flex: 1,
+              height: '4px',
+              borderRadius: '2px',
+              backgroundColor: isActive ? STAGE_COLORS[stage] : '#1e1e1e',
+              opacity: isCurrent ? 1 : isActive ? 0.6 : 1,
+              transition: 'background-color 0.3s',
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -66,47 +71,42 @@ function DeliveryBadge({ dateStr }) {
 function OrderRow({ order }) {
   return (
     <div style={{
-      display: 'grid',
-      gridTemplateColumns: '1fr auto',
-      alignItems: 'center',
-      gap: '16px',
       padding: '10px 16px',
       backgroundColor: '#000000',
       borderRadius: '8px',
       border: '1px solid #1a1a1a',
-      height: '56px',
       boxSizing: 'border-box',
     }}>
-      <div style={{ minWidth: 0 }}>
-        <div style={{
-          fontSize: '14px',
-          fontWeight: 700,
-          color: '#fff',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
-          {order.fortnox_project_name || order.customer_name}
-        </div>
-        <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: '16px' }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            fontSize: '14px',
+            fontWeight: 700,
+            color: '#fff',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {order.fortnox_project_name || order.customer_name}
+          </div>
           {order.fortnox_project_name && (
-            <span style={{ fontSize: '11px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: '11px', color: '#fff', opacity: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {order.customer_name}
-            </span>
+            </div>
           )}
         </div>
+        <DeliveryBadge dateStr={order.delivery_date} />
       </div>
-      <DeliveryBadge dateStr={order.delivery_date} />
+      <StageProgressBar status={order.status} />
     </div>
   );
 }
 
 function StatusGroup({ status, orders }) {
-  const cfg = STATUS_CONFIG[status] || { label: status, color: '#6b7280' };
+  const color = STAGE_COLORS[status] || '#6b7280';
   const [offset, setOffset] = useState(0);
   const intervalRef = useRef(null);
 
-  // Sort by delivery date
   const sorted = [...orders].sort((a, b) => {
     if (!a.delivery_date && !b.delivery_date) return 0;
     if (!a.delivery_date) return 1;
@@ -124,53 +124,30 @@ function StatusGroup({ status, orders }) {
     return () => clearInterval(intervalRef.current);
   }, [sorted.length, needsScroll]);
 
-  // Build visible window — only show as many rows as there are orders (max ROWS_PER_GROUP)
   const visibleCount = Math.min(sorted.length, ROWS_PER_GROUP);
   const visible = [];
   for (let i = 0; i < visibleCount; i++) {
     visible.push(sorted[(offset + i) % sorted.length]);
   }
 
-  const ROW_H = 56;
-  const GAP = 6;
-  const containerH = visibleCount * ROW_H + (visibleCount - 1) * GAP;
-
   return (
     <div style={{ marginBottom: '20px' }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        marginBottom: '8px',
-        paddingLeft: '4px',
-      }}>
-        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: cfg.color, flexShrink: 0 }} />
-        <span style={{ fontSize: '12px', fontWeight: 700, color: cfg.color, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-          {cfg.label}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', paddingLeft: '4px' }}>
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
+        <span style={{ fontSize: '12px', fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          {status}
         </span>
         <span style={{ fontSize: '11px', color: '#333' }}>({orders.length})</span>
         {needsScroll && (
           <span style={{ fontSize: '10px', color: '#2a2a2a', marginLeft: '4px' }}>
-            {offset + 1}–{Math.min(offset + ROWS_PER_GROUP, sorted.length > ROWS_PER_GROUP ? sorted.length : ROWS_PER_GROUP)} / {sorted.length}
+            {offset + 1}–{Math.min(offset + ROWS_PER_GROUP, sorted.length)} / {sorted.length}
           </span>
         )}
       </div>
-
-      {/* Rows container with clip */}
-      <div style={{ height: `${containerH}px`, overflow: 'hidden', position: 'relative' }}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: `${GAP}px`,
-            transition: needsScroll ? 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-          }}
-        >
-          {visible.map((order, i) => (
-            <OrderRow key={`${order.id}-${i}`} order={order} />
-          ))}
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {visible.map((order, i) => (
+          <OrderRow key={`${order.id}-${i}`} order={order} />
+        ))}
       </div>
     </div>
   );
@@ -194,14 +171,16 @@ export default function OrderDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const grouped = STATUS_GROUP_ORDER.reduce((acc, status) => {
-    const statusOrders = orders.filter(o => o.status === status);
-    if (statusOrders.length > 0) acc.push({ status, orders: statusOrders });
+  // Group by stage order
+  const grouped = STAGES.reduce((acc, stage) => {
+    const stageOrders = orders.filter(o => o.status === stage);
+    if (stageOrders.length > 0) acc.push({ status: stage, orders: stageOrders });
     return acc;
   }, []);
 
-  const unknownOrders = orders.filter(o => !STATUS_GROUP_ORDER.includes(o.status));
-  if (unknownOrders.length > 0) grouped.push({ status: 'draft', orders: unknownOrders });
+  // Orders with unknown/old statuses
+  const unknownOrders = orders.filter(o => !STAGES.includes(o.status));
+  if (unknownOrders.length > 0) grouped.push({ status: 'ÖVRIGT', orders: unknownOrders });
 
   return (
     <div style={{
@@ -233,16 +212,22 @@ export default function OrderDashboard() {
             Order Dashboard · Aktiva ordrar
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
 
+        {/* Stage legend */}
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {STAGES.map(stage => (
+            <div key={stage} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: STAGE_COLORS[stage] }} />
+              <span style={{ fontSize: '11px', color: '#555', fontWeight: 600 }}>{stage}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{
-            fontSize: '15px',
-            fontWeight: 700,
-            color: '#2563eb',
-            backgroundColor: '#2563eb15',
-            border: '1px solid #2563eb30',
-            borderRadius: '8px',
-            padding: '8px 18px',
+            fontSize: '15px', fontWeight: 700, color: '#2563eb',
+            backgroundColor: '#2563eb15', border: '1px solid #2563eb30',
+            borderRadius: '8px', padding: '8px 18px',
           }}>
             {orders.length} ordrar
           </div>
@@ -276,7 +261,6 @@ export default function OrderDashboard() {
         </div>
       )}
 
-      {/* Footer */}
       <div style={{
         marginTop: 'clamp(24px, 3vw, 48px)',
         paddingTop: 'clamp(12px, 1.5vw, 20px)',
