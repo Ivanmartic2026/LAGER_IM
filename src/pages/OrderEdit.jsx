@@ -351,25 +351,24 @@ export default function OrderEdit() {
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                   {['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'].map((stage) => (
                     <button
-                      key={stage}
-                      type="button"
-                      onClick={() => {
-                        setFormData({
-                          ...formData,
-                          selected_stages: formData.selected_stages.includes(stage)
-                            ? formData.selected_stages.filter(s => s !== stage)
-                            : [...formData.selected_stages, stage]
-                        });
-                      }}
-                      className={`p-3 rounded-lg border transition-all font-medium text-sm ${
-                        formData.selected_stages.includes(stage)
-                          ? 'bg-blue-600/30 border-blue-500 text-blue-300'
-                          : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:border-slate-500'
-                      }`}
-                    >
-                      <Checkbox checked={formData.selected_stages.includes(stage)} className="mr-2 inline" />
-                      {stage}
-                    </button>
+                       key={stage}
+                       type="button"
+                       onClick={() => {
+                         setFormData({
+                           ...formData,
+                           selected_stages: formData.selected_stages.includes(stage)
+                             ? formData.selected_stages.filter(s => s !== stage)
+                             : [...formData.selected_stages, stage]
+                         });
+                       }}
+                       className={`p-3 rounded-lg border transition-all font-medium text-sm ${
+                         formData.selected_stages.includes(stage)
+                           ? 'bg-blue-600/30 border-blue-500 text-blue-300'
+                           : 'bg-slate-700/30 border-slate-600 text-slate-400 hover:border-slate-500'
+                       }`}
+                     >
+                       {stage}
+                     </button>
                   ))}
                 </div>
               </div>
