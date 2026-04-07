@@ -46,8 +46,8 @@ export default function OrderDashboard() {
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const fetchOrders = async () => {
-    const data = await base44.asServiceRole.entities.Order.list('-updated_date', 50);
-    setOrders(data.filter(o => o.status !== 'cancelled' && o.status !== 'delivered'));
+    const res = await base44.functions.invoke('getPublicOrders', {});
+    setOrders(res.data?.orders || []);
     setLastUpdated(new Date());
     setLoading(false);
   };
