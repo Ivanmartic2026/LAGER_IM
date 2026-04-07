@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 
 const STATUS_CONFIG = {
@@ -91,8 +91,18 @@ function DetailRow({ label, value }) {
   );
 }
 
-function OrderRow({ order, index }) {
+function OrderRow({ order, index, isActive }) {
   const [expanded, setExpanded] = useState(false);
+  const prevActive = useRef(false);
+
+  useEffect(() => {
+    if (isActive && !prevActive.current) {
+      setExpanded(true);
+    } else if (!isActive && prevActive.current) {
+      setExpanded(false);
+    }
+    prevActive.current = isActive;
+  }, [isActive]);
 
   const DELIVERY_METHODS = {
     truck: 'Lastbil', courier: 'Kurir', pickup: 'Upphämtning',
@@ -178,6 +188,11 @@ function OrderRow({ order, index }) {
       </div>
 
       {/* Expanded details */}
+      <div style={{
+        maxHeight: expanded ? '600px' : '0',
+        overflow: 'hidden',
+        transition: 'max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+      }}>
       {expanded && (
         <div style={{
           borderTop: '1px solid #1a1a1a',
@@ -226,11 +241,12 @@ function OrderRow({ order, index }) {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
 
-function StatusGroup({ status, orders, globalStart }) {
+function StatusGroup({ status, orders, globalStart, activeOrderId }) {
   const cfg = STATUS_CONFIG[status] || { label: status, color: '#6b7280' };
   return (
     <div style={{ marginBottom: 'clamp(16px, 2vw, 28px)' }}>
@@ -253,7 +269,7 @@ function StatusGroup({ status, orders, globalStart }) {
       {/* Orders */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(6px, 0.8vw, 10px)' }}>
         {orders.map((order, i) => (
-          <OrderRow key={order.id} order={order} index={globalStart + i} />
+          <OrderRow key={order.id} order={order} index={globalStart + i} isActive={activeOrderId === order.id} />
         ))}
       </div>
     </div>
@@ -264,6 +280,8 @@ export default function OrderDashboard() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [activeOrderId, setActiveOrderId] = useState(null);
+  const activeIndexRef = useRef(0);
 
   const fetchOrders = async () => {
     const res = await base44.functions.invoke('getPublicOrders', {});
@@ -277,6 +295,38 @@ export default function OrderDashboard() {
     const interval = setInterval(fetchOrders, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Auto-scroll through orders
+  useEffect(() => {
+    if (orders.length === 0) return;
+    const OPEN_DURATION = 4000;
+    const CLOSE_PAUSE = 600;
+
+    const tick = () => {
+      const flatOrders = STATUS_GROUP_ORDER.flatMap(status =>
+        orders.filter(o => o.status === status)
+          .sort((a, b) => {
+            if (!a.delivery_date && !b.delivery_date) return 0;
+            if (!a.delivery_date) return 1;
+            if (!b.delivery_date) return -1;
+            return new Date(a.delivery_date) - new Date(b.delivery_date);
+          })
+      );
+      if (flatOrders.length === 0) return;
+      const current = flatOrders[activeIndexRef.current % flatOrders.length];
+      setActiveOrderId(current.id);
+      setTimeout(() => {
+        setActiveOrderId(null);
+        setTimeout(() => {
+          activeIndexRef.current = (activeIndexRef.current + 1) % flatOrders.length;
+          tick();
+        }, CLOSE_PAUSE);
+      }, OPEN_DURATION);
+    };
+
+    const startTimer = setTimeout(tick, 1000);
+    return () => clearTimeout(startTimer);
+  }, [orders.length > 0 ? 'ready' : 'waiting']);
 
   // Group orders by status, sorted by delivery date within each group
   const grouped = STATUS_GROUP_ORDER.reduce((acc, status) => {
@@ -375,7 +425,7 @@ export default function OrderDashboard() {
             const start = runningIndex;
             runningIndex += groupOrders.length;
             return (
-              <StatusGroup key={status} status={status} orders={groupOrders} globalStart={start} />
+              <StatusGroup key={status} status={status} orders={groupOrders} globalStart={start} activeOrderId={activeOrderId} />
             );
           })}
         </div>
