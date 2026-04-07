@@ -224,11 +224,13 @@ export default function OrderDashboard() {
         borderBottom: '1px solid #1a1a1a',
       }}>
         <div>
-          <h1 style={{ fontSize: 'clamp(22px, 3.5vw, 48px)', fontWeight: 800, margin: 0, letterSpacing: '-0.5px' }}>
-            Order Dashboard
-          </h1>
-          <p style={{ fontSize: 'clamp(11px, 1.2vw, 16px)', color: '#444', margin: '4px 0 0 0' }}>
-            Aktiva ordrar · IMvision
+          <img
+            src="https://media.base44.com/images/public/69455d52c9eab36b7d26cc74/60fb63701_LogoLIGGANDE_IMvision_VITtkopia.png"
+            alt="IMvision"
+            style={{ height: 'clamp(28px, 3vw, 48px)', objectFit: 'contain', display: 'block', marginBottom: '6px' }}
+          />
+          <p style={{ fontSize: 'clamp(11px, 1.2vw, 16px)', color: '#444', margin: 0 }}>
+            Order Dashboard · Aktiva ordrar
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
