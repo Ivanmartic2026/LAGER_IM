@@ -1,0 +1,260 @@
+{
+  "name": "PurchaseOrder",
+  "type": "object",
+  "properties": {
+    "po_number": {
+      "type": "string",
+      "description": "Purchase Order nummer"
+    },
+    "supplier_id": {
+      "type": "string",
+      "description": "Referens till leverant\u00f6r"
+    },
+    "supplier_name": {
+      "type": "string",
+      "description": "Leverant\u00f6rens namn"
+    },
+    "warehouse_id": {
+      "type": "string",
+      "description": "Referens till lager"
+    },
+    "warehouse_name": {
+      "type": "string",
+      "description": "Lagernamn"
+    },
+    "purchase_type": {
+      "type": "string",
+      "enum": [
+        "p\u00e5fyllning_lager",
+        "specifik_kundorder",
+        "dropship",
+        "projekt_intern"
+      ],
+      "description": "Typ av ink\u00f6p"
+    },
+    "customer_reference": {
+      "type": "string",
+      "description": "Kundnamn eller referens"
+    },
+    "payment_terms": {
+      "type": "string",
+      "enum": [
+        "30_dagar_netto",
+        "10_dagar_2_procent",
+        "omedelbar_betalning",
+        "60_dagar_netto"
+      ],
+      "description": "Betalningsvillkor"
+    },
+    "delivery_terms": {
+      "type": "string",
+      "enum": [
+        "EXW",
+        "FOB",
+        "CIF",
+        "DAP",
+        "DDP"
+      ],
+      "description": "Leveransvillkor (Incoterms)"
+    },
+    "mode_of_transport": {
+      "type": "string",
+      "enum": [
+        "air_freight_express",
+        "air_freight_economy",
+        "sea_freight",
+        "rail_transport",
+        "road_transport",
+        "courier"
+      ],
+      "description": "Transports\u00e4tt"
+    },
+    "cost_center": {
+      "type": "string",
+      "enum": [
+        "Rental",
+        "Fix install",
+        "Support & Service"
+      ],
+      "description": "Kostnadsst\u00e4lle"
+    },
+    "fortnox_project_number": {
+      "type": "string",
+      "description": "Projektnummer Fortnox"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "confirmed",
+        "waiting_for_supplier_documentation",
+        "in_production",
+        "shipped",
+        "ready_for_reception",
+        "received",
+        "cancelled"
+      ],
+      "default": "draft",
+      "description": "Status p\u00e5 ink\u00f6psordern"
+    },
+    "invoice_number": {
+      "type": "string",
+      "description": "Fakturanummer fr\u00e5n leverant\u00f6r"
+    },
+    "invoice_amount": {
+      "type": "number",
+      "description": "Fakturabelopp"
+    },
+    "invoice_currency": {
+      "type": "string",
+      "enum": [
+        "SEK",
+        "EUR",
+        "USD",
+        "GBP",
+        "NOK",
+        "DKK"
+      ],
+      "default": "SEK",
+      "description": "Valuta"
+    },
+    "invoice_file_url": {
+      "type": "string",
+      "description": "URL till uppladdad faktura"
+    },
+    "expected_delivery_date": {
+      "type": "string",
+      "format": "date",
+      "description": "F\u00f6rv\u00e4ntat leveransdatum (ETA)"
+    },
+    "confirmed_delivery_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Bekr\u00e4ftat leveransdatum fr\u00e5n leverant\u00f6r"
+    },
+    "delivery_method": {
+      "type": "string",
+      "enum": [
+        "air_freight",
+        "sea_freight",
+        "truck",
+        "courier",
+        "pickup",
+        "other"
+      ],
+      "description": "Leveranss\u00e4tt"
+    },
+    "shipping_company": {
+      "type": "string",
+      "description": "Spedit\u00f6r/transportf\u00f6retag"
+    },
+    "shipping_cost": {
+      "type": "number",
+      "description": "Leveranskostnad (SEK)"
+    },
+    "tracking_number": {
+      "type": "string",
+      "description": "Sp\u00e5rningsnummer"
+    },
+    "order_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Orderdatum"
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r ordern skickades till leverant\u00f6ren"
+    },
+    "confirmed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r leverant\u00f6ren bekr\u00e4ftade ordern"
+    },
+    "shipped_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r leveransen skickades"
+    },
+    "received_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Mottagningsdatum"
+    },
+    "received_by": {
+      "type": "string",
+      "description": "Mottagen av (anv\u00e4ndarens email)"
+    },
+    "supplier_comments": {
+      "type": "string",
+      "description": "Kommentarer fr\u00e5n leverant\u00f6ren"
+    },
+    "total_cost": {
+      "type": "number",
+      "description": "Total kostnad"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    },
+    "supplier_portal_token": {
+      "type": "string",
+      "description": "Unikt token f\u00f6r leverant\u00f6rs\u00e5tkomst"
+    },
+    "documentation_status": {
+      "type": "string",
+      "enum": [
+        "incomplete",
+        "partial",
+        "complete"
+      ],
+      "default": "incomplete",
+      "description": "Status p\u00e5 dokumentation fr\u00e5n leverant\u00f6r"
+    },
+    "payment_percentage_sent": {
+      "type": "string",
+      "enum": [
+        "20%",
+        "50%",
+        "100%"
+      ],
+      "description": "Betalningsandel skickad till ekonomi (20%, 50% eller 100%)"
+    },
+    "sent_for_payment_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Datum och tid n\u00e4r ordern skickades f\u00f6r betalning till ekonomi"
+    },
+    "sent_for_payment_by": {
+      "type": "string",
+      "description": "Vem som skickade f\u00f6r betalning (email)"
+    },
+    "payment_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "percentage": {
+            "type": "string"
+          },
+          "sent_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sent_by": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Logg \u00f6ver skickade betalningar till ekonomi"
+    }
+  },
+  "required": [
+    "supplier_name",
+    "fortnox_project_number"
+  ]
+}

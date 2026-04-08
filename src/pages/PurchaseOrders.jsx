@@ -40,6 +40,7 @@ export default function PurchaseOrdersPage() {
   const [accountingCc, setAccountingCc] = useState("");
   const [accountingNote, setAccountingNote] = useState("");
   const [accountingSent, setAccountingSent] = useState(false);
+  const [accountingPaymentPct, setAccountingPaymentPct] = useState("");
 
   const QUICK_EMAILS = [
     { name: "Frida Jansson", email: "frida.jansson@finec.se" },
@@ -461,6 +462,12 @@ export default function PurchaseOrdersPage() {
                               {po.notes}
                             </span>
                           )}
+                          {po.payment_percentage_sent && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                              <Send className="w-2.5 h-2.5" />
+                              Ekonomi: {po.payment_percentage_sent}
+                            </span>
+                          )}
                         </div>
                       )}
 
@@ -720,7 +727,7 @@ export default function PurchaseOrdersPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingCc(""); setAccountingNote(""); setAccountingSent(false); }}
+            onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingCc(""); setAccountingNote(""); setAccountingSent(false); setAccountingPaymentPct(""); }}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -741,7 +748,7 @@ export default function PurchaseOrdersPage() {
                     <span className="text-white font-medium">{accountingEmail}</span>
                   </p>
                   <Button
-                    onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingCc(""); setAccountingNote(""); setAccountingSent(false); }}
+                    onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingCc(""); setAccountingNote(""); setAccountingSent(false); setAccountingPaymentPct(""); }}
                     className="bg-emerald-600 hover:bg-emerald-500 w-full"
                   >
                     Stäng
@@ -774,6 +781,47 @@ export default function PurchaseOrdersPage() {
                       </div>
                     ) : (
                       <div className="text-red-400 text-xs pt-1">⚠️ Ingen leverantörsfaktura uppladdad</div>
+                    )}
+                  </div>
+
+                  {/* Existing payment log */}
+                  {accountingModalPO.payment_log?.length > 0 && (
+                    <div className="mb-4 p-3 rounded-lg bg-white/5 border border-white/10">
+                      <p className="text-xs font-semibold text-slate-400 mb-2">Tidigare skickade betalningar</p>
+                      <div className="space-y-1.5">
+                        {accountingModalPO.payment_log.map((entry, i) => (
+                          <div key={i} className="flex items-center justify-between text-xs">
+                            <span className="font-bold text-emerald-400">{entry.percentage}</span>
+                            <span className="text-slate-400">{entry.sent_by}</span>
+                            <span className="text-slate-500">{entry.sent_date ? format(new Date(entry.sent_date), "d MMM yyyy HH:mm", { locale: sv }) : ''}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Payment percentage */}
+                  <div className="mb-4">
+                    <label className="text-sm font-medium text-slate-300 mb-2 block">Betalningsbeteckning *</label>
+                    <div className="flex gap-2">
+                      {['20%', '50%', '100%'].map(pct => (
+                        <button
+                          key={pct}
+                          type="button"
+                          onClick={() => setAccountingPaymentPct(pct)}
+                          className={cn(
+                            "flex-1 py-2 rounded-lg text-sm font-bold border transition-colors",
+                            accountingPaymentPct === pct
+                              ? "bg-emerald-600 border-emerald-500 text-white"
+                              : "bg-slate-800 border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white"
+                          )}
+                        >
+                          {pct}
+                        </button>
+                      ))}
+                    </div>
+                    {!accountingPaymentPct && (
+                      <p className="text-xs text-amber-400 mt-1">Välj betalningsbeteckning</p>
                     )}
                   </div>
 
@@ -853,7 +901,7 @@ export default function PurchaseOrdersPage() {
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
-                      onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingCc(""); setAccountingNote(""); setAccountingSent(false); }}
+                      onClick={() => { setAccountingModalPO(null); setAccountingEmail(""); setAccountingCc(""); setAccountingNote(""); setAccountingSent(false); setAccountingPaymentPct(""); }}
                       className="flex-1 bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
                     >
                       Avbryt
@@ -861,14 +909,32 @@ export default function PurchaseOrdersPage() {
                     <Button
                       onClick={async () => {
                         if (!accountingEmail) { toast.error("Ange en email-adress"); return; }
+                        if (!accountingPaymentPct) { toast.error("Välj betalningsbeteckning (20%/50%/100%)"); return; }
                         const t = toast.loading("Skickar till ekonomi...");
                         try {
                           await base44.functions.invoke('sendAccountingPackage', {
                             purchaseOrderId: accountingModalPO.id,
                             accountingEmail,
                             ccEmails: accountingCc ? accountingCc.split(',').map(e => e.trim()).filter(Boolean) : undefined,
-                            note: accountingNote || undefined
+                            note: accountingNote || undefined,
+                            paymentPercentage: accountingPaymentPct
                           });
+                          // Save payment log entry
+                          const me = await base44.auth.me();
+                          const newLogEntry = {
+                            percentage: accountingPaymentPct,
+                            sent_date: new Date().toISOString(),
+                            sent_by: me?.email || 'okänd',
+                            note: accountingNote || ''
+                          };
+                          const existingLog = accountingModalPO.payment_log || [];
+                          await base44.entities.PurchaseOrder.update(accountingModalPO.id, {
+                            payment_percentage_sent: accountingPaymentPct,
+                            sent_for_payment_date: new Date().toISOString(),
+                            sent_for_payment_by: me?.email || 'okänd',
+                            payment_log: [...existingLog, newLogEntry]
+                          });
+                          queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
                           toast.dismiss(t);
                           setAccountingSent(true);
                         } catch (err) {

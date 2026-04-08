@@ -26,6 +26,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
      delivery_terms: purchaseOrder?.delivery_terms || '',
      mode_of_transport: purchaseOrder?.mode_of_transport || '',
      payment_terms: purchaseOrder?.payment_terms || '',
+     shipping_cost: purchaseOrder?.shipping_cost || '',
    });
 
   const [poItems, setPOItems] = useState([]);
@@ -131,7 +132,8 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           quantity_ordered: item.quantity_ordered,
           quantity_received: item.quantity_received || 0,
           unit_price: item.unit_price != null ? item.unit_price : 0,
-          status: item.status || 'pending'
+          status: item.status || 'pending',
+          warranty_period_months: item.warranty_period_months ?? null
         };
 
         if (item.id) {
@@ -168,10 +170,11 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
         }
       }
 
-      // Calculate total cost after all items are saved
-      const totalCost = poItems.reduce((sum, item) => {
+      // Calculate total cost after all items are saved (inkl. leveranskostnad)
+      const itemsCost = poItems.reduce((sum, item) => {
         return sum + (item.quantity_ordered * (item.unit_price || 0));
       }, 0);
+      const totalCost = itemsCost + (Number(data.shipping_cost) || 0);
 
       await base44.entities.PurchaseOrder.update(savedPO.id, { total_cost: totalCost });
 
@@ -663,6 +666,21 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             <div>
               <label className="text-sm font-medium text-slate-300 mb-2 block">
+                Leveranskostnad (SEK)
+              </label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.shipping_cost}
+                onChange={(e) => setFormData({ ...formData, shipping_cost: e.target.value === '' ? '' : parseFloat(e.target.value) })}
+                placeholder="T.ex. 1500"
+                className="bg-slate-800 border-slate-700 text-white"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
                 RM-system ID
               </label>
               <Input
@@ -900,14 +918,15 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             {poItems.length > 0 ? (
               <div className="space-y-3">
-                <div className="grid grid-cols-[110px_110px_minmax(160px,1fr)_90px_80px_90px_auto] gap-3 px-3 py-2 text-xs font-medium text-slate-500">
-                  <div>Article Number</div>
-                  <div>Batch ID</div>
-                  <div>Benämning</div>
-                  <div>Enhetspris</div>
-                  <div>Antal</div>
-                  <div className="text-right">Summa</div>
-                  <div></div>
+                <div className="grid grid-cols-[110px_110px_minmax(160px,1fr)_90px_80px_70px_90px_auto] gap-3 px-3 py-2 text-xs font-medium text-slate-500">
+                 <div>Article Number</div>
+                 <div>Batch ID</div>
+                 <div>Benämning</div>
+                 <div>Enhetspris</div>
+                 <div>Antal</div>
+                 <div>Garanti (mån)</div>
+                 <div className="text-right">Summa</div>
+                 <div></div>
                 </div>
                 {poItems.map((item, index) => {
                    const itemTotal = item.quantity_ordered * (item.unit_price || 0);
@@ -918,10 +937,10 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                     const stillNeedReceive = item.quantity_ordered - alreadyReceived;
                     return (
                      <div
-                       key={index}
-                       className="rounded-lg bg-slate-800/50 border border-slate-700 p-4 space-y-3"
+                      key={index}
+                      className="rounded-lg bg-slate-800/50 border border-slate-700 p-4 space-y-3"
                      >
-                       <div className="grid grid-cols-[110px_110px_minmax(160px,1fr)_90px_80px_90px_auto] gap-3 items-center">
+                      <div className="grid grid-cols-[110px_110px_minmax(160px,1fr)_90px_80px_70px_90px_auto] gap-3 items-center">
                          <div className="flex gap-1 items-center">
                             <Input
                               value={displaySku}
@@ -974,6 +993,17 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                              className="bg-slate-800 border-slate-700 text-white text-sm h-9"
                            />
                          </div>
+                         <div>
+                           <Input
+                             type="number"
+                             min="0"
+                             step="1"
+                             value={item.warranty_period_months ?? ''}
+                             onChange={(e) => handleUpdateItem(index, 'warranty_period_months', e.target.value === '' ? null : parseInt(e.target.value))}
+                             placeholder="mån"
+                             className="bg-slate-800 border-slate-700 text-white text-sm h-9"
+                           />
+                         </div>
                          <div className="text-sm font-semibold text-white text-right">
                            {itemTotal.toLocaleString('sv-SE')} kr
                          </div>
@@ -1022,11 +1052,23 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                 })}
                 
                 {/* Total */}
-                <div className="flex items-center justify-between p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                  <span className="font-semibold text-white">Totalt</span>
-                  <span className="text-lg font-bold text-white">
-                    {totalCost.toLocaleString('sv-SE')} kr
-                  </span>
+                <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 space-y-1.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-white/60">Artiklar</span>
+                    <span className="text-white">{totalCost.toLocaleString('sv-SE')} kr</span>
+                  </div>
+                  {formData.shipping_cost > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/60">Leveranskostnad</span>
+                      <span className="text-white">{Number(formData.shipping_cost).toLocaleString('sv-SE')} kr</span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between border-t border-blue-500/30 pt-1.5">
+                    <span className="font-semibold text-white">Totalt</span>
+                    <span className="text-lg font-bold text-white">
+                      {(totalCost + (Number(formData.shipping_cost) || 0)).toLocaleString('sv-SE')} kr
+                    </span>
+                  </div>
                 </div>
               </div>
             ) : (

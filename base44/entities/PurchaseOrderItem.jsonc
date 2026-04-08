@@ -1,0 +1,93 @@
+{
+  "name": "PurchaseOrderItem",
+  "type": "object",
+  "properties": {
+    "purchase_order_id": {
+      "type": "string",
+      "description": "Referens till ink\u00f6psorder"
+    },
+    "article_id": {
+      "type": "string",
+      "description": "Referens till artikel"
+    },
+    "article_name": {
+      "type": "string",
+      "description": "Artikelnamn"
+    },
+    "article_sku": {
+      "type": "string",
+      "description": "Artikelnummer (SKU)"
+    },
+    "article_batch_number": {
+      "type": "string",
+      "description": "Batch nummer"
+    },
+    "quantity_ordered": {
+      "type": "number",
+      "description": "Best\u00e4lld m\u00e4ngd"
+    },
+    "quantity_confirmed": {
+      "type": "number",
+      "description": "Bekr\u00e4ftad m\u00e4ngd fr\u00e5n leverant\u00f6r"
+    },
+    "quantity_received": {
+      "type": "number",
+      "default": 0,
+      "description": "Mottagen m\u00e4ngd"
+    },
+    "supplier_batch_numbers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "batch_no": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "production_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "comment": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Leverant\u00f6rens batchnummer per leverans"
+    },
+    "unit_price": {
+      "type": "number",
+      "description": "Enhetspris"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "partial",
+        "received"
+      ],
+      "default": "pending",
+      "description": "Status p\u00e5 rad"
+    },
+    "supplier_comment": {
+      "type": "string",
+      "description": "Kommentar fr\u00e5n leverant\u00f6r"
+    },
+    "warranty_period_months": {
+      "type": "number",
+      "description": "Garantitid i m\u00e5nader (anges av leverant\u00f6r)"
+    },
+    "source_created_by_po": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om artikeln skapades automatiskt av denna PO-rad"
+    }
+  },
+  "required": [
+    "purchase_order_id",
+    "quantity_ordered"
+  ]
+}
