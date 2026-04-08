@@ -70,7 +70,7 @@ export default function FindPage() {
         setScanResult("found");
       }
     }
-  }, [articles]);
+  }, [articles.length]); // use .length instead of array ref to avoid infinite loop
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -89,13 +89,12 @@ export default function FindPage() {
       ).toLowerCase().includes(query)
     );
 
-    // Apply status filter
     if (statusFilter !== "all") {
       results = results.filter(article => article.status === statusFilter);
     }
 
     setSearchResults(results.slice(0, 10));
-  }, [searchQuery, articles, statusFilter]);
+  }, [searchQuery, statusFilter, articles.length]); // use .length to avoid new array ref on every render
 
   const handleSelectArticle = (article) => {
     setSelectedArticle(article);

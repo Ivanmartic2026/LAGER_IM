@@ -217,7 +217,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { purchaseOrderId, accountingEmail, ccEmails, note } = await req.json();
+    const { purchaseOrderId, accountingEmail, ccEmails, note, paymentPercentage } = await req.json();
 
     if (!purchaseOrderId || !accountingEmail) {
       return Response.json({ error: 'Missing purchaseOrderId or accountingEmail' }, { status: 400 });
@@ -298,6 +298,7 @@ Deno.serve(async (req) => {
         <tr><td style="padding:6px 0;color:#64748b;">Projektnummer Fortnox</td><td style="padding:6px 0;font-weight:600;color:#2563eb;">${po.fortnox_project_number || '—'}</td></tr>
         <tr><td style="padding:6px 0;color:#64748b;">Leveransvillkor</td><td style="padding:6px 0;color:#1e293b;">${po.delivery_terms || '—'}</td></tr>
         <tr><td style="padding:6px 0;color:#64748b;">Betalningsvillkor</td><td style="padding:6px 0;color:#1e293b;">${po.payment_terms || '—'}</td></tr>
+        ${paymentPercentage ? `<tr><td style="padding:6px 0;color:#64748b;font-weight:700;">Betalningsbeteckning</td><td style="padding:6px 0;font-weight:800;font-size:16px;color:#059669;">${paymentPercentage}</td></tr>` : ''}
         ${po.invoice_number ? `<tr><td style="padding:6px 0;color:#64748b;">Fakturanummer</td><td style="padding:6px 0;font-weight:600;color:#1e293b;">${po.invoice_number}</td></tr>` : ''}
         ${po.cost_center ? `<tr><td style="padding:6px 0;color:#64748b;">Kostnadsställe</td><td style="padding:6px 0;color:#1e293b;">${po.cost_center}</td></tr>` : ''}
       </table>
@@ -351,7 +352,7 @@ Deno.serve(async (req) => {
       from: 'IMvision Lager <noreply@imvision.se>',
       to: [accountingEmail],
       cc: ccList.length > 0 ? ccList : undefined,
-      subject: `Ekonomipaket: ${poNum} – ${po.supplier_name}`,
+      subject: `Ekonomipaket${paymentPercentage ? ` (${paymentPercentage})` : ''}: ${poNum} – ${po.supplier_name}`,
       html: emailBody,
     };
 

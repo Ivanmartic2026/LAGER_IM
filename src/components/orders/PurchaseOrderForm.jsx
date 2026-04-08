@@ -657,9 +657,10 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                   <SelectValue placeholder="Välj betalningsvillkor..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="20_percent">20% betalning</SelectItem>
-                  <SelectItem value="50_percent">50% betalning</SelectItem>
-                  <SelectItem value="100_percent">100% betalning</SelectItem>
+                  <SelectItem value="30_dagar_netto">30 dagar netto</SelectItem>
+                  <SelectItem value="10_dagar_2_procent">10 dagar, 2%</SelectItem>
+                  <SelectItem value="omedelbar_betalning">Omedelbar betalning</SelectItem>
+                  <SelectItem value="60_dagar_netto">60 dagar netto</SelectItem>
                 </SelectContent>
               </Select>
             </div>
