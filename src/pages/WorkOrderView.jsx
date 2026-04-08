@@ -397,7 +397,16 @@ export default function WorkOrderViewPage() {
          />
 
         {/* Process Flow */}
-        <ProcessFlow currentStage={workOrder.current_stage} />
+        <ProcessFlow
+          workOrder={workOrder}
+          onStageClick={async (stageKey) => {
+            await updateWOMutation.mutateAsync({
+              id: workOrderId,
+              data: { current_stage: stageKey }
+            });
+            toast.success(`Steg ändrat till ${stageKey}`);
+          }}
+        />
 
         {/* Project & Instructions */}
         <ProjectInfo 
