@@ -304,7 +304,7 @@ export default function WorkOrderViewPage() {
         />
 
         {/* Stage-specific content (Hero + stage actions) */}
-        <div className="bg-gray-900 rounded-2xl">
+        <div style={{ backgroundColor: '#111827' }} className="rounded-2xl">
         <StageContent
           workOrder={workOrder}
           order={order}

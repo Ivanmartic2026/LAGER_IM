@@ -57,7 +57,7 @@ function ArticleCheckList({ items, articles, onWithdraw }) {
           >
             {isChecked
               ? <CheckSquare className="w-5 h-5 text-green-400 shrink-0" />
-              : <Square className="w-5 h-5 text-white/30 shrink-0" />
+              : <Square className="w-5 h-5 text-gray-500 shrink-0" />
             }
             <div className="flex-1 min-w-0">
               <p className={cn("text-sm font-medium", isChecked ? 'text-green-300 line-through' : 'text-gray-100')}>
@@ -114,7 +114,7 @@ export default function StageContent({
   const checklist = workOrder.checklist || {};
 
   return (
-    <div className="space-y-4 bg-gray-900 rounded-2xl p-1">
+    <div className="space-y-4 rounded-2xl p-6" style={{ backgroundColor: '#111827' }}>
       {/* Hero: current stage + responsible + advance button */}
       <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
         <div className="flex items-start justify-between gap-4 mb-4">
@@ -148,12 +148,12 @@ export default function StageContent({
         <div className="space-y-4">
           {workOrder.project_description && (
             <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-              <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">Projektbeskrivning</h3>
-              <p className="text-sm text-white/70">{workOrder.project_description}</p>
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Projektbeskrivning</h3>
+              <p className="text-sm text-gray-300">{workOrder.project_description}</p>
             </div>
           )}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
               <FileText className="w-3.5 h-3.5" />
               Konstruktionsanteckningar
             </h3>
@@ -162,7 +162,7 @@ export default function StageContent({
               defaultValue={workOrder.picking_notes || ''}
               onBlur={e => onSaveNotes('picking_notes', e.target.value)}
               placeholder="Anteckningar för konstruktionsfasen..."
-              className="bg-black/40 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-white/30"
+              className="bg-black/40 border-white/10 text-gray-100 placeholder:text-gray-600 text-sm focus:border-white/30"
               rows={4}
             />
           </div>
@@ -174,7 +174,7 @@ export default function StageContent({
           {/* BOM / drawing links */}
           {(workOrder.drawing_url || workOrder.bill_of_materials_url) && (
             <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-              <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Dokument</h3>
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Dokument</h3>
               <div className="flex flex-wrap gap-2">
                 {workOrder.drawing_url && (
                   <a href={workOrder.drawing_url} target="_blank" rel="noopener noreferrer"
@@ -194,7 +194,7 @@ export default function StageContent({
 
           {/* Articles */}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Package className="w-3.5 h-3.5" />
               Artiklar ({orderItems.length})
             </h3>
@@ -203,7 +203,7 @@ export default function StageContent({
 
           {/* Assembly images */}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Camera className="w-3.5 h-3.5" />
               Monteringsbilder
             </h3>
@@ -224,13 +224,13 @@ export default function StageContent({
 
                 {/* Notes */}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Produktionsanteckningar</h3>
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Produktionsanteckningar</h3>
             <Textarea
               key={workOrder.id + '_produktion'}
               defaultValue={workOrder.production_notes || ''}
               onBlur={e => onSaveNotes('production_notes', e.target.value)}
               placeholder="Anteckningar för produktion..."
-              className="bg-black/40 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-white/30"
+              className="bg-black/40 border-white/10 text-gray-100 placeholder:text-gray-600 text-sm focus:border-white/30"
               rows={3}
             />
           </div>
@@ -241,7 +241,7 @@ export default function StageContent({
         <div className="space-y-4">
           {/* Pick list */}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Package className="w-3.5 h-3.5" />
               Plocklista ({orderItems.length} artiklar)
             </h3>
@@ -249,13 +249,13 @@ export default function StageContent({
           </div>
           {/* Picking notes */}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Plockanteckningar</h3>
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Plockanteckningar</h3>
             <Textarea
               key={workOrder.id + '_lager'}
               defaultValue={workOrder.picking_notes || ''}
               onBlur={e => onSaveNotes('picking_notes', e.target.value)}
               placeholder="Noteringar vid plockning..."
-              className="bg-black/40 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-white/30"
+              className="bg-black/40 border-white/10 text-gray-100 placeholder:text-gray-600 text-sm focus:border-white/30"
               rows={3}
             />
           </div>
@@ -266,7 +266,7 @@ export default function StageContent({
         <div className="space-y-4">
           {/* Checklist */}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Monteringschecklista</h3>
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Monteringschecklista</h3>
             <div className="space-y-2">
               {[
                 { field: 'picked', label: 'Plockat' },
@@ -285,7 +285,7 @@ export default function StageContent({
                 >
                   {checklist[field]
                     ? <CheckSquare className="w-5 h-5 text-green-400 shrink-0" />
-                    : <Square className="w-5 h-5 text-white/30 shrink-0" />
+                    : <Square className="w-5 h-5 text-gray-500 shrink-0" />
                   }
                   <span className={cn("text-sm font-medium", checklist[field] ? 'text-green-300' : 'text-gray-300')}>
                     {label}
@@ -297,7 +297,7 @@ export default function StageContent({
 
           {/* Assembly images */}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Camera className="w-3.5 h-3.5" />
               Monteringsbilder
             </h3>
@@ -323,7 +323,7 @@ export default function StageContent({
               defaultValue={workOrder.production_notes || ''}
               onBlur={e => onSaveNotes('production_notes', e.target.value)}
               placeholder="Anteckningar för montering..."
-              className="bg-black/40 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-white/30"
+              className="bg-black/40 border-white/10 text-gray-100 placeholder:text-gray-600 text-sm focus:border-white/30"
               rows={3}
             />
           </div>
@@ -333,7 +333,7 @@ export default function StageContent({
       {stage === 'leverans' && (
         <div className="space-y-4">
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Truck className="w-3.5 h-3.5" />
               Leveransinformation
             </h3>
@@ -380,13 +380,13 @@ export default function StageContent({
             </div>
           </div>
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Leveransanteckningar</h3>
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Leveransanteckningar</h3>
             <Textarea
               key={workOrder.id + '_leverans'}
               defaultValue={workOrder.production_notes || ''}
               onBlur={e => onSaveNotes('production_notes', e.target.value)}
               placeholder="Anteckningar för leverans..."
-              className="bg-black/40 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-white/30"
+              className="bg-black/40 border-white/10 text-gray-100 placeholder:text-gray-600 text-sm focus:border-white/30"
               rows={3}
             />
           </div>
