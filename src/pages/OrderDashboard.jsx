@@ -132,7 +132,7 @@ export default function OrderDashboard() {
   const [clock, setClock] = useState(() =>
     new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
   );
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [, setFullscreenToggle] = useState(false);
   const scrollRef = useRef(null);
   const scrollTimerRef = useRef(null);
   const containerRef = useRef(null);
@@ -216,11 +216,10 @@ export default function OrderDashboard() {
   const toggleFullscreen = async () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
-      setIsFullscreen(true);
     } else {
       document.exitFullscreen().catch(() => {});
-      setIsFullscreen(false);
     }
+    setFullscreenToggle(prev => !prev);
   };
 
   // Calculate summary counts
@@ -257,7 +256,7 @@ export default function OrderDashboard() {
               fontWeight: 600,
             }}
           >
-            {isFullscreen ? '⛌' : '⛶'}
+            {document.fullscreenElement ? '⛌' : '⛶'}
           </button>
           <span style={{ color: '#94a3b8', fontSize: '28px', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{clock}</span>
         </div>
