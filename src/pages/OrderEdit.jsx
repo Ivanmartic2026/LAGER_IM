@@ -250,68 +250,6 @@ export default function OrderEdit() {
            )}
          </div>
 
-         {/* Pipeline Progress Bar */}
-         <div className="mb-8">
-           <h3 className="text-sm font-semibold text-slate-400 mb-8 uppercase tracking-wide">Ordersteg</h3>
-           <div className="flex items-start justify-between relative">
-             {['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'].map((stage, idx) => {
-               const isCompleted = formData.selected_stages.includes(stage);
-               const stageColors = {
-                 'SÄLJ': '#8b5cf6',
-                 'KONSTRUKTION': '#3b82f6',
-                 'PRODUKTION': '#f97316',
-                 'LAGER': '#eab308',
-                 'MONTERING': '#22c55e',
-               };
-               return (
-                 <div key={stage} className="flex flex-col items-center flex-1">
-                   {/* Line connector before this step */}
-                   {idx > 0 && (
-                     <div className="absolute top-7 h-0.5" style={{
-                       left: `${(idx - 0.5) * (100 / 5)}%`,
-                       right: `${(4.5 - idx) * (100 / 5)}%`,
-                       backgroundColor: formData.selected_stages.includes(['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'][idx - 1]) && isCompleted
-                         ? stageColors[['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'][idx - 1]]
-                         : '#e5e7eb'
-                     }} />
-                   )}
-
-                   {/* Step circle */}
-                   <button
-                     type="button"
-                     onClick={() => {
-                       setFormData({
-                         ...formData,
-                         selected_stages: formData.selected_stages.includes(stage)
-                           ? formData.selected_stages.filter(s => s !== stage)
-                           : [...formData.selected_stages, stage]
-                       });
-                     }}
-                     className="relative z-10 flex-shrink-0 w-14 h-14 rounded-full border-4 transition-all duration-300 flex items-center justify-center cursor-pointer hover:scale-110"
-                     style={{
-                       backgroundColor: isCompleted ? stageColors[stage] : '#ffffff',
-                       borderColor: isCompleted ? stageColors[stage] : '#d1d5db',
-                     }}
-                   >
-                     {isCompleted ? (
-                       <CheckCircle2 className="w-6 h-6 text-white" />
-                     ) : (
-                       <span className="text-sm font-bold" style={{ color: '#9ca3af' }}>
-                         {idx + 1}
-                       </span>
-                     )}
-                   </button>
-
-                   {/* Step label */}
-                   <div className="mt-4 text-center">
-                     <p className="text-xs font-medium text-slate-400 whitespace-nowrap">{stage}</p>
-                   </div>
-                 </div>
-               );
-             })}
-           </div>
-         </div>
-
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}
