@@ -49,6 +49,84 @@ function urgencyScore(order, isIncoming) {
   return 2;
 }
 
+// Format date as "9 apr" or "30 apr"
+function formatDateShort(dateStr) {
+  if (!dateStr) return '–';
+  return new Date(dateStr).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
+}
+
+// Check if customer name is just a number
+function isNumericCustomerName(name) {
+  return name && /^\d+$/.test(name);
+}
+
+function OrderRow({ order }) {
+  const days = order._isIncoming ? null : daysLeft(order.delivery_date);
+  const urgent = days !== null && days < 0;
+  const soon = days !== null && days >= 0 && days <= 7;
+  const isIncoming = order._isIncoming;
+  const stageName = order._stage;
+  const stageColor = STAGE_COLORS[stageName] || '#6b7280';
+  const stageEmoji = STAGE_EMOJI[stageName] || '';
+  const leftBorder = isIncoming ? '#334155' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e';
+  const customerName = order.fortnox_project_name ? order.customer_name : (order.order_number || '–');
+  const showCustomer = order.fortnox_project_name && !isNumericCustomerName(customerName);
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '16px 20px',
+        minHeight: '80px',
+        borderBottom: '1px solid #1e293b',
+        borderLeft: `4px solid ${leftBorder}`,
+        marginBottom: '2px',
+        backgroundColor: urgent ? 'rgba(239,68,68,0.05)' : soon ? 'rgba(250,204,21,0.04)' : 'transparent',
+      }}
+    >
+      {/* Vänster: namn + kund */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ color: 'white', fontSize: '22px', fontWeight: 700, whiteSpace: 'normal', wordBreak: 'break-word' }}>
+          {order.fortnox_project_name || order.customer_name || order.order_number || '–'}
+        </div>
+        {showCustomer && (
+          <div style={{ color: '#94a3b8', fontSize: '15px', marginTop: '4px', whiteSpace: 'normal', wordBreak: 'break-word' }}>
+            {customerName}
+          </div>
+        )}
+      </div>
+
+      {/* Mitten: stage-badge */}
+      <div style={{
+        padding: '6px 14px',
+        borderRadius: '20px',
+        background: stageColor + '22',
+        border: `1px solid ${stageColor}66`,
+        color: stageColor,
+        fontSize: '13px',
+        fontWeight: 700,
+        margin: '0 20px',
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
+      }}>
+        {stageEmoji ? `${stageEmoji} ${stageName}` : stageName}
+      </div>
+
+      {/* Höger: datum */}
+      <div style={{ textAlign: 'right', minWidth: '100px', flexShrink: 0 }}>
+        <div style={{ color: 'white', fontSize: '18px', fontWeight: 600 }}>
+          {formatDateShort(order.delivery_date)}
+        </div>
+        <div style={{ fontSize: '15px', fontWeight: 700, color: isIncoming ? '#64748b' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e', marginTop: '2px' }}>
+          {isIncoming ? 'Nyinkommen' : days === null ? '' : days < 0 ? `${Math.abs(days)}d försenad` : days === 0 ? 'Idag' : `${days}d kvar`}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function OrderDashboard() {
   const [enrichedOrders, setEnrichedOrders] = useState([]);
   const [clock, setClock] = useState(() =>
@@ -132,6 +210,20 @@ export default function OrderDashboard() {
     return () => clearInterval(scrollTimerRef.current);
   }, [enrichedOrders]);
 
+  // Calculate summary counts
+  const overdue = enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) < 0).length;
+  const soon = enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) >= 0 && daysLeft(o.delivery_date) <= 7).length;
+  const ongoing = enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) > 7).length;
+  const incoming = enrichedOrders.filter(o => o._isIncoming).length;
+
+  // Group orders by urgency
+  const groupedOrders = {
+    overdue: enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) < 0),
+    soon: enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) >= 0 && daysLeft(o.delivery_date) <= 7),
+    ongoing: enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) > 7),
+    incoming: enrichedOrders.filter(o => o._isIncoming),
+  };
+
   return (
     <div style={{ background: '#0a0f1e', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: "'Inter','Segoe UI',sans-serif" }}>
       {/* HEADER */}
@@ -141,6 +233,14 @@ export default function OrderDashboard() {
           <span style={{ color: '#3b4a6b', fontSize: '13px', fontWeight: 600 }}>{enrichedOrders.length} ordrar</span>
           <span style={{ color: '#94a3b8', fontSize: '28px', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{clock}</span>
         </div>
+      </div>
+
+      {/* SUMMARY ROW */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '24px', padding: '8px 24px', borderBottom: '1px solid #1e293b', fontSize: '13px', fontWeight: 600, color: '#94a3b8', flexShrink: 0 }}>
+        <span>🔴 {overdue} försenade</span>
+        <span>🟡 {soon} snart</span>
+        <span>🟢 {ongoing} på gång</span>
+        <span>⬜ {incoming} inkommande</span>
       </div>
 
       {/* ORDERLISTA */}
@@ -153,69 +253,42 @@ export default function OrderDashboard() {
           <div style={{ textAlign: 'center', color: '#3b4a6b', fontSize: '18px', paddingTop: '80px' }}>
             Inga aktiva ordrar
           </div>
-        ) : enrichedOrders.map(order => {
-          const days = order._isIncoming ? null : daysLeft(order.delivery_date);
-          const urgent = days !== null && days < 0;
-          const soon = days !== null && days >= 0 && days <= 7;
-          const isIncoming = order._isIncoming;
-          const stageName = order._stage;
-          const stageColor = STAGE_COLORS[stageName] || '#6b7280';
-          const stageEmoji = STAGE_EMOJI[stageName] || '';
-          const leftBorder = isIncoming ? '#334155' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e';
-
-          return (
-            <div
-              key={order.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                minHeight: '80px',
-                borderBottom: '1px solid #1e293b',
-                borderLeft: `4px solid ${leftBorder}`,
-                marginBottom: '2px',
-                backgroundColor: urgent ? 'rgba(239,68,68,0.05)' : soon ? 'rgba(250,204,21,0.04)' : 'transparent',
-              }}
-            >
-              {/* Vänster: namn + kund */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: 'white', fontSize: '18px', fontWeight: 700, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                  {order.fortnox_project_name || order.customer_name || order.order_number || '–'}
+        ) : (
+          <>
+            {groupedOrders.overdue.length > 0 && (
+              <>
+                <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '2px', padding: '6px', opacity: 0.5, color: '#ef4444' }}>
+                  ── FÖRSENADE ({groupedOrders.overdue.length}) ──
                 </div>
-                <div style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px', whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                  {order.fortnox_project_name ? order.customer_name : (order.order_number || '–')}
+                {groupedOrders.overdue.map(order => <OrderRow key={order.id} order={order} />)}
+              </>
+            )}
+            {groupedOrders.soon.length > 0 && (
+              <>
+                <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '2px', padding: '6px', opacity: 0.5, color: '#facc15' }}>
+                  ── SNART ({groupedOrders.soon.length}) ──
                 </div>
-              </div>
-
-              {/* Mitten: stage-badge */}
-              <div style={{
-                padding: '6px 14px',
-                borderRadius: '20px',
-                background: stageColor + '22',
-                border: `1px solid ${stageColor}66`,
-                color: stageColor,
-                fontSize: '13px',
-                fontWeight: 700,
-                margin: '0 20px',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}>
-                {stageEmoji ? `${stageEmoji} ${stageName}` : stageName}
-              </div>
-
-              {/* Höger: datum */}
-              <div style={{ textAlign: 'right', minWidth: '100px', flexShrink: 0 }}>
-                <div style={{ color: 'white', fontSize: '15px', fontWeight: 600 }}>
-                  {order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('sv-SE') : '–'}
+                {groupedOrders.soon.map(order => <OrderRow key={order.id} order={order} />)}
+              </>
+            )}
+            {groupedOrders.ongoing.length > 0 && (
+              <>
+                <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '2px', padding: '6px', opacity: 0.5, color: '#22c55e' }}>
+                  ── PÅ GÅNG ({groupedOrders.ongoing.length}) ──
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: isIncoming ? '#64748b' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e', marginTop: '2px' }}>
-                  {isIncoming ? 'Nyinkommen' : days === null ? '' : days < 0 ? `${Math.abs(days)}d försenad` : days === 0 ? 'Idag' : `${days}d kvar`}
+                {groupedOrders.ongoing.map(order => <OrderRow key={order.id} order={order} />)}
+              </>
+            )}
+            {groupedOrders.incoming.length > 0 && (
+              <>
+                <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '2px', padding: '6px', opacity: 0.5, color: '#64748b' }}>
+                  ── INKOMMANDE ({groupedOrders.incoming.length}) ──
                 </div>
-              </div>
-            </div>
-          );
-        })}
+                {groupedOrders.incoming.map(order => <OrderRow key={order.id} order={order} />)}
+              </>
+            )}
+          </>
+        )}
       </div>
 
       {/* FOOTER */}
