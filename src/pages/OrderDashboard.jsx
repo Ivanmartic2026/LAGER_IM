@@ -42,87 +42,64 @@ function DeliveryBadge({ dateStr }) {
   );
 }
 
-function StageProgressBar({ selectedStages = [] }) {
-  const completedCount = selectedStages.length;
-  const totalStages = STAGES.length;
-  const percentage = Math.round((completedCount / totalStages) * 100);
-  
+
+const STAGE_SHORT = {
+  'KONSTRUKTION': 'KONSTR',
+  'PRODUKTION':   'PROD',
+  'LAGER':        'LAGER',
+  'MONTERING':    'MONT',
+  'LEVERANS':     'LEV',
+};
+
+const ALL_STAGES_ORDER = ['KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING', 'LEVERANS'];
+
+function StageProgressDots({ currentStage }) {
+  const currentIdx = ALL_STAGES_ORDER.indexOf(currentStage);
   return (
-    <div style={{ marginTop: '16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <span style={{ fontSize: '13px', fontWeight: 600, color: '#aaa' }}>
-          {percentage}% färdig
-        </span>
-        <span style={{ fontSize: '12px', color: '#666' }}>
-          {completedCount} av {totalStages} steg
-        </span>
-      </div>
-      
-      {/* Progress bar */}
-      <div style={{
-        width: '100%',
-        height: '12px',
-        borderRadius: '20px',
-        backgroundColor: '#1a1a1a',
-        overflow: 'hidden',
-        position: 'relative',
-        marginBottom: '16px',
-      }}>
-        <div
-          style={{
-            height: '100%',
-            width: `${percentage}%`,
-            background: `linear-gradient(90deg, #2563eb 0%, #06b6d4 50%, #10b981 100%)`,
-            borderRadius: '20px',
-            transition: 'width 0.3s ease',
-          }}
-        />
-      </div>
-      
-      {/* Milestone labels */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: '4px',
-      }}>
-        {STAGES.map((stage, idx) => {
-          const isCompleted = selectedStages.includes(stage);
-          return (
-            <div
-              key={stage}
-              style={{
-                flex: 1,
-                textAlign: 'center',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: isCompleted ? STAGE_COLORS[stage] : '#555',
-                  backgroundColor: isCompleted ? `${STAGE_COLORS[stage]}15` : 'transparent',
-                  padding: '4px 6px',
-                  borderRadius: '4px',
-                  border: isCompleted ? `1px solid ${STAGE_COLORS[stage]}40` : '1px solid transparent',
-                  transition: 'all 0.3s ease',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {stage}
-              </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '8px' }}>
+      {ALL_STAGES_ORDER.map((stage, idx) => {
+        const done    = idx < currentIdx;
+        const active  = idx === currentIdx;
+        const color   = STAGE_COLORS[stage];
+        return (
+          <React.Fragment key={stage}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', flex: 1 }}>
+              <div style={{
+                width:  active ? '10px' : '7px',
+                height: active ? '10px' : '7px',
+                borderRadius: '50%',
+                backgroundColor: done ? color : active ? color : '#222',
+                border: active ? `2px solid ${color}` : done ? 'none' : '1.5px solid #333',
+                boxShadow: active ? `0 0 6px ${color}80` : 'none',
+                transition: 'all 0.2s',
+                flexShrink: 0,
+              }} />
+              <span style={{
+                fontSize: '9px',
+                fontWeight: 700,
+                color: done ? color : active ? color : '#333',
+                letterSpacing: '0.02em',
+                whiteSpace: 'nowrap',
+              }}>
+                {STAGE_SHORT[stage]}
+              </span>
             </div>
-          );
-        })}
-      </div>
+            {idx < ALL_STAGES_ORDER.length - 1 && (
+              <div style={{
+                height: '1.5px',
+                flex: 0.3,
+                backgroundColor: done ? STAGE_COLORS[ALL_STAGES_ORDER[idx]] : '#1e1e1e',
+                marginBottom: '14px',
+              }} />
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 }
 
 function OrderRow({ order }) {
-  const selectedStages = Array.isArray(order.selected_stages) ? order.selected_stages : [];
-  
   return (
     <div style={{
       padding: '10px 16px',
@@ -151,7 +128,7 @@ function OrderRow({ order }) {
         </div>
         <DeliveryBadge dateStr={order.delivery_date} />
       </div>
-      <StageProgressBar selectedStages={selectedStages} />
+      <StageProgressDots currentStage={order.status} />
     </div>
   );
 }
