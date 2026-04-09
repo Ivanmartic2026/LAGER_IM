@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
 const STAGE_COLORS = {
@@ -62,6 +61,7 @@ function isNumericCustomerName(name) {
 }
 
 function OrderRow({ order }) {
+  const navigate = useNavigate();
   const days = order._isIncoming ? null : daysLeft(order.delivery_date);
   const urgent = days !== null && days < 0;
   const soon = days !== null && days >= 0 && days <= 7;
@@ -70,11 +70,12 @@ function OrderRow({ order }) {
   const stageColor = STAGE_COLORS[stageName] || '#6b7280';
   const stageEmoji = STAGE_EMOJI[stageName] || '';
   const leftBorder = isIncoming ? '#334155' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e';
-  const customerName = order.fortnox_project_name ? order.customer_name : (order.order_number || '–');
-  const showCustomer = order.fortnox_project_name && !isNumericCustomerName(customerName);
+  const customerName = order.customer_name || order.order_number || '–';
+  const showCustomer = order.customer_name && !isNumericCustomerName(order.customer_name);
 
   return (
     <div
+      onClick={() => navigate(`/OrderDetail?id=${order.id}`)}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -85,45 +86,19 @@ function OrderRow({ order }) {
         borderLeft: `4px solid ${leftBorder}`,
         marginBottom: '2px',
         backgroundColor: urgent ? 'rgba(239,68,68,0.05)' : soon ? 'rgba(250,204,21,0.04)' : 'transparent',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s ease',
+      }}
+      onMouseEnter={(e) => {
+        if (!urgent && !soon) e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = urgent ? 'rgba(239,68,68,0.05)' : soon ? 'rgba(250,204,21,0.04)' : 'transparent';
       }}
     >
-      {/* Vänster: namn + kund */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ color: 'white', fontSize: '16px', fontWeight: 700, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-          {order.fortnox_project_name || order.customer_name || order.order_number || '–'}
-        </div>
-        {(order.customer_name || order.order_number) && (
-          <div style={{ color: '#94a3b8', fontSize: '13px', marginTop: '2px', whiteSpace: 'normal', wordBreak: 'break-word' }}>
-            {order.customer_name || order.order_number}
-          </div>
-        )}
-        </div>
-
-        {/* Mitten: stage-badge */}
-        <div style={{
-        padding: '6px 14px',
-        borderRadius: '20px',
-        background: stageColor + '22',
-        border: `1px solid ${stageColor}66`,
-        color: stageColor,
-        fontSize: '13px',
-        fontWeight: 700,
-        margin: '0 20px',
-        whiteSpace: 'nowrap',
-        flexShrink: 0,
-        }}>
-        {stageEmoji ? `${stageEmoji} ${stageName}` : stageName}
-        </div>
-
-        {/* Höger: datum */}
-        <div style={{ textAlign: 'right', minWidth: '100px', flexShrink: 0 }}>
-        <div style={{ color: 'white', fontSize: '14px', fontWeight: 600 }}>
-          {formatDateShort(order.delivery_date)}
-        </div>
-        <div style={{ fontSize: '12px', fontWeight: 700, color: isIncoming ? '#64748b' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e', marginTop: '1px' }}>
-          {isIncoming ? 'Nyinkommen' : days === null ? '' : days < 0 ? `${Math.abs(days)}d försenad` : days === 0 ? 'Idag' : `${days}d kvar`}
-        </div>
-        </div>
+            {document.fullscreenElement ? '⛌' : '⛶'}
+          </button>
+          <span style={{ color: '#94a3b8', fontSize: '28px', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{clock}</span>
         </div>
       </div>
 
