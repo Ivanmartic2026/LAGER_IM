@@ -11,168 +11,131 @@ const STAGE_COLORS = {
   'LEVERANS':     '#8b5cf6',
 };
 
-const ROWS_PER_GROUP = 3;
-const SCROLL_INTERVAL_MS = 3500;
+const STAGE_ICONS = {
+  'KONSTRUKTION': '🔵',
+  'PRODUKTION':   '🟠',
+  'LAGER':        '🟡',
+  'MONTERING':    '🟢',
+  'LEVERANS':     '🟣',
+};
 
-function formatDate(dateStr) {
+function getDaysLeft(dateStr) {
   if (!dateStr) return null;
   const d = new Date(dateStr);
   const now = new Date();
-  const diff = Math.ceil((d - now) / (1000 * 60 * 60 * 24));
-  return { formatted: d.toLocaleDateString('sv-SE'), daysLeft: diff };
+  now.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
+  return Math.round((d - now) / (1000 * 60 * 60 * 24));
 }
 
-function DeliveryBadge({ dateStr }) {
-  const result = formatDate(dateStr);
-  if (!result) return <span style={{ color: '#444', fontSize: '13px' }}>–</span>;
-  const { formatted, daysLeft } = result;
-  let color = '#aaa';
-  if (daysLeft < 0) color = '#ef4444';
-  else if (daysLeft <= 7) color = '#f97316';
-  else if (daysLeft <= 14) color = '#eab308';
+function getUrgency(order) {
+  const days = getDaysLeft(order.delivery_date);
+  if (days === null) return 2;
+  if (days < 0) return 0;
+  if (days <= 7) return 1;
+  return 2;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '–';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('sv-SE');
+}
+
+function DeliveryInfo({ dateStr }) {
+  const days = getDaysLeft(dateStr);
+  if (days === null) return (
+    <div style={{ textAlign: 'right' }}>
+      <div style={{ fontSize: '15px', color: '#555', fontWeight: 600 }}>–</div>
+    </div>
+  );
+
+  let color = '#4ade80';
+  let label = `${days}d kvar`;
+  if (days < 0) { color = '#ef4444'; label = `${Math.abs(days)}d försenad`; }
+  else if (days === 0) { color = '#f97316'; label = 'Idag'; }
+  else if (days <= 7) { color = '#facc15'; label = `${days}d kvar`; }
+
   return (
-    <div style={{ textAlign: 'right', minWidth: '90px' }}>
-      <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', fontVariantNumeric: 'tabular-nums' }}>
-        {formatted}
+    <div style={{ textAlign: 'right', minWidth: '110px' }}>
+      <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>
+        {formatDate(dateStr)}
       </div>
-      <div style={{ fontSize: '11px', fontWeight: 600, color, opacity: 0.85 }}>
-        {daysLeft < 0 ? `${Math.abs(daysLeft)}d försenad` : daysLeft === 0 ? 'Idag' : `${daysLeft}d kvar`}
+      <div style={{ fontSize: '13px', fontWeight: 700, color, marginTop: '2px' }}>
+        {label}
       </div>
     </div>
   );
 }
 
-
-const STAGE_SHORT = {
-  'KONSTRUKTION': 'KONSTR',
-  'PRODUKTION':   'PROD',
-  'LAGER':        'LAGER',
-  'MONTERING':    'MONT',
-  'LEVERANS':     'LEV',
-};
-
-const ALL_STAGES_ORDER = ['KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING', 'LEVERANS'];
-
-function StageProgressDots({ currentStage }) {
-  const currentIdx = ALL_STAGES_ORDER.indexOf(currentStage);
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '8px' }}>
-      {ALL_STAGES_ORDER.map((stage, idx) => {
-        const done    = idx < currentIdx;
-        const active  = idx === currentIdx;
-        const color   = STAGE_COLORS[stage];
-        return (
-          <React.Fragment key={stage}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-              <div style={{
-                width:  active ? '10px' : '7px',
-                height: active ? '10px' : '7px',
-                borderRadius: '50%',
-                backgroundColor: done ? color : active ? color : '#222',
-                border: active ? `2px solid ${color}` : done ? 'none' : '1.5px solid #333',
-                boxShadow: active ? `0 0 6px ${color}80` : 'none',
-                transition: 'all 0.2s',
-                flexShrink: 0,
-              }} />
-            </div>
-            {idx < ALL_STAGES_ORDER.length - 1 && (
-              <div style={{
-                height: '1.5px',
-                flex: 0.3,
-                backgroundColor: done ? STAGE_COLORS[ALL_STAGES_ORDER[idx]] : '#1e1e1e',
-                marginBottom: '0px',
-              }} />
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
-
-function OrderRow({ order }) {
+function StageBadge({ stage }) {
+  const color = STAGE_COLORS[stage] || '#6b7280';
+  const icon = STAGE_ICONS[stage] || '⚪';
   return (
     <div style={{
-      padding: '10px 16px',
-      backgroundColor: '#000000',
-      borderRadius: '8px',
-      border: '1px solid #1a1a1a',
-      boxSizing: 'border-box',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      padding: '5px 12px',
+      borderRadius: '20px',
+      backgroundColor: `${color}22`,
+      border: `1px solid ${color}66`,
+      whiteSpace: 'nowrap',
     }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: '16px' }}>
-        <div style={{ minWidth: 0 }}>
+      <span style={{ fontSize: '12px' }}>{icon.replace(/[^🔵🟠🟡🟢🟣⚪]/g, '')}{icon}</span>
+      <span style={{ fontSize: '13px', fontWeight: 700, color, letterSpacing: '0.06em' }}>{stage || '–'}</span>
+    </div>
+  );
+}
+
+function OrderCard({ order, urgency }) {
+  let borderColor = '#1e2a1e';
+  if (urgency === 0) borderColor = '#7f1d1d';
+  else if (urgency === 1) borderColor = '#78350f';
+
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '1fr auto auto',
+      alignItems: 'center',
+      gap: '16px',
+      padding: '18px 24px',
+      minHeight: '90px',
+      borderBottom: `1px solid ${borderColor}`,
+      backgroundColor: urgency === 0 ? 'rgba(239,68,68,0.06)' : urgency === 1 ? 'rgba(250,204,21,0.04)' : 'transparent',
+    }}>
+      {/* Left: names */}
+      <div style={{ minWidth: 0 }}>
+        <div style={{
+          fontSize: '18px',
+          fontWeight: 700,
+          color: '#ffffff',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          lineHeight: 1.3,
+        }}>
+          {order.fortnox_project_name || order.customer_name || '–'}
+        </div>
+        {order.fortnox_project_name && (
           <div style={{
             fontSize: '14px',
-            fontWeight: 700,
-            color: '#fff',
+            color: '#6b7280',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
+            marginTop: '3px',
           }}>
-            {order.fortnox_project_name || order.customer_name}
+            {order.customer_name}
           </div>
-          {order.fortnox_project_name && (
-            <div style={{ fontSize: '11px', color: '#fff', opacity: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {order.customer_name}
-            </div>
-          )}
-        </div>
-        <DeliveryBadge dateStr={order.delivery_date} />
+        )}
       </div>
-      <StageProgressDots currentStage={order.status} />
-    </div>
-  );
-}
 
-function StatusGroup({ status, orders }) {
-  const color = STAGE_COLORS[status] || '#6b7280';
-  const [offset, setOffset] = useState(0);
-  const intervalRef = useRef(null);
+      {/* Middle: stage badge */}
+      <StageBadge stage={order.status} />
 
-  const sorted = [...orders].sort((a, b) => {
-    if (!a.delivery_date && !b.delivery_date) return 0;
-    if (!a.delivery_date) return 1;
-    if (!b.delivery_date) return -1;
-    return new Date(a.delivery_date) - new Date(b.delivery_date);
-  });
-
-  const needsScroll = sorted.length > ROWS_PER_GROUP;
-
-  useEffect(() => {
-    if (!needsScroll) return;
-    intervalRef.current = setInterval(() => {
-      setOffset(prev => (prev + 1) % sorted.length);
-    }, SCROLL_INTERVAL_MS);
-    return () => clearInterval(intervalRef.current);
-  }, [sorted.length, needsScroll]);
-
-  const visibleCount = Math.min(sorted.length, ROWS_PER_GROUP);
-  const visible = [];
-  for (let i = 0; i < visibleCount; i++) {
-    visible.push(sorted[(offset + i) % sorted.length]);
-  }
-
-  return (
-    <div style={{ marginBottom: '20px' }}>
-      <div style={{ marginBottom: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', paddingLeft: '4px' }}>
-          <span style={{ fontSize: '18px', fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            {status}
-          </span>
-          <span style={{ fontSize: '13px', color: '#444', fontWeight: 600 }}>({orders.length})</span>
-          {needsScroll && (
-            <span style={{ fontSize: '11px', color: '#2a2a2a', marginLeft: '4px' }}>
-              {offset + 1}–{Math.min(offset + ROWS_PER_GROUP, sorted.length)} / {sorted.length}
-            </span>
-          )}
-        </div>
-        <div style={{ height: '4px', borderRadius: '2px', backgroundColor: color, opacity: 0.85 }} />
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {visible.map((order, i) => (
-          <OrderRow key={`${order.id}-${i}`} order={order} />
-        ))}
-      </div>
+      {/* Right: delivery */}
+      <DeliveryInfo dateStr={order.delivery_date} />
     </div>
   );
 }
@@ -180,10 +143,13 @@ function StatusGroup({ status, orders }) {
 export default function OrderDashboard() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(null);
-  const [clock, setClock] = useState(() => new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }));
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [clock, setClock] = useState(() =>
+    new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+  );
+  const scrollRef = useRef(null);
+  const scrollAnimRef = useRef(null);
 
+  // Clock
   useEffect(() => {
     const t = setInterval(() => {
       setClock(new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }));
@@ -191,25 +157,16 @@ export default function OrderDashboard() {
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => {
-    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
-  }, []);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-    } else {
-      document.exitFullscreen();
-    }
-  };
-
+  // Fetch
   const fetchOrders = async () => {
-    const res = await base44.functions.invoke('getPublicOrders', {});
-    setOrders(res.data?.orders || []);
-    setLastUpdated(new Date());
-    setLoading(false);
+    try {
+      const res = await base44.functions.invoke('getPublicOrders', {});
+      setOrders(res.data?.orders || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -218,102 +175,155 @@ export default function OrderDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // Group by stage order
-  const grouped = STAGES.reduce((acc, stage) => {
-    const stageOrders = orders.filter(o => o.status === stage);
-    if (stageOrders.length > 0) acc.push({ status: stage, orders: stageOrders });
-    return acc;
-  }, []);
+  // Auto-scroll
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
 
-  // Ignore orders with unknown/old statuses
+    let pos = 0;
+    let paused = false;
+
+    const scroll = () => {
+      if (!paused && el) {
+        pos += 0.8;
+        if (pos >= el.scrollHeight - el.clientHeight) {
+          pos = 0;
+        }
+        el.scrollTop = pos;
+      }
+      scrollAnimRef.current = requestAnimationFrame(scroll);
+    };
+
+    scrollAnimRef.current = requestAnimationFrame(scroll);
+
+    // Pause on hover/touch
+    const pause = () => { paused = true; };
+    const resume = () => { paused = false; };
+    el.addEventListener('mouseenter', pause);
+    el.addEventListener('mouseleave', resume);
+    el.addEventListener('touchstart', pause);
+    el.addEventListener('touchend', resume);
+
+    return () => {
+      if (scrollAnimRef.current) cancelAnimationFrame(scrollAnimRef.current);
+      el.removeEventListener('mouseenter', pause);
+      el.removeEventListener('mouseleave', resume);
+      el.removeEventListener('touchstart', pause);
+      el.removeEventListener('touchend', resume);
+    };
+  }, [orders]);
+
+  // Sort by urgency
+  const sorted = [...orders].sort((a, b) => {
+    const ua = getUrgency(a);
+    const ub = getUrgency(b);
+    if (ua !== ub) return ua - ub;
+    const da = a.delivery_date ? new Date(a.delivery_date) : new Date('9999-12-31');
+    const db = b.delivery_date ? new Date(b.delivery_date) : new Date('9999-12-31');
+    return da - db;
+  });
 
   return (
     <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#080808',
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: '#0a0f1e',
       fontFamily: "'Inter', 'Segoe UI', sans-serif",
       color: '#ffffff',
-      padding: 'clamp(16px, 3vw, 48px) clamp(12px, 4vw, 48px)',
-      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
     }}>
       {/* Header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: '40px',
-        marginBottom: 'clamp(16px, 2vw, 28px)',
-        paddingBottom: '12px',
-        borderBottom: '1px solid #1a1a1a',
+        height: '56px',
+        flexShrink: 0,
+        padding: '0 24px',
+        backgroundColor: '#060b18',
+        borderBottom: '1px solid #1a2340',
       }}>
-        <img
-          src="https://media.base44.com/images/public/69455d52c9eab36b7d26cc74/60fb63701_LogoLIGGANDE_IMvision_VITtkopia.png"
-          alt="IMvision"
-          style={{ height: '26px', objectFit: 'contain', display: 'block' }}
-        />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <span style={{ fontSize: '13px', color: '#444', fontWeight: 600 }}>{orders.length} ordrar</span>
-          <span style={{ fontSize: '22px', fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.05em' }}>
-            {clock}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '20px' }}>📋</span>
+          <span style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '0.12em', color: '#fff' }}>
+            ORDERÖVERSIKT
           </span>
-          <button
-            onClick={toggleFullscreen}
-            title={isFullscreen ? 'Avsluta fullskärm' : 'Fullskärm'}
-            style={{
-              background: 'none',
-              border: '1px solid #2a2a2a',
-              borderRadius: '6px',
-              color: '#666',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              fontSize: '12px',
-              fontWeight: 600,
-              letterSpacing: '0.04em',
-              lineHeight: 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-            }}
-          >
-            {isFullscreen ? (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7V3h4"/><path d="M17 3h4v4"/><path d="M21 17v4h-4"/><path d="M7 21H3v-4"/></svg>
-            )}
-            {isFullscreen ? 'Avsluta' : 'Fullskärm'}
-          </button>
+          <span style={{
+            marginLeft: '10px',
+            fontSize: '13px',
+            color: '#3b4a6b',
+            fontWeight: 600,
+          }}>
+            {orders.length} ordrar
+          </span>
+        </div>
+        <div style={{
+          fontSize: '28px',
+          fontWeight: 700,
+          color: '#fff',
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '0.06em',
+        }}>
+          {clock}
         </div>
       </div>
 
-      {/* Content */}
-      {loading ? (
-        <div style={{ textAlign: 'center', color: '#333', fontSize: '20px', paddingTop: '80px' }}>
-          Laddar ordrar...
-        </div>
-      ) : orders.length === 0 ? (
-        <div style={{ textAlign: 'center', color: '#333', fontSize: '20px', paddingTop: '80px' }}>
-          Inga aktiva ordrar
-        </div>
-      ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-          gap: 'clamp(16px, 2vw, 28px)',
-          alignItems: 'start',
-        }}>
-          {grouped.map(({ status, orders: groupOrders }) => (
-            <StatusGroup key={status} status={status} orders={groupOrders} />
-          ))}
-        </div>
-      )}
-
+      {/* Column headers */}
       <div style={{
-        marginTop: 'clamp(24px, 3vw, 48px)',
-        paddingTop: 'clamp(12px, 1.5vw, 20px)',
-        borderTop: '1px solid #141414',
-        textAlign: 'center',
-        color: '#222',
+        display: 'grid',
+        gridTemplateColumns: '1fr auto auto',
+        gap: '16px',
+        padding: '10px 24px',
+        backgroundColor: '#0d1426',
+        borderBottom: '1px solid #1a2340',
+        flexShrink: 0,
+      }}>
+        <span style={{ fontSize: '11px', color: '#3b4a6b', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Projekt / Kund</span>
+        <span style={{ fontSize: '11px', color: '#3b4a6b', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Status</span>
+        <span style={{ fontSize: '11px', color: '#3b4a6b', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'right' }}>Leverans</span>
+      </div>
+
+      {/* Scrollable list */}
+      <div
+        ref={scrollRef}
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
+        <style>{`div::-webkit-scrollbar { display: none; }`}</style>
+        {loading ? (
+          <div style={{ textAlign: 'center', color: '#3b4a6b', fontSize: '20px', paddingTop: '80px' }}>
+            Laddar ordrar...
+          </div>
+        ) : sorted.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#3b4a6b', fontSize: '20px', paddingTop: '80px' }}>
+            Inga aktiva ordrar
+          </div>
+        ) : (
+          sorted.map((order) => (
+            <OrderCard key={order.id} order={order} urgency={getUrgency(order)} />
+          ))
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        height: '36px',
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#060b18',
+        borderTop: '1px solid #1a2340',
+        color: '#1e2a4a',
         fontSize: '11px',
+        fontWeight: 600,
+        letterSpacing: '0.08em',
       }}>
         IMvision · Automatisk uppdatering var 30:e sekund
       </div>
