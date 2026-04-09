@@ -16,12 +16,17 @@ Deno.serve(async (req) => {
     'draft':                'SÄLJ',
   };
 
-  const orders = await base44.asServiceRole.entities.Order.list('-updated_date', 100);
+  const [orders, workOrders] = await Promise.all([
+    base44.asServiceRole.entities.Order.list('-updated_date', 200),
+    base44.asServiceRole.entities.WorkOrder.list('-updated_date', 500),
+  ]);
+
   const active = orders
-    .filter(o => o.status !== 'cancelled' && o.status !== 'delivered')
+    .filter(o => o.status !== 'SÄLJ' && o.status !== 'cancelled' && o.status !== 'delivered')
     .map(o => ({
       ...o,
       status: STATUS_MAP[o.status] || o.status,
     }));
-  return Response.json({ orders: active });
+
+  return Response.json({ orders: active, workOrders });
 });
