@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer, FileUp, Download, X, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Printer, FileUp, Download, X, AlertTriangle, ShoppingCart } from "lucide-react";
+import PurchaseOrderForm from "@/components/orders/PurchaseOrderForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -212,6 +213,16 @@ export default function WorkOrderViewPage() {
   };
 
   const [withdrawConfirmOpen, setWithdrawConfirmOpen] = useState(false);
+  const [showPOForm, setShowPOForm] = useState(false);
+  const [prefillPOItems, setPrefillPOItems] = useState(null);
+
+  // Articles that need to be purchased
+  const missingMaterials = (workOrder?.materials_needed || []).filter(m => m.needs_purchase);
+
+  const handleCreatePOForMissing = () => {
+    setPrefillPOItems(missingMaterials);
+    setShowPOForm(true);
+  };
   const [withdrawing, setWithdrawing] = useState(false);
 
   const handleWithdrawFromStock = () => {
@@ -292,6 +303,26 @@ export default function WorkOrderViewPage() {
             Print PDF
           </Button>
         </div>
+
+        {/* Material shortage warning */}
+        {missingMaterials.length > 0 && (
+          <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-red-500/15 border border-red-500/40">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <p className="text-sm font-semibold text-red-300">
+                ⚠️ Material saknas — {missingMaterials.length} artikel{missingMaterials.length !== 1 ? 'ar' : ''} behöver beställas
+              </p>
+            </div>
+            <Button
+              size="sm"
+              onClick={handleCreatePOForMissing}
+              className="bg-red-600 hover:bg-red-500 text-white gap-1.5 flex-shrink-0"
+            >
+              <ShoppingCart className="w-3.5 h-3.5" />
+              Skapa inköpsorder
+            </Button>
+          </div>
+        )}
 
         {/* Header */}
         <WorkOrderHeader
@@ -380,6 +411,15 @@ export default function WorkOrderViewPage() {
 
       </div>
     </div>
+
+    {/* PO Form for missing materials */}
+    {showPOForm && (
+      <PurchaseOrderForm
+        purchaseOrder={null}
+        prefillItems={prefillPOItems}
+        onClose={() => { setShowPOForm(false); setPrefillPOItems(null); }}
+      />
+    )}
 
     {/* Withdraw Confirm Dialog */}
     <Dialog open={withdrawConfirmOpen} onOpenChange={setWithdrawConfirmOpen}>

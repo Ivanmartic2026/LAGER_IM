@@ -56,6 +56,19 @@ function ArticleCheckList({ items, articles, onWithdraw }) {
             )}
             onClick={() => !isPicked && toggle(item.id)}
           >
+            {/* Stock shortage indicator */}
+            {(() => {
+              const stockQty = article?.stock_qty || 0;
+              const needed = item.quantity_ordered || 0;
+              const shortage = needed - stockQty;
+              if (!article) return null;
+              if (shortage > 0) return (
+                <div className="absolute right-3 top-2 text-[10px] font-bold text-red-400 bg-red-500/15 border border-red-500/30 rounded px-1.5 py-0.5">
+                  Brist: {shortage} st
+                </div>
+              );
+              return null;
+            })()}
             {isChecked
               ? <CheckSquare className="w-5 h-5 text-green-400 shrink-0" />
               : <Square className="w-5 h-5 text-gray-500 shrink-0" />
@@ -75,7 +88,18 @@ function ArticleCheckList({ items, articles, onWithdraw }) {
                 <p className="text-xs text-gray-500 mt-0.5">{article.shelf_address[0]}</p>
               )}
             </div>
-            <span className="text-sm text-gray-400 shrink-0">{item.quantity_ordered} st</span>
+            <div className="flex flex-col items-end shrink-0 gap-0.5">
+              <span className="text-sm text-gray-400">{item.quantity_ordered} st</span>
+              {article && (
+                <span className={cn("text-[10px] font-medium",
+                  (article.stock_qty || 0) >= (item.quantity_ordered || 0)
+                    ? 'text-green-400'
+                    : 'text-red-400'
+                )}>
+                  Lager: {article.stock_qty || 0}
+                </span>
+              )}
+            </div>
             {isPicked && (
               <Badge className="bg-green-500/20 border-green-500/30 text-green-400 text-[10px]">Uttagen ✓</Badge>
             )}

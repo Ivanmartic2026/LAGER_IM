@@ -198,7 +198,13 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
       queryClient.invalidateQueries({ queryKey: ['purchaseOrderItems'] });
       queryClient.invalidateQueries({ queryKey: ['articles'] });
       queryClient.invalidateQueries({ queryKey: ['movements'] });
-      toast.success("Leverans mottagen och registrerad!");
+      // Show per-article stock update confirmation
+      results.updatedArticles.forEach((updatedArticle) => {
+        const movement = results.movements.find(m => m.article_id === updatedArticle.id);
+        if (movement) {
+          toast.success(`✅ Lagersaldo uppdaterat: ${updatedArticle.name} +${movement.quantity} st → nytt saldo: ${updatedArticle.stock_qty}`);
+        }
+      });
       onComplete?.(results.receivingRecords);
 
       // Fire-and-forget Fortnox sync for each receiving record
