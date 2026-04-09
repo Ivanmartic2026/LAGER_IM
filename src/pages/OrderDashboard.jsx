@@ -132,8 +132,10 @@ export default function OrderDashboard() {
   const [clock, setClock] = useState(() =>
     new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
   );
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const scrollRef = useRef(null);
   const scrollTimerRef = useRef(null);
+  const containerRef = useRef(null);
 
   // Clock
   useEffect(() => {
@@ -210,6 +212,17 @@ export default function OrderDashboard() {
     return () => clearInterval(scrollTimerRef.current);
   }, [enrichedOrders]);
 
+  // Handle fullscreen toggle
+  const toggleFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen().catch(() => {});
+      setIsFullscreen(false);
+    }
+  };
+
   // Calculate summary counts
   const overdue = enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) < 0).length;
   const soon = enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) >= 0 && daysLeft(o.delivery_date) <= 7).length;
@@ -225,12 +238,27 @@ export default function OrderDashboard() {
   };
 
   return (
-    <div style={{ background: '#0a0f1e', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: "'Inter','Segoe UI',sans-serif" }}>
+    <div ref={containerRef} style={{ background: '#0a0f1e', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: "'Inter','Segoe UI',sans-serif" }}>
       {/* HEADER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', borderBottom: '1px solid #1e293b', flexShrink: 0 }}>
         <span style={{ color: 'white', fontSize: '20px', fontWeight: 700 }}>📋 ORDERÖVERSIKT</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span style={{ color: '#3b4a6b', fontSize: '13px', fontWeight: 600 }}>{enrichedOrders.length} ordrar</span>
+          <button
+            onClick={toggleFullscreen}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: '#94a3b8',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: 600,
+            }}
+          >
+            {isFullscreen ? '⛌' : '⛶'}
+          </button>
           <span style={{ color: '#94a3b8', fontSize: '28px', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{clock}</span>
         </div>
       </div>
