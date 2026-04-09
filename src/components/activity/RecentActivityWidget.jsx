@@ -278,7 +278,7 @@ export default function RecentActivityWidget() {
 
       {/* Activities List */}
       <div className="flex-1 space-y-2 p-3 overflow-y-auto flex flex-col">
-        {allisExpanded && Activities.map((activity, idx) => {
+        {isExpanded && allActivities.map((activity, idx) => {
           const Icon = getActivityIcon(activity.type, activity.entity_type);
           const colorClass = getActivityColor(activity.type, activity.entity_type);
           
