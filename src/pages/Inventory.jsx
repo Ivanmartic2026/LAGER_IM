@@ -1031,7 +1031,7 @@ export default function InventoryPage() {
                   <div className="w-16 flex-shrink-0">Till.</div>
                 </div>
                 <div className="w-28 flex-shrink-0 ml-2">ETA</div>
-                <div className="flex-1 min-w-0 ml-2">Product Name</div>
+                <div className="flex-1 min-w-[300px] ml-2">Product Name</div>
                 <div className="w-32 flex-shrink-0 ml-2">Location</div>
                 <div className="w-44 flex-shrink-0 ml-2">Article Number</div>
                 <div className="w-36 flex-shrink-0 ml-2">Batch ID</div>
@@ -1117,10 +1117,10 @@ export default function InventoryPage() {
                         ) : <span className="text-xs text-white/20">—</span>}
                       </div>
                       {/* Name */}
-                      <div className="flex-1 min-w-0 ml-2">
-                        <div className="font-semibold text-white text-sm mb-0.5 truncate tracking-tight">{article.customer_name || article.name}</div>
+                      <div className="flex-1 min-w-[300px] ml-2">
+                        <div className="font-semibold text-white text-sm mb-0.5 whitespace-normal word-break break-word tracking-tight">{article.customer_name || article.name}</div>
                         {article.supplier_name && (
-                          <div className="text-xs text-white/50 truncate">
+                          <div className="text-xs text-white/50 whitespace-normal word-break break-word">
                             {article.supplier_name}{article.series && ` • ${article.series}`}{article.pitch_value && ` • ${article.pitch_value}`}
                           </div>
                         )}
