@@ -78,8 +78,8 @@ function OrderRow({ order }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '16px 20px',
-        minHeight: '80px',
+        padding: '8px 10px',
+        minHeight: '56px',
         borderBottom: '1px solid #1e293b',
         borderLeft: `4px solid ${leftBorder}`,
         marginBottom: '2px',
@@ -88,11 +88,11 @@ function OrderRow({ order }) {
     >
       {/* Vänster: namn + kund */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ color: 'white', fontSize: '22px', fontWeight: 700, whiteSpace: 'normal', wordBreak: 'break-word' }}>
+        <div style={{ color: 'white', fontSize: '16px', fontWeight: 700, whiteSpace: 'normal', wordBreak: 'break-word' }}>
           {order.fortnox_project_name || order.customer_name || order.order_number || '–'}
         </div>
         {showCustomer && (
-          <div style={{ color: '#94a3b8', fontSize: '15px', marginTop: '4px', whiteSpace: 'normal', wordBreak: 'break-word' }}>
+          <div style={{ color: '#94a3b8', fontSize: '13px', marginTop: '2px', whiteSpace: 'normal', wordBreak: 'break-word' }}>
             {customerName}
           </div>
         )}
@@ -116,10 +116,10 @@ function OrderRow({ order }) {
 
       {/* Höger: datum */}
       <div style={{ textAlign: 'right', minWidth: '100px', flexShrink: 0 }}>
-        <div style={{ color: 'white', fontSize: '18px', fontWeight: 600 }}>
+        <div style={{ color: 'white', fontSize: '14px', fontWeight: 600 }}>
           {formatDateShort(order.delivery_date)}
         </div>
-        <div style={{ fontSize: '15px', fontWeight: 700, color: isIncoming ? '#64748b' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e', marginTop: '2px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: isIncoming ? '#64748b' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e', marginTop: '1px' }}>
           {isIncoming ? 'Nyinkommen' : days === null ? '' : days < 0 ? `${Math.abs(days)}d försenad` : days === 0 ? 'Idag' : `${days}d kvar`}
         </div>
       </div>
@@ -274,7 +274,7 @@ export default function OrderDashboard() {
       </div>
 
       {/* SUMMARY ROW */}
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '24px', padding: '8px 24px', borderBottom: '1px solid #1e293b', fontSize: '13px', fontWeight: 600, color: '#94a3b8', flexShrink: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '24px', padding: '4px 24px', borderBottom: '1px solid #1e293b', fontSize: '12px', fontWeight: 600, color: '#94a3b8', flexShrink: 0 }}>
         <span>🔴 {overdue} försenade</span>
         <span>🟡 {soon} snart</span>
         <span>🟢 {ongoing} på gång</span>
@@ -295,7 +295,7 @@ export default function OrderDashboard() {
           <>
             {groupedOrders.overdue.length > 0 && (
               <>
-                <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '2px', padding: '6px', opacity: 0.5, color: '#ef4444' }}>
+                <div style={{ textAlign: 'center', fontSize: '10px', letterSpacing: '2px', padding: '4px', opacity: 0.5, color: '#ef4444' }}>
                   ── FÖRSENADE ({groupedOrders.overdue.length}) ──
                 </div>
                 {groupedOrders.overdue.map(order => <OrderRow key={order.id} order={order} />)}
@@ -303,7 +303,7 @@ export default function OrderDashboard() {
             )}
             {groupedOrders.soon.length > 0 && (
               <>
-                <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '2px', padding: '6px', opacity: 0.5, color: '#facc15' }}>
+                <div style={{ textAlign: 'center', fontSize: '10px', letterSpacing: '2px', padding: '4px', opacity: 0.5, color: '#facc15' }}>
                   ── SNART ({groupedOrders.soon.length}) ──
                 </div>
                 {groupedOrders.soon.map(order => <OrderRow key={order.id} order={order} />)}
@@ -311,7 +311,7 @@ export default function OrderDashboard() {
             )}
             {groupedOrders.ongoing.length > 0 && (
               <>
-                <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '2px', padding: '6px', opacity: 0.5, color: '#22c55e' }}>
+                <div style={{ textAlign: 'center', fontSize: '10px', letterSpacing: '2px', padding: '4px', opacity: 0.5, color: '#22c55e' }}>
                   ── PÅ GÅNG ({groupedOrders.ongoing.length}) ──
                 </div>
                 {groupedOrders.ongoing.map(order => <OrderRow key={order.id} order={order} />)}
@@ -319,7 +319,7 @@ export default function OrderDashboard() {
             )}
             {groupedOrders.incoming.length > 0 && (
               <>
-                <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '2px', padding: '6px', opacity: 0.5, color: '#64748b' }}>
+                <div style={{ textAlign: 'center', fontSize: '10px', letterSpacing: '2px', padding: '4px', opacity: 0.5, color: '#64748b' }}>
                   ── INKOMMANDE ({groupedOrders.incoming.length}) ──
                 </div>
                 {groupedOrders.incoming.map(order => <OrderRow key={order.id} order={order} />)}
