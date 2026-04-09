@@ -63,7 +63,7 @@ function StageProgressDots({ currentStage }) {
         const color   = STAGE_COLORS[stage];
         return (
           <React.Fragment key={stage}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
               <div style={{
                 width:  active ? '10px' : '7px',
                 height: active ? '10px' : '7px',
@@ -74,22 +74,13 @@ function StageProgressDots({ currentStage }) {
                 transition: 'all 0.2s',
                 flexShrink: 0,
               }} />
-              <span style={{
-                fontSize: '9px',
-                fontWeight: 700,
-                color: done ? color : active ? color : '#333',
-                letterSpacing: '0.02em',
-                whiteSpace: 'nowrap',
-              }}>
-                {STAGE_SHORT[stage]}
-              </span>
             </div>
             {idx < ALL_STAGES_ORDER.length - 1 && (
               <div style={{
                 height: '1.5px',
                 flex: 0.3,
                 backgroundColor: done ? STAGE_COLORS[ALL_STAGES_ORDER[idx]] : '#1e1e1e',
-                marginBottom: '14px',
+                marginBottom: '0px',
               }} />
             )}
           </React.Fragment>
