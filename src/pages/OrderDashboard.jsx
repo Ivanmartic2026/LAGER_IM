@@ -120,17 +120,20 @@ export default function OrderDashboard() {
     if (!el) return;
     clearInterval(scrollTimerRef.current);
     scrollTimerRef.current = setInterval(() => {
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight) {
-        el.scrollTop = 0;
-      } else {
-        el.scrollTop += 1;
+      if (scrollRef.current) {
+        const el = scrollRef.current;
+        if (el.scrollTop >= el.scrollHeight - el.clientHeight) {
+          el.scrollTop = 0;
+        } else {
+          el.scrollTop += 1;
+        }
       }
     }, 80);
     return () => clearInterval(scrollTimerRef.current);
   }, [enrichedOrders]);
 
   return (
-    <div style={{ background: '#0a0f1e', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'Inter','Segoe UI',sans-serif" }}>
+    <div style={{ background: '#0a0f1e', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: "'Inter','Segoe UI',sans-serif" }}>
       {/* HEADER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', borderBottom: '1px solid #1e293b', flexShrink: 0 }}>
         <span style={{ color: 'white', fontSize: '20px', fontWeight: 700 }}>📋 ORDERÖVERSIKT</span>
@@ -143,7 +146,7 @@ export default function OrderDashboard() {
       {/* ORDERLISTA */}
       <div
         ref={scrollRef}
-        style={{ flex: 1, overflowY: 'auto', padding: '8px 16px', scrollbarWidth: 'none' }}
+        style={{ flex: '1 1 0', height: 0, overflowY: 'auto', padding: '8px 16px', scrollbarWidth: 'none' }}
       >
         <style>{`div::-webkit-scrollbar{display:none}`}</style>
         {enrichedOrders.length === 0 ? (
