@@ -163,17 +163,19 @@ function StatusGroup({ status, orders }) {
 
   return (
     <div style={{ marginBottom: '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', paddingLeft: '4px' }}>
-        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
-        <span style={{ fontSize: '12px', fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-          {status}
-        </span>
-        <span style={{ fontSize: '11px', color: '#333' }}>({orders.length})</span>
-        {needsScroll && (
-          <span style={{ fontSize: '10px', color: '#2a2a2a', marginLeft: '4px' }}>
-            {offset + 1}–{Math.min(offset + ROWS_PER_GROUP, sorted.length)} / {sorted.length}
+      <div style={{ marginBottom: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', paddingLeft: '4px' }}>
+          <span style={{ fontSize: '18px', fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            {status}
           </span>
-        )}
+          <span style={{ fontSize: '13px', color: '#444', fontWeight: 600 }}>({orders.length})</span>
+          {needsScroll && (
+            <span style={{ fontSize: '11px', color: '#2a2a2a', marginLeft: '4px' }}>
+              {offset + 1}–{Math.min(offset + ROWS_PER_GROUP, sorted.length)} / {sorted.length}
+            </span>
+          )}
+        </div>
+        <div style={{ height: '4px', borderRadius: '2px', backgroundColor: color, opacity: 0.85 }} />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {visible.map((order, i) => (
