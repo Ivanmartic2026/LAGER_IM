@@ -34,14 +34,23 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange, onStat
   const deliveryDate = order?.delivery_date || workOrder.delivery_date;
   const isOverdue = deliveryDate && new Date(deliveryDate) < new Date() && workOrder.status !== 'completed' && workOrder.status !== 'klar';
 
+  // Translate priority to Swedish
+  const priorityMap = {
+    'low': 'Låg',
+    'normal': 'Normal',
+    'high': 'Hög',
+    'urgent': 'Brådskande',
+  };
+  const priorityDisplay = priorityMap[workOrder.priority?.toLowerCase()] || workOrder.priority || 'Normal';
+
+  // Calculate delivery date urgency
+  const daysUntilDelivery = deliveryDate ? Math.ceil((new Date(deliveryDate) - new Date()) / (1000 * 60 * 60 * 24)) : null;
+  const deliveryColor = isOverdue ? 'text-red-400' : daysUntilDelivery && daysUntilDelivery <= 3 ? 'text-yellow-400' : 'text-white/60';
+  const deliveryBg = isOverdue ? 'bg-red-500/20 border-red-500/30' : daysUntilDelivery && daysUntilDelivery <= 3 ? 'bg-yellow-500/20 border-yellow-500/30' : '';
+
   // Meta fields — only show if they have a value
   const metaFields = [
-    { label: 'Prioritet',       value: workOrder.priority || 'Normal',             icon: null },
-    { label: 'Fortnox Projekt', value: order?.fortnox_project_number,               icon: FileText },
-    { label: 'Fortnox Order',   value: order?.fortnox_order_id,                     icon: FileText },
-    { label: 'Kundreferens',    value: order?.customer_reference,                   icon: FileText },
-    { label: 'Leveranssätt',    value: order?.delivery_method,                      icon: Truck },
-  ].filter(f => f.value && f.value !== '—');
+    { label: 'Prioritet',       value: priorityDisplay,             icon: null },
 
   return (
     <div className="space-y-4">
@@ -73,19 +82,16 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange, onStat
                 </div>
               )}
               {deliveryDate && (
-                <div className={cn("flex items-center gap-2 text-sm", isOverdue ? 'text-red-400' : 'text-white/60')}>
-                  <Clock className="w-4 h-4 shrink-0" />
-                  <span className="font-medium">
-                    {isOverdue ? '⚠ Försenad — ' : ''}
-                    Leverans: {format(new Date(deliveryDate), 'd MMM yyyy', { locale: sv })}
-                  </span>
-                </div>
-              )}
-              {order?.delivery_address && (
-                <div className="flex items-start gap-2 text-white/50 text-sm">
-                  <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>{order.delivery_address}</span>
-                </div>
+               <div className={cn("flex items-center gap-2 rounded-lg px-3 py-2 border text-sm font-medium", deliveryBg, deliveryColor)}>
+                 <Clock className="w-4 h-4 shrink-0" />
+                 {isOverdue ? (
+                   <span>🔴 FÖRSENAD — {format(new Date(deliveryDate), 'd MMM yyyy', { locale: sv })}</span>
+                 ) : daysUntilDelivery && daysUntilDelivery <= 3 ? (
+                   <span>🟡 SNART — {format(new Date(deliveryDate), 'd MMM yyyy', { locale: sv })}</span>
+                 ) : (
+                   <span>Leverans: {format(new Date(deliveryDate), 'd MMM yyyy', { locale: sv })}</span>
+                 )}
+               </div>
               )}
             </div>
           </div>

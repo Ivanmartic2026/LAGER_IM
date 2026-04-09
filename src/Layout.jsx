@@ -54,11 +54,11 @@ function LayoutContent({ children, currentPageName }) {
   }, []);
 
   const NAV_ITEMS = [
-    { name: "Inventory", label: t('nav_inventory', language), icon: Package, module: null },
+    { name: "Inventory", label: "Lager", icon: Package, module: null },
     { name: "Orders", label: t('nav_orders', language), icon: ShoppingCart, module: "Orders" },
-    { name: "WorkOrders", label: "WorkOrders", icon: ClipboardList, module: null },
-    { name: "PurchaseOrders", label: "Purchase Order", icon: ShoppingCart, module: "PurchaseOrders" },
-    { name: "SiteReports", label: t('nav_site', language), icon: MapPin, module: "SiteReports" },
+    { name: "WorkOrders", label: "Arbetsordrar", icon: ClipboardList, module: null },
+    { name: "PurchaseOrders", label: "Inköp", icon: ShoppingCart, module: "PurchaseOrders" },
+    { name: "SiteReports", label: "Plats", icon: MapPin, module: "SiteReports" },
     { name: "Repairs", label: t('nav_repairs', language), icon: Activity, module: "Repairs" },
     { name: "ProjectResults", label: "Projekt", icon: BarChart2, module: null },
     { name: "Admin", label: t('nav_admin', language), icon: FileText, module: null }

@@ -33,14 +33,12 @@ export default function WorkOrderViewPage() {
     enabled: !!workOrderId
   });
 
-  // Real-time listener
+  // Redirect if ID is invalid or work order not found
   useEffect(() => {
-    if (!workOrderId) return;
-    const unsubscribe = base44.entities.WorkOrder.subscribe((event) => {
-      if (event.id === workOrderId) {
-        queryClient.setQueryData(['workOrder', workOrderId], event.data);
-      }
-    });
+    if (!isLoading && (!workOrderId || !workOrder)) {
+      navigate(createPageUrl('WorkOrders'));
+    }
+  }, [isLoading, workOrderId, workOrder, navigate]);
     return unsubscribe;
   }, [workOrderId, queryClient]);
 

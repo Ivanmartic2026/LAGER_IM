@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
 const STAGE_COLORS = {
@@ -91,15 +92,15 @@ function OrderRow({ order }) {
         <div style={{ color: 'white', fontSize: '16px', fontWeight: 700, whiteSpace: 'normal', wordBreak: 'break-word' }}>
           {order.fortnox_project_name || order.customer_name || order.order_number || '–'}
         </div>
-        {showCustomer && (
+        {(order.customer_name || order.order_number) && (
           <div style={{ color: '#94a3b8', fontSize: '13px', marginTop: '2px', whiteSpace: 'normal', wordBreak: 'break-word' }}>
-            {customerName}
+            {order.customer_name || order.order_number}
           </div>
         )}
-      </div>
+        </div>
 
-      {/* Mitten: stage-badge */}
-      <div style={{
+        {/* Mitten: stage-badge */}
+        <div style={{
         padding: '6px 14px',
         borderRadius: '20px',
         background: stageColor + '22',
@@ -110,166 +111,19 @@ function OrderRow({ order }) {
         margin: '0 20px',
         whiteSpace: 'nowrap',
         flexShrink: 0,
-      }}>
+        }}>
         {stageEmoji ? `${stageEmoji} ${stageName}` : stageName}
-      </div>
+        </div>
 
-      {/* Höger: datum */}
-      <div style={{ textAlign: 'right', minWidth: '100px', flexShrink: 0 }}>
+        {/* Höger: datum */}
+        <div style={{ textAlign: 'right', minWidth: '100px', flexShrink: 0 }}>
         <div style={{ color: 'white', fontSize: '14px', fontWeight: 600 }}>
           {formatDateShort(order.delivery_date)}
         </div>
         <div style={{ fontSize: '12px', fontWeight: 700, color: isIncoming ? '#64748b' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e', marginTop: '1px' }}>
           {isIncoming ? 'Nyinkommen' : days === null ? '' : days < 0 ? `${Math.abs(days)}d försenad` : days === 0 ? 'Idag' : `${days}d kvar`}
         </div>
-      </div>
-    </div>
-  );
-}
-
-export default function OrderDashboard() {
-  const [enrichedOrders, setEnrichedOrders] = useState([]);
-  const [clock, setClock] = useState(() =>
-    new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
-  );
-  const [, setFullscreenToggle] = useState(false);
-  const scrollRef = useRef(null);
-  const scrollTimerRef = useRef(null);
-  const containerRef = useRef(null);
-
-  // Clock
-  useEffect(() => {
-    const t = setInterval(() => {
-      setClock(new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }));
-    }, 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  // Fetch orders + work orders, enrich
-  const fetchOrders = async () => {
-    let orders = [];
-    let workOrders = [];
-
-    try {
-      const res = await fetch('/api/apps/69455d52c9eab36b7d26cc74/functions/getPublicOrders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}'
-      });
-      const data = await res.json();
-      orders = data.orders || [];
-      workOrders = data.workOrders || [];
-    } catch (error) {
-      console.error('Failed to fetch orders:', error);
-    }
-
-    // Build a map: order_id -> workOrder (most recent)
-    const woMap = {};
-    for (const wo of workOrders) {
-      if (wo.order_id && !woMap[wo.order_id]) {
-        woMap[wo.order_id] = wo;
-      }
-    }
-
-    // Filter out completed/cancelled orders (SÄLJJ done etc), keep all active
-    const EXCLUDE = ['SÄLJ'];
-    const active = orders.filter(o => !EXCLUDE.includes(o.status));
-
-    const enriched = active.map(order => {
-      const wo = woMap[order.id];
-      if (!wo) {
-        return { ...order, _stage: 'INKOMMANDE', _isIncoming: true };
-      }
-      // Resolve stage from WorkOrder's current_stage or status
-      const rawStage = wo.current_stage || wo.status || order.status;
-      const stage = resolveStage(rawStage) || 'INKOMMANDE';
-      return { ...order, _stage: stage, _isIncoming: false };
-    });
-
-    // Sort
-    enriched.sort((a, b) => {
-      const ua = urgencyScore(a, a._isIncoming);
-      const ub = urgencyScore(b, b._isIncoming);
-      if (ua !== ub) return ua - ub;
-      const da = a.delivery_date ? new Date(a.delivery_date) : new Date('9999-12-31');
-      const db = b.delivery_date ? new Date(b.delivery_date) : new Date('9999-12-31');
-      return da - db;
-    });
-
-    setEnrichedOrders(enriched);
-  };
-
-  useEffect(() => {
-    fetchOrders();
-    const interval = setInterval(fetchOrders, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Auto-scroll
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    clearInterval(scrollTimerRef.current);
-    scrollTimerRef.current = setInterval(() => {
-      if (scrollRef.current) {
-        const el = scrollRef.current;
-        if (el.scrollTop >= el.scrollHeight - el.clientHeight) {
-          el.scrollTop = 0;
-        } else {
-          el.scrollTop += 1;
-        }
-      }
-    }, 80);
-    return () => clearInterval(scrollTimerRef.current);
-  }, [enrichedOrders]);
-
-  // Handle fullscreen toggle
-  const toggleFullscreen = async () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    } else {
-      document.exitFullscreen().catch(() => {});
-    }
-    setFullscreenToggle(prev => !prev);
-  };
-
-  // Calculate summary counts
-  const overdue = enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) < 0).length;
-  const soon = enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) >= 0 && daysLeft(o.delivery_date) <= 7).length;
-  const ongoing = enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) > 7).length;
-  const incoming = enrichedOrders.filter(o => o._isIncoming).length;
-
-  // Group orders by urgency
-  const groupedOrders = {
-    overdue: enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) < 0),
-    soon: enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) >= 0 && daysLeft(o.delivery_date) <= 7),
-    ongoing: enrichedOrders.filter(o => !o._isIncoming && daysLeft(o.delivery_date) > 7),
-    incoming: enrichedOrders.filter(o => o._isIncoming),
-  };
-
-  return (
-    <div ref={containerRef} style={{ background: '#0a0f1e', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: "'Inter','Segoe UI',sans-serif" }}>
-      {/* HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', borderBottom: '1px solid #1e293b', flexShrink: 0 }}>
-        <span style={{ color: 'white', fontSize: '20px', fontWeight: 700 }}>📋 ORDERÖVERSIKT</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{ color: '#3b4a6b', fontSize: '13px', fontWeight: 600 }}>{enrichedOrders.length} ordrar</span>
-          <button
-            onClick={toggleFullscreen}
-            style={{
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: '#94a3b8',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: 600,
-            }}
-          >
-            {document.fullscreenElement ? '⛌' : '⛶'}
-          </button>
-          <span style={{ color: '#94a3b8', fontSize: '28px', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{clock}</span>
+        </div>
         </div>
       </div>
 

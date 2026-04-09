@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
@@ -146,10 +146,48 @@ function ActivityItem({ activity }) {
   );
 }
 
+// Batch consecutive "system" status_change activities within 2 minutes
+function batchSystemChanges(activities) {
+  const batched = [];
+  let i = 0;
+  while (i < activities.length) {
+    const curr = activities[i];
+    if (curr.type === 'system' || (curr.type === 'status_change' && curr.actor_email === 'System')) {
+      const batch = [curr];
+      let j = i + 1;
+      while (j < activities.length) {
+        const next = activities[j];
+        if ((next.type === 'system' || (next.type === 'status_change' && next.actor_email === 'System')) &&
+            (new Date(curr.created_date) - new Date(next.created_date)) < 120000) {
+          batch.push(next);
+          j++;
+        } else break;
+      }
+      if (batch.length > 1) {
+        batched.push({
+          type: 'system_batch',
+          created_date: batch[0].created_date,
+          activities: batch,
+          id: batch[0].id + '_batch'
+        });
+        i = j;
+      } else {
+        batched.push(curr);
+        i++;
+      }
+    } else {
+      batched.push(curr);
+      i++;
+    }
+  }
+  return batched;
+}
+
 export default function ActivityFeed({ entityType, entityId, logFunctionName, idField }) {
   const queryClient = useQueryClient();
   const [comment, setComment] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const [expandedBatch, setExpandedBatch] = useState(null);
 
   const entityMap = {
     POActivity: base44.entities.POActivity,
@@ -185,8 +223,9 @@ export default function ActivityFeed({ entityType, entityId, logFunctionName, id
     },
   });
 
-  const displayed = showAll ? activities : activities.slice(0, 10);
-  const hasMore = activities.length > 10;
+  const batchedActivities = batchSystemChanges(activities);
+  const displayed = showAll ? batchedActivities : batchedActivities.slice(0, 10);
+  const hasMore = batchedActivities.length > 10;
 
   return (
     <div className="space-y-4">
@@ -216,19 +255,40 @@ export default function ActivityFeed({ entityType, entityId, logFunctionName, id
       <div className="space-y-0">
         {isLoading ? (
           <div className="text-center py-8 text-white/30 text-sm">Laddar aktiviteter...</div>
-        ) : activities.length === 0 ? (
+        ) : batchedActivities.length === 0 ? (
           <div className="text-center py-8 text-white/30 text-sm">Inga aktiviteter ännu</div>
         ) : (
           <>
-            {displayed.map((activity) => (
-              <ActivityItem key={activity.id} activity={activity} />
-            ))}
+            {displayed.map((batch) => {
+              if (batch.type === 'system_batch') {
+                const isExpanded = expandedBatch === batch.id;
+                return (
+                  <div key={batch.id} className="mb-2">
+                    <button
+                      onClick={() => setExpandedBatch(isExpanded ? null : batch.id)}
+                      className="w-full text-left text-xs bg-white/5 border border-white/10 rounded-lg p-3 hover:bg-white/8 transition-colors flex items-center justify-between"
+                    >
+                      <span className="text-white/60">📋 System: {batch.activities.length} systemändringar</span>
+                      {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    </button>
+                    {isExpanded && (
+                      <div className="ml-3 mt-1 space-y-0 border-l border-white/10 pl-3">
+                        {batch.activities.map(act => (
+                          <ActivityItem key={act.id} activity={act} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              return <ActivityItem key={batch.id} activity={batch} />;
+            })}
             {hasMore && (
               <button
                 onClick={() => setShowAll(!showAll)}
                 className="text-xs text-blue-400 hover:underline flex items-center gap-1 mx-auto"
               >
-                {showAll ? <><ChevronUp className="w-3 h-3" /> Visa färre</> : <><ChevronDown className="w-3 h-3" /> Visa alla {activities.length} händelser</>}
+                {showAll ? <><ChevronUp className="w-3 h-3" /> Visa färre</> : <><ChevronDown className="w-3 h-3" /> Visa alla {batchedActivities.length} händelser</>}
               </button>
             )}
           </>
