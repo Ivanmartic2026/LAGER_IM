@@ -191,6 +191,7 @@ export default function OrderDashboard() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [clock, setClock] = useState(() => new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }));
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -198,6 +199,20 @@ export default function OrderDashboard() {
     }, 1000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   const fetchOrders = async () => {
     const res = await base44.functions.invoke('getPublicOrders', {});
@@ -250,6 +265,32 @@ export default function OrderDashboard() {
           <span style={{ fontSize: '22px', fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.05em' }}>
             {clock}
           </span>
+          <button
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Avsluta fullskärm' : 'Fullskärm'}
+            style={{
+              background: 'none',
+              border: '1px solid #2a2a2a',
+              borderRadius: '6px',
+              color: '#666',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              fontSize: '12px',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
+          >
+            {isFullscreen ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7V3h4"/><path d="M17 3h4v4"/><path d="M21 17v4h-4"/><path d="M7 21H3v-4"/></svg>
+            )}
+            {isFullscreen ? 'Avsluta' : 'Fullskärm'}
+          </button>
         </div>
       </div>
 
