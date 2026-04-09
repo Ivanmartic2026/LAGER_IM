@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 
-const STAGES = ['SÄLJ', 'KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'];
+const STAGES = ['KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING', 'LEVERANS'];
 
 const STAGE_COLORS = {
-  'SÄLJ':         '#8b5cf6',
   'KONSTRUKTION': '#3b82f6',
   'PRODUKTION':   '#f97316',
   'LAGER':        '#eab308',
   'MONTERING':    '#22c55e',
+  'LEVERANS':     '#8b5cf6',
 };
 
 const ROWS_PER_GROUP = 3;
@@ -232,9 +232,7 @@ export default function OrderDashboard() {
     return acc;
   }, []);
 
-  // Orders with unknown/old statuses
-  const unknownOrders = orders.filter(o => !STAGES.includes(o.status));
-  if (unknownOrders.length > 0) grouped.push({ status: 'ÖVRIGT', orders: unknownOrders });
+  // Ignore orders with unknown/old statuses
 
   return (
     <div style={{
