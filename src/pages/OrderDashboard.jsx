@@ -151,25 +151,16 @@ export default function OrderDashboard() {
     let workOrders = [];
 
     try {
-      // Try public fetch first
-      const res = await fetch('/api/public/getPublicOrders');
-      if (res.ok) {
-        const data = await res.json();
-        orders = data.orders || [];
-        workOrders = data.workOrders || [];
-      } else {
-        throw new Error('Fetch failed');
-      }
+      const res = await fetch('/api/apps/69455d52c9eab36b7d26cc74/functions/getPublicOrders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}'
+      });
+      const data = await res.json();
+      orders = data.orders || [];
+      workOrders = data.workOrders || [];
     } catch (error) {
-      console.error('Failed to fetch via public API:', error);
-      // Fallback: try invokeFunction
-      try {
-        const data = await base44.functions.invoke('getPublicOrders', {});
-        orders = data.orders || [];
-        workOrders = data.workOrders || [];
-      } catch (invokeError) {
-        console.error('Failed to invoke getPublicOrders:', invokeError);
-      }
+      console.error('Failed to fetch orders:', error);
     }
 
     // Build a map: order_id -> workOrder (most recent)
