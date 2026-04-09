@@ -22,6 +22,7 @@ import MedarbetarOversikt from '@/pages/MedarbetarOversikt';
 import TidsRapport from '@/pages/TidsRapport';
 import KilometerErsattning from '@/pages/KilometerErsattning';
 import OrderDashboard from '@/pages/OrderDashboard';
+import WorkOrders from '@/pages/WorkOrders';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -160,6 +161,12 @@ function App() {
             <Route path="/ProjectResults" element={
               <LayoutWrapper currentPageName="Reports">
                 <ProjectResults />
+              </LayoutWrapper>
+            } />
+            {/* Work Orders List */}
+            <Route path="/WorkOrders" element={
+              <LayoutWrapper currentPageName="WorkOrders">
+                <WorkOrders />
               </LayoutWrapper>
             } />
             {/* All other routes require auth */}

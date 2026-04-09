@@ -61,7 +61,7 @@ function isNumericCustomerName(name) {
   return name && /^\d+$/.test(name);
 }
 
-function OrderRow({ order }) {
+function OrderRow({ order, navigate }) {
   const days = order._isIncoming ? null : daysLeft(order.delivery_date);
   const urgent = days !== null && days < 0;
   const soon = days !== null && days >= 0 && days <= 7;
@@ -75,6 +75,7 @@ function OrderRow({ order }) {
 
   return (
     <div
+      onClick={() => navigate(`/OrderDetail?id=${order.id}`)}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -85,6 +86,14 @@ function OrderRow({ order }) {
         borderLeft: `4px solid ${leftBorder}`,
         marginBottom: '2px',
         backgroundColor: urgent ? 'rgba(239,68,68,0.05)' : soon ? 'rgba(250,204,21,0.04)' : 'transparent',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = urgent ? 'rgba(239,68,68,0.05)' : soon ? 'rgba(250,204,21,0.04)' : 'transparent';
       }}
     >
       {/* Vänster: namn + kund */}
@@ -99,20 +108,41 @@ function OrderRow({ order }) {
         )}
       </div>
 
-      {/* Höger: datum */}
-      <div style={{ textAlign: 'right', minWidth: '100px', flexShrink: 0 }}>
-        <div style={{ color: 'white', fontSize: '14px', fontWeight: 600 }}>
-          {formatDateShort(order.delivery_date)}
-        </div>
-        <div style={{ fontSize: '12px', fontWeight: 700, color: isIncoming ? '#64748b' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e', marginTop: '1px' }}>
-          {isIncoming ? 'Nyinkommen' : days === null ? '' : days < 0 ? `${Math.abs(days)}d försenad` : days === 0 ? 'Idag' : `${days}d kvar`}
-        </div>
+      {/* Höger: status badge + datum */}
+       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+         {/* Status Badge */}
+         <div style={{
+           display: 'flex',
+           alignItems: 'center',
+           gap: '4px',
+           padding: '4px 8px',
+           borderRadius: '6px',
+           backgroundColor: stageColor + '20',
+           border: `1px solid ${stageColor}40`,
+           minWidth: '90px',
+           justifyContent: 'center'
+         }}>
+           <span style={{ fontSize: '14px' }}>{stageEmoji}</span>
+           <span style={{ color: stageColor, fontSize: '11px', fontWeight: 700 }}>
+             {stageName}
+           </span>
+         </div>
+         {/* Datum */}
+         <div style={{ textAlign: 'right', minWidth: '70px' }}>
+           <div style={{ color: 'white', fontSize: '14px', fontWeight: 600 }}>
+             {formatDateShort(order.delivery_date)}
+           </div>
+           <div style={{ fontSize: '12px', fontWeight: 700, color: isIncoming ? '#64748b' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e', marginTop: '1px' }}>
+             {isIncoming ? 'Nyinkommen' : days === null ? '' : days < 0 ? `${Math.abs(days)}d försenad` : days === 0 ? 'Idag' : `${days}d kvar`}
+           </div>
+         </div>
+       </div>
       </div>
-    </div>
-  );
-}
+      );
+      }
 
 export default function OrderDashboard() {
+  const navigate = useNavigate();
   const [enrichedOrders, setEnrichedOrders] = useState([]);
   const [clock, setClock] = useState(() =>
     new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
@@ -281,33 +311,33 @@ export default function OrderDashboard() {
             {groupedOrders.overdue.length > 0 && (
               <>
                 <div style={{ textAlign: 'center', fontSize: '10px', letterSpacing: '2px', padding: '4px', opacity: 0.5, color: '#ef4444' }}>
-                  ── FÖRSENADE ({groupedOrders.overdue.length}) ──
-                </div>
-                {groupedOrders.overdue.map(order => <OrderRow key={order.id} order={order} />)}
+                   ── FÖRSENADE ({groupedOrders.overdue.length}) ──
+                 </div>
+                 {groupedOrders.overdue.map(order => <OrderRow key={order.id} order={order} navigate={navigate} />)}
               </>
             )}
             {groupedOrders.soon.length > 0 && (
               <>
                 <div style={{ textAlign: 'center', fontSize: '10px', letterSpacing: '2px', padding: '4px', opacity: 0.5, color: '#facc15' }}>
-                  ── SNART ({groupedOrders.soon.length}) ──
-                </div>
-                {groupedOrders.soon.map(order => <OrderRow key={order.id} order={order} />)}
+                   ── SNART ({groupedOrders.soon.length}) ──
+                 </div>
+                 {groupedOrders.soon.map(order => <OrderRow key={order.id} order={order} navigate={navigate} />)}
               </>
             )}
             {groupedOrders.ongoing.length > 0 && (
               <>
                 <div style={{ textAlign: 'center', fontSize: '10px', letterSpacing: '2px', padding: '4px', opacity: 0.5, color: '#22c55e' }}>
-                  ── PÅ GÅNG ({groupedOrders.ongoing.length}) ──
-                </div>
-                {groupedOrders.ongoing.map(order => <OrderRow key={order.id} order={order} />)}
+                   ── PÅ GÅNG ({groupedOrders.ongoing.length}) ──
+                 </div>
+                 {groupedOrders.ongoing.map(order => <OrderRow key={order.id} order={order} navigate={navigate} />)}
               </>
             )}
             {groupedOrders.incoming.length > 0 && (
               <>
                 <div style={{ textAlign: 'center', fontSize: '10px', letterSpacing: '2px', padding: '4px', opacity: 0.5, color: '#64748b' }}>
-                  ── INKOMMANDE ({groupedOrders.incoming.length}) ──
-                </div>
-                {groupedOrders.incoming.map(order => <OrderRow key={order.id} order={order} />)}
+                   ── INKOMMANDE ({groupedOrders.incoming.length}) ──
+                 </div>
+                 {groupedOrders.incoming.map(order => <OrderRow key={order.id} order={order} navigate={navigate} />)}
               </>
             )}
           </>
