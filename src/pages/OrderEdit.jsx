@@ -298,6 +298,18 @@ export default function OrderEdit() {
 
               <div>
                 <label className="text-sm font-medium text-slate-300 mb-2 block">
+                  Fortnox kundnummer
+                </label>
+                <Input
+                  value={formData.fortnox_customer_number}
+                  onChange={(e) => setFormData({ ...formData, fortnox_customer_number: e.target.value })}
+                  placeholder="T.ex. 1234"
+                  className="bg-slate-800 border-slate-700 text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-300 mb-2 block">
                   Kundreferens
                 </label>
                 <Input
