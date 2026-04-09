@@ -190,6 +190,14 @@ export default function OrderDashboard() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [clock, setClock] = useState(() => new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }));
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setClock(new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }));
+    }, 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const fetchOrders = async () => {
     const res = await base44.functions.invoke('getPublicOrders', {});
@@ -227,46 +235,21 @@ export default function OrderDashboard() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px',
-        marginBottom: 'clamp(20px, 3vw, 40px)',
-        paddingBottom: 'clamp(16px, 2vw, 28px)',
+        height: '40px',
+        marginBottom: 'clamp(16px, 2vw, 28px)',
+        paddingBottom: '12px',
         borderBottom: '1px solid #1a1a1a',
       }}>
-        <div>
-          <img
-            src="https://media.base44.com/images/public/69455d52c9eab36b7d26cc74/60fb63701_LogoLIGGANDE_IMvision_VITtkopia.png"
-            alt="IMvision"
-            style={{ height: 'clamp(28px, 3vw, 48px)', objectFit: 'contain', display: 'block', marginBottom: '6px' }}
-          />
-          <p style={{ fontSize: 'clamp(11px, 1.2vw, 16px)', color: '#444', margin: 0 }}>
-            Order Dashboard · Aktiva ordrar
-          </p>
-        </div>
-
-        {/* Stage legend */}
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {STAGES.map(stage => (
-            <div key={stage} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: STAGE_COLORS[stage] }} />
-              <span style={{ fontSize: '11px', color: '#555', fontWeight: 600 }}>{stage}</span>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{
-            fontSize: '15px', fontWeight: 700, color: '#2563eb',
-            backgroundColor: '#2563eb15', border: '1px solid #2563eb30',
-            borderRadius: '8px', padding: '8px 18px',
-          }}>
-            {orders.length} ordrar
-          </div>
-          {lastUpdated && (
-            <span style={{ fontSize: '11px', color: '#333' }}>
-              {lastUpdated.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
+        <img
+          src="https://media.base44.com/images/public/69455d52c9eab36b7d26cc74/60fb63701_LogoLIGGANDE_IMvision_VITtkopia.png"
+          alt="IMvision"
+          style={{ height: '26px', objectFit: 'contain', display: 'block' }}
+        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <span style={{ fontSize: '13px', color: '#444', fontWeight: 600 }}>{orders.length} ordrar</span>
+          <span style={{ fontSize: '22px', fontWeight: 700, color: '#fff', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.05em' }}>
+            {clock}
+          </span>
         </div>
       </div>
 
