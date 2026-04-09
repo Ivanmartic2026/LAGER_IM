@@ -1,30 +1,34 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 
-// The 5 order stages matching the image: SÄLJ → KONSTRUKTION → PRODUKTION → LAGER → MONTERING
+// The 5 work order stages
 export const ORDER_STAGES = [
-  { key: 'SÄLJ',         label: 'SÄLJ',         step: 1 },
-  { key: 'KONSTRUKTION', label: 'KONSTRUKTION',  step: 2 },
-  { key: 'PRODUKTION',   label: 'PRODUKTION',    step: 3 },
-  { key: 'LAGER',        label: 'LAGER',         step: 4 },
-  { key: 'MONTERING',    label: 'MONTERING',     step: 5 },
+  { key: 'konstruktion', label: 'KONSTRUKTION', step: 1 },
+  { key: 'produktion',   label: 'PRODUKTION',   step: 2 },
+  { key: 'lager',        label: 'LAGER',         step: 3 },
+  { key: 'montering',    label: 'MONTERING',     step: 4 },
+  { key: 'leverans',     label: 'LEVERANS',      step: 5 },
 ];
 
 // Map legacy current_stage values → new stage key
 export function resolveStage(workOrder) {
-  // If the workOrder already has one of the new stage values, use it directly
   if (ORDER_STAGES.some(s => s.key === workOrder?.current_stage)) {
     return workOrder.current_stage;
   }
-  // Map old values
+  // Map old values to new stages
   const map = {
-    picking:    'LAGER',
-    production: 'PRODUKTION',
-    delivery:   'MONTERING',
-    completed:  'MONTERING',
-    picked:     'LAGER',
+    picking:    'lager',
+    picked:     'lager',
+    production: 'produktion',
+    delivery:   'leverans',
+    completed:  'leverans',
+    SÄLJ:         'konstruktion',
+    KONSTRUKTION:  'konstruktion',
+    PRODUKTION:    'produktion',
+    LAGER:         'lager',
+    MONTERING:     'montering',
   };
-  return map[workOrder?.current_stage] || 'SÄLJ';
+  return map[workOrder?.current_stage] || 'konstruktion';
 }
 
 // Compact inline version — used inside each row in the list

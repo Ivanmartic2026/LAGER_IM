@@ -30,12 +30,13 @@
     "current_stage": {
       "type": "string",
       "enum": [
-        "picking",
-        "production",
-        "delivery",
-        "completed"
+        "konstruktion",
+        "produktion",
+        "lager",
+        "montering",
+        "leverans"
       ],
-      "default": "picking",
+      "default": "konstruktion",
       "description": "Nuvarande fas i arbetsordern"
     },
     "status": {
@@ -85,8 +86,7 @@
               "tillverka",
               "montera"
             ],
-            "default": "montera",
-            "description": "Typ av arbetsmoment"
+            "default": "montera"
           },
           "started_date": {
             "type": "string"
@@ -101,21 +101,45 @@
       },
       "description": "Arbetsmoment kopplade till denna arbetsorder"
     },
-    "assigned_to_picking": {
+    "assigned_to_konstruktion": {
       "type": "string",
-      "description": "Tilldelad plockning (email)"
+      "description": "Tilldelad konstruktion (email)"
     },
-    "assigned_to_picking_name": {
+    "assigned_to_konstruktion_name": {
       "type": "string",
-      "description": "Tilldelad plockning (namn)"
+      "description": "Tilldelad konstruktion (namn)"
     },
-    "assigned_to_production": {
+    "assigned_to_produktion": {
       "type": "string",
-      "description": "Tilldelad produktion/teknik (email)"
+      "description": "Tilldelad produktion (email)"
     },
-    "assigned_to_production_name": {
+    "assigned_to_produktion_name": {
       "type": "string",
-      "description": "Tilldelad produktion/teknik (namn)"
+      "description": "Tilldelad produktion (namn)"
+    },
+    "assigned_to_lager": {
+      "type": "string",
+      "description": "Tilldelad lager (email)"
+    },
+    "assigned_to_lager_name": {
+      "type": "string",
+      "description": "Tilldelad lager (namn)"
+    },
+    "assigned_to_montering": {
+      "type": "string",
+      "description": "Tilldelad montering (email)"
+    },
+    "assigned_to_montering_name": {
+      "type": "string",
+      "description": "Tilldelad montering (namn)"
+    },
+    "assigned_to_leverans": {
+      "type": "string",
+      "description": "Tilldelad leverans (email)"
+    },
+    "assigned_to_leverans_name": {
+      "type": "string",
+      "description": "Tilldelad leverans (namn)"
     },
     "technician_name": {
       "type": "string",
@@ -266,52 +290,41 @@
     },
     "all_materials_ready": {
       "type": "boolean",
-      "default": false,
-      "description": "Indikerar om alla material \u00e4r tillg\u00e4ngliga"
+      "default": false
     },
     "quality_report_url": {
-      "type": "string",
-      "description": "L\u00e4nk till kvalitetsrapport"
+      "type": "string"
     },
     "test_protocol_url": {
-      "type": "string",
-      "description": "L\u00e4nk till testprotokoll"
+      "type": "string"
     },
     "needs_procurement": {
       "type": "boolean",
-      "default": false,
-      "description": "Indikerar om n\u00e5got material beh\u00f6ver k\u00f6pas in"
+      "default": false
     },
     "planned_start_date": {
       "type": "string",
-      "format": "date",
-      "description": "Planerat startdatum"
+      "format": "date"
     },
     "planned_deadline": {
       "type": "string",
-      "format": "date",
-      "description": "Planerad deadline"
+      "format": "date"
     },
     "signed_off_by": {
-      "type": "string",
-      "description": "Godk\u00e4nt av (email)"
+      "type": "string"
     },
     "signed_off_date": {
       "type": "string",
-      "format": "date-time",
-      "description": "Godk\u00e4nnandedatum"
+      "format": "date-time"
     },
     "total_items": {
-      "type": "number",
-      "description": "Totalt antal artiklar"
+      "type": "number"
     },
     "total_weight_kg": {
-      "type": "number",
-      "description": "Total vikt i kg"
+      "type": "number"
     },
     "total_volume_m3": {
-      "type": "number",
-      "description": "Total volym i m\u00b3"
+      "type": "number"
     },
     "uploaded_files": {
       "type": "array",
@@ -325,8 +338,7 @@
             "type": "string"
           }
         }
-      },
-      "description": "Uppladdade filer kopplade till denna arbetsorder"
+      }
     }
   },
   "required": [

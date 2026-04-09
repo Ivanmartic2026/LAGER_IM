@@ -19,10 +19,11 @@ import ProcessFlow, { ProcessFlowCompact, ORDER_STAGES, resolveStage } from "@/c
 
 
 const STAGE_CONFIG = {
-  picking: { label: 'Plockning', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30', icon: Package },
-  production: { label: 'Produktion', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: Factory },
-  delivery: { label: 'Leverans', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', icon: Truck },
-  completed: { label: 'Klar', color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: CheckCircle2 }
+  konstruktion: { label: 'Konstruktion', color: 'bg-sky-500/20 text-sky-400 border-sky-500/30', icon: Factory },
+  produktion:   { label: 'Produktion',   color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: Factory },
+  lager:        { label: 'Lager',        color: 'bg-amber-500/20 text-amber-400 border-amber-500/30', icon: Package },
+  montering:    { label: 'Montering',    color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', icon: Zap },
+  leverans:     { label: 'Leverans',     color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: Truck },
 };
 
 const STATUS_CONFIG = {
@@ -53,8 +54,8 @@ export default function WorkOrdersPage() {
     refetchOnWindowFocus: true
   });
 
-  const activeOrders = workOrders.filter(wo => wo.status !== 'completed' && wo.status !== 'cancelled');
-  const completedOrders = workOrders.filter(wo => wo.status === 'completed');
+  const activeOrders = workOrders.filter(wo => wo.status !== 'klar' && wo.status !== 'completed' && wo.status !== 'avbruten' && wo.status !== 'cancelled');
+  const completedOrders = workOrders.filter(wo => wo.status === 'klar' || wo.status === 'completed');
 
   const deleteMutation = useMutation({
     mutationFn: (workOrderId) => base44.entities.WorkOrder.delete(workOrderId),
@@ -68,9 +69,8 @@ export default function WorkOrdersPage() {
   const filtered = workOrders.filter(wo => {
     let matchStage;
     if (stageFilter === 'all') matchStage = true;
-    else if (stageFilter === 'completed') matchStage = wo.status === 'completed';
-    else if (ORDER_STAGES.some(s => s.key === stageFilter)) matchStage = resolveStage(wo) === stageFilter;
-    else matchStage = wo.current_stage === stageFilter;
+    else if (stageFilter === 'completed') matchStage = wo.status === 'klar' || wo.status === 'completed';
+    else matchStage = resolveStage(wo) === stageFilter;
     const matchSearch = !searchQuery ||
       wo.order_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       wo.customer_name?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -78,10 +78,12 @@ export default function WorkOrdersPage() {
   });
 
   const stats = {
-    picking: workOrders.filter(wo => wo.current_stage === 'picking' && wo.status !== 'completed').length,
-    production: workOrders.filter(wo => (wo.current_stage === 'production' || wo.current_stage === 'picked') && wo.status !== 'completed').length,
-    delivery: workOrders.filter(wo => wo.current_stage === 'delivery' && wo.status !== 'completed').length,
-    completed: completedOrders.length
+    konstruktion: activeOrders.filter(wo => resolveStage(wo) === 'konstruktion').length,
+    produktion:   activeOrders.filter(wo => resolveStage(wo) === 'produktion').length,
+    lager:        activeOrders.filter(wo => resolveStage(wo) === 'lager').length,
+    montering:    activeOrders.filter(wo => resolveStage(wo) === 'montering').length,
+    leverans:     activeOrders.filter(wo => resolveStage(wo) === 'leverans').length,
+    completed:    completedOrders.length
   };
 
   return (
@@ -104,26 +106,28 @@ export default function WorkOrdersPage() {
           </div>
 
           {/* Stage Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">
             {[
-              { key: 'all', label: 'Alla aktiva', count: activeOrders.length, bgColor: 'bg-white/5 border-white/10', textColor: 'text-white/70' },
-              { key: 'picking', label: 'Plockning', count: stats.picking, bgColor: 'bg-amber-500/10 border-amber-500/20', textColor: 'text-amber-400' },
-              { key: 'production', label: 'Produktion', count: stats.production, bgColor: 'bg-blue-500/10 border-blue-500/20', textColor: 'text-blue-400' },
-              { key: 'completed', label: 'Klara', count: stats.completed, bgColor: 'bg-green-500/10 border-green-500/20', textColor: 'text-green-400' }
+              { key: 'all',          label: 'Alla aktiva',   count: activeOrders.length,    bgColor: 'bg-white/5 border-white/10',           textColor: 'text-white/70' },
+              { key: 'konstruktion', label: 'Konstruktion',  count: stats.konstruktion,      bgColor: 'bg-sky-500/10 border-sky-500/20',       textColor: 'text-sky-400' },
+              { key: 'produktion',   label: 'Produktion',    count: stats.produktion,        bgColor: 'bg-blue-500/10 border-blue-500/20',     textColor: 'text-blue-400' },
+              { key: 'lager',        label: 'Lager',         count: stats.lager,             bgColor: 'bg-amber-500/10 border-amber-500/20',   textColor: 'text-amber-400' },
+              { key: 'montering',    label: 'Montering',     count: stats.montering,         bgColor: 'bg-purple-500/10 border-purple-500/20', textColor: 'text-purple-400' },
+              { key: 'completed',    label: 'Klara',         count: stats.completed,         bgColor: 'bg-green-500/10 border-green-500/20',   textColor: 'text-green-400' }
             ].map(({ key, label, count, bgColor, textColor }) => (
               <motion.button
                 key={key}
                 whileHover={{ y: -2 }}
-                onClick={() => setStageFilter(key === 'completed' ? 'completed' : key)}
+                onClick={() => setStageFilter(key)}
                 className={cn(
-                  "p-5 rounded-2xl border transition-all duration-200 text-left",
-                  (stageFilter === key || (key === 'completed' && stageFilter === 'completed'))
+                  "p-4 rounded-2xl border transition-all duration-200 text-left",
+                  stageFilter === key
                     ? "bg-white/10 border-white/30"
                     : bgColor + " hover:bg-white/8 hover:border-white/20"
                 )}
               >
-                <p className={cn("text-3xl font-bold tracking-tight mb-1", textColor)}>{count}</p>
-                <p className="text-sm text-white/50">{label}</p>
+                <p className={cn("text-2xl font-bold tracking-tight mb-1", textColor)}>{count}</p>
+                <p className="text-xs text-white/50">{label}</p>
               </motion.button>
             ))}
           </div>
@@ -201,10 +205,12 @@ export default function WorkOrdersPage() {
         ) : (
           <div className="space-y-4">
             {filtered.map(wo => {
-              const stage = STAGE_CONFIG[wo.current_stage] || STAGE_CONFIG.picking;
+              const resolvedStageKey = resolveStage(wo);
+              const stage = STAGE_CONFIG[resolvedStageKey] || STAGE_CONFIG.konstruktion;
               const StageIcon = stage.icon;
               const priority = PRIORITY_CONFIG[wo.priority] || PRIORITY_CONFIG.normal;
               const status = STATUS_CONFIG[wo.status] || STATUS_CONFIG.pending;
+              const responsibleName = wo[`assigned_to_${resolvedStageKey}_name`] || wo[`assigned_to_${resolvedStageKey}`];
               const isUrgent = wo.priority === 'urgent' || wo.priority === 'high';
 
               return (
@@ -236,8 +242,11 @@ export default function WorkOrdersPage() {
                             className="font-bold text-lg text-white bg-transparent border-b border-white/20 hover:border-white/40 focus:border-white/60 focus:outline-none px-1 py-0 transition-colors flex-1 min-w-0"
                           />
                           <span className={cn("text-xs font-bold px-2 py-1 rounded-lg", stage.color)}>
-                            {stage.label}
-                          </span>
+                             {stage.label}
+                           </span>
+                          {responsibleName && (
+                            <span className="text-xs text-white/40">→ {responsibleName}</span>
+                          )}
                         </div>
                         {wo.priority && wo.priority !== 'normal' && (
                           <span className={cn("text-xs font-bold", priority.color)}>
