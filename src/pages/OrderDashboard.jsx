@@ -125,7 +125,7 @@ export default function OrderDashboard() {
       } else {
         el.scrollTop += 1;
       }
-    }, 50);
+    }, 80);
     return () => clearInterval(scrollTimerRef.current);
   }, [enrichedOrders]);
 
@@ -168,6 +168,7 @@ export default function OrderDashboard() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '16px 20px',
+                minHeight: '80px',
                 borderBottom: '1px solid #1e293b',
                 borderLeft: `4px solid ${leftBorder}`,
                 marginBottom: '2px',
@@ -176,10 +177,10 @@ export default function OrderDashboard() {
             >
               {/* Vänster: namn + kund */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: 'white', fontSize: '18px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ color: 'white', fontSize: '18px', fontWeight: 700, whiteSpace: 'normal', wordBreak: 'break-word' }}>
                   {order.fortnox_project_name || order.customer_name || order.order_number || '–'}
                 </div>
-                <div style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px', whiteSpace: 'normal', wordBreak: 'break-word' }}>
                   {order.fortnox_project_name ? order.customer_name : (order.order_number || '–')}
                 </div>
               </div>
