@@ -900,31 +900,13 @@ export default function OrdersPage() {
                       </div>
                     </div>
 
-                    {/* Pipeline progress bar - bottom left */}
-                    <div className="flex items-end justify-between">
-                      <div className="flex items-center gap-1">
-                        {PIPELINE_STAGES.map((stage, idx) => {
-                          const selectedStages = Array.isArray(order.selected_stages) ? order.selected_stages : (order.status ? [order.status] : []);
-                          const isCompleted = selectedStages.includes(stage);
-                          
-                          return (
-                            <div
-                              key={stage}
-                              title={stage}
-                              style={{ backgroundColor: isCompleted ? STAGE_COLORS_HEX[stage] : '#1e293b' }}
-                              className="h-1.5 rounded-full flex-1 min-w-[8px] transition-all"
-                            />
-                          );
-                        })}
+                    {/* Work order handover status */}
+                    {workOrders.find(w => w.order_id === order.id) && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-400" />
+                        <span className="text-xs text-green-400 font-medium">Överlämnad till arbetsorder</span>
                       </div>
-                      <span className="text-xs text-slate-500 ml-2 flex-shrink-0">
-                        {(() => {
-                          const selectedStages = Array.isArray(order.selected_stages) ? order.selected_stages : (order.status ? [order.status] : []);
-                          const completedCount = PIPELINE_STAGES.filter(s => selectedStages.includes(s)).length;
-                          return `${completedCount}/${PIPELINE_STAGES.length}`;
-                        })()}
-                      </span>
-                    </div>
+                    )}
 
                     <div className="flex items-start justify-between">
                       <div></div>
