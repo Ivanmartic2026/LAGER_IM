@@ -147,10 +147,30 @@ export default function OrderDashboard() {
 
   // Fetch orders + work orders, enrich
   const fetchOrders = async () => {
-    const [orders, workOrders] = await Promise.all([
-      base44.entities.Order.list('-updated_date', 200),
-      base44.entities.WorkOrder.list('-updated_date', 500),
-    ]);
+    let orders = [];
+    let workOrders = [];
+
+    try {
+      // Try public fetch first
+      const res = await fetch('/api/public/getPublicOrders');
+      if (res.ok) {
+        const data = await res.json();
+        orders = data.orders || [];
+        workOrders = data.workOrders || [];
+      } else {
+        throw new Error('Fetch failed');
+      }
+    } catch (error) {
+      console.error('Failed to fetch via public API:', error);
+      // Fallback: try invokeFunction
+      try {
+        const data = await base44.functions.invoke('getPublicOrders', {});
+        orders = data.orders || [];
+        workOrders = data.workOrders || [];
+      } catch (invokeError) {
+        console.error('Failed to invoke getPublicOrders:', invokeError);
+      }
+    }
 
     // Build a map: order_id -> workOrder (most recent)
     const woMap = {};
