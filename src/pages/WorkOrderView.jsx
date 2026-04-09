@@ -304,6 +304,7 @@ export default function WorkOrderViewPage() {
         />
 
         {/* Stage-specific content (Hero + stage actions) */}
+        <div className="bg-gray-900 rounded-2xl">
         <StageContent
           workOrder={workOrder}
           order={order}
@@ -316,6 +317,7 @@ export default function WorkOrderViewPage() {
           onAdvanceStage={handleAdvanceStage}
           uploadingImages={uploadingImages}
         />
+        </div>
 
         {/* Documentation */}
         <DocumentSection

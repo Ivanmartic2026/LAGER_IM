@@ -19,7 +19,7 @@ function ResponsibleBadge({ name, email }) {
   if (!display) return null;
   const initials = display.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   return (
-    <div className="flex items-center gap-2 text-sm text-white/60">
+    <div className="flex items-center gap-2 text-sm text-gray-300">
       <div className="w-7 h-7 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-[10px] font-bold text-blue-300">
         {initials}
       </div>
@@ -35,7 +35,7 @@ function ArticleCheckList({ items, articles, onWithdraw }) {
     setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  if (!items.length) return <p className="text-white/40 text-sm">Inga artiklar kopplade till denna order.</p>;
+  if (!items.length) return <p className="text-gray-500 text-sm">Inga artiklar kopplade till denna order.</p>;
 
   const allChecked = items.every(item => checkedItems[item.id] || item.status === 'picked');
 
@@ -60,14 +60,14 @@ function ArticleCheckList({ items, articles, onWithdraw }) {
               : <Square className="w-5 h-5 text-white/30 shrink-0" />
             }
             <div className="flex-1 min-w-0">
-              <p className={cn("text-sm font-medium", isChecked ? 'text-green-300 line-through' : 'text-white')}>
+              <p className={cn("text-sm font-medium", isChecked ? 'text-green-300 line-through' : 'text-gray-100')}>
                 {item.article_name}
               </p>
               {article?.shelf_address?.[0] && (
-                <p className="text-xs text-white/40 mt-0.5">{article.shelf_address[0]}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{article.shelf_address[0]}</p>
               )}
             </div>
-            <span className="text-sm text-white/50 shrink-0">{item.quantity_ordered} st</span>
+            <span className="text-sm text-gray-400 shrink-0">{item.quantity_ordered} st</span>
             {isPicked && (
               <Badge className="bg-green-500/20 border-green-500/30 text-green-400 text-[10px]">Uttagen ✓</Badge>
             )}
@@ -114,20 +114,20 @@ export default function StageContent({
   const checklist = workOrder.checklist || {};
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 bg-gray-900 rounded-2xl p-1">
       {/* Hero: current stage + responsible + advance button */}
       <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl">{stageConf?.icon}</span>
-              <h2 className="text-lg font-bold text-white">{stageConf?.label}</h2>
+              <h2 className="text-lg font-bold text-gray-100">{stageConf?.label}</h2>
             </div>
             <div className="mt-2">
-              <p className="text-xs text-white/40 mb-1">Ansvarig</p>
+              <p className="text-xs text-gray-500 mb-1">Ansvarig</p>
               <ResponsibleBadge name={responsibleName} email={responsibleEmail} />
               {!responsibleName && !responsibleEmail && (
-                <p className="text-white/30 text-sm">Ingen tilldelad</p>
+                <p className="text-gray-500 text-sm">Ingen tilldelad</p>
               )}
             </div>
           </div>
@@ -217,12 +217,12 @@ export default function StageContent({
             <label className="block">
               <input type="file" accept="image/*" multiple onChange={onImageUpload} className="hidden" disabled={uploadingImages} />
               <div className="p-3 rounded-lg border border-dashed border-white/20 hover:border-white/40 text-center cursor-pointer">
-                <p className="text-white/50 text-sm">{uploadingImages ? 'Laddar upp...' : '+ Lägg till bild'}</p>
-              </div>
-            </label>
-          </div>
+                <p className="text-gray-400 text-sm">{uploadingImages ? 'Laddar upp...' : '+ Lägg till bild'}</p>
+                </div>
+                </label>
+                </div>
 
-          {/* Notes */}
+                {/* Notes */}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
             <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Produktionsanteckningar</h3>
             <Textarea
@@ -287,7 +287,7 @@ export default function StageContent({
                     ? <CheckSquare className="w-5 h-5 text-green-400 shrink-0" />
                     : <Square className="w-5 h-5 text-white/30 shrink-0" />
                   }
-                  <span className={cn("text-sm font-medium", checklist[field] ? 'text-green-300' : 'text-white/70')}>
+                  <span className={cn("text-sm font-medium", checklist[field] ? 'text-green-300' : 'text-gray-300')}>
                     {label}
                   </span>
                 </div>
@@ -311,13 +311,13 @@ export default function StageContent({
             <label className="block">
               <input type="file" accept="image/*" multiple onChange={onImageUpload} className="hidden" disabled={uploadingImages} />
               <div className="p-3 rounded-lg border border-dashed border-white/20 hover:border-white/40 text-center cursor-pointer">
-                <p className="text-white/50 text-sm">{uploadingImages ? 'Laddar upp...' : '+ Lägg till bild'}</p>
-              </div>
-            </label>
-          </div>
+                <p className="text-gray-400 text-sm">{uploadingImages ? 'Laddar upp...' : '+ Lägg till bild'}</p>
+                </div>
+                </label>
+                </div>
 
-          <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Monteringsanteckningar</h3>
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Monteringsanteckningar</h3>
             <Textarea
               key={workOrder.id + '_montering'}
               defaultValue={workOrder.production_notes || ''}
@@ -340,18 +340,18 @@ export default function StageContent({
             <div className="space-y-3">
               {(workOrder.delivery_contact_name || workOrder.technician_name) && (
                 <div>
-                  <p className="text-xs text-white/40 mb-1">Leveranskontakt</p>
-                  <div className="flex items-center gap-2 text-sm text-white/70">
-                    <User className="w-4 h-4 text-white/40" />
+                  <p className="text-xs text-gray-500 mb-1">Leveranskontakt</p>
+                  <div className="flex items-center gap-2 text-sm text-gray-300">
+                    <User className="w-4 h-4 text-gray-500" />
                     <span>{workOrder.delivery_contact_name || workOrder.technician_name}</span>
                   </div>
                 </div>
               )}
               {(workOrder.delivery_contact_phone || workOrder.technician_phone) && (
                 <div>
-                  <p className="text-xs text-white/40 mb-1">Telefon</p>
-                  <div className="flex items-center gap-2 text-sm text-white/70">
-                    <Phone className="w-4 h-4 text-white/40" />
+                  <p className="text-xs text-gray-500 mb-1">Telefon</p>
+                  <div className="flex items-center gap-2 text-sm text-gray-300">
+                    <Phone className="w-4 h-4 text-gray-500" />
                     <a href={`tel:${workOrder.delivery_contact_phone || workOrder.technician_phone}`}
                       className="text-blue-400 hover:text-blue-300">
                       {workOrder.delivery_contact_phone || workOrder.technician_phone}
@@ -361,20 +361,20 @@ export default function StageContent({
               )}
               {order?.delivery_method && (
                 <div>
-                  <p className="text-xs text-white/40 mb-1">Leveranssätt</p>
-                  <p className="text-sm text-white/70 capitalize">{order.delivery_method}</p>
+                  <p className="text-xs text-gray-500 mb-1">Leveranssätt</p>
+                  <p className="text-sm text-gray-300 capitalize">{order.delivery_method}</p>
                 </div>
               )}
               {order?.tracking_number && (
                 <div>
-                  <p className="text-xs text-white/40 mb-1">Spårningsnummer</p>
-                  <p className="text-sm text-white font-mono">{order.tracking_number}</p>
+                  <p className="text-xs text-gray-500 mb-1">Spårningsnummer</p>
+                  <p className="text-sm text-gray-100 font-mono">{order.tracking_number}</p>
                 </div>
               )}
               {order?.delivery_address && (
                 <div>
-                  <p className="text-xs text-white/40 mb-1">Leveransadress</p>
-                  <p className="text-sm text-white/70">{order.delivery_address}</p>
+                  <p className="text-xs text-gray-500 mb-1">Leveransadress</p>
+                  <p className="text-sm text-gray-300">{order.delivery_address}</p>
                 </div>
               )}
             </div>
