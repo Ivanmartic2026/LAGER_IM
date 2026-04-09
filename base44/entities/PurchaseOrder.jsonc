@@ -82,6 +82,10 @@
       "type": "string",
       "description": "Projektnummer Fortnox"
     },
+    "fortnox_incoming_goods_id": {
+      "type": "string",
+      "description": "Fortnox inleverans-ID (GoodsReceiptNumber)"
+    },
     "status": {
       "type": "string",
       "enum": [

@@ -1,139 +1,149 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+const CLIENT_ID = 'mp08u6gAFPz2';
+const CLIENT_SECRET = 'GjAMHv9Mm7wZW356pZmLdkkBlie0QaPg';
+
+async function getFortnoxToken(base44) {
+  const configs = await base44.asServiceRole.entities.FortnoxConfig.list({});
+  if (!configs || configs.length === 0) throw new Error('No FortnoxConfig found');
+  const config = configs[0];
+  const now = Date.now();
+
+  if (config.access_token && config.token_expires_at && (config.token_expires_at - 300000) > now) {
+    return config.access_token;
+  }
+
+  if (!config.refresh_token) throw new Error('Ingen refresh token');
+  const credentials = btoa(CLIENT_ID + ':' + CLIENT_SECRET);
+  const response = await fetch('https://apps.fortnox.se/oauth-v1/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic ' + credentials },
+    body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(config.refresh_token)
+  });
+  const text = await response.text();
+  if (!response.ok) throw new Error('Token refresh failed: ' + text);
+  const data = JSON.parse(text);
+  const expiresAt = now + ((data.expires_in || 3600) * 1000);
+  await base44.asServiceRole.entities.FortnoxConfig.update(config.id, {
+    access_token: data.access_token,
+    token_expires_at: expiresAt,
+    refresh_token: data.refresh_token || config.refresh_token
+  });
+  return data.access_token;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-
-    const { receiving_record_id } = await req.json();
-    if (!receiving_record_id) {
-      return Response.json({ error: 'Missing receiving_record_id' }, { status: 400 });
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 1. Fetch ReceivingRecord
-    const receivingRecord = await base44.asServiceRole.entities.ReceivingRecord.get(receiving_record_id);
-    if (!receivingRecord) {
-      throw new Error(`ReceivingRecord not found: ${receiving_record_id}`);
-    }
-    console.log(`[1] ReceivingRecord fetched: id=${receivingRecord.id}, article_name=${receivingRecord.article_name}, qty=${receivingRecord.quantity_received}`);
-
-    // 2. Fetch PurchaseOrderItem
-    const poItem = await base44.asServiceRole.entities.PurchaseOrderItem.get(receivingRecord.purchase_order_item_id);
-    if (!poItem) {
-      throw new Error(`PurchaseOrderItem not found: ${receivingRecord.purchase_order_item_id}`);
-    }
-    console.log(`[2] PurchaseOrderItem fetched: id=${poItem.id}, article_sku=${poItem.article_sku}, unit_price=${poItem.unit_price}`);
-
-    // If article_sku missing on POItem, fall back to Article.sku
-    let articleSku = poItem.article_sku;
-    if (!articleSku && receivingRecord.article_id) {
-      const article = await base44.asServiceRole.entities.Article.get(receivingRecord.article_id);
-      articleSku = article?.sku || null;
-      console.log(`[2b] article_sku missing on POItem, fetched from Article: ${articleSku}`);
-    }
-    if (!articleSku) {
-      throw new Error(`No article_sku found on PurchaseOrderItem or Article for receiving record ${receiving_record_id}`);
+    const { purchase_order_id, items, complete } = await req.json();
+    if (!purchase_order_id) {
+      return Response.json({ error: 'Missing purchase_order_id' }, { status: 400 });
     }
 
-    // 3. Fetch PurchaseOrder
-    const purchaseOrder = await base44.asServiceRole.entities.PurchaseOrder.get(receivingRecord.purchase_order_id);
+    // Fetch PurchaseOrder
+    const purchaseOrder = await base44.asServiceRole.entities.PurchaseOrder.get(purchase_order_id);
     if (!purchaseOrder) {
-      throw new Error(`PurchaseOrder not found: ${receivingRecord.purchase_order_id}`);
+      throw new Error(`PurchaseOrder not found: ${purchase_order_id}`);
     }
-    console.log(`[3] PurchaseOrder fetched: id=${purchaseOrder.id}, po_number=${purchaseOrder.po_number}, warehouse_id=${purchaseOrder.warehouse_id || 'NULL'}`);
+    console.log(`[1] PurchaseOrder: ${purchaseOrder.po_number}`);
 
-    // 4. Fetch Warehouse (optional - skip if warehouse_id is missing)
-    let warehouse = null;
-    if (purchaseOrder.warehouse_id) {
-      warehouse = await base44.asServiceRole.entities.Warehouse.get(purchaseOrder.warehouse_id);
-      if (!warehouse) {
-        console.log(`[4] WARNING: warehouse_id set but Warehouse not found: ${purchaseOrder.warehouse_id}. Proceeding without stockPointCode.`);
-      } else {
-        console.log(`[4] Warehouse fetched: id=${warehouse.id}, code=${warehouse.code}`);
-      }
+    const accessToken = await getFortnoxToken(base44);
+    console.log(`[2] Fortnox token obtained`);
+
+    // Build rows from provided items or fetch PO items
+    let rows = [];
+    if (items && items.length > 0) {
+      rows = items.map(item => ({
+        ArticleNumber: item.article_sku || item.sku,
+        DeliveredQuantity: item.quantity_received || item.quantity,
+        Price: item.unit_price || 0
+      }));
     } else {
-      console.log(`[4] No warehouse_id on PurchaseOrder — will use Fortnox default stock point`);
+      // Fetch PO items automatically
+      const poItems = await base44.asServiceRole.entities.PurchaseOrderItem.filter({ purchase_order_id });
+      rows = poItems
+        .filter(i => i.quantity_received > 0)
+        .map(i => ({
+          ArticleNumber: i.article_sku,
+          DeliveredQuantity: i.quantity_received,
+          Price: i.unit_price || 0
+        }));
     }
 
-    // 5. Fetch FortnoxConfig (access token)
-    const configs = await base44.asServiceRole.entities.FortnoxConfig.list({});
-    if (!configs || configs.length === 0) {
-      throw new Error('No FortnoxConfig found');
+    if (rows.length === 0) {
+      throw new Error('Inga artikelrader att skicka till Fortnox');
     }
-    const fortnoxConfig = configs[0];
-    if (!fortnoxConfig.access_token) {
-      throw new Error('FortnoxConfig has no access_token');
-    }
-    console.log(`[5] FortnoxConfig fetched, access_token present: ${!!fortnoxConfig.access_token}`);
 
     const today = new Date().toISOString().split('T')[0];
-    const noteText = `PO: ${purchaseOrder.po_number || purchaseOrder.id}${receivingRecord.notes ? ' - ' + receivingRecord.notes : ''}`;
 
-    // Build row — only include stockPointCode if we have a warehouse
-    const row = {
-      itemId: poItem.article_sku,
-      quantity: receivingRecord.quantity_received,
-      directCost: poItem.unit_price || 0,
-      ...(warehouse?.code ? { stockPointCode: warehouse.code } : {})
+    // POST /3/supplierinvoices or /3/incominggoods
+    // Fortnox uses /3/incominggoods for warehouse incoming goods
+    const body = {
+      IncomingGoods: {
+        SupplierNumber: purchaseOrder.supplier_id || undefined,
+        DeliveryDate: today,
+        OurReference: purchaseOrder.po_number || purchaseOrder.id.slice(0, 8),
+        Comments: `PO: ${purchaseOrder.po_number || purchaseOrder.id}`,
+        IncomingGoodsRows: rows.map(r => ({
+          ArticleNumber: r.ArticleNumber,
+          DeliveredQuantity: r.DeliveredQuantity,
+          Price: r.Price
+        }))
+      }
     };
 
-    // Build delivery body — only include stockPointCode if we have a warehouse
-    const deliveryBody = {
-      date: today,
-      currency: "SEK",
-      currencyRate: 1,
-      currencyUnit: 1,
-      note: noteText,
-      ...(warehouse?.code ? { stockPointCode: warehouse.code } : {}),
-      rows: [row]
-    };
-
-    console.log(`[6] Calling Fortnox POST /inbounddeliveries with body:`, JSON.stringify(deliveryBody));
-
-    // 6. POST to Fortnox inbound deliveries
-    const createResponse = await fetch('https://api.fortnox.se/api/warehouse/deliveries-v1/inbounddeliveries', {
+    console.log(`[3] POST /3/incominggoods with ${rows.length} rows`);
+    const createRes = await fetch('https://api.fortnox.se/3/incominggoods', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${fortnoxConfig.access_token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
-      body: JSON.stringify(deliveryBody)
+      body: JSON.stringify(body)
     });
 
-    console.log(`[7] Fortnox create response status: ${createResponse.status}`);
+    const resText = await createRes.text();
+    console.log(`[4] Fortnox response status: ${createRes.status}, body: ${resText.slice(0, 500)}`);
 
-    if (!createResponse.ok) {
-      const errText = await createResponse.text();
-      throw new Error(`Fortnox create delivery failed (${createResponse.status}): ${errText}`);
+    if (!createRes.ok) {
+      throw new Error(`Fortnox incominggoods failed (${createRes.status}): ${resText}`);
     }
 
-    const createdDelivery = await createResponse.json();
-    const deliveryId = createdDelivery.id;
-    console.log(`[8] Fortnox delivery created: id=${deliveryId}`);
+    const resData = JSON.parse(resText);
+    const fortnoxId = resData.IncomingGoods?.GoodsReceiptNumber || resData.IncomingGoods?.DocumentNumber || resData.IncomingGoods?.id;
 
-    if (!deliveryId) {
-      throw new Error('Fortnox response missing delivery id');
-    }
+    if (fortnoxId) {
+      // Save Fortnox ID on PurchaseOrder
+      await base44.asServiceRole.entities.PurchaseOrder.update(purchase_order_id, {
+        fortnox_incoming_goods_id: String(fortnoxId)
+      });
+      console.log(`[5] Saved fortnox_incoming_goods_id: ${fortnoxId}`);
 
-    // 7. Release the delivery
-    const releaseResponse = await fetch(
-      `https://api.fortnox.se/api/warehouse/deliveries-v1/inbounddeliveries/${deliveryId}/release`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${fortnoxConfig.access_token}`
+      // If complete=true, mark as WarehouseReady
+      if (complete) {
+        const completeRes = await fetch(`https://api.fortnox.se/3/incominggoods/${fortnoxId}/warehouseready`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        console.log(`[6] WarehouseReady response: ${completeRes.status}`);
+        if (!completeRes.ok) {
+          const errText = await completeRes.text();
+          console.warn(`[6] WarehouseReady warning (non-fatal): ${errText}`);
         }
       }
-    );
-
-    console.log(`[9] Fortnox release response status: ${releaseResponse.status}`);
-
-    if (!releaseResponse.ok) {
-      const errText = await releaseResponse.text();
-      throw new Error(`Fortnox release delivery failed (${releaseResponse.status}): ${errText}`);
     }
 
-    console.log(`[10] Fortnox delivery released successfully: id=${deliveryId}`);
-    return Response.json({ success: true, deliveryId });
+    return Response.json({ success: true, fortnoxId, data: resData.IncomingGoods });
 
   } catch (error) {
     console.error(`[ERROR] ${error.message}`);

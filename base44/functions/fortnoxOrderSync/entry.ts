@@ -11,12 +11,10 @@ async function getFortnoxToken(base44) {
   const config = configs[0];
   const now = Date.now();
   
-  // Token valid for another 5 min?
   if (config.access_token && config.token_expires_at && (config.token_expires_at - 300000) > now) {
     return config.access_token;
   }
   
-  // Refresh needed
   if (!config.refresh_token) throw new Error('Ingen refresh token');
   
   const credentials = btoa(CLIENT_ID + ':' + CLIENT_SECRET);
@@ -46,7 +44,6 @@ async function buildOrderRows(accessToken, orderRows) {
   
   for (const r of orderRows) {
     if (r.article_number) {
-      // Try to verify article exists in Fortnox
       try {
         const articleResponse = await fetch(`${FORTNOX_API_BASE}/articles/${encodeURIComponent(r.article_number)}`, {
           method: 'GET',
@@ -57,7 +54,6 @@ async function buildOrderRows(accessToken, orderRows) {
         });
         
         if (articleResponse.ok) {
-          // Article exists, use it
           builtRows.push({
             ArticleNumber: r.article_number,
             Description: r.description || '',
@@ -71,7 +67,6 @@ async function buildOrderRows(accessToken, orderRows) {
       }
     }
     
-    // Article not found or no article_number: use free-text row
     builtRows.push({
       Description: r.description || r.article_number || 'Artikel',
       OrderedQuantity: r.quantity || 0,
@@ -93,26 +88,57 @@ Deno.serve(async (req) => {
 
     const { order_id, customer_number, your_order_number, delivery_date, order_rows, project_name } = await req.json();
 
-    // Only customer_number and order_rows are truly required
-    if (!customer_number || !order_rows || order_rows.length === 0) {
-      return Response.json({ error: 'Missing required fields: customer_number and order_rows' }, { status: 400 });
+    if (!order_id) {
+      return Response.json({ error: 'Missing required field: order_id' }, { status: 400 });
+    }
+
+    // Fetch the Order to get customer info and build rows if not provided
+    const order = await base44.asServiceRole.entities.Order.get(order_id);
+    if (!order) {
+      return Response.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    // Use fortnox_customer_number from Order, fall back to provided customer_number
+    const resolvedCustomerNumber = order.fortnox_customer_number || customer_number;
+    if (!resolvedCustomerNumber) {
+      return Response.json({ error: 'Missing customer_number: set fortnox_customer_number on Order or pass customer_number' }, { status: 400 });
+    }
+
+    // Build order rows from OrderItems if not provided
+    let resolvedOrderRows = order_rows;
+    if (!resolvedOrderRows || resolvedOrderRows.length === 0) {
+      const orderItems = await base44.asServiceRole.entities.OrderItem.filter({ order_id });
+      resolvedOrderRows = orderItems.map(item => ({
+        article_number: item.article_id,
+        description: item.article_name,
+        quantity: item.quantity_ordered,
+        price: 0
+      }));
+    }
+
+    if (!resolvedOrderRows || resolvedOrderRows.length === 0) {
+      return Response.json({ error: 'No order rows found' }, { status: 400 });
     }
 
     const accessToken = await getFortnoxToken(base44);
-
-    // Build rows with fallback to free-text if article not found
-    const builtRows = await buildOrderRows(accessToken, order_rows);
+    const builtRows = await buildOrderRows(accessToken, resolvedOrderRows);
 
     const fortnoxOrderData = {
-      CustomerNumber: customer_number,
-      DeliveryDate: delivery_date || new Date().toISOString().split('T')[0],
+      CustomerNumber: resolvedCustomerNumber,
+      DeliveryDate: delivery_date || order.delivery_date || new Date().toISOString().split('T')[0],
       OrderRows: builtRows
     };
 
-    // YourOrderNumber is optional, only set if provided
-    if (your_order_number) {
-      fortnoxOrderData.YourOrderNumber = your_order_number;
+    const resolvedYourOrderNumber = your_order_number || order.order_number;
+    if (resolvedYourOrderNumber) {
+      fortnoxOrderData.YourOrderNumber = resolvedYourOrderNumber;
     }
+
+    if (project_name || order.fortnox_project_name) {
+      fortnoxOrderData.Project = project_name || order.fortnox_project_name;
+    }
+
+    console.log(`[1] Creating Fortnox order for customer: ${resolvedCustomerNumber}`);
 
     const response = await fetch(`${FORTNOX_API_BASE}/orders`, {
       method: 'POST',
@@ -131,29 +157,29 @@ Deno.serve(async (req) => {
 
     const data = JSON.parse(text);
     const fortnoxOrder = data.Order || {};
-    const fortnoxOrderNumber = fortnoxOrder.OrderNumber;
     const fortnoxDocumentNumber = fortnoxOrder.DocumentNumber;
+    const fortnoxOrderNumber = fortnoxOrder.OrderNumber;
 
-    // Update Lager AI order record with Fortnox document number and project name if provided
-    if (order_id && fortnoxDocumentNumber) {
-      try {
-        const updateData = {
-          fortnox_document_number: fortnoxDocumentNumber,
-          fortnox_order_id: fortnoxDocumentNumber
-        };
-        if (project_name) {
-          updateData.fortnox_project_name = project_name;
-        }
-        await base44.asServiceRole.entities.Order.update(order_id, updateData);
-      } catch (e) {
-        console.warn('Failed to update Lager AI order record:', e.message);
+    console.log(`[2] Fortnox order created: DocumentNumber=${fortnoxDocumentNumber}`);
+
+    // Always save back to Order entity
+    if (fortnoxDocumentNumber) {
+      const updateData = {
+        fortnox_document_number: String(fortnoxDocumentNumber),
+        fortnox_order_id: String(fortnoxDocumentNumber)
+      };
+      if (project_name || order.fortnox_project_name) {
+        updateData.fortnox_project_name = project_name || order.fortnox_project_name;
       }
+      await base44.asServiceRole.entities.Order.update(order_id, updateData);
+      console.log(`[3] Saved fortnox_order_id=${fortnoxDocumentNumber} on Order`);
     }
 
     return Response.json({
       success: true,
-      fortnox_order_id: fortnoxOrderNumber,
-      fortnox_document_number: fortnoxOrder.DocumentNumber
+      fortnox_order_id: fortnoxDocumentNumber,
+      fortnox_document_number: fortnoxDocumentNumber,
+      fortnox_order_number: fortnoxOrderNumber
     });
   } catch (error) {
     console.error('Fortnox order sync error:', error);

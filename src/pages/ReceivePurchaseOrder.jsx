@@ -269,6 +269,23 @@ export default function ReceivePurchaseOrderPage() {
     }
   });
 
+  const sendToFortnoxMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke('createFortnoxInboundDelivery', {
+        purchase_order_id: poId,
+        complete: true
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['purchaseOrder', poId] });
+      toast.success(`Skickat till Fortnox! ID: ${data.fortnoxId || 'OK'}`);
+    },
+    onError: (error) => {
+      toast.error('Kunde inte skicka till Fortnox: ' + error.message);
+    }
+  });
+
   if (!purchaseOrder || !poId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
@@ -305,7 +322,7 @@ export default function ReceivePurchaseOrderPage() {
             </Button>
           </Link>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {(purchaseOrder.status === 'received' || purchaseOrder.status === 'partially_received') && receivingRecords.length > 0 && (
               <Button
                 onClick={() => {
@@ -318,6 +335,26 @@ export default function ReceivePurchaseOrderPage() {
                 <Eye className="w-4 h-4 mr-2" />
                 Visa följesedel
               </Button>
+            )}
+            {(purchaseOrder.status === 'received' || purchaseOrder.status === 'partially_received') && (
+              purchaseOrder.fortnox_incoming_goods_id ? (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Fortnox #{purchaseOrder.fortnox_incoming_goods_id}
+                </div>
+              ) : (
+                <Button
+                  onClick={() => sendToFortnoxMutation.mutate()}
+                  disabled={sendToFortnoxMutation.isPending}
+                  className="bg-purple-600 hover:bg-purple-500"
+                >
+                  {sendToFortnoxMutation.isPending ? (
+                    <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />Skickar...</>
+                  ) : (
+                    <><FileText className="w-4 h-4 mr-2" />Skicka till Fortnox</>
+                  )}
+                </Button>
+              )
             )}
             {purchaseOrder.status === 'received' && (
               <Button
