@@ -27,6 +27,10 @@
       "format": "date",
       "description": "Leveransdatum (kopierat fr\u00e5n Order)"
     },
+    "delivery_address": {
+      "type": "string",
+      "description": "Leveransadress (kopierat fr\u00e5n Order)"
+    },
     "current_stage": {
       "type": "string",
       "enum": [

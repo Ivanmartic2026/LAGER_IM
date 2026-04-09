@@ -14,6 +14,7 @@ import ProcessFlow from "@/components/workorders/ProcessFlow";
 import StageContent from "@/components/workorders/StageContent";
 import DocumentSection from "@/components/workorders/DocumentSection";
 import ActivityFeed from "@/components/activity/ActivityFeed";
+import ProjectInfoCard from "@/components/orders/ProjectInfoCard";
 import { resolveStage } from "@/components/workorders/ProcessFlow";
 
 export default function WorkOrderViewPage() {
@@ -275,6 +276,20 @@ export default function WorkOrderViewPage() {
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-3xl mx-auto space-y-4">
 
+        {/* Project Info Card */}
+        {order && <ProjectInfoCard order={order} />}
+
+        {/* OBS Banner */}
+        {order?.notes && (
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
+            <span className="text-2xl flex-shrink-0">⚠️</span>
+            <div>
+              <p className="text-xs text-amber-300 font-semibold mb-1">OBS FRÅN SÄLJ</p>
+              <p className="text-sm text-white whitespace-pre-wrap">{order.notes}</p>
+            </div>
+          </div>
+        )}
+
         {/* Back + Print */}
         <div className="flex items-center justify-between">
           <Link to={createPageUrl('WorkOrders')}>
@@ -324,7 +339,7 @@ export default function WorkOrderViewPage() {
           </div>
         )}
 
-        {/* Header */}
+        {/* WorkOrder Header */}
         <WorkOrderHeader
           workOrder={workOrder}
           order={order}

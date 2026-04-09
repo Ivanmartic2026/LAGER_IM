@@ -10,6 +10,7 @@ import { X, Plus, Trash2, Package, ArrowLeft, CheckCircle2 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import FortnoxCustomerSelect from "@/components/orders/FortnoxCustomerSelect";
+import ProjectInfoSection from "@/components/orders/ProjectInfoSection";
 import OrderTasks from "@/components/orders/OrderTasks";
 
 export default function OrderEdit() {
@@ -28,8 +29,12 @@ export default function OrderEdit() {
     priority: 'normal',
     delivery_date: '',
     delivery_address: '',
+    delivery_method: '',
+    shipping_company: '',
     notes: '',
     site_visit_info: '',
+    fortnox_project_number: '',
+    fortnox_project_name: '',
     sales_completed: false
   });
 
@@ -72,8 +77,12 @@ export default function OrderEdit() {
         priority: order.priority || 'normal',
         delivery_date: order.delivery_date || '',
         delivery_address: order.delivery_address || '',
+        delivery_method: order.delivery_method || '',
+        shipping_company: order.shipping_company || '',
         notes: order.notes || '',
         site_visit_info: order.site_visit_info || '',
+        fortnox_project_number: order.fortnox_project_number || '',
+        fortnox_project_name: order.fortnox_project_name || '',
         sales_completed: order.sales_completed || false
       });
     }
@@ -218,8 +227,8 @@ export default function OrderEdit() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.customer_name) {
-      toast.error("Kundnamn krävs");
+    if (!formData.customer_name || !formData.delivery_date || !formData.delivery_address) {
+      toast.error("Kundnamn, leveransdatum och leveransadress krävs");
       return;
     }
 
@@ -243,184 +252,19 @@ export default function OrderEdit() {
              {orderId ? 'Redigera order' : 'Ny order'}
            </h1>
            {formData.sales_completed && (
-             <div className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg bg-green-900/30 border border-green-600/50">
-               <CheckCircle2 className="w-5 h-5 text-green-500" />
-               <span className="text-sm font-medium text-green-400">Försäljning slutförd</span>
-             </div>
-           )}
-         </div>
+                <div className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg bg-green-900/30 border border-green-600/50">
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  <span className="text-sm font-medium text-green-400">Försäljning slutförd</span>
+                </div>
+              )}
+            </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Info */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-white mb-4">Orderdetaljer</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-slate-300 mb-2 block">
-                  Ordernummer
-                </label>
-                <Input
-                  value={formData.order_number}
-                  onChange={(e) => setFormData({ ...formData, order_number: e.target.value })}
-                  placeholder="T.ex. ORD-2025-001"
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-slate-300 mb-2 block">
-                  Kundnamn *
-                </label>
-                <Input
-                  value={formData.customer_name}
-                  onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-                  placeholder="Kundnamn"
-                  className="bg-slate-800 border-slate-700 text-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-slate-300 mb-2 block">
-                  Fortnox Kund
-                </label>
-                <FortnoxCustomerSelect
-                  value={formData.fortnox_customer_number}
-                  onSelect={(customer) => setFormData({
-                    ...formData,
-                    fortnox_customer_number: customer.CustomerNumber,
-                    customer_name: customer.Name
-                  })}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-slate-300 mb-2 block">
-                  Fortnox kundnummer
-                </label>
-                <Input
-                  value={formData.fortnox_customer_number}
-                  onChange={(e) => setFormData({ ...formData, fortnox_customer_number: e.target.value })}
-                  placeholder="T.ex. 1234"
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-slate-300 mb-2 block">
-                  Kundreferens
-                </label>
-                <Input
-                  value={formData.customer_reference}
-                  onChange={(e) => setFormData({ ...formData, customer_reference: e.target.value })}
-                  placeholder="Referens"
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-slate-300 mb-2 block">
-                  RM System ID
-                </label>
-                <Input
-                  value={formData.rm_system_id}
-                  onChange={(e) => setFormData({ ...formData, rm_system_id: e.target.value })}
-                  placeholder="T.ex. RM-12345"
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="text-sm font-medium text-slate-300 mb-2 block">
-                  RM System URL
-                </label>
-                <Input
-                  value={formData.rm_system_url}
-                  onChange={(e) => setFormData({ ...formData, rm_system_url: e.target.value })}
-                  placeholder="https://rm-system.example.com/order/12345"
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-slate-300 mb-2 block">
-                  Leveransdatum
-                </label>
-                <Input
-                  type="date"
-                  value={formData.delivery_date}
-                  onChange={(e) => setFormData({ ...formData, delivery_date: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-slate-300 mb-2 block">
-                  Prioritet
-                </label>
-                <Select 
-                  value={formData.priority} 
-                  onValueChange={(value) => setFormData({ ...formData, priority: value })}
-                >
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Låg</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="high">Hög</SelectItem>
-                    <SelectItem value="urgent">Brådskande</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Address & Notes */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-white mb-4">Adresser & Anteckningar</h2>
-            
-            <div>
-              <label className="text-sm font-medium text-slate-300 mb-2 block">
-                Leveransadress
-              </label>
-              <Textarea
-                value={formData.delivery_address}
-                onChange={(e) => setFormData({ ...formData, delivery_address: e.target.value })}
-                placeholder="Fullständig leveransadress..."
-                className="bg-slate-800 border-slate-700 text-white h-20"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-slate-300 mb-2 block">
-                🗺️ Site Visit
-              </label>
-              <Textarea
-                value={formData.site_visit_info}
-                onChange={(e) => setFormData({ ...formData, site_visit_info: e.target.value })}
-                placeholder="Datum, kontaktperson, vad som ska göras på platsen..."
-                className="bg-slate-800 border-slate-700 text-white h-20"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-slate-300 mb-2 block">
-                Anteckningar
-              </label>
-              <Textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Interna anteckningar..."
-                className="bg-slate-800 border-slate-700 text-white h-20"
-              />
-            </div>
-          </div>
+         <form onSubmit={handleSubmit} className="space-y-6">
+           <ProjectInfoSection formData={formData} setFormData={setFormData} />
 
           {/* Order Items */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4" id="articles">
             <h2 className="text-lg font-semibold text-white mb-4">Artiklar</h2>
 
             <div className="flex gap-2">
@@ -548,6 +392,34 @@ export default function OrderEdit() {
           {orderId && (
             <OrderTasks orderId={orderId} />
           )}
+
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-white mb-4">RM System</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-slate-300 mb-2 block">
+                  RM System ID
+                </label>
+                <Input
+                  value={formData.rm_system_id}
+                  onChange={(e) => setFormData({ ...formData, rm_system_id: e.target.value })}
+                  placeholder="T.ex. RM-12345"
+                  className="bg-slate-800 border-slate-700 text-white"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-sm font-medium text-slate-300 mb-2 block">
+                  RM System URL
+                </label>
+                <Input
+                  value={formData.rm_system_url}
+                  onChange={(e) => setFormData({ ...formData, rm_system_url: e.target.value })}
+                  placeholder="https://rm-system.example.com/order/12345"
+                  className="bg-slate-800 border-slate-700 text-white"
+                />
+              </div>
+            </div>
+          </div>
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pb-6">

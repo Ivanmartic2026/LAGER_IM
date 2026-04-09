@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
       customer_name: order.customer_name || '',
       customer_reference: order.customer_reference || '',
       delivery_date: order.delivery_date || null,
+      delivery_address: order.delivery_address || null,
       current_stage: 'konstruktion',
       status: 'väntande',
       priority,

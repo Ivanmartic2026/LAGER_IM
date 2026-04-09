@@ -16,6 +16,7 @@ import BarcodeScanner from "@/components/scanner/BarcodeScanner";
 import OrderForm from "@/components/orders/OrderForm";
 import PickingItemCard from "@/components/orders/PickingItemCard";
 import OrderRoutingModal from "@/components/orders/OrderRoutingModal";
+import OrderPickingHeader from "@/components/orders/OrderPickingHeader";
 
 export default function PickOrderPage() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -336,26 +337,29 @@ export default function PickOrderPage() {
           </div>
         </div>
 
-        {/* Order Info */}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 mb-6">
-          <h1 className="text-2xl font-bold text-white mb-4">
-            {order.order_number || `Order #${order.id.slice(0, 8)}`}
-          </h1>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-slate-400">Kund:</span>
-              <span className="text-white ml-2 font-medium">{order.customer_name}</span>
-            </div>
-            {order.delivery_date && (
-              <div>
-                <span className="text-slate-400">Leverans:</span>
-                <span className="text-white ml-2 font-medium">{order.delivery_date}</span>
-              </div>
-            )}
-          </div>
+        {/* Delivery Address & Notes Header */}
+         <OrderPickingHeader order={order} />
 
-          {/* Progress */}
-          <div className="mt-4">
+        {/* Order Info */}
+         <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 mb-6">
+           <h1 className="text-2xl font-bold text-white mb-4">
+             {order.order_number || `Order #${order.id.slice(0, 8)}`}
+           </h1>
+           <div className="grid grid-cols-2 gap-4 text-sm">
+             <div>
+               <span className="text-slate-400">Kund:</span>
+               <span className="text-white ml-2 font-medium">{order.customer_name}</span>
+             </div>
+             {order.delivery_date && (
+               <div>
+                 <span className="text-slate-400">Leverans:</span>
+                 <span className="text-white ml-2 font-medium">{order.delivery_date}</span>
+               </div>
+             )}
+           </div>
+
+           {/* Progress */}
+           <div className="mt-4">
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="text-slate-400">Plockningsframsteg</span>
               <span className="text-white font-semibold">{pickedItems.length} / {orderItems.length}</span>
