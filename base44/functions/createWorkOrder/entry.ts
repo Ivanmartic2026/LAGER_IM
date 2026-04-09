@@ -24,23 +24,59 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, workOrder: existing[0], created: false });
     }
 
-    // Map order priority
-    const priorityMap = { low: 'low', normal: 'normal', high: 'high', urgent: 'urgent' };
-    const priority = priorityMap[order.priority] || 'normal';
+    // Map order priority to Swedish values
+    const priorityMap = { 
+      låg: 'låg', low: 'låg', 
+      normal: 'normal', 
+      hög: 'hög', high: 'hög', 
+      brådskande: 'brådskande', urgent: 'brådskande' 
+    };
+    const priority = priorityMap[order.priority?.toLowerCase()] || 'normal';
 
-    // Create the WorkOrder
-    const workOrder = await base44.asServiceRole.entities.WorkOrder.create({
-      order_id: orderId,
-      order_number: order.order_number || '',
-      customer_name: order.customer_name || '',
-      delivery_date: order.delivery_date || null,
-      current_stage: 'picking',
-      status: 'pending',
-      priority,
-      picking_notes: order.notes || ''
+    // Auto-generate order_number if missing (format: ORD-YYYY-NNN)
+    let orderNumber = order.order_number;
+    if (!orderNumber) {
+      const year = new Date().getFullYear();
+      const allWOs = await base44.asServiceRole.entities.WorkOrder.list();
+      const count = (allWOs?.filter(wo => wo.order_number?.startsWith(`ORD-${year}`)) || []).length;
+      orderNumber = `ORD-${year}-${String(count + 1).padStart(3, '0')}`;
+    }
+
+    // Fetch OrderItems and Articles to populate materials_needed
+    const orderItems = await base44.asServiceRole.entities.OrderItem.filter({ order_id: orderId });
+    const articles = await base44.asServiceRole.entities.Article.list();
+    
+    const materialsNeeded = (orderItems || []).map(item => {
+      const article = articles?.find(a => a.id === item.article_id);
+      const inStock = article?.stock_qty || 0;
+      const quantity = item.quantity_ordered || 0;
+      const missing = Math.max(0, quantity - inStock);
+      return {
+        article_id: item.article_id,
+        article_name: item.article_name || article?.name || '',
+        quantity,
+        in_stock: inStock,
+        missing,
+        needs_purchase: missing > 0
+      };
     });
 
-    console.log(`WorkOrder created: ${workOrder.id} for order ${orderId}`);
+    // Create the WorkOrder with standardized Swedish values
+    const workOrder = await base44.asServiceRole.entities.WorkOrder.create({
+      order_id: orderId,
+      order_number: orderNumber,
+      customer_name: order.customer_name || '',
+      customer_reference: order.customer_reference || '',
+      delivery_date: order.delivery_date || null,
+      current_stage: 'konstruktion',
+      status: 'väntande',
+      priority,
+      production_notes: order.notes || '',
+      materials_needed: materialsNeeded,
+      all_materials_ready: materialsNeeded.length === 0 || materialsNeeded.every(m => !m.needs_purchase)
+    });
+
+    console.log(`WorkOrder created: ${workOrder.id} for order ${orderId} with auto-generated number: ${orderNumber}`);
     return Response.json({ success: true, workOrder, created: true });
 
   } catch (error) {
