@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
@@ -14,11 +14,21 @@ export default function RecentActivityWidget() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const timerRef = useRef(null);
 
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
+
+  // Auto-collapse after 8 seconds of inactivity
+  useEffect(() => {
+    if (isExpanded) {
+      timerRef.current = setTimeout(() => setIsExpanded(false), 8000);
+    }
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [isExpanded]);
 
   // Fetch activities from all activity entities
   const { data: workOrderActivities = [] } = useQuery({
@@ -255,9 +265,11 @@ export default function RecentActivityWidget() {
       animate={{ opacity: 1, x: 0 }}
       className="fixed right-0 top-20 w-96 bg-gradient-to-b from-slate-800/90 via-slate-900/85 to-black/70 backdrop-blur-2xl border-l border-white/20 z-30 hidden lg:flex flex-col overflow-hidden shadow-2xl"
       style={{ boxShadow: '0 0 40px rgba(59, 130, 246, 0.1)', maxHeight: 'calc(100vh - 120px)' }}
+      onMouseEnter={() => { clearTimeout(timerRef.current); }}
+      onMouseLeave={() => { if (isExpanded) { timerRef.current = setTimeout(() => setIsExpanded(false), 8000); } }}
     >
       {/* Header */}
-      <div className="px-4 py-3 border-b border-white/15 flex-shrink-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent">
+      <div className="px-4 py-3 border-b border-white/15 flex-shrink-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent" onClick={() => { setIsExpanded(e => !e); clearTimeout(timerRef.current); }} style={{cursor: 'pointer'}}>
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-blue-400" />
           <h3 className="text-sm font-semibold text-white">Senaste uppdateringar</h3>
@@ -266,7 +278,7 @@ export default function RecentActivityWidget() {
 
       {/* Activities List */}
       <div className="flex-1 space-y-2 p-3 overflow-y-auto flex flex-col">
-        {allActivities.map((activity, idx) => {
+        {allisExpanded && Activities.map((activity, idx) => {
           const Icon = getActivityIcon(activity.type, activity.entity_type);
           const colorClass = getActivityColor(activity.type, activity.entity_type);
           
