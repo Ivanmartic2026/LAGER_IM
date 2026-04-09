@@ -33,6 +33,17 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const location = useLocation();
+
+  // Skip auth checks for public pages
+  if (location.pathname === '/OrderDashboard') {
+    return (
+      <Routes>
+        <Route path="/OrderDashboard" element={<OrderDashboard />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    );
+  }
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
