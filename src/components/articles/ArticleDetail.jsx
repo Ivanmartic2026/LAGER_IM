@@ -26,6 +26,7 @@ import InternalTransferModal from "./InternalTransferModal";
 import WarehouseDistribution from "./WarehouseDistribution";
 import LocationEditSection from "./LocationEditSection";
 import PODocumentHub from "@/components/purchaseorders/PODocumentHub";
+import ArticlePurchaseHistory from "./ArticlePurchaseHistory";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -810,6 +811,13 @@ export default function ArticleDetail({
           >
             <Camera className="w-4 h-4" />
             <span className="hidden sm:inline">Onsite ({siteReports.length})</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="purchase_history" 
+            className="flex items-center justify-center gap-2 text-sm font-medium text-white/50 data-[state=active]:text-white data-[state=active]:bg-white/10 rounded-lg px-4 py-2.5 transition-all hover:text-white/70 hover:bg-white/5"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <span className="hidden sm:inline">Inköp</span>
           </TabsTrigger>
           <TabsTrigger 
             value="comments" 
@@ -1842,6 +1850,10 @@ export default function ArticleDetail({
                 </div>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="purchase_history" className="mt-6">
+          <ArticlePurchaseHistory articleId={article.id} />
         </TabsContent>
 
         <TabsContent value="comments" className="mt-6">

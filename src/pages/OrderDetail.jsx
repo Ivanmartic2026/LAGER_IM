@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,11 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { 
   ArrowLeft, Package, MapPin, User, Calendar, FileText, 
-  CheckCircle2, AlertCircle, ShoppingCart, Download
+  CheckCircle2, AlertCircle, ShoppingCart, Download, Truck
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import FortnoxSyncButton from "@/components/orders/FortnoxSyncButton";
 import OrderTasks from "@/components/orders/OrderTasks";
 
@@ -42,6 +42,18 @@ export default function OrderDetailPage() {
     queryKey: ['orderItems', orderId],
     queryFn: () => base44.entities.OrderItem.filter({ order_id: orderId }),
     enabled: !!orderId,
+  });
+
+  const { data: relatedPOs = [] } = useQuery({
+    queryKey: ['relatedPOs', orderId],
+    queryFn: async () => {
+      const allPOs = await base44.entities.PurchaseOrder.list('-created_date');
+      return allPOs.filter(po =>
+        po.order_id === orderId ||
+        (order?.fortnox_project_number && po.fortnox_project_number === order.fortnox_project_number)
+      );
+    },
+    enabled: !!orderId && !!order,
   });
 
   const updateOrderMutation = useMutation({
@@ -99,7 +111,7 @@ export default function OrderDetailPage() {
     });
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (order) {
       setNeedsOrdering(order.needs_ordering || false);
       setOrderingCompleted(order.ordering_completed || false);
@@ -473,6 +485,53 @@ export default function OrderDetailPage() {
                 <FileText className="w-4 h-4" />
                 Öppna originaldokument
               </a>
+            </div>
+          )}
+
+          {/* Related Purchase Orders */}
+          {relatedPOs.length > 0 && (
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
+              <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                <Truck className="w-4 h-4 text-blue-400" />
+                Relaterade inköp ({relatedPOs.length})
+              </h3>
+              <div className="space-y-2">
+                {relatedPOs.map(po => {
+                  const statusColors = {
+                    draft: 'bg-slate-500/20 text-slate-400',
+                    sent: 'bg-blue-500/20 text-blue-400',
+                    confirmed: 'bg-cyan-500/20 text-cyan-400',
+                    in_production: 'bg-purple-500/20 text-purple-400',
+                    shipped: 'bg-violet-500/20 text-violet-400',
+                    received: 'bg-green-500/20 text-green-400',
+                    cancelled: 'bg-red-500/20 text-red-400',
+                  };
+                  const statusLabels = {
+                    draft: 'Utkast', sent: 'Skickad', confirmed: 'Bekräftad',
+                    in_production: 'I produktion', shipped: 'I transit',
+                    received: 'Mottagen', cancelled: 'Avbruten',
+                  };
+                  return (
+                    <div key={po.id} className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white">{po.po_number || `PO #${po.id.slice(0,8)}`}</p>
+                        <p className="text-xs text-white/50 truncate">{po.supplier_name}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {po.expected_delivery_date && (
+                          <span className="text-xs text-white/40 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            ETA {format(new Date(po.expected_delivery_date), 'd MMM', { locale: sv })}
+                          </span>
+                        )}
+                        <span className={`text-xs px-2 py-0.5 rounded font-medium ${statusColors[po.status] || 'bg-slate-500/20 text-slate-400'}`}>
+                          {statusLabels[po.status] || po.status}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
