@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -39,6 +39,15 @@ export default function WorkOrderViewPage() {
       navigate(createPageUrl('WorkOrders'));
     }
   }, [isLoading, workOrderId, workOrder, navigate]);
+
+  // Real-time listener
+  useEffect(() => {
+    if (!workOrderId) return;
+    const unsubscribe = base44.entities.WorkOrder.subscribe((event) => {
+      if (event.id === workOrderId) {
+        queryClient.setQueryData(['workOrder', workOrderId], event.data);
+      }
+    });
     return unsubscribe;
   }, [workOrderId, queryClient]);
 

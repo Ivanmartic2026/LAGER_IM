@@ -1,4 +1,3 @@
-import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin, FileText, Truck, Building2 } from "lucide-react";
 import { format } from "date-fns";
@@ -51,6 +50,11 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange, onStat
   // Meta fields — only show if they have a value
   const metaFields = [
     { label: 'Prioritet',       value: priorityDisplay,             icon: null },
+    { label: 'Fortnox Projekt', value: order?.fortnox_project_number,               icon: FileText },
+    { label: 'Fortnox Order',   value: order?.fortnox_order_id,                     icon: FileText },
+    { label: 'Kundreferens',    value: order?.customer_reference,                   icon: FileText },
+    { label: 'Leveranssätt',    value: order?.delivery_method,                      icon: Truck },
+  ].filter(f => f.value && f.value !== '—');
 
   return (
     <div className="space-y-4">
@@ -82,16 +86,16 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange, onStat
                 </div>
               )}
               {deliveryDate && (
-               <div className={cn("flex items-center gap-2 rounded-lg px-3 py-2 border text-sm font-medium", deliveryBg, deliveryColor)}>
-                 <Clock className="w-4 h-4 shrink-0" />
-                 {isOverdue ? (
-                   <span>🔴 FÖRSENAD — {format(new Date(deliveryDate), 'd MMM yyyy', { locale: sv })}</span>
-                 ) : daysUntilDelivery && daysUntilDelivery <= 3 ? (
-                   <span>🟡 SNART — {format(new Date(deliveryDate), 'd MMM yyyy', { locale: sv })}</span>
-                 ) : (
-                   <span>Leverans: {format(new Date(deliveryDate), 'd MMM yyyy', { locale: sv })}</span>
-                 )}
-               </div>
+                <div className={cn("flex items-center gap-2 rounded-lg px-3 py-2 border text-sm font-medium", deliveryBg, deliveryColor)}>
+                  <Clock className="w-4 h-4 shrink-0" />
+                  {isOverdue ? (
+                    <span>🔴 FÖRSENAD — {format(new Date(deliveryDate), 'd MMM yyyy', { locale: sv })}</span>
+                  ) : daysUntilDelivery && daysUntilDelivery <= 3 ? (
+                    <span>🟡 SNART — {format(new Date(deliveryDate), 'd MMM yyyy', { locale: sv })}</span>
+                  ) : (
+                    <span>Leverans: {format(new Date(deliveryDate), 'd MMM yyyy', { locale: sv })}</span>
+                  )}
+                </div>
               )}
             </div>
           </div>
