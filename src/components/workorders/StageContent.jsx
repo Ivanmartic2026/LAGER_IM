@@ -162,7 +162,7 @@ export default function StageContent({
               defaultValue={workOrder.picking_notes || ''}
               onBlur={e => onSaveNotes('picking_notes', e.target.value)}
               placeholder="Anteckningar för konstruktionsfasen..."
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm"
+              className="bg-black/40 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-white/30"
               rows={4}
             />
           </div>
@@ -230,7 +230,7 @@ export default function StageContent({
               defaultValue={workOrder.production_notes || ''}
               onBlur={e => onSaveNotes('production_notes', e.target.value)}
               placeholder="Anteckningar för produktion..."
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm"
+              className="bg-black/40 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-white/30"
               rows={3}
             />
           </div>
@@ -255,7 +255,7 @@ export default function StageContent({
               defaultValue={workOrder.picking_notes || ''}
               onBlur={e => onSaveNotes('picking_notes', e.target.value)}
               placeholder="Noteringar vid plockning..."
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm"
+              className="bg-black/40 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-white/30"
               rows={3}
             />
           </div>
@@ -323,7 +323,7 @@ export default function StageContent({
               defaultValue={workOrder.production_notes || ''}
               onBlur={e => onSaveNotes('production_notes', e.target.value)}
               placeholder="Anteckningar för montering..."
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm"
+              className="bg-black/40 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-white/30"
               rows={3}
             />
           </div>
@@ -386,7 +386,7 @@ export default function StageContent({
               defaultValue={workOrder.production_notes || ''}
               onBlur={e => onSaveNotes('production_notes', e.target.value)}
               placeholder="Anteckningar för leverans..."
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-sm"
+              className="bg-black/40 border-white/10 text-white placeholder:text-white/30 text-sm focus:border-white/30"
               rows={3}
             />
           </div>
