@@ -7,9 +7,28 @@ const STAGE_COLORS = {
   'LAGER':        '#eab308',
   'MONTERING':    '#22c55e',
   'LEVERANS':     '#8b5cf6',
+  'INKOMMANDE':   '#64748b',
 };
 
-const ACTIVE_STATUSES = ['KONSTRUKTION', 'PRODUKTION', 'LAGER', 'MONTERING'];
+const STAGE_EMOJI = {
+  'KONSTRUKTION': '📐',
+  'PRODUKTION':   '🔧',
+  'LAGER':        '📦',
+  'MONTERING':    '🔩',
+  'LEVERANS':     '🚚',
+};
+
+// Map raw status values to normalized Swedish stage keys
+function resolveStage(raw) {
+  if (!raw) return null;
+  const s = raw.toLowerCase().trim();
+  if (s === 'konstruktion') return 'KONSTRUKTION';
+  if (s === 'produktion' || s === 'production') return 'PRODUKTION';
+  if (s === 'lager' || s === 'picked' || s === 'picking') return 'LAGER';
+  if (s === 'montering') return 'MONTERING';
+  if (s === 'leverans' || s === 'delivery' || s === 'completed') return 'LEVERANS';
+  return raw.toUpperCase();
+}
 
 function daysLeft(dateStr) {
   if (!dateStr) return null;
@@ -20,7 +39,9 @@ function daysLeft(dateStr) {
   return Math.round((d - now) / (1000 * 60 * 60 * 24));
 }
 
-function urgencyScore(order) {
+// 0=overdue, 1=soon, 2=normal, 3=incoming (no date)
+function urgencyScore(order, isIncoming) {
+  if (isIncoming) return 4;
   const days = daysLeft(order.delivery_date);
   if (days === null) return 3;
   if (days < 0) return 0;
@@ -29,7 +50,7 @@ function urgencyScore(order) {
 }
 
 export default function OrderDashboard() {
-  const [orders, setOrders] = useState([]);
+  const [enrichedOrders, setEnrichedOrders] = useState([]);
   const [clock, setClock] = useState(() =>
     new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
   );
@@ -44,11 +65,47 @@ export default function OrderDashboard() {
     return () => clearInterval(t);
   }, []);
 
-  // Fetch orders
+  // Fetch orders + work orders, enrich
   const fetchOrders = async () => {
-    const all = await base44.entities.Order.list('-updated_date', 200);
-    const active = all.filter(o => ACTIVE_STATUSES.includes(o.status));
-    setOrders(active);
+    const [orders, workOrders] = await Promise.all([
+      base44.entities.Order.list('-updated_date', 200),
+      base44.entities.WorkOrder.list('-updated_date', 500),
+    ]);
+
+    // Build a map: order_id -> workOrder (most recent)
+    const woMap = {};
+    for (const wo of workOrders) {
+      if (wo.order_id && !woMap[wo.order_id]) {
+        woMap[wo.order_id] = wo;
+      }
+    }
+
+    // Filter out completed/cancelled orders (SÄLJJ done etc), keep all active
+    const EXCLUDE = ['SÄLJ'];
+    const active = orders.filter(o => !EXCLUDE.includes(o.status));
+
+    const enriched = active.map(order => {
+      const wo = woMap[order.id];
+      if (!wo) {
+        return { ...order, _stage: 'INKOMMANDE', _isIncoming: true };
+      }
+      // Resolve stage from WorkOrder's current_stage or status
+      const rawStage = wo.current_stage || wo.status || order.status;
+      const stage = resolveStage(rawStage) || 'INKOMMANDE';
+      return { ...order, _stage: stage, _isIncoming: false };
+    });
+
+    // Sort
+    enriched.sort((a, b) => {
+      const ua = urgencyScore(a, a._isIncoming);
+      const ub = urgencyScore(b, b._isIncoming);
+      if (ua !== ub) return ua - ub;
+      const da = a.delivery_date ? new Date(a.delivery_date) : new Date('9999-12-31');
+      const db = b.delivery_date ? new Date(b.delivery_date) : new Date('9999-12-31');
+      return da - db;
+    });
+
+    setEnrichedOrders(enriched);
   };
 
   useEffect(() => {
@@ -61,6 +118,7 @@ export default function OrderDashboard() {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    clearInterval(scrollTimerRef.current);
     scrollTimerRef.current = setInterval(() => {
       if (el.scrollTop + el.clientHeight >= el.scrollHeight) {
         el.scrollTop = 0;
@@ -69,16 +127,7 @@ export default function OrderDashboard() {
       }
     }, 50);
     return () => clearInterval(scrollTimerRef.current);
-  }, [orders]);
-
-  const sortedOrders = [...orders].sort((a, b) => {
-    const ua = urgencyScore(a);
-    const ub = urgencyScore(b);
-    if (ua !== ub) return ua - ub;
-    const da = a.delivery_date ? new Date(a.delivery_date) : new Date('9999-12-31');
-    const db = b.delivery_date ? new Date(b.delivery_date) : new Date('9999-12-31');
-    return da - db;
-  });
+  }, [enrichedOrders]);
 
   return (
     <div style={{ background: '#0a0f1e', minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: "'Inter','Segoe UI',sans-serif" }}>
@@ -86,7 +135,7 @@ export default function OrderDashboard() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', borderBottom: '1px solid #1e293b', flexShrink: 0 }}>
         <span style={{ color: 'white', fontSize: '20px', fontWeight: 700 }}>📋 ORDERÖVERSIKT</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{ color: '#3b4a6b', fontSize: '13px', fontWeight: 600 }}>{orders.length} ordrar</span>
+          <span style={{ color: '#3b4a6b', fontSize: '13px', fontWeight: 600 }}>{enrichedOrders.length} ordrar</span>
           <span style={{ color: '#94a3b8', fontSize: '28px', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{clock}</span>
         </div>
       </div>
@@ -97,17 +146,19 @@ export default function OrderDashboard() {
         style={{ flex: 1, overflowY: 'auto', padding: '8px 16px', scrollbarWidth: 'none' }}
       >
         <style>{`div::-webkit-scrollbar{display:none}`}</style>
-        {sortedOrders.length === 0 ? (
+        {enrichedOrders.length === 0 ? (
           <div style={{ textAlign: 'center', color: '#3b4a6b', fontSize: '18px', paddingTop: '80px' }}>
             Inga aktiva ordrar
           </div>
-        ) : sortedOrders.map(order => {
-          const days = daysLeft(order.delivery_date);
+        ) : enrichedOrders.map(order => {
+          const days = order._isIncoming ? null : daysLeft(order.delivery_date);
           const urgent = days !== null && days < 0;
           const soon = days !== null && days >= 0 && days <= 7;
-          const stageName = order.status || '–';
+          const isIncoming = order._isIncoming;
+          const stageName = order._stage;
           const stageColor = STAGE_COLORS[stageName] || '#6b7280';
-          const leftBorder = urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e';
+          const stageEmoji = STAGE_EMOJI[stageName] || '';
+          const leftBorder = isIncoming ? '#334155' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e';
 
           return (
             <div
@@ -146,7 +197,7 @@ export default function OrderDashboard() {
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
               }}>
-                {stageName}
+                {stageEmoji ? `${stageEmoji} ${stageName}` : stageName}
               </div>
 
               {/* Höger: datum */}
@@ -154,8 +205,8 @@ export default function OrderDashboard() {
                 <div style={{ color: 'white', fontSize: '15px', fontWeight: 600 }}>
                   {order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('sv-SE') : '–'}
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e', marginTop: '2px' }}>
-                  {days === null ? '' : days < 0 ? `${Math.abs(days)}d försenad` : days === 0 ? 'Idag' : `${days}d kvar`}
+                <div style={{ fontSize: '13px', fontWeight: 700, color: isIncoming ? '#64748b' : urgent ? '#ef4444' : soon ? '#facc15' : '#22c55e', marginTop: '2px' }}>
+                  {isIncoming ? 'Nyinkommen' : days === null ? '' : days < 0 ? `${Math.abs(days)}d försenad` : days === 0 ? 'Idag' : `${days}d kvar`}
                 </div>
               </div>
             </div>
