@@ -2,11 +2,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 const CLIENT_ID = 'mp08u6gAFPz2';
 const CLIENT_SECRET = 'GjAMHv9Mm7wZW356pZmLdkkBlie0QaPg';
-const FORTNOX_API_BASE = 'https://api.fortnox.se/3';
 
 async function getFortnoxToken(base44) {
   const configs = await base44.asServiceRole.entities.FortnoxConfig.list();
-  if (!configs || configs.length === 0) throw new Error('Fortnox inte ansluten');
+  if (!configs || configs.length === 0) throw new Error('Fortnox inte ansluten - ingen FortnoxConfig hittad');
 
   const config = configs[0];
   const now = Date.now();
@@ -15,7 +14,7 @@ async function getFortnoxToken(base44) {
     return config.access_token;
   }
 
-  if (!config.refresh_token) throw new Error('Ingen refresh token');
+  if (!config.refresh_token) throw new Error('Ingen refresh token i FortnoxConfig');
 
   const credentials = btoa(CLIENT_ID + ':' + CLIENT_SECRET);
   const response = await fetch('https://apps.fortnox.se/oauth-v1/token', {
@@ -25,7 +24,7 @@ async function getFortnoxToken(base44) {
   });
 
   const text = await response.text();
-  if (!response.ok) throw new Error('Token refresh failed: ' + text);
+  if (!response.ok) throw new Error('Token refresh misslyckades: ' + text);
 
   const data = JSON.parse(text);
   const expiresAt = now + ((data.expires_in || 3600) * 1000);
@@ -42,47 +41,62 @@ async function getFortnoxToken(base44) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const payload = await req.json();
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Support both automation trigger (payload.data = order entity) and direct call
+    let order = payload.data;
+    let orderId = payload.event?.entity_id || payload.order_id;
+
+    // If called directly with order_id
+    if (!order && orderId) {
+      order = await base44.asServiceRole.entities.Order.get(orderId);
     }
 
-    const { projectNumber, description, status = 'NOTSTARTED', startDate, endDate } = await req.json();
-
-    if (!description) {
-      return Response.json({ error: 'Description required' }, { status: 400 });
+    if (!order) {
+      console.error('createFortnoxProject: ingen order i payload', JSON.stringify(payload).slice(0, 500));
+      return Response.json({ success: false, error: 'Ingen order hittad i payload' }, { status: 400 });
     }
+
+    orderId = order.id || orderId;
+
+    // Skip if already has fortnox project
+    if (order.fortnox_project_number) {
+      return Response.json({ success: true, message: 'Order har redan Fortnox-projekt: ' + order.fortnox_project_number });
+    }
+
+    const description = [order.customer_name, order.order_number].filter(Boolean).join(' - ') || 'Nytt projekt';
 
     const accessToken = await getFortnoxToken(base44);
 
-    const projectData: any = {
-      Description: description,
-      Status: status
-    };
-
-    if (projectNumber) projectData.ProjectNumber = projectNumber;
-    if (startDate) projectData.StartDate = startDate;
-    if (endDate) projectData.EndDate = endDate;
-
-    const response = await fetch(`${FORTNOX_API_BASE}/projects`, {
+    const response = await fetch('https://api.fortnox.se/3/projects', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': 'Bearer ' + accessToken,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ Project: projectData })
+      body: JSON.stringify({ Project: { Description: description, Status: 'ONGOING' } })
     });
 
     const responseText = await response.text();
     if (!response.ok) {
-      throw new Error(`Fortnox API error: ${responseText}`);
+      throw new Error('Fortnox API fel: ' + responseText);
     }
 
     const result = JSON.parse(responseText);
-    return Response.json(result);
+    const projectNumber = result.Project?.ProjectNumber;
+
+    if (projectNumber && orderId) {
+      await base44.asServiceRole.entities.Order.update(orderId, {
+        fortnox_project_number: projectNumber,
+        fortnox_project_name: description
+      });
+    }
+
+    console.log('Fortnox projekt skapat:', projectNumber, 'för order:', orderId);
+    return Response.json({ success: true, project_number: projectNumber });
+
   } catch (error) {
-    console.error('createFortnoxProject error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('createFortnoxProject error:', error.message);
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 });
