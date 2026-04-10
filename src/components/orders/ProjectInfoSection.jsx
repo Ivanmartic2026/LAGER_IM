@@ -120,7 +120,81 @@ export default function ProjectInfoSection({ formData, setFormData, workOrders =
         </div>
       </FormSection>
 
-      {/* 2. LEVERANSINFORMATION */}
+      {/* 2. EKONOMI & FORTNOX */}
+      <FormSection title={t('section_finance', language)} icon="💼">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FormGroup label={t('field_order_number', language)}>
+            <Input
+              value={formData.order_number}
+              onChange={(e) => setFormData({ ...formData, order_number: e.target.value })}
+              placeholder={t('ph_order_number', language)}
+              className="bg-slate-800 border-slate-700 text-white"
+            />
+          </FormGroup>
+
+          <FormGroup label={t('field_fortnox_project_nr', language)}>
+            <Input
+              value={formData.fortnox_project_number || ''}
+              onChange={(e) => setFormData({ ...formData, fortnox_project_number: e.target.value })}
+              placeholder={t('ph_fortnox_project_nr', language)}
+              className="bg-slate-800 border-slate-700 text-white"
+            />
+          </FormGroup>
+
+          <FormGroup label={t('field_fortnox_project_name', language)}>
+            <Input
+              value={formData.fortnox_project_name || ''}
+              onChange={(e) => setFormData({ ...formData, fortnox_project_name: e.target.value })}
+              placeholder={t('ph_fortnox_project_name', language)}
+              className="bg-slate-800 border-slate-700 text-white"
+            />
+          </FormGroup>
+        </div>
+
+        {formData.financial_status && (
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-sm text-slate-400">{t('field_billing_status', language)}:</span>
+            <Badge className={
+              formData.financial_status === 'billed' ? 'bg-green-500/20 text-green-300 border-green-500/30' :
+              formData.financial_status === 'pending_billing' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' :
+              'bg-slate-500/20 text-slate-300 border-slate-500/30'
+            }>
+              {tFinancialStatus(formData.financial_status, language)}
+            </Badge>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2 mt-3">
+          {formData.fortnox_order_id ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/15 border border-green-500/30 text-green-300 text-xs font-medium">
+              ✅ Synkad med Fortnox · #{formData.fortnox_order_id}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-xs font-medium">
+              ⚠️ Ej synkad med Fortnox
+            </span>
+          )}
+          {formData.fortnox_project_number && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/15 border border-green-500/30 text-green-300 text-xs font-medium">
+              ✅ Projekt kopplat · {formData.fortnox_project_number}
+            </span>
+          )}
+          {formData.rm_system_id ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-medium">
+              ✅ Kopplad till IM Workspace · {formData.rm_system_id}
+              {formData.rm_system_url && (
+                <a href={formData.rm_system_url} target="_blank" rel="noopener noreferrer" className="ml-1 underline hover:text-blue-200">Öppna i RM →</a>
+              )}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-500/15 border border-slate-500/30 text-slate-400 text-xs font-medium">
+              ⚠️ Ej kopplad till IM Workspace
+            </span>
+          )}
+        </div>
+      </FormSection>
+
+      {/* 3. LEVERANSINFORMATION */}
       <FormSection title={t('section_delivery_info', language)} icon="🚚">
         <FormGroup label={t('field_delivery_address', language)} required>
           <Textarea
@@ -194,7 +268,7 @@ export default function ProjectInfoSection({ formData, setFormData, workOrders =
         </div>
       </FormSection>
 
-      {/* 3. TEKNISK INFORMATION */}
+      {/* 4. TEKNISK INFORMATION */}
       <FormSection title={t('section_technical_info', language)} icon="🔧">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormGroup label={t('field_screen_dimensions', language)}>
@@ -284,51 +358,6 @@ export default function ProjectInfoSection({ formData, setFormData, workOrders =
         <FileUploadGroup label={t('btn_other_docs', language)} type="other" files={getFilesByType('other')}
           onUpload={(e) => handleFileUpload('other', e)} onRemove={(i) => removeFile('other', i)}
           uploading={uploadingType === 'other'} uploadLabel={t('common_uploading', language)} addLabel={t('btn_add_file', language)} />
-      </FormSection>
-
-      {/* 6. EKONOMI */}
-      <FormSection title={t('section_finance', language)} icon="💼">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormGroup label={t('field_order_number', language)}>
-            <Input
-              value={formData.order_number}
-              onChange={(e) => setFormData({ ...formData, order_number: e.target.value })}
-              placeholder={t('ph_order_number', language)}
-              className="bg-slate-800 border-slate-700 text-white"
-            />
-          </FormGroup>
-
-          <FormGroup label={t('field_fortnox_project_nr', language)}>
-            <Input
-              value={formData.fortnox_project_number || ''}
-              onChange={(e) => setFormData({ ...formData, fortnox_project_number: e.target.value })}
-              placeholder={t('ph_fortnox_project_nr', language)}
-              className="bg-slate-800 border-slate-700 text-white"
-            />
-          </FormGroup>
-
-          <FormGroup label={t('field_fortnox_project_name', language)}>
-            <Input
-              value={formData.fortnox_project_name || ''}
-              onChange={(e) => setFormData({ ...formData, fortnox_project_name: e.target.value })}
-              placeholder={t('ph_fortnox_project_name', language)}
-              className="bg-slate-800 border-slate-700 text-white"
-            />
-          </FormGroup>
-        </div>
-
-        {formData.financial_status && (
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-sm text-slate-400">{t('field_billing_status', language)}:</span>
-            <Badge className={
-              formData.financial_status === 'billed' ? 'bg-green-500/20 text-green-300 border-green-500/30' :
-              formData.financial_status === 'pending_billing' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' :
-              'bg-slate-500/20 text-slate-300 border-slate-500/30'
-            }>
-              {tFinancialStatus(formData.financial_status, language)}
-            </Badge>
-          </div>
-        )}
       </FormSection>
 
       {/* 7. KOPPLADE ARBETSORDRAR */}
