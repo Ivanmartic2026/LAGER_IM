@@ -106,6 +106,17 @@ export default function WorkOrderHeader({ workOrder, order, onNameChange, onStat
         </div>
       </div>
 
+      {/* Critical notes — yellow warning banner */}
+      {(order?.critical_notes) && (
+        <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/40 flex items-start gap-3">
+          <span className="text-xl flex-shrink-0">⚠️</span>
+          <div>
+            <p className="text-xs font-bold text-yellow-400 uppercase tracking-wider mb-1">Viktigt från sälj</p>
+            <p className="text-sm text-yellow-100 whitespace-pre-wrap">{order.critical_notes}</p>
+          </div>
+        </div>
+      )}
+
       {/* Meta Info — only non-empty fields */}
       {metaFields.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

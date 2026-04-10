@@ -14,7 +14,7 @@ import PushManager from "@/components/pwa/PushManager";
 import { LanguageProvider } from "@/components/language/LanguageProvider";
 import LanguageToggle from "@/components/language/LanguageToggle";
 import { useLanguage } from "@/components/language/LanguageProvider";
-import { t } from "@/components/language/translations";
+import { t, tOrderStatus, tStage, tWorkOrderStatus, tPriority } from "@/components/language/translations";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -54,22 +54,22 @@ function LayoutContent({ children, currentPageName }) {
   }, []);
 
   const NAV_ITEMS = [
-    { name: "Inventory", label: "Lager", icon: Package, module: null },
+    { name: "Inventory", label: t('nav_inventory', language), icon: Package, module: null },
     { name: "Orders", label: t('nav_orders', language), icon: ShoppingCart, module: "Orders" },
-    { name: "WorkOrders", label: "Arbetsordrar", icon: ClipboardList, module: null },
-    { name: "PurchaseOrders", label: "Inköp", icon: ShoppingCart, module: "PurchaseOrders" },
-    { name: "SiteReports", label: "Plats", icon: MapPin, module: "SiteReports" },
+    { name: "WorkOrders", label: t('nav_work_orders', language), icon: ClipboardList, module: null },
+    { name: "PurchaseOrders", label: t('nav_purchase', language), icon: ShoppingCart, module: "PurchaseOrders" },
+    { name: "SiteReports", label: t('nav_site', language), icon: MapPin, module: "SiteReports" },
     { name: "Repairs", label: t('nav_repairs', language), icon: Activity, module: "Repairs" },
-    { name: "ProjectResults", label: "Projekt", icon: BarChart2, module: null },
+    { name: "ProjectResults", label: t('nav_projects', language), icon: BarChart2, module: null },
     { name: "Admin", label: t('nav_admin', language), icon: FileText, module: null }
   ];
 
   // Admin sub-links shown when on Admin page
   const ADMIN_SUB_ITEMS = [
-    { name: "WorkspaceProjects", label: "Workspace", icon: Layers },
-    { name: "MedarbetarOversikt", label: "Medarbetare", icon: Users },
-    { name: "TidsRapport", label: "Tidrapport", icon: Clock },
-    { name: "KilometerErsattning", label: "Milersättning", icon: Car },
+    { name: "WorkspaceProjects", label: t('nav_workspace', language), icon: Layers },
+    { name: "MedarbetarOversikt", label: t('nav_employees', language), icon: Users },
+    { name: "TidsRapport", label: t('nav_timesheet', language), icon: Clock },
+    { name: "KilometerErsattning", label: t('nav_mileage', language), icon: Car },
   ];
 
   const visibleNavItems = NAV_ITEMS.filter(item => !item.module || userModules.includes(item.module));

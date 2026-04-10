@@ -35,7 +35,18 @@ export default function OrderEdit() {
     site_visit_info: '',
     fortnox_project_number: '',
     fortnox_project_name: '',
-    sales_completed: false
+    sales_completed: false,
+    delivery_contact_name: '',
+    delivery_contact_phone: '',
+    installation_date: '',
+    installation_type: '',
+    screen_dimensions: '',
+    pixel_pitch: '',
+    module_count: '',
+    critical_notes: '',
+    uploaded_files: [],
+    source_document_url: '',
+    financial_status: ''
   });
 
   const [orderItems, setOrderItems] = useState([]);
@@ -56,6 +67,12 @@ export default function OrderEdit() {
   const { data: articles = [] } = useQuery({
     queryKey: ['articles'],
     queryFn: () => base44.entities.Article.list(),
+  });
+
+  const { data: workOrders = [] } = useQuery({
+    queryKey: ['workOrders', orderId],
+    queryFn: () => orderId ? base44.entities.WorkOrder.filter({ order_id: orderId }) : Promise.resolve([]),
+    enabled: !!orderId,
   });
 
   const { data: existingItems = [] } = useQuery({
@@ -83,7 +100,18 @@ export default function OrderEdit() {
         site_visit_info: order.site_visit_info || '',
         fortnox_project_number: order.fortnox_project_number || '',
         fortnox_project_name: order.fortnox_project_name || '',
-        sales_completed: order.sales_completed || false
+        sales_completed: order.sales_completed || false,
+        delivery_contact_name: order.delivery_contact_name || '',
+        delivery_contact_phone: order.delivery_contact_phone || '',
+        installation_date: order.installation_date || '',
+        installation_type: order.installation_type || '',
+        screen_dimensions: order.screen_dimensions || '',
+        pixel_pitch: order.pixel_pitch || '',
+        module_count: order.module_count || '',
+        critical_notes: order.critical_notes || '',
+        uploaded_files: order.uploaded_files || [],
+        source_document_url: order.source_document_url || '',
+        financial_status: order.financial_status || ''
       });
     }
   }, [order]);
@@ -111,6 +139,25 @@ export default function OrderEdit() {
     a.batch_number?.toLowerCase().includes(articleSearch.toLowerCase()) ||
     a.customer_name?.toLowerCase().includes(articleSearch.toLowerCase())
   );
+
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+
+  const handleFileUpload = async (type, file) => {
+    setIsUploadingFile(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      if (type === 'source_document') {
+        setFormData(prev => ({ ...prev, source_document_url: file_url }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          uploaded_files: [...(prev.uploaded_files || []), { url: file_url, name: file.name, type }]
+        }));
+      }
+    } finally {
+      setIsUploadingFile(false);
+    }
+  };
 
   const saveOrderMutation = useMutation({
     mutationFn: async (data) => {
@@ -261,7 +308,13 @@ export default function OrderEdit() {
 
         {/* Form */}
          <form onSubmit={handleSubmit} className="space-y-6">
-           <ProjectInfoSection formData={formData} setFormData={setFormData} />
+           <ProjectInfoSection
+             formData={formData}
+             setFormData={setFormData}
+             workOrders={workOrders}
+             onFileUpload={handleFileUpload}
+             isUploadingFile={isUploadingFile}
+           />
 
           {/* Order Items */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4" id="articles">

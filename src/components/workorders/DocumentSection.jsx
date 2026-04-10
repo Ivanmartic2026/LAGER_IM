@@ -9,13 +9,37 @@ const DOCUMENT_TYPES = [
   { key: 'test', label: 'Testprotokoll', urlField: 'test_protocol_url' }
 ];
 
-export default function DocumentSection({ workOrder, onUpload, onRemove }) {
+export default function DocumentSection({ workOrder, order, onUpload, onRemove }) {
+  const inheritedFiles = order?.uploaded_files || [];
+  const inheritedSourceDoc = order?.source_document_url;
+
   return (
     <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
       <h2 className="font-bold text-white mb-4 flex items-center gap-2">
         <FileText className="w-5 h-5 text-blue-400" />
         Dokumentation
       </h2>
+
+      {/* Inherited from order */}
+      {(inheritedSourceDoc || inheritedFiles.length > 0) && (
+        <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <p className="text-xs text-blue-400 font-semibold mb-2">📎 Från order:</p>
+          <div className="space-y-1">
+            {inheritedSourceDoc && (
+              <a href={inheritedSourceDoc} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 text-xs text-blue-300 hover:underline">
+                <Download className="w-3 h-3" /> Kundorder / PO
+              </a>
+            )}
+            {inheritedFiles.map((f, i) => (
+              <a key={i} href={f.url} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 text-xs text-blue-300 hover:underline">
+                <Download className="w-3 h-3" /> {f.name || f.type || 'Dokument'}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="space-y-3">
         {DOCUMENT_TYPES.map(({ key, label, urlField }) => {
           const hasFile = workOrder[urlField];

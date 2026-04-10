@@ -46,7 +46,7 @@
         "billed"
       ],
       "default": "unbilled",
-      "description": "Ekonomisk status \u2013 faktureringsl\u00e4ge"
+      "description": "Ekonomisk status \u2013 faktureringl\u00e4ge"
     },
     "delivery_date": {
       "type": "string",
@@ -81,6 +81,46 @@
       "type": "string",
       "format": "date-time",
       "description": "Datum n\u00e4r ordern skickades"
+    },
+    "delivery_contact_name": {
+      "type": "string",
+      "description": "Kontaktperson vid leveransplats"
+    },
+    "delivery_contact_phone": {
+      "type": "string",
+      "description": "Telefon till kontaktperson vid leveransplats"
+    },
+    "installation_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Installationsdatum (om annat \u00e4n leverans)"
+    },
+    "installation_type": {
+      "type": "string",
+      "enum": [
+        "ny_installation",
+        "byte_uppgradering",
+        "tillagg",
+        "service_reparation",
+        "uthyrning_event"
+      ],
+      "description": "Typ av installation"
+    },
+    "screen_dimensions": {
+      "type": "string",
+      "description": "Sk\u00e4rmdimensioner (Bredd x H\u00f6jd mm)"
+    },
+    "pixel_pitch": {
+      "type": "string",
+      "description": "Pixel pitch (t.ex. P2.6)"
+    },
+    "module_count": {
+      "type": "number",
+      "description": "Antal moduler"
+    },
+    "critical_notes": {
+      "type": "string",
+      "description": "OBS / Viktigt f\u00f6r hela teamet (visas som gul varning i alla steg)"
     },
     "site_ids": {
       "type": "array",
@@ -191,7 +231,26 @@
     },
     "source_document_url": {
       "type": "string",
-      "description": "Originalfil som ordern skapades fr\u00e5n"
+      "description": "Kundorder/PO originalfil"
+    },
+    "uploaded_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "drawing, site_image, other"
+          }
+        }
+      },
+      "description": "Alla uppladdade filer (ritningar, platsbilder, \u00f6vrigt)"
     },
     "sales_completed": {
       "type": "boolean",
