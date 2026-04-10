@@ -1,30 +1,25 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Camera, Package, TrendingUp, TrendingDown, 
-  AlertTriangle, Clock, ArrowRight, Zap, MapPin,
-  Search, X, Hash, Factory, Printer, ClipboardList
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { format } from "date-fns";
-import { sv } from "date-fns/locale";
-import { toast } from "sonner";
-import LabelDownloader from "@/components/labels/LabelDownloader";
-import QuickWithdrawalModal from "@/components/withdrawal/QuickWithdrawalModal";
+import MyTasksDashboard from "@/components/dashboard/MyTasksDashboard";
 import PODashboard from "@/components/dashboard/PODashboard";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  React.useEffect(() => { navigate('/Inventory', { replace: true }); }, []);
-  return null;
+  const [userEmail, setUserEmail] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setUserEmail(u?.email)).catch(() => {});
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-black p-4 md:p-6">
+      <div className="max-w-3xl mx-auto">
+        <MyTasksDashboard userEmail={userEmail} />
+        <PODashboard />
+      </div>
+    </div>
+  );
 }
 
 function OldHomePage() {

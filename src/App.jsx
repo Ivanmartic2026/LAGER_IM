@@ -23,6 +23,9 @@ import TidsRapport from '@/pages/TidsRapport';
 import KilometerErsattning from '@/pages/KilometerErsattning';
 import OrderDashboard from '@/pages/OrderDashboard';
 import WorkOrders from '@/pages/WorkOrders';
+import PrintWorkOrder from '@/pages/PrintWorkOrder';
+import PrintPickList from '@/pages/PrintPickList';
+import PrintDeliveryNote from '@/pages/PrintDeliveryNote';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -169,6 +172,10 @@ function App() {
                 <WorkOrders />
               </LayoutWrapper>
             } />
+            {/* Print views - public, no layout */}
+            <Route path="/PrintWorkOrder" element={<PrintWorkOrder />} />
+            <Route path="/PrintPickList" element={<PrintPickList />} />
+            <Route path="/PrintDeliveryNote" element={<PrintDeliveryNote />} />
             {/* All other routes require auth */}
             <Route path="*" element={<AuthenticatedApp />} />
           </Routes>

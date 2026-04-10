@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, X, Check, Package, ShoppingCart, AlertTriangle, Wrench } from "lucide-react";
+import { Bell, X, Check, Package, ShoppingCart, AlertTriangle, Wrench, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -66,6 +66,7 @@ export default function NotificationBell() {
       case 'stock_alert': return Package;
       case 'repair_update': return Wrench;
       case 'purchase_order': return ShoppingCart;
+      case 'assignment': return UserCheck;
       default: return Bell;
     }
   };
