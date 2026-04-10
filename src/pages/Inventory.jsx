@@ -24,7 +24,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ArticleDetail from "@/components/articles/ArticleDetail";
 import StockAdjustmentModal from "@/components/articles/StockAdjustmentModal";
@@ -44,7 +44,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+// Highlight matching text in search results
+function HighlightText({ text, query }) {
+  if (!query || !text) return <>{text}</>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = String(text).split(new RegExp(`(${escaped})`, 'gi'));
+  return <>{parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase()
+      ? <mark key={i} style={{background:'#fde047',color:'#000',borderRadius:'2px',padding:'0 1px'}}>{part}</mark>
+      : part
+  )}</>;
+}
+
 export default function InventoryPage() {
+  const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const initialStatus = urlParams.get('status') || 'all';
   
@@ -81,6 +94,7 @@ export default function InventoryPage() {
   const [isExportingCsv, setIsExportingCsv] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
   const [selectedArticleIds, setSelectedArticleIds] = useState([]);
+  const [quickActionArticle, setQuickActionArticle] = useState(null);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const fileInputRef = React.useRef(null);
   
@@ -582,7 +596,7 @@ export default function InventoryPage() {
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Inventory</h1>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Lager</h1>
 
             <div className="flex gap-2 items-center">
               <input
@@ -874,8 +888,25 @@ export default function InventoryPage() {
                 Filter
                 {filtersOpen ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
               </Button>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="h-10 w-36 bg-white/5 border-white/10 text-white/70">
+                  <SelectValue placeholder="Kategori" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectItem value="all">Alla kategorier</SelectItem>
+                  <SelectItem value="Cabinet">Cabinet</SelectItem>
+                  <SelectItem value="LED Module">LED Module</SelectItem>
+                  <SelectItem value="Power Supply">Power Supply</SelectItem>
+                  <SelectItem value="Receiving Card">Receiving Card</SelectItem>
+                  <SelectItem value="Control Processor">Control Processor</SelectItem>
+                  <SelectItem value="Computer">Computer</SelectItem>
+                  <SelectItem value="Cable">Kabel</SelectItem>
+                  <SelectItem value="Accessory">Tillbehör</SelectItem>
+                  <SelectItem value="Other">Övrigt</SelectItem>
+                </SelectContent>
+              </Select>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="h-10 w-40 bg-white/5 border-white/10 text-white/70">
+                <SelectTrigger className="h-10 w-36 bg-white/5 border-white/10 text-white/70">
                   <ArrowUpDown className="w-3 h-3 mr-1.5 text-white/40" />
                   <SelectValue />
                 </SelectTrigger>
@@ -970,6 +1001,39 @@ export default function InventoryPage() {
               )}
             </AnimatePresence>
 
+            {/* Filter Chips */}
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{scrollbarWidth:'none'}}>
+              {[
+                { label: 'Alla', value: 'all', filter: 'status', count: articles.length },
+                { label: 'Aktiv', value: 'active', filter: 'status', count: articles.filter(a => a.status === 'active').length },
+                { label: 'Lågt lager', value: 'low_stock', filter: 'status', count: stats.lowStock },
+                { label: 'Slut', value: 'out_of_stock', filter: 'status', count: stats.outOfStock },
+                { label: 'Reparation', value: 'on_repair', filter: 'status', count: stats.onRepair },
+                { label: 'På inköp', value: 'on_purchase_order', filter: 'status', count: stats.onPurchaseOrder },
+                { label: 'Kundägd', value: 'customer_owned', filter: 'storage', count: articles.filter(a => a.storage_type === 'customer_owned').length },
+                { label: 'Uthyrning', value: 'rental_stock', filter: 'storage', count: articles.filter(a => a.storage_type === 'rental_stock').length },
+              ].map(chip => {
+                const isActive = chip.filter === 'status' ? statusFilter === chip.value : storageTypeFilter === chip.value;
+                return (
+                  <button
+                    key={chip.value}
+                    onClick={() => {
+                      if (chip.filter === 'status') setStatusFilter(chip.value);
+                      else setStorageTypeFilter(v => v === chip.value ? 'all' : chip.value);
+                    }}
+                    className={cn(
+                      'flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all',
+                      isActive
+                        ? 'bg-blue-600 border-blue-500 text-white'
+                        : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white'
+                    )}
+                  >
+                    {chip.label} {chip.count > 0 && <span className="opacity-70">({chip.count})</span>}
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Results count */}
             <div className="text-xs text-white/40 pt-1">
               Visar {filteredArticles.length} av {articles.length} artiklar
@@ -1039,7 +1103,9 @@ export default function InventoryPage() {
 
               <AnimatePresence>
                 {filteredArticles.map((article) => {
-                  const hasLowStock = article.stock_qty <= (article.min_stock_level || 5);
+                  const hasLowStock = article.stock_qty > 0 && article.stock_qty <= (article.min_stock_level || 10);
+                  const isTransit = article.status === 'in_transit' || article.status === 'on_its_way_home';
+                  const stockColor = isTransit ? 'text-blue-400' : (article.stock_qty || 0) <= 0 ? 'text-red-400' : hasLowStock ? 'text-orange-400' : 'text-green-400';
                   const imageUrl = article.image_urls?.[0] || article.image_url;
                   return (
                     <motion.div
@@ -1079,29 +1145,29 @@ export default function InventoryPage() {
                         </div>
                       )}
                       {/* Stock - Split into 3 columns */}
-                      <div className="flex gap-2 ml-0">
-                        {/* I Lager */}
-                        <div className="w-16 text-center">
-                          <div className={cn("text-xl font-bold leading-none mb-1 tracking-tight", article.stock_qty <= 0 ? "text-red-400" : hasLowStock ? "text-amber-400" : "text-blue-400")}>
-                            {article.stock_qty || 0}
-                          </div>
-                          <div className="text-[10px] text-white/40">I Lager</div>
-                        </div>
-                        {/* Reserverat */}
-                        <div className="w-16 text-center">
-                          <div className="text-xl font-bold leading-none mb-1 text-purple-400 tracking-tight">
-                            {article.reserved_stock_qty || 0}
-                          </div>
-                          <div className="text-[10px] text-white/40">Res.</div>
-                        </div>
-                        {/* Tillgängligt */}
-                        <div className="w-16 text-center">
-                          <div className={cn("text-xl font-bold leading-none mb-1 tracking-tight", Math.max(0, (article.stock_qty || 0) - (article.reserved_stock_qty || 0)) <= 0 ? "text-red-400" : "text-emerald-400")}>
-                            {Math.max(0, (article.stock_qty || 0) - (article.reserved_stock_qty || 0))}
-                          </div>
-                          <div className="text-[10px] text-white/40">Till.</div>
-                        </div>
-                      </div>
+                       <div className="flex gap-2 ml-0">
+                         {/* I Lager */}
+                         <div className="w-16 text-center">
+                           <div className={cn("text-xl font-bold leading-none mb-1 tracking-tight", stockColor)}>
+                             {article.stock_qty || 0}
+                           </div>
+                           <div className="text-[10px] text-white/40">Lager</div>
+                         </div>
+                         {/* Reserverat */}
+                         <div className="w-16 text-center">
+                           <div className="text-xl font-bold leading-none mb-1 text-purple-400 tracking-tight">
+                             {article.reserved_stock_qty || 0}
+                           </div>
+                           <div className="text-[10px] text-white/40">Res.</div>
+                         </div>
+                         {/* Tillgängligt */}
+                         <div className="w-16 text-center">
+                           <div className={cn("text-xl font-bold leading-none mb-1 tracking-tight", Math.max(0, (article.stock_qty || 0) - (article.reserved_stock_qty || 0)) <= 0 ? "text-red-400" : "text-emerald-400")}>
+                             {Math.max(0, (article.stock_qty || 0) - (article.reserved_stock_qty || 0))}
+                           </div>
+                           <div className="text-[10px] text-white/40">Till.</div>
+                         </div>
+                       </div>
                       {/* ETA */}
                       <div className="w-28 flex-shrink-0 ml-2">
                         {incomingQuantities[article.id] ? (
@@ -1118,10 +1184,10 @@ export default function InventoryPage() {
                       </div>
                       {/* Name */}
                       <div className="flex-1 min-w-[300px] ml-2">
-                        <div className="font-semibold text-white text-sm mb-0.5 whitespace-normal word-break break-word tracking-tight">{article.customer_name || article.name}</div>
+                        <div className="font-semibold text-white text-sm mb-0.5 whitespace-normal word-break break-word tracking-tight"><HighlightText text={article.customer_name || article.name} query={searchQuery} /></div>
                         {article.supplier_name && (
                           <div className="text-xs text-white/50 whitespace-normal word-break break-word">
-                            {article.supplier_name}{article.series && ` • ${article.series}`}{article.pitch_value && ` • ${article.pitch_value}`}
+                            <HighlightText text={article.supplier_name} query={searchQuery} />{article.series && ` • ${article.series}`}{article.pitch_value && ` • ${article.pitch_value}`}
                           </div>
                         )}
                       </div>
@@ -1146,7 +1212,24 @@ export default function InventoryPage() {
                           <span className="text-sm font-medium text-white truncate block">{article.batch_number}</span>
                         ) : <span className="text-xs text-white/20">—</span>}
                       </div>
-                    </motion.div>
+                      {/* Quick Actions */}
+                      <div className="w-10 flex-shrink-0 flex items-center justify-center ml-1" onClick={e => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="bg-zinc-900 border-white/10 text-white" align="end">
+                            <DropdownMenuItem onClick={() => setSelectedArticle(article)} className="hover:bg-white/10 cursor-pointer">👁 Se detalj</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setSelectedArticle(article); setAdjustmentModal({open:true,type:'out'}); }} className="hover:bg-white/10 cursor-pointer">📦 Ta ut</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate('/PurchaseOrders')} className="hover:bg-white/10 cursor-pointer">🛒 Beställ</DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-white/10" />
+                            <DropdownMenuItem onClick={() => { setSelectedArticle(article); setEditingArticle(article); }} className="hover:bg-white/10 cursor-pointer">✏️ Flytta / Redigera</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      </motion.div>
                   );
                 })}
               </AnimatePresence>
@@ -1155,7 +1238,9 @@ export default function InventoryPage() {
             {/* Mobile Layout */}
             <AnimatePresence>
               {filteredArticles.map((article) => {
-                const hasLowStock = article.stock_qty <= (article.min_stock_level || 5);
+                const hasLowStockM = article.stock_qty > 0 && article.stock_qty <= (article.min_stock_level || 10);
+                const isTransitM = article.status === 'in_transit' || article.status === 'on_its_way_home';
+                const stockColorM = isTransitM ? 'text-blue-400' : (article.stock_qty || 0) <= 0 ? 'text-red-400' : hasLowStockM ? 'text-orange-400' : 'text-green-400';
                 const imageUrl = article.image_urls?.[0] || article.image_url;
                 return (
                   <motion.div
@@ -1195,9 +1280,9 @@ export default function InventoryPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2 tracking-tight">
-                            {article.customer_name || article.name}
-                          </h3>
-                          <div className={cn("text-lg font-bold leading-none flex-shrink-0", article.stock_qty <= 0 ? "text-red-400" : hasLowStock ? "text-amber-400" : "text-white")}>
+                             <HighlightText text={article.customer_name || article.name} query={searchQuery} />
+                           </h3>
+                           <div className={cn("text-lg font-bold leading-none flex-shrink-0", stockColorM)}>
                             {article.stock_qty || 0}
                           </div>
                         </div>
@@ -1205,10 +1290,11 @@ export default function InventoryPage() {
                           {article.batch_number && <span className="font-mono">#{article.batch_number}</span>}
                           {article.supplier_name && <><span>•</span><span className="truncate">{article.supplier_name}</span></>}
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap justify-between w-full">
+                          <div className="flex items-center gap-2 flex-wrap">
                           {article.shelf_address && (
                             <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30 text-xs">
-                              <MapPin className="w-3 h-3 mr-1" />{article.shelf_address}
+                              <MapPin className="w-3 h-3 mr-1" />{Array.isArray(article.shelf_address) ? article.shelf_address[0] : article.shelf_address}
                             </Badge>
                           )}
                           {incomingQuantities[article.id] && (
@@ -1233,6 +1319,24 @@ export default function InventoryPage() {
                                article.status === 'discontinued' ? 'Utgått' : article.status}
                             </Badge>
                           )}
+                          </div>
+                          {/* Mobile quick actions */}
+                          <div onClick={e => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="w-8 h-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent className="bg-zinc-900 border-white/10 text-white" align="end">
+                                <DropdownMenuItem onClick={() => setSelectedArticle(article)} className="hover:bg-white/10 cursor-pointer">👁 Se detalj</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { setSelectedArticle(article); setAdjustmentModal({open:true,type:'out'}); }} className="hover:bg-white/10 cursor-pointer">📦 Ta ut</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => navigate('/PurchaseOrders')} className="hover:bg-white/10 cursor-pointer">🛒 Beställ</DropdownMenuItem>
+                                <DropdownMenuSeparator className="bg-white/10" />
+                                <DropdownMenuItem onClick={() => { setSelectedArticle(article); setEditingArticle(article); }} className="hover:bg-white/10 cursor-pointer">✏️ Flytta / Redigera</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
                       </div>
                     </div>
