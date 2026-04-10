@@ -1,5 +1,5 @@
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
@@ -30,36 +30,42 @@ const PRINT_CSS = `
 `;
 
 export default function PrintPickList() {
+  const [workOrder, setWorkOrder] = useState(null);
+  const [order, setOrder] = useState(null);
+  const [orderItems, setOrderItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const params = new URLSearchParams(window.location.search);
   const workOrderId = params.get('id');
 
-  const { data: workOrder } = useQuery({
-    queryKey: ['wo-picklist', workOrderId],
-    queryFn: async () => {
-      const list = await base44.entities.WorkOrder.filter({ id: workOrderId });
-      return list[0] || null;
-    },
-    enabled: !!workOrderId
-  });
+  useEffect(() => {
+    if (!workOrderId) { setLoading(false); return; }
+    (async () => {
+      try {
+        const woList = await base44.entities.WorkOrder.filter({ id: workOrderId });
+        const wo = woList[0];
+        if (!wo) throw new Error('Arbetsorder hittades inte');
+        setWorkOrder(wo);
 
-  const { data: order } = useQuery({
-    queryKey: ['order-picklist', workOrder?.order_id],
-    queryFn: async () => {
-      const list = await base44.entities.Order.filter({ id: workOrder.order_id });
-      return list[0] || null;
-    },
-    enabled: !!workOrder?.order_id
-  });
+        const [orderList, items] = await Promise.all([
+          base44.entities.Order.filter({ id: wo.order_id }),
+          base44.entities.OrderItem.filter({ order_id: wo.order_id }),
+        ]);
+        setOrder(orderList[0] || null);
+        setOrderItems(items || []);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [workOrderId]);
 
-  const { data: orderItems = [] } = useQuery({
-    queryKey: ['oi-picklist', workOrder?.order_id],
-    queryFn: () => base44.entities.OrderItem.filter({ order_id: workOrder.order_id }),
-    enabled: !!workOrder?.order_id
-  });
-
-  if (!workOrder || !order) {
-    return <div style={{ padding: 40 }}>Laddar...</div>;
-  }
+  if (!workOrderId) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Ingen arbetsorder angiven (saknar ?id=...)</div>;
+  if (loading) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Laddar...</div>;
+  if (error) return <div style={{ padding: 40, background: 'white', color: 'red' }}>Fel: {error}</div>;
+  if (!workOrder || !order) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Data kunde inte laddas.</div>;
 
   const materials = workOrder.materials_needed?.length > 0
     ? workOrder.materials_needed
@@ -70,7 +76,6 @@ export default function PrintPickList() {
         quantity_needed: i.quantity_ordered,
       }));
 
-  // Sort by shelf address A→Z
   const sorted = [...materials].sort((a, b) => {
     const sa = Array.isArray(a.shelf_address) ? a.shelf_address[0] : (a.shelf_address || '');
     const sb = Array.isArray(b.shelf_address) ? b.shelf_address[0] : (b.shelf_address || '');
@@ -81,7 +86,7 @@ export default function PrintPickList() {
   const now = new Date();
 
   return (
-    <div>
+    <div style={{ backgroundColor: 'white', color: 'black', minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
       <button className="print-btn no-print" onClick={() => window.print()}>🖨️ Skriv ut</button>
 
@@ -128,7 +133,7 @@ export default function PrintPickList() {
           </tbody>
         </table>
 
-        <div className="summary section">
+        <div className="summary">
           <div style={{ display: 'flex', gap: 40, marginBottom: 12 }}>
             <div><strong>Totalt antal artiklar:</strong> {totalItems} st</div>
             <div><strong>Totalt antal rader:</strong> {sorted.length}</div>

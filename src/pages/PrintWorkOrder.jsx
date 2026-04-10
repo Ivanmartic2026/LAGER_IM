@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
@@ -47,36 +46,45 @@ const installationTypeLabels = {
 const priorityLabels = { låg: 'Låg', normal: 'Normal', hög: 'Hög', brådskande: 'BRÅDSKANDE' };
 
 export default function PrintWorkOrder() {
+  const [workOrder, setWorkOrder] = useState(null);
+  const [order, setOrder] = useState(null);
+  const [orderItems, setOrderItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const params = new URLSearchParams(window.location.search);
   const workOrderId = params.get('id');
 
-  const { data: workOrder } = useQuery({
-    queryKey: ['wo-print', workOrderId],
-    queryFn: async () => {
-      const list = await base44.entities.WorkOrder.filter({ id: workOrderId });
-      return list[0] || null;
-    },
-    enabled: !!workOrderId
-  });
+  useEffect(() => {
+    if (!workOrderId) {
+      setLoading(false);
+      return;
+    }
+    (async () => {
+      try {
+        const woList = await base44.entities.WorkOrder.filter({ id: workOrderId });
+        const wo = woList[0];
+        if (!wo) throw new Error('Arbetsorder hittades inte');
+        setWorkOrder(wo);
 
-  const { data: order } = useQuery({
-    queryKey: ['order-print', workOrder?.order_id],
-    queryFn: async () => {
-      const list = await base44.entities.Order.filter({ id: workOrder.order_id });
-      return list[0] || null;
-    },
-    enabled: !!workOrder?.order_id
-  });
+        const [orderList, items] = await Promise.all([
+          base44.entities.Order.filter({ id: wo.order_id }),
+          base44.entities.OrderItem.filter({ order_id: wo.order_id }),
+        ]);
+        setOrder(orderList[0] || null);
+        setOrderItems(items || []);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [workOrderId]);
 
-  const { data: orderItems = [] } = useQuery({
-    queryKey: ['oi-print', workOrder?.order_id],
-    queryFn: () => base44.entities.OrderItem.filter({ order_id: workOrder.order_id }),
-    enabled: !!workOrder?.order_id
-  });
-
-  if (!workOrder || !order) {
-    return <div style={{ padding: 40 }}>Laddar...</div>;
-  }
+  if (!workOrderId) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Ingen arbetsorder angiven (saknar ?id=...)</div>;
+  if (loading) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Laddar...</div>;
+  if (error) return <div style={{ padding: 40, background: 'white', color: 'red' }}>Fel: {error}</div>;
+  if (!workOrder || !order) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Data kunde inte laddas.</div>;
 
   const materials = workOrder.materials_needed?.length > 0
     ? workOrder.materials_needed
@@ -92,12 +100,11 @@ export default function PrintWorkOrder() {
   const now = new Date();
 
   return (
-    <div>
+    <div style={{ backgroundColor: 'white', color: 'black', minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
       <button className="print-btn no-print" onClick={() => window.print()}>🖨️ Skriv ut</button>
 
       <div className="page">
-        {/* Header */}
         <div className="header">
           <div>
             <div style={{ fontWeight: 'bold', fontSize: '20pt', letterSpacing: '0.05em' }}>IM VISION</div>
@@ -113,7 +120,6 @@ export default function PrintWorkOrder() {
           </div>
         </div>
 
-        {/* Projektinformation */}
         <div className="section section-gray">
           <h2>PROJEKTINFORMATION</h2>
           <div className="grid2">
@@ -156,7 +162,6 @@ export default function PrintWorkOrder() {
           </div>
         </div>
 
-        {/* Teknisk information */}
         {(order.screen_dimensions || order.pixel_pitch || order.module_count) && (
           <div className="section">
             <h2>TEKNISK INFORMATION</h2>
@@ -176,7 +181,6 @@ export default function PrintWorkOrder() {
           </div>
         )}
 
-        {/* Materiallista */}
         <div className="section">
           <h2>MATERIALLISTA / PLOCKLISTA</h2>
           <table>
@@ -210,7 +214,6 @@ export default function PrintWorkOrder() {
           </div>
         </div>
 
-        {/* Checklista */}
         <div className="section">
           <h2>CHECKLISTA</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 24px' }}>
@@ -229,7 +232,6 @@ export default function PrintWorkOrder() {
           </div>
         </div>
 
-        {/* OBS */}
         <div className="section section-yellow">
           <h2>OBS / SPECIELLA KRAV</h2>
           <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>
@@ -237,7 +239,6 @@ export default function PrintWorkOrder() {
           </div>
         </div>
 
-        {/* Signering */}
         <div className="section">
           <h2>SIGNERING</h2>
           <div style={{ marginBottom: 16 }}>
@@ -249,7 +250,6 @@ export default function PrintWorkOrder() {
           </div>
         </div>
 
-        {/* Sidfot */}
         <div className="footer">
           <span>IM Vision Group AB</span>
           <span>Utskriven: {format(now, 'd MMM yyyy HH:mm', { locale: sv })}</span>
