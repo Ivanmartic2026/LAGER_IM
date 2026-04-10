@@ -1049,23 +1049,33 @@ export default function OrdersPage() {
                            </Button>
                          )}
 
-                        {order.status === 'picked' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30"
-                            onClick={() => exportOrderMutation.mutate(order.id)}
-                            disabled={exportOrderMutation.isPending}
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            PDF
-                          </Button>
-                        )}
-
                         <Button
                            size="sm"
                            variant="outline"
-                           className="bg-slate-700 border-slate-600 hover:bg-slate-600"
+                           className="bg-slate-700 border-slate-600 hover:bg-slate-600 text-white"
+                           onClick={() => window.open(`/PrintDeliveryNote?id=${order.id}`, '_blank')}
+                         >
+                           <Printer className="w-4 h-4 md:mr-2" />
+                           <span className="hidden md:inline">Leveranssedel</span>
+                         </Button>
+
+                        {order.status === 'picked' && (
+                           <Button
+                             size="sm"
+                             variant="outline"
+                             className="bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30"
+                             onClick={() => exportOrderMutation.mutate(order.id)}
+                             disabled={exportOrderMutation.isPending}
+                           >
+                             <Download className="w-4 h-4 mr-2" />
+                             PDF
+                           </Button>
+                         )}
+
+                         <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-slate-700 border-slate-600 hover:bg-slate-600"
                            onClick={() => navigate(`/OrderEdit?id=${order.id}`)}
                          >
                            Redigera
