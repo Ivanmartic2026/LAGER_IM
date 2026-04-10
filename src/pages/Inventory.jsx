@@ -1148,7 +1148,8 @@ export default function InventoryPage() {
                        <div className="flex gap-2 ml-0">
                          {/* I Lager */}
                          <div className="w-16 text-center">
-                           <div className={cn("text-xl font-bold leading-none mb-1 tracking-tight", stockColor)}>
+                           <div className={cn("text-xl font-bold leading-none mb-1 tracking-tight flex items-center justify-center gap-0.5", stockColor)}>
+                             {(article.stock_qty || 0) === 0 && <span>⚠️</span>}
                              {article.stock_qty || 0}
                            </div>
                            <div className="text-[10px] text-white/40">Lager</div>

@@ -270,13 +270,23 @@ export default function WorkOrdersPage() {
                           </div>
                           <div className="flex flex-col gap-1">
                             <span className="text-white/40 text-xs">Leverans</span>
-                            <span className={cn(
-                              "text-white font-medium",
-                              wo.delivery_date && new Date(wo.delivery_date) < new Date() && wo.status !== 'completed'
-                                ? 'text-red-400' : ''
-                            )}>
-                              {wo.delivery_date ? format(new Date(wo.delivery_date), 'd MMM', { locale: sv }) : '—'}
-                            </span>
+                            {wo.delivery_date ? (() => {
+                              const days = Math.ceil((new Date(wo.delivery_date) - new Date()) / (1000 * 60 * 60 * 24));
+                              const overdue = days < 0 && wo.status !== 'completed';
+                              const soon = days >= 0 && days <= 3 && wo.status !== 'completed';
+                              return (
+                                <div className="flex flex-col gap-0.5">
+                                  <span className={cn('font-medium text-sm', overdue ? 'text-red-400' : soon ? 'text-amber-400' : 'text-white')}>
+                                    {format(new Date(wo.delivery_date), 'd MMM', { locale: sv })}
+                                  </span>
+                                  {wo.status !== 'completed' && (
+                                    <span className={cn('text-xs font-bold', overdue ? 'text-red-400' : soon ? 'text-amber-400' : 'text-white/40')}>
+                                      {overdue ? `${Math.abs(days)}d försenad` : days === 0 ? 'Idag!' : `${days}d kvar`}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })() : <span className="text-white/30">—</span>}
                           </div>
                           <div className="flex flex-col gap-1">
                             <span className="text-white/40 text-xs">Status</span>

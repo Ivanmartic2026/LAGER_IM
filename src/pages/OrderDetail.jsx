@@ -55,6 +55,12 @@ export default function OrderDetailPage() {
     enabled: !!orderId && !!order,
   });
 
+  const { data: linkedWorkOrders = [] } = useQuery({
+    queryKey: ['workOrders', orderId],
+    queryFn: () => base44.entities.WorkOrder.filter({ order_id: orderId }),
+    enabled: !!orderId,
+  });
+
   const updateOrderMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Order.update(id, data),
     onSuccess: () => {
@@ -144,6 +150,11 @@ export default function OrderDetailPage() {
 
   const statusColors = {
     draft: "bg-slate-500/20 text-slate-400 border-slate-500/30",
+    'SÄLJ': "bg-slate-500/20 text-slate-400 border-slate-500/30",
+    'KONSTRUKTION': "bg-sky-500/20 text-sky-400 border-sky-500/30",
+    'PRODUKTION': "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    'LAGER': "bg-amber-500/20 text-amber-400 border-amber-500/30",
+    'MONTERING': "bg-purple-500/20 text-purple-400 border-purple-500/30",
     ready_for_handover: "bg-blue-400/20 text-blue-300 border-blue-400/30",
     handed_over: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
     planning: "bg-purple-500/20 text-purple-400 border-purple-500/30",
@@ -160,6 +171,11 @@ export default function OrderDetailPage() {
 
   const statusLabels = {
     draft: "Utkast",
+    'SÄLJ': "Sälj",
+    'KONSTRUKTION': "Konstruktion",
+    'PRODUKTION': "Produktion",
+    'LAGER': "Lager",
+    'MONTERING': "Montering",
     ready_for_handover: "Klar för överlämning",
     handed_over: "Överlämnad",
     planning: "Planering",
@@ -188,14 +204,32 @@ export default function OrderDetailPage() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate(-1)}
-            className="bg-white/5 border-white/10 text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Tillbaka
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(-1)}
+              className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Tillbaka
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/OrderEdit?id=${orderId}`)}
+              className="bg-blue-600/20 border-blue-500/30 text-blue-400 hover:bg-blue-600/30"
+            >
+              Redigera order
+            </Button>
+            {linkedWorkOrders.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/WorkOrders/${linkedWorkOrders[0].id}`)}
+                className="bg-purple-600/20 border-purple-500/30 text-purple-400 hover:bg-purple-600/30"
+              >
+                Se arbetsorder
+              </Button>
+            )}
+          </div>
           <div className="text-right">
             <h1 className="text-2xl font-bold text-white mb-2">
               {order.order_number || `Order #${order.id.slice(0, 8)}`}
@@ -537,12 +571,75 @@ export default function OrderDetailPage() {
           {/* Tasks */}
           <OrderTasks orderId={order.id} />
 
+          {order.critical_notes && (
+            <div className="bg-yellow-500/10 rounded-2xl border border-yellow-500/30 p-6">
+              <h3 className="text-sm font-semibold text-yellow-400 mb-2 flex items-center gap-2">⚠️ Viktigt för teamet</h3>
+              <p className="text-sm text-yellow-100 whitespace-pre-wrap">{order.critical_notes}</p>
+            </div>
+          )}
+
           {order.notes && (
             <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
               <h3 className="text-sm font-semibold text-white mb-3">Anteckningar</h3>
-              <p className="text-sm text-white/60 whitespace-pre-wrap">
-                {order.notes}
-              </p>
+              <p className="text-sm text-white/60 whitespace-pre-wrap">{order.notes}</p>
+            </div>
+          )}
+
+          {/* Uploaded files */}
+          {((order.uploaded_files?.length > 0) || order.source_document_url) && (
+            <div className="bg-blue-500/10 rounded-2xl border border-blue-500/20 p-6">
+              <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-400" />
+                Dokument
+              </h3>
+              <div className="space-y-2">
+                {order.source_document_url && (
+                  <a href={order.source_document_url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-blue-400 hover:underline">
+                    <FileText className="w-4 h-4" /> Kundorder / PO
+                  </a>
+                )}
+                {(order.uploaded_files || []).map((f, i) => (
+                  <a key={i} href={f.url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-blue-400 hover:underline">
+                    <Download className="w-4 h-4" /> {f.name || f.type || 'Dokument'}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Linked work orders */}
+          {linkedWorkOrders.length > 0 && (
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
+              <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-purple-400" />
+                Kopplade arbetsordrar ({linkedWorkOrders.length})
+              </h3>
+              <div className="space-y-2">
+                {linkedWorkOrders.map(wo => {
+                  const woStatusColor = { väntande: 'bg-slate-500/20 text-slate-300', pågår: 'bg-blue-500/20 text-blue-300', klar: 'bg-green-500/20 text-green-300', avbruten: 'bg-red-500/20 text-red-300', pending: 'bg-slate-500/20 text-slate-300', in_progress: 'bg-blue-500/20 text-blue-300', completed: 'bg-green-500/20 text-green-300' };
+                  const woStatusLabel = { väntande: 'Väntande', pågår: 'Pågår', klar: 'Klar', avbruten: 'Avbruten', pending: 'Väntande', in_progress: 'Pågår', completed: 'Klar', picking: 'Plockning' };
+                  const stageLabel = { konstruktion: 'Konstruktion', produktion: 'Produktion', lager: 'Lager', montering: 'Montering', leverans: 'Leverans' };
+                  return (
+                    <div key={wo.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{wo.name || wo.order_number || wo.id}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge className={cn('text-xs', woStatusColor[wo.status] || 'bg-slate-500/20 text-slate-300')}>
+                            {woStatusLabel[wo.status] || wo.status}
+                          </Badge>
+                          {wo.current_stage && <span className="text-xs text-white/40">{stageLabel[wo.current_stage] || wo.current_stage}</span>}
+                        </div>
+                      </div>
+                      <Button size="sm" variant="ghost" onClick={() => navigate(`/WorkOrders/${wo.id}`)}
+                        className="text-blue-400 hover:text-blue-300 text-xs ml-3 flex-shrink-0">
+                        Se arbetsorder →
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

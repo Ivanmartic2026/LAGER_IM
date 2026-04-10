@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +22,12 @@ import QuickWithdrawalModal from "@/components/withdrawal/QuickWithdrawalModal";
 import PODashboard from "@/components/dashboard/PODashboard";
 
 export default function HomePage() {
+  const navigate = useNavigate();
+  React.useEffect(() => { navigate('/Inventory', { replace: true }); }, []);
+  return null;
+}
+
+function OldHomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState(null);
