@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import FortnoxCustomerSelect from '@/components/orders/FortnoxCustomerSelect';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -87,11 +88,15 @@ export default function ProjectInfoSection({ formData, setFormData, workOrders =
           </FormGroup>
 
           <FormGroup label={t('field_fortnox_customer', language)}>
-            <Input
-              value={formData.fortnox_customer_number}
-              onChange={(e) => setFormData({ ...formData, fortnox_customer_number: e.target.value })}
-              placeholder={t('ph_fortnox_customer', language)}
-              className="bg-slate-800 border-slate-700 text-white"
+            <FortnoxCustomerSelect
+              value={formData.fortnox_customer_number || ''}
+              customerName={formData.customer_name || ''}
+              onChange={(num) => setFormData(prev => ({ ...prev, fortnox_customer_number: num }))}
+              onSelect={(customer) => setFormData(prev => ({
+                ...prev,
+                fortnox_customer_number: customer.CustomerNumber,
+                customer_name: prev.customer_name ? prev.customer_name : (customer.Name || prev.customer_name),
+              }))}
             />
           </FormGroup>
 
