@@ -298,25 +298,26 @@ export default function WorkOrderViewPage() {
               Work Orders
             </Button>
           </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-white/5 border-white/20 hover:bg-white/10 text-white gap-2"
-            onClick={async () => {
-              try {
-                const res = await base44.functions.invoke('printWorkOrder', { work_order_id: workOrderId });
-                const html = typeof res.data === 'string' ? res.data : JSON.stringify(res.data);
-                const tab = window.open('', '_blank');
-                tab.document.write(html);
-                tab.document.close();
-              } catch (e) {
-                toast.error('Kunde inte skapa utskrift');
-              }
-            }}
-          >
-            <Printer className="w-4 h-4" />
-            Print PDF
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white/5 border-white/20 hover:bg-white/10 text-white gap-2"
+              onClick={() => window.open(`/PrintPickList?id=${workOrderId}`, '_blank')}
+            >
+              <Printer className="w-4 h-4" />
+              Plocklista
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white/5 border-white/20 hover:bg-white/10 text-white gap-2"
+              onClick={() => window.open(`/PrintWorkOrder?id=${workOrderId}`, '_blank')}
+            >
+              <Printer className="w-4 h-4" />
+              Arbetsorder
+            </Button>
+          </div>
         </div>
 
         {/* Material shortage warning */}
