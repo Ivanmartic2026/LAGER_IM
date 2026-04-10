@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import FortnoxCustomerSelect from '@/components/orders/FortnoxCustomerSelect';
+import FilePreviewItem from '@/components/shared/FilePreview';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Upload, X, Download, ExternalLink } from "lucide-react";
+import { Upload, X, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/components/language/LanguageProvider";
-import { t, tWorkOrderStatus, tStage, tFinancialStatus } from "@/components/language/translations";
+import { t, tFinancialStatus } from "@/components/language/translations";
 
 const FormSection = ({ title, icon, children, className }) => (
   <div className={cn("bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4", className)}>
@@ -30,12 +31,21 @@ const FormGroup = ({ label, required = false, helpText, children }) => (
   </div>
 );
 
-const STATUS_COLORS = {
-  väntande: 'bg-slate-500/20 text-slate-300',
-  pågår: 'bg-blue-500/20 text-blue-300',
-  klar: 'bg-green-500/20 text-green-300',
-  avbruten: 'bg-red-500/20 text-red-300'
-};
+function FileUploadGroup({ label, files, onUpload, onRemove, uploading, accept, uploadLabel, addLabel }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-slate-300">{label}</label>
+      {files.map((f, i) => (
+        <FilePreviewItem key={i} url={f.url} name={f.name} onRemove={() => onRemove(i)} />
+      ))}
+      <label className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-dashed border-white/20 cursor-pointer hover:bg-white/10 transition-all">
+        <Upload className="w-4 h-4 text-slate-400" />
+        <span className="text-sm text-slate-400">{uploading ? uploadLabel : addLabel}</span>
+        <input type="file" className="hidden" onChange={onUpload} disabled={uploading} accept={accept} />
+      </label>
+    </div>
+  );
+}
 
 export default function ProjectInfoSection({ formData, setFormData, workOrders = [], onFileUpload }) {
   const { language } = useLanguage();
@@ -310,7 +320,7 @@ export default function ProjectInfoSection({ formData, setFormData, workOrders =
         </FormGroup>
       </FormSection>
 
-      {/* 4. SPECIELLA KRAV */}
+      {/* 5. SPECIELLA KRAV */}
       <FormSection title={t('section_special_requirements', language)} icon="⚠️" className="border-yellow-500/30 bg-yellow-500/5">
         <p className="text-xs text-yellow-400/80 -mt-2 mb-2">{t('warning_team_visible', language)}</p>
         <Textarea
@@ -321,7 +331,7 @@ export default function ProjectInfoSection({ formData, setFormData, workOrders =
         />
       </FormSection>
 
-      {/* 5. DOKUMENT */}
+      {/* 6. DOKUMENT */}
       <FormSection title={t('section_documents', language)} icon="📎">
         <p className="text-xs text-slate-400 -mt-2 mb-2">{t('help_documents', language)}</p>
 
@@ -329,15 +339,11 @@ export default function ProjectInfoSection({ formData, setFormData, workOrders =
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-300">{t('btn_customer_order', language)}</label>
           {formData.source_document_url ? (
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10">
-              <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
-              <a href={formData.source_document_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-sm hover:underline flex-1 truncate">
-                {t('btn_customer_order', language)}
-              </a>
-              <button type="button" onClick={() => removeFile('source_document')} className="text-red-400 hover:text-red-300">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            <FilePreviewItem
+              url={formData.source_document_url}
+              name={t('btn_customer_order', language)}
+              onRemove={() => removeFile('source_document')}
+            />
           ) : (
             <label className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-dashed border-white/20 cursor-pointer hover:bg-white/10 transition-all">
               <Upload className="w-4 h-4 text-slate-400" />
@@ -347,15 +353,15 @@ export default function ProjectInfoSection({ formData, setFormData, workOrders =
           )}
         </div>
 
-        <FileUploadGroup label={t('btn_drawings', language)} type="drawing" files={getFilesByType('drawing')}
+        <FileUploadGroup label={t('btn_drawings', language)} files={getFilesByType('drawing')}
           onUpload={(e) => handleFileUpload('drawing', e)} onRemove={(i) => removeFile('drawing', i)}
           uploading={uploadingType === 'drawing'} uploadLabel={t('common_uploading', language)} addLabel={t('btn_add_file', language)} />
 
-        <FileUploadGroup label={t('btn_site_images', language)} type="site_image" files={getFilesByType('site_image')}
+        <FileUploadGroup label={t('btn_site_images', language)} files={getFilesByType('site_image')}
           onUpload={(e) => handleFileUpload('site_image', e)} onRemove={(i) => removeFile('site_image', i)}
           uploading={uploadingType === 'site_image'} accept="image/*" uploadLabel={t('common_uploading', language)} addLabel={t('btn_add_file', language)} />
 
-        <FileUploadGroup label={t('btn_other_docs', language)} type="other" files={getFilesByType('other')}
+        <FileUploadGroup label={t('btn_other_docs', language)} files={getFilesByType('other')}
           onUpload={(e) => handleFileUpload('other', e)} onRemove={(i) => removeFile('other', i)}
           uploading={uploadingType === 'other'} uploadLabel={t('common_uploading', language)} addLabel={t('btn_add_file', language)} />
       </FormSection>
@@ -364,57 +370,46 @@ export default function ProjectInfoSection({ formData, setFormData, workOrders =
       {workOrders.length > 0 && (
         <FormSection title={t('section_linked_work_orders', language)} icon="🔗">
           <div className="space-y-2">
-            {workOrders.map(wo => (
-              <div key={wo.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-white truncate">{wo.name || wo.order_number || wo.id}</div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className={STATUS_COLORS[wo.status] || 'bg-slate-500/20 text-slate-300'}>
-                      {tWorkOrderStatus(wo.status, language)}
-                    </Badge>
-                    {wo.current_stage && (
-                      <span className="text-xs text-slate-400">{tStage(wo.current_stage, language)}</span>
-                    )}
-                    {wo.technician_name && (
-                      <span className="text-xs text-slate-500">• {wo.technician_name}</span>
-                    )}
+            {workOrders.map(wo => {
+              const woName = wo.name || wo.order_number || `Arbetsorder #${wo.id?.slice(0, 6)}`;
+              const statusLabel = {
+                'väntande': 'Väntande', 'väntar': 'Väntande', 'pending': 'Väntande',
+                'pågår': 'Pågår', 'in_progress': 'Pågår',
+                'klar': 'Klar', 'completed': 'Klar',
+                'avbruten': 'Avbruten'
+              }[wo.status] || wo.status;
+              const statusColor = {
+                'Väntande': 'bg-slate-500/20 text-slate-300',
+                'Pågår': 'bg-blue-500/20 text-blue-300',
+                'Klar': 'bg-green-500/20 text-green-300',
+                'Avbruten': 'bg-red-500/20 text-red-300'
+              }[statusLabel] || 'bg-slate-500/20 text-slate-300';
+              const stageLabel = {
+                'konstruktion': 'Konstruktion', 'produktion': 'Produktion',
+                'lager': 'Lager', 'montering': 'Montering', 'leverans': 'Leverans'
+              }[wo.current_stage] || wo.current_stage;
+              return (
+                <div key={wo.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-white truncate">{woName}</div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge className={statusColor}>{statusLabel}</Badge>
+                      {stageLabel && <span className="text-xs text-slate-400">{stageLabel}</span>}
+                      {wo.technician_name && <span className="text-xs text-slate-500">• {wo.technician_name}</span>}
+                    </div>
                   </div>
+                  <Link
+                    to={`/WorkOrders/${wo.id}`}
+                    className="ml-3 text-blue-400 text-xs hover:underline flex items-center gap-1 flex-shrink-0"
+                  >
+                    {t('btn_see_work_order', language)} <ExternalLink className="w-3 h-3" />
+                  </Link>
                 </div>
-                <Link
-                  to={`/WorkOrders/${wo.id}`}
-                  className="ml-3 text-blue-400 text-xs hover:underline flex items-center gap-1 flex-shrink-0"
-                >
-                  {t('btn_see_work_order', language)} <ExternalLink className="w-3 h-3" />
-                </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </FormSection>
       )}
     </>
-  );
-}
-
-function FileUploadGroup({ label, type, files, onUpload, onRemove, uploading, accept, uploadLabel, addLabel }) {
-  return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-slate-300">{label}</label>
-      {files.map((f, i) => (
-        <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10">
-          <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
-          <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-sm hover:underline flex-1 truncate">
-            {f.name || label}
-          </a>
-          <button type="button" onClick={() => onRemove(i)} className="text-red-400 hover:text-red-300">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      ))}
-      <label className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-dashed border-white/20 cursor-pointer hover:bg-white/10 transition-all">
-        <Upload className="w-4 h-4 text-slate-400" />
-        <span className="text-sm text-slate-400">{uploading ? uploadLabel : addLabel}</span>
-        <input type="file" className="hidden" onChange={onUpload} disabled={uploading} accept={accept} />
-      </label>
-    </div>
   );
 }
