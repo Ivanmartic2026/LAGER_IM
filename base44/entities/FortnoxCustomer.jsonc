@@ -1,0 +1,47 @@
+{
+  "name": "FortnoxCustomer",
+  "type": "object",
+  "properties": {
+    "customer_number": {
+      "type": "string",
+      "description": "Fortnox kundnummer"
+    },
+    "name": {
+      "type": "string",
+      "description": "Kundnamn"
+    },
+    "organisation_number": {
+      "type": "string",
+      "description": "Organisationsnummer"
+    },
+    "city": {
+      "type": "string",
+      "description": "Ort"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-post"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefon"
+    },
+    "address1": {
+      "type": "string",
+      "description": "Adress"
+    },
+    "zip_code": {
+      "type": "string",
+      "description": "Postnummer"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Aktiv"
+    }
+  },
+  "required": [
+    "customer_number",
+    "name"
+  ]
+}

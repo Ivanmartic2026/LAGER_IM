@@ -26,6 +26,7 @@ import WorkOrders from '@/pages/WorkOrders';
 import PrintWorkOrder from '@/pages/PrintWorkOrder';
 import PrintPickList from '@/pages/PrintPickList';
 import PrintDeliveryNote from '@/pages/PrintDeliveryNote';
+import FortnoxCustomers from '@/pages/FortnoxCustomers';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -170,6 +171,12 @@ function App() {
             <Route path="/WorkOrders" element={
               <LayoutWrapper currentPageName="WorkOrders">
                 <WorkOrders />
+              </LayoutWrapper>
+            } />
+            {/* Fortnox Customers */}
+            <Route path="/FortnoxCustomers" element={
+              <LayoutWrapper currentPageName="FortnoxCustomers">
+                <FortnoxCustomers />
               </LayoutWrapper>
             } />
             {/* Print views - public, no layout */}
