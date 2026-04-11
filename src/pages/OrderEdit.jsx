@@ -298,7 +298,12 @@ export default function OrderEdit() {
       return;
     }
 
-    saveOrderMutation.mutate(formData);
+    const dataToSave = {
+      ...formData,
+      module_count: formData.module_count !== '' && formData.module_count != null ? parseFloat(formData.module_count) : undefined,
+    };
+    if (dataToSave.module_count === undefined) delete dataToSave.module_count;
+    saveOrderMutation.mutate(dataToSave);
   };
 
   return (
