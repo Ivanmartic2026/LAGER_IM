@@ -112,8 +112,14 @@ function App() {
             <Route path="/SupplierDashboard" element={<SupplierDashboard />} />
             {/* Fortnox Sync - admin only */}
             <Route path="/FortnoxSync" element={
-              <LayoutWrapper currentPageName="FortnoxSync">
+              <LayoutWrapper currentPageName="Admin">
                 <FortnoxSync />
+              </LayoutWrapper>
+            } />
+            {/* Fortnox Customers - under Admin */}
+            <Route path="/FortnoxCustomers" element={
+              <LayoutWrapper currentPageName="Admin">
+                <FortnoxCustomers />
               </LayoutWrapper>
             } />
             {/* Order Edit - fullscreen */}
@@ -171,12 +177,6 @@ function App() {
             <Route path="/WorkOrders" element={
               <LayoutWrapper currentPageName="WorkOrders">
                 <WorkOrders />
-              </LayoutWrapper>
-            } />
-            {/* Fortnox Customers */}
-            <Route path="/FortnoxCustomers" element={
-              <LayoutWrapper currentPageName="FortnoxCustomers">
-                <FortnoxCustomers />
               </LayoutWrapper>
             } />
             {/* Print views - public, no layout */}
