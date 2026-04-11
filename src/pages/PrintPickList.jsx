@@ -43,17 +43,12 @@ export default function PrintPickList() {
     if (!workOrderId) { setLoading(false); return; }
     (async () => {
       try {
-        const woList = await base44.entities.WorkOrder.filter({ id: workOrderId });
-        const wo = woList[0];
-        if (!wo) throw new Error('Arbetsorder hittades inte');
-        setWorkOrder(wo);
-
-        const [orderList, items] = await Promise.all([
-          base44.entities.Order.filter({ id: wo.order_id }),
-          base44.entities.OrderItem.filter({ order_id: wo.order_id }),
-        ]);
-        setOrder(orderList[0] || null);
-        setOrderItems(items || []);
+        const res = await base44.functions.invoke('getWorkOrderPrintData', { workOrderId });
+        const data = res.data;
+        if (!data || data.error) throw new Error(data?.error || 'Kunde inte hämta data');
+        setWorkOrder(data.workOrder);
+        setOrder(data.order);
+        setOrderItems(data.orderItems || []);
       } catch (e) {
         setError(e.message);
       } finally {
