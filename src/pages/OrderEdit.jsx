@@ -50,6 +50,7 @@ export default function OrderEdit() {
   });
 
   const [orderItems, setOrderItems] = useState([]);
+  const [itemsLoaded, setItemsLoaded] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [articleSearch, setArticleSearch] = useState('');
@@ -117,10 +118,11 @@ export default function OrderEdit() {
   }, [order]);
 
   useEffect(() => {
-    if (orderId && existingItems.length > 0) {
+    if (orderId && existingItems.length > 0 && !itemsLoaded) {
       setOrderItems(existingItems);
+      setItemsLoaded(true);
     }
-  }, [orderId, existingItems]);
+  }, [orderId, existingItems, itemsLoaded]);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -287,7 +289,13 @@ export default function OrderEdit() {
   };
 
   const handleRemoveItem = (index) => {
-    setOrderItems(orderItems.filter((_, i) => i !== index));
+    setOrderItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateQuantity = (index, value) => {
+    setOrderItems(prev => prev.map((item, i) => 
+      i === index ? { ...item, quantity_ordered: parseInt(value) || 1 } : item
+    ));
   };
 
   const handleSubmit = async (e) => {
@@ -434,11 +442,7 @@ export default function OrderEdit() {
                         min="1"
                         inputMode="numeric"
                         value={item.quantity_ordered}
-                        onChange={(e) => {
-                          const newItems = [...orderItems];
-                          newItems[index].quantity_ordered = parseInt(e.target.value) || 1;
-                          setOrderItems(newItems);
-                        }}
+                        onChange={(e) => handleUpdateQuantity(index, e.target.value)}
                         className="w-20 bg-slate-900 border-slate-700 text-white text-center"
                       />
                       <span className="text-sm text-slate-400">st</span>
