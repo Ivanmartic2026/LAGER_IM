@@ -10,12 +10,15 @@ Deno.serve(async (req) => {
     const wo = woList[0];
     if (!wo) return Response.json({ error: 'Not found' }, { status: 404 });
 
-    const [orderList, orderItems, tasks] = await Promise.all([
+    const [orderList, orderItems, externalTasks] = await Promise.all([
       wo.order_id ? base44.asServiceRole.entities.Order.filter({ id: wo.order_id }) : Promise.resolve([]),
       wo.order_id ? base44.asServiceRole.entities.OrderItem.filter({ order_id: wo.order_id }) : Promise.resolve([]),
       base44.asServiceRole.entities.Task.filter({ work_order_id }),
     ]);
     const order = orderList[0] || {};
+    // Merge inline tasks (wo.tasks array) with external Task entities
+    const inlineTasks = (wo.tasks || []).map(t => ({ name: t.title, description: t.notes, priority: null, assigned_to: t.assigned_name || t.assigned_to, status: t.status === 'klar' ? 'completed' : t.status === 'pågår' ? 'in_progress' : 'pending' }));
+    const tasks = [...inlineTasks, ...externalTasks];
 
     const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const fmtDate = (d) => { if (!d) return '—'; try { return new Date(d).toLocaleDateString('sv-SE'); } catch { return '—'; } };
@@ -99,7 +102,7 @@ Deno.serve(async (req) => {
 <div class="page">
   <div class="top-bar">
     <div>
-      <div class="top-bar-logo">IM VISION</div>
+      <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" alt="IM Vision" style="height:36px;object-fit:contain;display:block;" />
       <div class="top-bar-sub">IM Vision Group AB</div>
     </div>
     <div class="top-bar-title">ARBETSORDER</div>
@@ -201,11 +204,11 @@ Deno.serve(async (req) => {
         <tbody>
           ${tasks.map((task, i) => `<tr>
             <td style="color:#999">${i + 1}</td>
-            <td><div style="font-weight:500">${esc(task.name || '—')}</div>${task.description ? `<div style="font-size:8.5pt;color:#888;margin-top:2px">${esc(task.description)}</div>` : ''}</td>
+            <td><div style="font-weight:500">${esc(task.name || task.title || '—')}</div>${task.description ? `<div style="font-size:8.5pt;color:#888;margin-top:2px">${esc(task.description)}</div>` : ''}</td>
             <td style="font-size:9pt">${task.priority === 'high' ? 'Hög' : task.priority === 'urgent' ? 'AKUT' : task.priority === 'low' ? 'Låg' : 'Normal'}</td>
-            <td style="font-size:8.5pt;color:#555">${esc(task.assigned_to || '—')}</td>
-            <td style="font-size:9pt">${task.status === 'completed' ? 'Klar' : task.status === 'in_progress' ? 'Pågår' : 'Ej påbörjad'}</td>
-            <td class="cb">${task.status === 'completed' ? '☑' : '☐'}</td>
+            <td style="font-size:8.5pt;color:#555">${esc(task.assigned_to || task.assigned_name || '—')}</td>
+            <td style="font-size:9pt">${task.status === 'completed' || task.status === 'klar' ? 'Klar' : task.status === 'in_progress' || task.status === 'pågår' ? 'Pågår' : 'Ej påbörjad'}</td>
+            <td class="cb">${(task.status === 'completed' || task.status === 'klar') ? '☑' : '☐'}</td>
           </tr>`).join('')}
         </tbody>
       </table>
