@@ -65,14 +65,40 @@ Deno.serve(async (req) => {
     const workOrder = await base44.asServiceRole.entities.WorkOrder.create({
       order_id: orderId,
       order_number: orderNumber,
+      // Customer & references
       customer_name: order.customer_name || '',
       customer_reference: order.customer_reference || '',
+      fortnox_customer_number: order.fortnox_customer_number || null,
+      fortnox_project_number: order.fortnox_project_number || null,
+      fortnox_project_name: order.fortnox_project_name || null,
+      rm_system_id: order.rm_system_id || null,
+      rm_system_url: order.rm_system_url || null,
+      // Delivery & installation
       delivery_date: order.delivery_date || null,
       delivery_address: order.delivery_address || null,
+      delivery_method: order.delivery_method || null,
+      delivery_contact_name: order.delivery_contact_name || null,
+      delivery_contact_phone: order.delivery_contact_phone || null,
+      installation_date: order.installation_date || null,
+      installation_type: order.installation_type || null,
+      // Technical specs
+      screen_dimensions: order.screen_dimensions || null,
+      pixel_pitch: order.pixel_pitch || null,
+      module_count: order.module_count || null,
+      // Notes & critical info
+      critical_notes: order.critical_notes || null,
+      notes: order.notes || null,
+      production_notes: order.notes || '',
+      // Sites
+      site_ids: order.site_ids || [],
+      site_names: order.site_names || [],
+      site_visit_info: order.site_visit_info || null,
+      // Files
+      uploaded_files: order.uploaded_files || [],
+      // Status
       current_stage: 'konstruktion',
       status: 'väntande',
       priority,
-      production_notes: order.notes || '',
       materials_needed: materialsNeeded,
       all_materials_ready: materialsNeeded.length === 0 || materialsNeeded.every(m => !m.needs_purchase)
     });

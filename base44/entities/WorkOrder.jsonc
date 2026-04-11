@@ -22,14 +22,96 @@
       "type": "string",
       "description": "Kundreferens"
     },
+    "fortnox_customer_number": {
+      "type": "string",
+      "description": "Fortnox kundnummer"
+    },
+    "fortnox_project_number": {
+      "type": "string",
+      "description": "Fortnox projektnummer"
+    },
+    "fortnox_project_name": {
+      "type": "string",
+      "description": "Fortnox projektnamn"
+    },
     "delivery_date": {
       "type": "string",
       "format": "date",
-      "description": "Leveransdatum (kopierat fr\u00e5n Order)"
+      "description": "Leveransdatum"
     },
     "delivery_address": {
       "type": "string",
-      "description": "Leveransadress (kopierat fr\u00e5n Order)"
+      "description": "Leveransadress"
+    },
+    "delivery_method": {
+      "type": "string",
+      "description": "Leveranss\u00e4tt"
+    },
+    "delivery_contact_name": {
+      "type": "string",
+      "description": "Leveranskontakt namn"
+    },
+    "delivery_contact_phone": {
+      "type": "string",
+      "description": "Leveranskontakt telefon"
+    },
+    "installation_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Installationsdatum"
+    },
+    "installation_type": {
+      "type": "string",
+      "enum": [
+        "ny_installation",
+        "byte_uppgradering",
+        "tillagg",
+        "service_reparation",
+        "uthyrning_event"
+      ],
+      "description": "Typ av installation"
+    },
+    "screen_dimensions": {
+      "type": "string",
+      "description": "Sk\u00e4rmdimensioner"
+    },
+    "pixel_pitch": {
+      "type": "string",
+      "description": "Pixel pitch"
+    },
+    "module_count": {
+      "type": "number",
+      "description": "Antal moduler"
+    },
+    "critical_notes": {
+      "type": "string",
+      "description": "Kritisk information / OBS (visas som gul varning)"
+    },
+    "site_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Kopplade siter"
+    },
+    "site_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Kopplade sitenamn"
+    },
+    "site_visit_info": {
+      "type": "string",
+      "description": "Information om platsbes\u00f6k"
+    },
+    "rm_system_id": {
+      "type": "string",
+      "description": "ID i RM-systemet"
+    },
+    "rm_system_url": {
+      "type": "string",
+      "description": "L\u00e4nk till ordern i RM-systemet"
     },
     "current_stage": {
       "type": "string",
@@ -41,7 +123,7 @@
         "leverans"
       ],
       "default": "konstruktion",
-      "description": "Nuvarande fas i arbetsordern"
+      "description": "Nuvarande fas"
     },
     "status": {
       "type": "string",
@@ -51,8 +133,7 @@
         "klar",
         "avbruten"
       ],
-      "default": "v\u00e4ntande",
-      "description": "\u00d6vergripande status"
+      "default": "v\u00e4ntande"
     },
     "tasks": {
       "type": "array",
@@ -102,68 +183,46 @@
             "type": "string"
           }
         }
-      },
-      "description": "Arbetsmoment kopplade till denna arbetsorder"
+      }
     },
     "assigned_to_konstruktion": {
-      "type": "string",
-      "description": "Tilldelad konstruktion (email)"
+      "type": "string"
     },
     "assigned_to_konstruktion_name": {
-      "type": "string",
-      "description": "Tilldelad konstruktion (namn)"
+      "type": "string"
     },
     "assigned_to_produktion": {
-      "type": "string",
-      "description": "Tilldelad produktion (email)"
+      "type": "string"
     },
     "assigned_to_produktion_name": {
-      "type": "string",
-      "description": "Tilldelad produktion (namn)"
+      "type": "string"
     },
     "assigned_to_lager": {
-      "type": "string",
-      "description": "Tilldelad lager (email)"
+      "type": "string"
     },
     "assigned_to_lager_name": {
-      "type": "string",
-      "description": "Tilldelad lager (namn)"
+      "type": "string"
     },
     "assigned_to_montering": {
-      "type": "string",
-      "description": "Tilldelad montering (email)"
+      "type": "string"
     },
     "assigned_to_montering_name": {
-      "type": "string",
-      "description": "Tilldelad montering (namn)"
+      "type": "string"
     },
     "assigned_to_leverans": {
-      "type": "string",
-      "description": "Tilldelad leverans (email)"
+      "type": "string"
     },
     "assigned_to_leverans_name": {
-      "type": "string",
-      "description": "Tilldelad leverans (namn)"
+      "type": "string"
     },
     "technician_name": {
-      "type": "string",
-      "description": "Ansvarig tekniker"
+      "type": "string"
     },
     "technician_phone": {
-      "type": "string",
-      "description": "Teknikers telefon"
-    },
-    "delivery_contact_name": {
-      "type": "string",
-      "description": "Leveranskontakt namn"
-    },
-    "delivery_contact_phone": {
-      "type": "string",
-      "description": "Leveranskontakt telefon"
+      "type": "string"
     },
     "project_description": {
-      "type": "string",
-      "description": "Tydlig projektbeskrivning"
+      "type": "string"
     },
     "picking_started_date": {
       "type": "string",
@@ -197,28 +256,23 @@
       "properties": {
         "picked": {
           "type": "boolean",
-          "default": false,
-          "description": "Plockat"
+          "default": false
         },
         "assembled": {
           "type": "boolean",
-          "default": false,
-          "description": "Monterat"
+          "default": false
         },
         "tested": {
           "type": "boolean",
-          "default": false,
-          "description": "Testat"
+          "default": false
         },
         "packed": {
           "type": "boolean",
-          "default": false,
-          "description": "Paketerat"
+          "default": false
         },
         "ready_for_delivery": {
           "type": "boolean",
-          "default": false,
-          "description": "Redo f\u00f6r leverans"
+          "default": false
         }
       }
     },
@@ -229,16 +283,13 @@
       }
     },
     "deviations": {
-      "type": "string",
-      "description": "Avvikelser"
+      "type": "string"
     },
     "picking_notes": {
-      "type": "string",
-      "description": "Plockanteckningar"
+      "type": "string"
     },
     "production_notes": {
-      "type": "string",
-      "description": "Produktionsanteckningar"
+      "type": "string"
     },
     "priority": {
       "type": "string",
@@ -251,12 +302,10 @@
       "default": "normal"
     },
     "drawing_url": {
-      "type": "string",
-      "description": "L\u00e4nk till ritning"
+      "type": "string"
     },
     "bill_of_materials_url": {
-      "type": "string",
-      "description": "L\u00e4nk till stycklista (BOM)"
+      "type": "string"
     },
     "materials_needed": {
       "type": "array",
@@ -285,12 +334,10 @@
             "default": false
           },
           "serial_number": {
-            "type": "string",
-            "description": "Serienummer f\u00f6r sp\u00e5rning"
+            "type": "string"
           }
         }
-      },
-      "description": "Lista \u00f6ver beh\u00f6vda material och deras status"
+      }
     },
     "all_materials_ready": {
       "type": "boolean",
@@ -339,6 +386,9 @@
             "type": "string"
           },
           "name": {
+            "type": "string"
+          },
+          "type": {
             "type": "string"
           }
         }
