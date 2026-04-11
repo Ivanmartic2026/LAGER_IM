@@ -19,6 +19,7 @@ import TechInfoSection from "@/components/workorders/TechInfoSection";
 import DeliverySection from "@/components/workorders/DeliverySection";
 import FilesSection from "@/components/workorders/FilesSection";
 import MaterialsSection from "@/components/workorders/MaterialsSection";
+import TasksSection from "@/components/workorders/TasksSection";
 import { resolveStage } from "@/components/workorders/ProcessFlow";
 
 export default function WorkOrderViewPage() {
@@ -71,6 +72,34 @@ export default function WorkOrderViewPage() {
     queryFn: () => base44.entities.OrderItem.filter({ order_id: workOrder.order_id }),
     enabled: !!workOrder?.order_id
   });
+
+  const { data: tasksByWO = [], refetch: refetchTasks } = useQuery({
+    queryKey: ['tasks', workOrderId, workOrder?.order_id],
+    queryFn: async () => {
+      const [byWO, byOrder] = await Promise.all([
+        base44.entities.Task.filter({ work_order_id: workOrderId }),
+        workOrder?.order_id ? base44.entities.Task.filter({ order_id: workOrder.order_id }) : Promise.resolve([]),
+      ]);
+      // Deduplicate
+      const seen = new Set();
+      const all = [];
+      for (const t of [...byWO, ...byOrder]) {
+        if (!seen.has(t.id)) { seen.add(t.id); all.push(t); }
+      }
+      return all;
+    },
+    enabled: !!workOrderId
+  });
+
+  // Auto-link tasks that have order_id but no work_order_id
+  useEffect(() => {
+    if (!workOrderId || !tasksByWO.length) return;
+    const unlinked = tasksByWO.filter(t => !t.work_order_id && t.order_id === workOrder?.order_id);
+    if (unlinked.length === 0) return;
+    Promise.all(unlinked.map(t => base44.entities.Task.update(t.id, { work_order_id: workOrderId })))
+      .then(() => refetchTasks())
+      .catch(() => {});
+  }, [tasksByWO.length, workOrderId]);
 
   const { data: articles = [] } = useQuery({
     queryKey: ['articles'],
@@ -355,6 +384,9 @@ export default function WorkOrderViewPage() {
 
         {/* SEKTION 6: Material / Artiklar */}
         <MaterialsSection orderItems={orderItems} articles={articles} />
+
+        {/* SEKTION 6b: Uppgifter */}
+        <TasksSection tasks={tasksByWO} onTaskUpdated={refetchTasks} />
 
         {/* SEKTION 7: Filer & Ritningar */}
         <FilesSection workOrder={workOrder} order={order} onFileAdded={handleAddFileToWO} />

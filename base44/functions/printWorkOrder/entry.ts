@@ -10,15 +10,32 @@ Deno.serve(async (req) => {
     const wo = woList[0];
     if (!wo) return Response.json({ error: 'Not found' }, { status: 404 });
 
-    const [orderList, orderItems, externalTasks] = await Promise.all([
+    // Fetch tasks by both work_order_id and order_id, deduplicate, sort high priority first
+    const [orderList, orderItems, tasksByWO, tasksByOrder] = await Promise.all([
       wo.order_id ? base44.asServiceRole.entities.Order.filter({ id: wo.order_id }) : Promise.resolve([]),
       wo.order_id ? base44.asServiceRole.entities.OrderItem.filter({ order_id: wo.order_id }) : Promise.resolve([]),
       base44.asServiceRole.entities.Task.filter({ work_order_id }),
+      wo.order_id ? base44.asServiceRole.entities.Task.filter({ order_id: wo.order_id }) : Promise.resolve([]),
     ]);
     const order = orderList[0] || {};
+    // Combine and deduplicate external tasks
+    const seenIds = new Set();
+    const allExternalTasks = [];
+    for (const t of [...tasksByWO, ...tasksByOrder]) {
+      if (!seenIds.has(t.id)) { seenIds.add(t.id); allExternalTasks.push(t); }
+    }
+    // Sort: urgent/high first, then incomplete before complete
+    const pOrder = { urgent: 0, high: 1, normal: 2, low: 3 };
+    allExternalTasks.sort((a, b) => {
+      const pa = pOrder[a.priority] ?? 2, pb = pOrder[b.priority] ?? 2;
+      if (pa !== pb) return pa - pb;
+      if (a.status === 'completed' && b.status !== 'completed') return 1;
+      if (b.status === 'completed' && a.status !== 'completed') return -1;
+      return 0;
+    });
     // Merge inline tasks (wo.tasks array) with external Task entities
     const inlineTasks = (wo.tasks || []).map(t => ({ name: t.title, description: t.notes, priority: null, assigned_to: t.assigned_name || t.assigned_to, status: t.status === 'klar' ? 'completed' : t.status === 'pågår' ? 'in_progress' : 'pending' }));
-    const tasks = [...inlineTasks, ...externalTasks];
+    const tasks = [...inlineTasks, ...allExternalTasks];
 
     const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const fmtDate = (d) => { if (!d) return '—'; try { return new Date(d).toLocaleDateString('sv-SE'); } catch { return '—'; } };
