@@ -51,9 +51,10 @@ export default function FilesSection({ workOrder, order, onFileAdded }) {
   const allFiles = [];
   const seen = new Set();
 
-  if (order?.source_document_url) {
-    allFiles.push({ url: order.source_document_url, name: 'Källdokument (offert/PO)', type: 'other' });
-    seen.add(order.source_document_url);
+  const sourceUrl = workOrder?.source_document_url || order?.source_document_url;
+  if (sourceUrl) {
+    allFiles.push({ url: sourceUrl, name: 'Källdokument (PO/Offert)', type: 'other' });
+    seen.add(sourceUrl);
   }
   for (const f of (order?.uploaded_files || [])) {
     if (!seen.has(f.url)) { allFiles.push(f); seen.add(f.url); }

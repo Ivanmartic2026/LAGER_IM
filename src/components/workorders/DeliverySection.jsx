@@ -16,7 +16,7 @@ function Row({ icon: Icon, label, value, href }) {
         <p className="text-xs text-white/40 uppercase tracking-wider">{label}</p>
         {href
           ? <a href={href} className="text-sm font-medium text-blue-400 hover:text-blue-300">{value}</a>
-          : <p className="text-sm font-medium text-white">{value}</p>
+          : <p className="text-sm font-medium text-white whitespace-pre-wrap">{value}</p>
         }
       </div>
     </div>

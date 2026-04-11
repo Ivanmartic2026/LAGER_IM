@@ -31,6 +31,8 @@ export default function TechInfoSection({ workOrder, order }) {
   const rmId = wo.rm_system_id || order?.rm_system_id;
   const fortnoxProjNum = wo.fortnox_project_number || order?.fortnox_project_number;
   const fortnoxProjName = wo.fortnox_project_name || order?.fortnox_project_name;
+  const fortnoxCustNum = wo.fortnox_customer_number || order?.fortnox_customer_number;
+  const fortnoxOrderId = wo.fortnox_order_id || order?.fortnox_order_id;
 
   const hasTech = screenDimensions || pixelPitch || moduleCount != null || installationType || installationDate;
   const hasExtra = siteVisitInfo || siteNames.length > 0 || rmUrl || fortnoxProjNum;
@@ -70,6 +72,18 @@ export default function TechInfoSection({ workOrder, order }) {
             <div>
               <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Fortnox Projekt</p>
               <p className="text-sm font-semibold text-white">#{fortnoxProjNum}{fortnoxProjName ? ` — ${fortnoxProjName}` : ''}</p>
+            </div>
+          )}
+          {fortnoxCustNum && (
+            <div>
+              <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Fortnox Kundnr</p>
+              <p className="text-sm font-semibold text-white">{fortnoxCustNum}</p>
+            </div>
+          )}
+          {fortnoxOrderId && (
+            <div>
+              <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Fortnox Ordernr</p>
+              <p className="text-sm font-semibold text-white">{fortnoxOrderId}</p>
             </div>
           )}
           {rmUrl && (
