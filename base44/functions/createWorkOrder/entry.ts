@@ -51,9 +51,12 @@ Deno.serve(async (req) => {
       const inStock = article?.stock_qty || 0;
       const quantity = item.quantity_ordered || 0;
       const missing = Math.max(0, quantity - inStock);
+      const shelfAddr = item.shelf_address || (article?.shelf_address?.[0] ?? '');
       return {
         article_id: item.article_id,
         article_name: item.article_name || article?.name || '',
+        batch_number: item.article_batch_number || article?.batch_number || '',
+        shelf_address: shelfAddr,
         quantity,
         in_stock: inStock,
         missing,
@@ -93,6 +96,8 @@ Deno.serve(async (req) => {
       site_ids: order.site_ids || [],
       site_names: order.site_names || [],
       site_visit_info: order.site_visit_info || null,
+      // Source document
+      source_document_url: order.source_document_url || null,
       // Files
       uploaded_files: order.uploaded_files || [],
       // Status

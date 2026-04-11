@@ -34,6 +34,18 @@
       "type": "string",
       "description": "Fortnox projektnamn"
     },
+    "fortnox_order_id": {
+      "type": "string",
+      "description": "Fortnox ordernummer"
+    },
+    "fortnox_document_number": {
+      "type": "string",
+      "description": "Fortnox dokumentnummer"
+    },
+    "source_document_url": {
+      "type": "string",
+      "description": "K\u00e4lldokument (PO/offert PDF)"
+    },
     "delivery_date": {
       "type": "string",
       "format": "date",
@@ -46,6 +58,10 @@
     "delivery_method": {
       "type": "string",
       "description": "Leveranss\u00e4tt"
+    },
+    "shipping_company": {
+      "type": "string",
+      "description": "Spedit\u00f6r"
     },
     "delivery_contact_name": {
       "type": "string",
@@ -316,6 +332,12 @@
             "type": "string"
           },
           "article_name": {
+            "type": "string"
+          },
+          "batch_number": {
+            "type": "string"
+          },
+          "shelf_address": {
             "type": "string"
           },
           "quantity": {
