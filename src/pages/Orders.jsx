@@ -900,13 +900,25 @@ export default function OrdersPage() {
                       </div>
                     </div>
 
-                    {/* Work order handover status */}
-                    {workOrders.find(w => w.order_id === order.id) && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-400" />
-                        <span className="text-xs text-green-400 font-medium">Överlämnad till arbetsorder</span>
-                      </div>
-                    )}
+                    {/* Workflow phase badge */}
+                    <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                      {['SÄLJ','KONSTRUKTION','PRODUKTION','LAGER','MONTERING'].map((phase, idx) => {
+                        const phaseIdx = ['SÄLJ','KONSTRUKTION','PRODUKTION','LAGER','MONTERING'].indexOf(order.status);
+                        const phaseColors = ['bg-slate-500/20 text-slate-400','bg-blue-500/20 text-blue-400','bg-purple-500/20 text-purple-400','bg-orange-500/20 text-orange-400','bg-green-500/20 text-green-400'];
+                        const phaseLabels = ['Sälj','PL','Konstr.','Lager','Tekniker'];
+                        return (
+                          <span key={phase}
+                            className={cn(
+                              'text-[10px] px-1.5 py-0.5 rounded font-medium transition-all',
+                              idx === phaseIdx ? phaseColors[idx] + ' ring-1 ring-current' :
+                              idx < phaseIdx ? 'bg-green-500/10 text-green-400/60' :
+                              'bg-white/5 text-white/20'
+                            )}>
+                            {idx < phaseIdx ? '✓ ' : ''}{phaseLabels[idx]}
+                          </span>
+                        );
+                      })}
+                    </div>
 
                     <div className="flex items-start justify-between">
                       <div></div>

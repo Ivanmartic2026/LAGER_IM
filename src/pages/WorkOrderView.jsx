@@ -20,6 +20,7 @@ import DeliverySection from "@/components/workorders/DeliverySection";
 import FilesSection from "@/components/workorders/FilesSection";
 import MaterialsSection from "@/components/workorders/MaterialsSection";
 import TasksSection from "@/components/workorders/TasksSection";
+import RoleAssignmentSection from "@/components/workorders/RoleAssignmentSection";
 import { resolveStage } from "@/components/workorders/ProcessFlow";
 
 export default function WorkOrderViewPage() {
@@ -385,8 +386,12 @@ export default function WorkOrderViewPage() {
         {/* SEKTION 6: Material / Artiklar */}
         <MaterialsSection orderItems={orderItems} articles={articles} />
 
+        {/* Rollfördelning */}
+        <RoleAssignmentSection workOrder={workOrder}
+          onSave={() => queryClient.invalidateQueries({ queryKey: ['workOrder', workOrderId] })} />
+
         {/* SEKTION 6b: Uppgifter */}
-        <TasksSection tasks={tasksByWO} onTaskUpdated={refetchTasks} />
+        <TasksSection tasks={tasksByWO} workOrderId={workOrderId} orderId={workOrder?.order_id} onTaskUpdated={refetchTasks} />
 
         {/* SEKTION 7: Filer & Ritningar */}
         <FilesSection workOrder={workOrder} order={order} onFileAdded={handleAddFileToWO} />

@@ -40,6 +40,15 @@
       "default": "to_do",
       "description": "Status"
     },
+    "role": {
+      "type": "string",
+      "enum": [
+        "pl_konstruktor",
+        "lager",
+        "tekniker"
+      ],
+      "description": "Vilken roll uppgiften tillh\u00f6r"
+    },
     "order_id": {
       "type": "string",
       "description": "Referens till Order"

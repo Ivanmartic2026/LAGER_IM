@@ -148,6 +148,17 @@ export default function OrderDetailPage() {
     );
   }
 
+  // Workflow status bar
+  const WORKFLOW_PHASES = [
+    { key: 'SÄLJ',         label: 'Säljare',       role: order.created_by },
+    { key: 'KONSTRUKTION', label: 'Projektledare', role: linkedWorkOrders[0]?.assigned_to_produktion_name },
+    { key: 'PRODUKTION',   label: 'Konstruktör',   role: linkedWorkOrders[0]?.assigned_to_konstruktion_name },
+    { key: 'LAGER',        label: 'Lager',         role: linkedWorkOrders[0]?.assigned_to_lager_name },
+    { key: 'MONTERING',    label: 'Tekniker',      role: linkedWorkOrders[0]?.assigned_to_montering_name || linkedWorkOrders[0]?.technician_name },
+  ];
+  const phaseOrder = ['SÄLJ','KONSTRUKTION','PRODUKTION','LAGER','MONTERING'];
+  const currentPhaseIdx = phaseOrder.indexOf(order.status);
+
   const statusColors = {
     draft: "bg-slate-500/20 text-slate-400 border-slate-500/30",
     'SÄLJ': "bg-slate-500/20 text-slate-400 border-slate-500/30",
@@ -250,6 +261,73 @@ export default function OrderDetailPage() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Workflow Status Bar */}
+        <div className="mb-6 bg-white/5 rounded-2xl border border-white/10 p-4">
+          <div className="flex items-center justify-between overflow-x-auto gap-1">
+            {WORKFLOW_PHASES.map((phase, idx) => {
+              const isDone = currentPhaseIdx > idx;
+              const isActive = currentPhaseIdx === idx;
+              return (
+                <div key={phase.key} className="flex items-center gap-1 flex-1 min-w-0">
+                  <div className={cn("flex-1 flex flex-col items-center p-2 rounded-xl text-center min-w-[70px] transition-all",
+                    isActive ? "bg-blue-600/30 border border-blue-500/50" :
+                    isDone ? "bg-green-500/15 border border-green-500/30" :
+                    "bg-white/5 border border-white/10 opacity-50"
+                  )}>
+                    <span className={cn("text-lg", isDone ? "" : isActive ? "" : "")}>
+                      {isDone ? "✅" : isActive ? "🔵" : "⬜"}
+                    </span>
+                    <span className={cn("text-[10px] font-bold uppercase tracking-wide mt-0.5",
+                      isActive ? "text-blue-300" : isDone ? "text-green-400" : "text-white/30")}>
+                      {phase.label}
+                    </span>
+                    {phase.role && (
+                      <span className="text-[9px] text-white/40 truncate max-w-full mt-0.5">
+                        {String(phase.role).split('@')[0].replace('.', ' ')}
+                      </span>
+                    )}
+                  </div>
+                  {idx < WORKFLOW_PHASES.length - 1 && (
+                    <div className={cn("w-4 h-0.5 flex-shrink-0", isDone ? "bg-green-400" : "bg-white/10")} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {order.status === 'SÄLJ' && !order.sales_completed && (
+            <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-3">
+              <Button size="sm"
+                className="bg-green-600 hover:bg-green-500 text-white gap-2"
+                onClick={async () => {
+                  await updateOrderMutation.mutateAsync({ id: order.id, data: {
+                    sales_completed: true, status: 'KONSTRUKTION'
+                  }});
+                  try {
+                    const users = await base44.entities.User.list();
+                    const admins = users.filter(u => u.role === 'admin');
+                    await Promise.all(admins.map(u => base44.entities.Notification.create({
+                      user_email: u.email,
+                      title: `Order ${order.order_number || order.id.slice(0,8)} redo för PL`,
+                      message: `Order ${order.order_number} (${order.customer_name}) är redo för projektledning.`,
+                      type: 'order_status', priority: 'normal',
+                      link_to: order.id, link_page: 'OrderDetail'
+                    })));
+                  } catch {}
+                  toast.success('Försäljning markerad klar — order redo för projektledare!');
+                }}
+                disabled={updateOrderMutation.isPending}>
+                ✅ Markera försäljning klar
+              </Button>
+              <span className="text-xs text-white/40">Skickar notis till projektledare</span>
+            </div>
+          )}
+          {order.sales_completed && order.status === 'KONSTRUKTION' && (
+            <div className="mt-3 pt-3 border-t border-white/10">
+              <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 px-3 py-1.5 rounded-full">✅ Redo för projektledare</span>
+            </div>
+          )}
         </div>
 
         {/* Content */}
