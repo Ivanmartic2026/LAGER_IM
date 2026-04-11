@@ -205,6 +205,25 @@ export default function OrderEdit() {
       // Always sync reserved stock after saving
       await base44.functions.invoke('syncReservedStock');
 
+      // Sync materials_needed on linked work orders
+      const linkedWorkOrders = await base44.entities.WorkOrder.filter({ order_id: savedOrder.id });
+      for (const wo of linkedWorkOrders) {
+        const updatedMaterials = orderItems.map(item => {
+          const article = articles.find(a => a.id === item.article_id);
+          const existing = (wo.materials_needed || []).find(m => m.article_id === item.article_id);
+          return {
+            article_id: item.article_id,
+            article_name: article?.name || item.article_name,
+            quantity: item.quantity_ordered,
+            in_stock: existing?.in_stock ?? (article?.stock_qty || 0),
+            missing: existing?.missing ?? 0,
+            needs_purchase: existing?.needs_purchase ?? false,
+            serial_number: existing?.serial_number || '',
+          };
+        });
+        await base44.entities.WorkOrder.update(wo.id, { materials_needed: updatedMaterials });
+      }
+
       return savedOrder;
     },
     onSuccess: async (savedOrder) => {
