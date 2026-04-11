@@ -40,6 +40,17 @@
       "default": "to_do",
       "description": "Status"
     },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "s\u00e4ljare",
+        "konstruktion",
+        "produktion",
+        "lager",
+        "montering"
+      ],
+      "description": "Vilken fas i fl\u00f6det tasken tillh\u00f6r"
+    },
     "role": {
       "type": "string",
       "enum": [
@@ -47,7 +58,7 @@
         "lager",
         "tekniker"
       ],
-      "description": "Vilken roll uppgiften tillh\u00f6r"
+      "description": "Vilken roll som utf\u00f6r uppgiften"
     },
     "order_id": {
       "type": "string",
