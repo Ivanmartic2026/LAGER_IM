@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer, FileUp, Download, X, AlertTriangle, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Printer, AlertTriangle, ShoppingCart, FileText, MessageSquare } from "lucide-react";
 import PurchaseOrderForm from "@/components/orders/PurchaseOrderForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -14,7 +14,11 @@ import ProcessFlow from "@/components/workorders/ProcessFlow";
 import StageContent from "@/components/workorders/StageContent";
 import DocumentSection from "@/components/workorders/DocumentSection";
 import ActivityFeed from "@/components/activity/ActivityFeed";
-import ProjectInfoCard from "@/components/orders/ProjectInfoCard";
+import CriticalNotesBanner from "@/components/workorders/CriticalNotesBanner";
+import TechInfoSection from "@/components/workorders/TechInfoSection";
+import DeliverySection from "@/components/workorders/DeliverySection";
+import FilesSection from "@/components/workorders/FilesSection";
+import MaterialsSection from "@/components/workorders/MaterialsSection";
 import { resolveStage } from "@/components/workorders/ProcessFlow";
 
 export default function WorkOrderViewPage() {
@@ -73,17 +77,10 @@ export default function WorkOrderViewPage() {
     queryFn: () => base44.entities.Article.list()
   });
 
-  // Initialize files
-  useEffect(() => {
-    if (!workOrder) return;
-    const saved = workOrder.uploaded_files || [];
-    const sourceDoc = order?.source_document_url
-      ? [{ url: order.source_document_url, name: 'Original order document' }]
-      : [];
-    const sourceUrls = new Set(sourceDoc.map(f => f.url));
-    const extra = saved.filter(f => !sourceUrls.has(f.url));
-    setFiles([...sourceDoc, ...extra]);
-  }, [workOrder?.uploaded_files, order?.source_document_url]);
+  const handleAddFileToWO = async (fileObj) => {
+    const current = workOrder.uploaded_files || [];
+    await updateWOMutation.mutateAsync({ id: workOrderId, data: { uploaded_files: [...current, fileObj] } });
+  };
 
   const updateWOMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.WorkOrder.update(id, data),
@@ -276,21 +273,7 @@ export default function WorkOrderViewPage() {
     <div className="min-h-screen bg-black p-4 md:p-6">
       <div className="max-w-3xl mx-auto space-y-4">
 
-        {/* Project Info Card */}
-        {order && <ProjectInfoCard order={order} />}
-
-        {/* OBS Banner */}
-        {order?.notes && (
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
-            <span className="text-2xl flex-shrink-0">⚠️</span>
-            <div>
-              <p className="text-xs text-amber-300 font-semibold mb-1">OBS FRÅN SÄLJ</p>
-              <p className="text-sm text-white whitespace-pre-wrap">{order.notes}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Back + Print */}
+        {/* Back + Print buttons */}
         <div className="flex items-center justify-between">
           <Link to={createPageUrl('WorkOrders')}>
             <Button variant="ghost" className="text-white/60 hover:text-white -ml-2">
@@ -299,26 +282,21 @@ export default function WorkOrderViewPage() {
             </Button>
           </Link>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+            <Button variant="outline" size="sm"
               className="bg-white/5 border-white/20 hover:bg-white/10 text-white gap-2"
-              onClick={() => window.open(`/PrintPickList?id=${workOrderId}`, '_blank')}
-            >
-              <Printer className="w-4 h-4" />
-              Plocklista
+              onClick={() => window.open(`/PrintPickList?id=${workOrderId}`, '_blank')}>
+              <Printer className="w-4 h-4" /> Plocklista
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
+            <Button variant="outline" size="sm"
               className="bg-white/5 border-white/20 hover:bg-white/10 text-white gap-2"
-              onClick={() => window.open(`/PrintWorkOrder?id=${workOrderId}`, '_blank')}
-            >
-              <Printer className="w-4 h-4" />
-              Arbetsorder
+              onClick={() => window.open(`/PrintWorkOrder?id=${workOrderId}`, '_blank')}>
+              <Printer className="w-4 h-4" /> Arbetsorder
             </Button>
           </div>
         </div>
+
+        {/* SEKTION 0: Critical Notes Banner */}
+        <CriticalNotesBanner text={workOrder.critical_notes || order?.critical_notes} />
 
         {/* Material shortage warning */}
         {missingMaterials.length > 0 && (
@@ -329,18 +307,14 @@ export default function WorkOrderViewPage() {
                 ⚠️ Material saknas — {missingMaterials.length} artikel{missingMaterials.length !== 1 ? 'ar' : ''} behöver beställas
               </p>
             </div>
-            <Button
-              size="sm"
-              onClick={handleCreatePOForMissing}
-              className="bg-red-600 hover:bg-red-500 text-white gap-1.5 flex-shrink-0"
-            >
-              <ShoppingCart className="w-3.5 h-3.5" />
-              Skapa inköpsorder
+            <Button size="sm" onClick={handleCreatePOForMissing}
+              className="bg-red-600 hover:bg-red-500 text-white gap-1.5 flex-shrink-0">
+              <ShoppingCart className="w-3.5 h-3.5" /> Skapa inköpsorder
             </Button>
           </div>
         )}
 
-        {/* WorkOrder Header */}
+        {/* SEKTION 1: Header */}
         <WorkOrderHeader
           workOrder={workOrder}
           order={order}
@@ -348,7 +322,7 @@ export default function WorkOrderViewPage() {
           onStatusChange={(status) => updateWOMutation.mutateAsync({ id: workOrderId, data: { status } })}
         />
 
-        {/* Process Flow with initials + timestamps */}
+        {/* SEKTION 4: Process Flow */}
         <ProcessFlow
           workOrder={workOrder}
           onStageClick={async (stageKey) => {
@@ -357,64 +331,67 @@ export default function WorkOrderViewPage() {
           }}
         />
 
-        {/* Stage-specific content (Hero + stage actions) */}
+        {/* SEKTION 2: Teknisk information */}
+        <TechInfoSection workOrder={workOrder} order={order} />
+
+        {/* SEKTION 3: Leverans & Kontakt */}
+        <DeliverySection workOrder={workOrder} order={order} />
+
+        {/* SEKTION 5: Stage content (checklista + fasspecifikt innehåll) */}
         <div style={{ backgroundColor: '#111827' }} className="rounded-2xl">
-        <StageContent
-          workOrder={workOrder}
-          order={order}
-          orderItems={orderItems}
-          articles={articles}
-          onSaveNotes={handleSaveNotes}
-          onWithdraw={handleWithdrawFromStock}
-          onImageUpload={handleImageUpload}
-          onChecklistChange={handleChecklistChange}
-          onAdvanceStage={handleAdvanceStage}
-          uploadingImages={uploadingImages}
-        />
+          <StageContent
+            workOrder={workOrder}
+            order={order}
+            orderItems={orderItems}
+            articles={articles}
+            onSaveNotes={handleSaveNotes}
+            onWithdraw={handleWithdrawFromStock}
+            onImageUpload={handleImageUpload}
+            onChecklistChange={handleChecklistChange}
+            onAdvanceStage={handleAdvanceStage}
+            uploadingImages={uploadingImages}
+          />
         </div>
 
-        {/* Documentation */}
+        {/* SEKTION 6: Material / Artiklar */}
+        <MaterialsSection orderItems={orderItems} articles={articles} />
+
+        {/* SEKTION 7: Filer & Ritningar */}
+        <FilesSection workOrder={workOrder} order={order} onFileAdded={handleAddFileToWO} />
+
+        {/* Documents (ritning_url, bom_url etc.) */}
         <DocumentSection
           workOrder={workOrder}
           onUpload={handleUploadFile}
           onRemove={(field) => updateWOMutation.mutateAsync({ id: workOrderId, data: { [field]: null } })}
         />
 
-        {/* Attachments */}
-        <div className="bg-black rounded-2xl border border-white/10 p-5">
-          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-            <FileUp className="w-4 h-4" />
-            Bilagor
-          </h3>
-          {files.length > 0 && (
-            <div className="space-y-2 mb-4">
-              {files.map((file, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10">
-                  <a href={file.url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-blue-400 hover:text-blue-300 flex-1 min-w-0">
-                    <Download className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate text-sm">{file.name}</span>
-                  </a>
-                  <button onClick={() => handleRemoveFile(idx)}
-                    className="text-white/40 hover:text-red-400 transition-colors flex-shrink-0 ml-2">
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <label className="block">
-            <input type="file" onChange={handleAddFile} className="hidden" />
-            <div className="p-4 rounded-lg border border-dashed border-white/20 hover:border-white/40 text-center cursor-pointer transition-colors">
-              <p className="text-white/60 text-sm">Klicka för att ladda upp fil</p>
-            </div>
-          </label>
-        </div>
+        {/* SEKTION 8: Anteckningar */}
+        {(order?.notes || workOrder.production_notes || workOrder.picking_notes || workOrder.deviations) && (
+          <div className="bg-black rounded-2xl border border-white/10 p-5">
+            <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-white/50" />
+              Anteckningar
+            </h3>
+            {order?.notes && (
+              <div className="mb-4">
+                <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Orderanteckningar</p>
+                <p className="text-sm text-white/70 whitespace-pre-wrap">{order.notes}</p>
+              </div>
+            )}
+            {workOrder.deviations && (
+              <div className="mb-4">
+                <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Avvikelser</p>
+                <p className="text-sm text-white/70 whitespace-pre-wrap">{workOrder.deviations}</p>
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Activity Feed */}
+        {/* Aktivitetslogg */}
         <div className="bg-black rounded-2xl border border-white/10 p-5">
-          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
+          <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-white/50" />
             Aktivitetslogg
           </h3>
           <ActivityFeed
