@@ -70,6 +70,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: "MedarbetarOversikt", label: t('nav_employees', language), icon: Users },
     { name: "TidsRapport", label: t('nav_timesheet', language), icon: Clock },
     { name: "KilometerErsattning", label: t('nav_mileage', language), icon: Car },
+    { name: "FortnoxCustomers", label: "Fortnox-kunder", icon: ShoppingCart },
   ];
 
   const visibleNavItems = NAV_ITEMS.filter(item => !item.module || userModules.includes(item.module));
