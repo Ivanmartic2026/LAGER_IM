@@ -3,243 +3,237 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-
     const { work_order_id } = await req.json();
+    if (!work_order_id) return Response.json({ error: 'Missing work_order_id' }, { status: 400 });
 
-    const [woList] = await Promise.all([
-      base44.asServiceRole.entities.WorkOrder.filter({ id: work_order_id }),
-    ]);
-
+    const woList = await base44.asServiceRole.entities.WorkOrder.filter({ id: work_order_id });
     const wo = woList[0];
     if (!wo) return Response.json({ error: 'Not found' }, { status: 404 });
 
-    const [orderList, orderItems, activities, designerTasks, articles] = await Promise.all([
-      base44.asServiceRole.entities.Order.filter({ id: wo.order_id }),
-      base44.asServiceRole.entities.OrderItem.filter({ order_id: wo.order_id }),
-      base44.asServiceRole.entities.WorkOrderActivity.filter({ work_order_id }),
+    const [orderList, orderItems, tasks] = await Promise.all([
+      wo.order_id ? base44.asServiceRole.entities.Order.filter({ id: wo.order_id }) : Promise.resolve([]),
+      wo.order_id ? base44.asServiceRole.entities.OrderItem.filter({ order_id: wo.order_id }) : Promise.resolve([]),
       base44.asServiceRole.entities.Task.filter({ work_order_id }),
-      base44.asServiceRole.entities.Article.list(),
     ]);
     const order = orderList[0] || {};
-    
-    // Enrich orderItems with article ETA data
-    const enrichedItems = orderItems.map(item => {
-      const article = articles.find(a => a.id === item.article_id);
-      return {
-        ...item,
-        transit_expected_date: article?.transit_expected_date || item.transit_expected_date
-      };
-    });
-
-    const stageLabels = { picking: 'Picking', production: 'Production', delivery: 'Delivery', completed: 'Completed' };
-    const priorityLabels = { låg: 'Low', normal: 'Normal', hög: 'High', brådskande: 'Urgent', low: 'Low', high: 'High', urgent: 'Urgent' };
-    const statusLabels = { väntande: 'Pending', pågår: 'In Progress', klar: 'Done', avbruten: 'Cancelled' };
-    const typeLabels = { comment: 'Comment', system: 'System', decision: 'Decision', assignment: 'Assignment', file_upload: 'File', status_change: 'Status', field_change: 'Field' };
 
     const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('sv-SE') : '—';
-    const fmtDT = (d) => d ? new Date(d).toLocaleString('sv-SE') : '—';
+    const fmtDate = (d) => { if (!d) return '—'; try { return new Date(d).toLocaleDateString('sv-SE'); } catch { return '—'; } };
+    const fmtDT = (d) => { if (!d) return '—'; try { return new Date(d).toLocaleString('sv-SE'); } catch { return '—'; } };
 
-    const checkRows = wo.checklist ? [
-      ['Picked', wo.checklist.picked],
-      ['Assembled', wo.checklist.assembled],
-      ['Tested', wo.checklist.tested],
-      ['Packed', wo.checklist.packed],
-      ['Ready for delivery', wo.checklist.ready_for_delivery],
-    ] : [];
+    const installTypeLabels = {
+      ny_installation: 'Ny installation', byte_uppgradering: 'Byte/uppgradering',
+      tillagg: 'Tillägg', service_reparation: 'Service/reparation', uthyrning_event: 'Uthyrning/event',
+    };
+    const priorityLabels = { low: 'Låg', normal: 'Normal', high: 'Hög', urgent: 'BRÅDSKANDE' };
 
-    const sorted = [...(activities || [])].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+    const materials = (wo.materials_needed && wo.materials_needed.length > 0)
+      ? wo.materials_needed
+      : orderItems.map(i => ({
+          article_name: i.article_name,
+          article_sku: i.article_batch_number,
+          shelf_address: i.shelf_address,
+          quantity_needed: i.quantity_ordered,
+        }));
+    const totalItems = materials.reduce((s, m) => s + (m.quantity_needed || 0), 0);
+    const checklist = wo.checklist || {};
+    const now = new Date();
+    const hasNotes = order.critical_notes || order.notes || order.ordering_notes || wo.project_description || wo.picking_notes || wo.production_notes;
 
     const html = `<!DOCTYPE html>
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Arbetsorder – ${esc(wo.name || wo.order_number || '')}</title>
+<title>Arbetsorder – ${esc(order.order_number || wo.order_number || '')}</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 12px; color: #111; background: #fff; padding: 0; margin: 0; }
-  .page { padding: 28px 32px; }
-  h1 { font-size: 22px; color: #111; margin: 0; }
-  h2 { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; background: #111; color: #fff; padding: 5px 10px; margin: 18px 0 6px; border-radius: 4px; }
-  .top-bar { background: #000; color: #fff; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; }
-  .top-bar-right { text-align: right; font-size: 11px; opacity: 0.85; }
-  .logo { height: 32px; object-fit: contain; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px; margin-bottom: 14px; margin-top: 14px; }
-  .header-right { text-align: right; color: #555; font-size: 11px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  .box { background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 6px 8px; }
-  .box .label { font-size: 10px; color: #666; margin-bottom: 2px; }
-  .box .value { font-weight: bold; font-size: 12px; }
-  .field { display: flex; gap: 8px; margin-bottom: 4px; }
-  .field .fl { color: #555; font-weight: bold; min-width: 140px; }
-  table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  thead tr { background: #e5e5e5; }
-  th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
-  tr:nth-child(even) { background: #fafafa; }
-  .check { margin-bottom: 4px; }
-  .check.done { color: #16a34a; }
-  .check.todo { color: #999; }
-  .act-row { border-bottom: 1px solid #eee; padding: 5px 0; }
-  .act-meta { font-size: 10px; color: #888; margin-bottom: 2px; }
-  .act-msg { font-size: 11px; }
-  .badge { display: inline-block; font-size: 10px; padding: 1px 5px; border-radius: 10px; font-weight: bold; margin-right: 4px; }
-  .badge-blue { background: #e5e7eb; color: #111; }
-  .badge-purple { background: #ede9fe; color: #6d28d9; }
-  .badge-gray { background: #f3f4f6; color: #555; }
-  @media print {
-    body { padding: 10px; }
-    @page { margin: 15mm; size: A4; }
-  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f4f4f0; color: #111; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 10pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @media print { body { background: white; } .no-print { display: none !important; } @page { size: A4 portrait; margin: 0; } }
+  .page { max-width: 210mm; margin: 0 auto; background: white; min-height: 297mm; display: flex; flex-direction: column; }
+  .top-bar { background: #111; color: white; padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; }
+  .top-bar-logo { font-size: 20pt; font-weight: 900; letter-spacing: 0.12em; }
+  .top-bar-sub { font-size: 8pt; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; margin-top: 2px; }
+  .top-bar-title { font-size: 18pt; font-weight: 700; letter-spacing: 0.04em; text-align: center; }
+  .top-bar-meta { text-align: right; font-size: 9pt; color: rgba(255,255,255,0.7); line-height: 1.7; }
+  .top-bar-meta strong { color: white; }
+  .content { padding: 20px 28px; flex: 1; }
+  .section { margin-bottom: 14px; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
+  .section-header { background: #f0f0ed; padding: 7px 14px; font-size: 8pt; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; border-bottom: 1px solid #e0e0e0; }
+  .section-body { padding: 12px 14px; }
+  .section-yellow { border-color: #f4d03f; }
+  .section-yellow .section-header { background: #fef9e7; border-bottom-color: #f4d03f; color: #7d6608; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field { margin-bottom: 10px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label { font-size: 7.5pt; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+  .field-value { font-size: 10.5pt; font-weight: 500; color: #111; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #111; }
+  th { padding: 8px 10px; text-align: left; font-size: 8.5pt; font-weight: 600; letter-spacing: 0.04em; color: white; }
+  td { padding: 7px 10px; border-bottom: 1px solid #ececec; font-size: 9.5pt; color: #222; vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) td { background: #fafafa; }
+  .cb { font-size: 14pt; text-align: center; color: #bbb; }
+  .checklist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; }
+  .checklist-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 10pt; }
+  .note-box { white-space: pre-wrap; font-size: 10pt; line-height: 1.6; color: #333; }
+  .total-row { text-align: right; font-size: 9pt; color: #555; padding: 8px 10px; }
+  .sig-row { display: flex; gap: 32px; margin-bottom: 12px; }
+  .sig-field { flex: 1; }
+  .sig-label { font-size: 8pt; color: #888; margin-bottom: 2px; }
+  .sig-line { border-bottom: 1px solid #333; display: block; width: 100%; margin-top: 24px; }
+  .footer { padding: 10px 28px; border-top: 1px solid #e0e0e0; font-size: 8pt; color: #aaa; display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
+  .print-bar { background: #1d4ed8; padding: 12px 24px; display: flex; align-items: center; gap: 16px; }
+  .print-btn { background: white; color: #1d4ed8; border: none; padding: 8px 20px; font-size: 13px; font-weight: 600; border-radius: 5px; cursor: pointer; }
+  .print-info { color: rgba(255,255,255,0.8); font-size: 11px; }
 </style>
 </head>
 <body>
 
-<div class="top-bar">
-  <img src="https://media.base44.com/images/public/69455d52c9eab36b7d26cc74/81c7616fb_LogoLIGGANDE_IMvision_VITtkopia.png" class="logo" alt="IMvision" />
-  <div class="top-bar-right">
-    <div style="font-size:13px;font-weight:bold;letter-spacing:0.05em">WORK ORDER</div>
-    <div style="margin-top:2px">${esc(wo.name || wo.order_number || '')}</div>
-  </div>
+<div class="no-print print-bar">
+  <button class="print-btn" onclick="window.print()">🖨️ Skriv ut</button>
+  <span class="print-info">ARBETSORDER — ${esc(order.customer_name || wo.customer_name)} · ${esc(order.order_number || wo.order_number || '—')}</span>
 </div>
 
 <div class="page">
-<div class="header">
-  <div>
-    <div style="font-size:10px;color:#888;margin-bottom:4px;">WORK ORDER</div>
-    <h1>${esc(wo.name || wo.order_number || work_order_id.slice(0,8))}</h1>
-    <div style="margin-top:4px;font-size:11px;color:#555;">
-      Status: <strong>${esc(statusLabels[wo.status] || wo.status || '—')}</strong>
-      &nbsp;|&nbsp; Stage: <strong>${esc(stageLabels[wo.current_stage] || wo.current_stage || '—')}</strong>
-      &nbsp;|&nbsp; Priority: <strong>${esc(priorityLabels[wo.priority] || wo.priority || 'Normal')}</strong>
+  <div class="top-bar">
+    <div>
+      <div class="top-bar-logo">IM VISION</div>
+      <div class="top-bar-sub">IM Vision Group AB</div>
+    </div>
+    <div class="top-bar-title">ARBETSORDER</div>
+    <div class="top-bar-meta">
+      <div><strong>AO:</strong> ${esc(order.order_number || wo.order_number || '—')}</div>
+      <div><strong>Datum:</strong> ${fmtDate(wo.created_date)}</div>
+      <div><strong>Prioritet:</strong> ${esc(priorityLabels[wo.priority] || 'Normal')}</div>
     </div>
   </div>
-  <div class="header-right">
-    <div>Printed: ${fmtDT(new Date())}</div>
-    ${order.order_number ? `<div>Order No: <strong>${esc(order.order_number)}</strong></div>` : ''}
-    ${wo.delivery_date || order.delivery_date ? `<div>Delivery: <strong>${esc(wo.delivery_date || order.delivery_date)}</strong></div>` : ''}
+
+  <div class="content">
+
+    <div class="section">
+      <div class="section-header">Projektinformation</div>
+      <div class="section-body">
+        <div class="grid2">
+          <div>
+            <div class="field"><div class="field-label">Kund</div><div class="field-value">${esc(order.customer_name || wo.customer_name || '—')}</div></div>
+            <div class="field"><div class="field-label">Referens</div><div class="field-value">${esc(order.customer_reference || '—')}</div></div>
+            <div class="field"><div class="field-label">Ordernummer</div><div class="field-value">${esc(order.order_number || '—')}</div></div>
+            ${order.fortnox_project_number ? `<div class="field"><div class="field-label">Fortnox Projekt</div><div class="field-value">#${esc(order.fortnox_project_number)}${order.fortnox_project_name ? ` – ${esc(order.fortnox_project_name)}` : ''}</div></div>` : ''}
+          </div>
+          <div>
+            <div class="field"><div class="field-label">Leveransdatum</div><div class="field-value">${fmtDate(order.delivery_date)}</div></div>
+            ${order.installation_date ? `<div class="field"><div class="field-label">Installationsdatum</div><div class="field-value">${fmtDate(order.installation_date)}</div></div>` : ''}
+            <div class="field"><div class="field-label">Leveransadress</div><div class="field-value">${esc(order.delivery_address || '—')}</div></div>
+            <div class="field"><div class="field-label">Kontakt</div><div class="field-value">${esc([order.delivery_contact_name, order.delivery_contact_phone].filter(Boolean).join(' · ') || '—')}</div></div>
+            ${order.installation_type ? `<div class="field"><div class="field-label">Installationstyp</div><div class="field-value">${esc(installTypeLabels[order.installation_type] || order.installation_type)}</div></div>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${(order.screen_dimensions || order.pixel_pitch || order.module_count != null || order.site_visit_info) ? `
+    <div class="section">
+      <div class="section-header">Teknisk information</div>
+      <div class="section-body">
+        <div class="grid2">
+          <div>
+            ${order.screen_dimensions ? `<div class="field"><div class="field-label">Skärmdimensioner</div><div class="field-value">${esc(order.screen_dimensions)}</div></div>` : ''}
+            ${order.pixel_pitch ? `<div class="field"><div class="field-label">Pixel pitch</div><div class="field-value">${esc(order.pixel_pitch)}</div></div>` : ''}
+            ${order.module_count != null ? `<div class="field"><div class="field-label">Antal moduler</div><div class="field-value">${order.module_count}</div></div>` : ''}
+          </div>
+          ${order.site_visit_info ? `<div class="field"><div class="field-label">Platsbesöksinfo</div><div class="note-box" style="font-size:9.5pt">${esc(order.site_visit_info)}</div></div>` : ''}
+        </div>
+      </div>
+    </div>` : ''}
+
+    <div class="section">
+      <div class="section-header">Materiallista / Plocklista</div>
+      <table>
+        <thead><tr><th style="width:32px">#</th><th>Artikel</th><th style="width:110px">Artikelnr</th><th style="width:100px">Hyllplats</th><th style="width:60px;text-align:center">Antal</th><th style="width:50px;text-align:center">☐</th></tr></thead>
+        <tbody>
+          ${materials.length === 0
+            ? '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px">Inga artiklar registrerade</td></tr>'
+            : materials.map((m, i) => `<tr>
+              <td style="color:#999">${i + 1}</td>
+              <td style="font-weight:500">${esc(m.article_name || '—')}</td>
+              <td style="font-family:monospace;font-size:8.5pt;color:#555">${esc(m.article_sku || m.article_id?.slice(0,8) || '—')}</td>
+              <td style="font-weight:600">${esc(Array.isArray(m.shelf_address) ? m.shelf_address.join(', ') : (m.shelf_address || '—'))}</td>
+              <td style="text-align:center;font-weight:700;font-size:11pt">${m.quantity_needed || 0}</td>
+              <td class="cb">☐</td>
+            </tr>`).join('')
+          }
+        </tbody>
+      </table>
+      ${materials.length > 0 ? `<div class="total-row">Totalantal: <strong>${totalItems} st</strong> · ${materials.length} rader</div>` : ''}
+    </div>
+
+    <div class="section">
+      <div class="section-header">Checklista</div>
+      <div class="section-body">
+        <div class="checklist-grid">
+          ${[['picked','Material plockat'],['assembled','Monterat'],['tested','Testat'],['packed','Paketerat'],['ready_for_delivery','Redo för leverans']].map(([key, label]) =>
+            `<div class="checklist-item"><span class="cb">${checklist[key] ? '☑' : '☐'}</span><span>${label}</span></div>`
+          ).join('')}
+        </div>
+      </div>
+    </div>
+
+    ${hasNotes ? `
+    <div class="section section-yellow">
+      <div class="section-header">OBS / Speciella krav</div>
+      <div class="section-body">
+        ${order.critical_notes ? `<div class="field"><div class="field-label">Kritisk information</div><div class="note-box" style="font-weight:700;color:#7d6608">${esc(order.critical_notes)}</div></div>` : ''}
+        ${order.notes ? `<div class="field"><div class="field-label">Anteckningar</div><div class="note-box">${esc(order.notes)}</div></div>` : ''}
+        ${order.ordering_notes ? `<div class="field"><div class="field-label">Beställningsanteckningar</div><div class="note-box">${esc(order.ordering_notes)}</div></div>` : ''}
+        ${wo.project_description ? `<div class="field"><div class="field-label">Projektbeskrivning</div><div class="note-box">${esc(wo.project_description)}</div></div>` : ''}
+        ${wo.picking_notes ? `<div class="field"><div class="field-label">Plockanteckningar</div><div class="note-box">${esc(wo.picking_notes)}</div></div>` : ''}
+        ${wo.production_notes ? `<div class="field"><div class="field-label">Produktionsanteckningar</div><div class="note-box">${esc(wo.production_notes)}</div></div>` : ''}
+      </div>
+    </div>` : ''}
+
+    ${tasks.length > 0 ? `
+    <div class="section">
+      <div class="section-header">Uppgifter (${tasks.length} st)</div>
+      <table>
+        <thead><tr><th style="width:32px">#</th><th>Uppgift</th><th style="width:80px">Prioritet</th><th style="width:130px">Tilldelad</th><th style="width:80px">Status</th><th style="width:40px;text-align:center">☐</th></tr></thead>
+        <tbody>
+          ${tasks.map((task, i) => `<tr>
+            <td style="color:#999">${i + 1}</td>
+            <td><div style="font-weight:500">${esc(task.name || '—')}</div>${task.description ? `<div style="font-size:8.5pt;color:#888;margin-top:2px">${esc(task.description)}</div>` : ''}</td>
+            <td style="font-size:9pt">${task.priority === 'high' ? 'Hög' : task.priority === 'urgent' ? 'AKUT' : task.priority === 'low' ? 'Låg' : 'Normal'}</td>
+            <td style="font-size:8.5pt;color:#555">${esc(task.assigned_to || '—')}</td>
+            <td style="font-size:9pt">${task.status === 'completed' ? 'Klar' : task.status === 'in_progress' ? 'Pågår' : 'Ej påbörjad'}</td>
+            <td class="cb">${task.status === 'completed' ? '☑' : '☐'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : ''}
+
+    <div class="section">
+      <div class="section-header">Signering</div>
+      <div class="section-body">
+        <div class="sig-row">
+          <div class="sig-field"><div class="sig-label">Godkänt av</div><span class="sig-line"></span></div>
+          <div class="sig-field" style="max-width:140px"><div class="sig-label">Datum</div><span class="sig-line"></span></div>
+        </div>
+        <div class="sig-field"><div class="sig-label">Avvikelser / kommentarer</div><span class="sig-line" style="margin-top:40px"></span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <span>IM Vision Group AB</span>
+    <span>Utskriven: ${fmtDT(now)}</span>
+    <span>Sida 1 av 1</span>
   </div>
 </div>
-
-<div class="grid">
-  <div class="box"><div class="label">Customer</div><div class="value">${esc(order.customer_name || wo.customer_name || '—')}</div></div>
-  <div class="box"><div class="label">Customer Reference</div><div class="value">${esc(order.customer_reference || wo.customer_reference || '—')}</div></div>
-  <div class="box"><div class="label">Delivery Date</div><div class="value">${esc(wo.delivery_date || order.delivery_date || '—')}</div></div>
-</div>
-
-${wo.technician_name || wo.assigned_to_production_name ? `
-<div class="grid2">
-  <div class="box"><div class="label">Technician</div><div class="value">${esc(wo.technician_name || wo.assigned_to_production_name)}</div></div>
-  ${wo.technician_phone ? `<div class="box"><div class="label">Phone</div><div class="value">${esc(wo.technician_phone)}</div></div>` : ''}
-</div>` : ''}
-
-${wo.delivery_contact_name ? `
-<div class="grid2">
-  <div class="box"><div class="label">Delivery Contact</div><div class="value">${esc(wo.delivery_contact_name)}</div></div>
-  ${wo.delivery_contact_phone ? `<div class="box"><div class="label">Phone</div><div class="value">${esc(wo.delivery_contact_phone)}</div></div>` : ''}
-</div>` : ''}
-
-${wo.project_description ? `<h2>Project Description</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.project_description)}</p>` : ''}
-
-<h2>Order Information</h2>
-${order.delivery_address ? `<div class="field"><span class="fl">Delivery Address</span><span>${esc(order.delivery_address)}</span></div>` : ''}
-${order.delivery_method ? `<div class="field"><span class="fl">Delivery Method</span><span>${esc(order.delivery_method)}</span></div>` : ''}
-${order.fortnox_project_number ? `<div class="field"><span class="fl">Fortnox Project</span><span>${esc(order.fortnox_project_number)}</span></div>` : ''}
-${order.notes ? `<div class="field"><span class="fl">Notes</span><span>${esc(order.notes)}</span></div>` : ''}
-
-${wo.picking_notes ? `<h2>Picking Notes</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.picking_notes)}</p>` : ''}
-${wo.production_notes ? `<h2>Production Notes</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.production_notes)}</p>` : ''}
-${wo.deviations ? `<h2>Deviations / Designer Notes</h2><p style="white-space:pre-wrap;padding:4px 0">${esc(wo.deviations)}</p>` : ''}
-
-${designerTasks && designerTasks.length > 0 ? `
-<h2>Designer / Engineering Tasks</h2>
-<table>
-  <thead><tr><th style="width:30px"></th><th>Task</th><th>Description</th><th>Assigned To</th><th>Status</th><th>Completed</th></tr></thead>
-  <tbody>
-    ${designerTasks.map(task => `
-    <tr>
-      <td style="text-align:center;font-size:14px">${task.status === 'completed' ? '✓' : '○'}</td>
-      <td style="${task.status === 'completed' ? 'text-decoration:line-through;color:#999' : 'font-weight:bold'}">${esc(task.name || '—')}</td>
-      <td style="color:#555">${esc(task.description || '—')}</td>
-      <td>${esc(task.assigned_to_name || task.assigned_to || '—')}</td>
-      <td style="color:${task.status === 'completed' ? '#16a34a' : task.status === 'in_progress' ? '#d97706' : '#555'}">${esc(task.status === 'completed' ? 'Done' : task.status === 'in_progress' ? 'In Progress' : 'To Do')}</td>
-      <td style="color:#16a34a;font-size:10px">${task.completed_date ? fmtDT(task.completed_date) : '—'}</td>
-    </tr>`).join('')}
-  </tbody>
-</table>` : ''}
-
-${enrichedItems.length > 0 ? `
-<h2>Articles / Material List</h2>
-<table>
-  <thead><tr><th>Article</th><th>Batch</th><th>Shelf</th><th>Ordered</th><th>Picked</th><th>ETA</th></tr></thead>
-  <tbody>
-    ${enrichedItems.map(item => `
-    <tr>
-      <td>${esc(item.article_name || item.article_id || '—')}</td>
-      <td>${esc(item.article_batch_number || '—')}</td>
-      <td>${esc(item.shelf_address || '—')}</td>
-      <td>${item.quantity_ordered || 0}</td>
-      <td style="color:${(item.quantity_picked||0)>=(item.quantity_ordered||0)?'#16a34a':(item.quantity_picked||0)>0?'#d97706':'#999'}">${item.quantity_picked || 0}</td>
-      <td style="color:#2563eb;font-size:10px">${esc(item.transit_expected_date || item.eta || '—')}</td>
-    </tr>`).join('')}
-  </tbody>
-</table>` : ''}
-
-${wo.tasks && wo.tasks.length > 0 ? `
-<h2>Work Tasks</h2>
-<table>
-  <thead><tr><th>Task</th><th>Type</th><th>Assigned</th><th>Status</th></tr></thead>
-  <tbody>
-    ${wo.tasks.map(task => `
-    <tr>
-      <td>${esc(task.title || '—')}</td>
-      <td>${esc(task.type || '—')}</td>
-      <td>${esc(task.assigned_name || task.assigned_to || '—')}</td>
-      <td>${esc(task.status || '—')}</td>
-    </tr>`).join('')}
-  </tbody>
-</table>` : ''}
-
-${checkRows.length > 0 ? `
-<h2>Checklist</h2>
-${checkRows.map(([label, done]) => `
-<div class="check ${done ? 'done' : 'todo'}">${done ? '✓' : '○'} ${label}</div>
-`).join('')}` : ''}
-
-${wo.picking_started_date || wo.production_started_date ? `
-<h2>Timeline</h2>
-${wo.picking_started_date ? `<div class="field"><span class="fl">Picking started</span><span>${fmtDT(wo.picking_started_date)}</span></div>` : ''}
-${wo.picking_completed_date ? `<div class="field"><span class="fl">Picking completed</span><span>${fmtDT(wo.picking_completed_date)}</span></div>` : ''}
-${wo.production_started_date ? `<div class="field"><span class="fl">Production started</span><span>${fmtDT(wo.production_started_date)}</span></div>` : ''}
-${wo.production_completed_date ? `<div class="field"><span class="fl">Production completed</span><span>${fmtDT(wo.production_completed_date)}</span></div>` : ''}` : ''}
-
-
-
-</div><!-- end .page -->
-
-<div style="background:#000;color:rgba(255,255,255,0.7);font-size:10px;padding:8px 32px;display:flex;justify-content:space-between;margin-top:30px;">
-  <span>IMvision AB – Work Order</span>
-  <span>${esc(wo.name || wo.order_number || '')} &nbsp;|&nbsp; ${fmtDT(new Date())}</span>
-</div>
-
-<div style="position:fixed;bottom:24px;right:24px;z-index:999;display:flex;gap:10px;" class="no-print">
-  <button onclick="window.print()" style="background:#000;color:#fff;border:none;padding:10px 22px;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;letter-spacing:0.05em;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-    🖨️ Print
-  </button>
-</div>
-<style>.no-print { } @media print { .no-print { display: none !important; } }</style>
-<script>window.onload = () => {};</script>
 </body>
 </html>`;
 
-    return new Response(html, {
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-      }
-    });
+    return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
