@@ -49,6 +49,7 @@ export default function PrintWorkOrder() {
   const [workOrder, setWorkOrder] = useState(null);
   const [order, setOrder] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -67,12 +68,14 @@ export default function PrintWorkOrder() {
         if (!wo) throw new Error('Arbetsorder hittades inte');
         setWorkOrder(wo);
 
-        const [orderList, items] = await Promise.all([
+        const [orderList, items, taskList] = await Promise.all([
           base44.entities.Order.filter({ id: wo.order_id }),
           base44.entities.OrderItem.filter({ order_id: wo.order_id }),
+          base44.entities.Task.filter({ order_id: wo.order_id }),
         ]);
         setOrder(orderList[0] || null);
         setOrderItems(items || []);
+        setTasks(taskList || []);
       } catch (e) {
         setError(e.message);
       } finally {
@@ -137,7 +140,13 @@ export default function PrintWorkOrder() {
               {order.fortnox_project_number && (
                 <div style={{ marginTop: 8 }}>
                   <div className="label">Fortnox Projekt</div>
-                  <div className="value">#{order.fortnox_project_number}</div>
+                  <div className="value">#{order.fortnox_project_number}{order.fortnox_project_name ? ` – ${order.fortnox_project_name}` : ''}</div>
+                </div>
+              )}
+              {order.installation_date && (
+                <div style={{ marginTop: 8 }}>
+                  <div className="label">Installationsdatum</div>
+                  <div className="value">{format(new Date(order.installation_date), 'd MMM yyyy', { locale: sv })}</div>
                 </div>
               )}
             </div>
@@ -152,6 +161,18 @@ export default function PrintWorkOrder() {
                 <div className="label">Kontakt</div>
                 <div className="value">{[order.delivery_contact_name, order.delivery_contact_phone].filter(Boolean).join(' · ') || '—'}</div>
               </div>
+              {order.delivery_method && (
+                <div style={{ marginTop: 8 }}>
+                  <div className="label">Leveranssätt</div>
+                  <div className="value">{order.delivery_method}</div>
+                </div>
+              )}
+              {order.shipping_company && (
+                <div style={{ marginTop: 8 }}>
+                  <div className="label">Speditör</div>
+                  <div className="value">{order.shipping_company}</div>
+                </div>
+              )}
               {order.installation_type && (
                 <div style={{ marginTop: 8 }}>
                   <div className="label">Installationstyp</div>
@@ -234,10 +255,78 @@ export default function PrintWorkOrder() {
 
         <div className="section section-yellow">
           <h2>OBS / SPECIELLA KRAV</h2>
-          <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>
-            {order.critical_notes || order.notes || 'Inga speciella krav'}
-          </div>
+          {order.critical_notes && (
+            <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4, marginBottom: 8, fontWeight: 'bold' }}>
+              {order.critical_notes}
+            </div>
+          )}
+          {order.notes && (
+            <div>
+              <div className="label">Anteckningar (order)</div>
+              <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>{order.notes}</div>
+            </div>
+          )}
+          {order.ordering_notes && (
+            <div style={{ marginTop: 8 }}>
+              <div className="label">Beställningsanteckningar</div>
+              <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>{order.ordering_notes}</div>
+            </div>
+          )}
+          {workOrder.project_description && (
+            <div style={{ marginTop: 8 }}>
+              <div className="label">Projektbeskrivning (AO)</div>
+              <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>{workOrder.project_description}</div>
+            </div>
+          )}
+          {workOrder.picking_notes && (
+            <div style={{ marginTop: 8 }}>
+              <div className="label">Plockanteckningar</div>
+              <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>{workOrder.picking_notes}</div>
+            </div>
+          )}
+          {workOrder.production_notes && (
+            <div style={{ marginTop: 8 }}>
+              <div className="label">Produktionsanteckningar</div>
+              <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>{workOrder.production_notes}</div>
+            </div>
+          )}
+          {!order.critical_notes && !order.notes && !order.ordering_notes && !workOrder.project_description && !workOrder.picking_notes && !workOrder.production_notes && (
+            <div style={{ fontSize: '11pt', marginTop: 4 }}>Inga speciella krav</div>
+          )}
         </div>
+
+        {tasks.length > 0 && (
+          <div className="section">
+            <h2>UPPGIFTER ({tasks.length} st)</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ width: 30 }}>#</th>
+                  <th>Uppgift</th>
+                  <th style={{ width: 80 }}>Prioritet</th>
+                  <th style={{ width: 120 }}>Tilldelad</th>
+                  <th style={{ width: 80 }}>Status</th>
+                  <th style={{ width: 50, textAlign: 'center' }}>Klar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tasks.map((task, i) => (
+                  <tr key={task.id}>
+                    <td>{i + 1}</td>
+                    <td>
+                      <div style={{ fontWeight: 500 }}>{task.name}</div>
+                      {task.description && <div style={{ fontSize: '9pt', color: '#666', marginTop: 2 }}>{task.description}</div>}
+                    </td>
+                    <td>{task.priority === 'high' ? 'Hög' : task.priority === 'urgent' ? 'AKUT' : task.priority === 'low' ? 'Låg' : 'Normal'}</td>
+                    <td style={{ fontSize: '9pt' }}>{task.assigned_to || '—'}</td>
+                    <td style={{ fontSize: '9pt' }}>{task.status === 'completed' ? 'Klar' : task.status === 'in_progress' ? 'Pågår' : 'Ej påbörjad'}</td>
+                    <td className="checkbox-cell">{task.status === 'completed' ? '☑' : '☐'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="section">
           <h2>SIGNERING</h2>
