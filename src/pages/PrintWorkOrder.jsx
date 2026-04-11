@@ -3,36 +3,113 @@ import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
-const PRINT_CSS = `
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: white !important; color: black !important; font-family: system-ui, sans-serif; font-size: 11pt; }
+const SHARED_CSS = `
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f4f4f0 !important; color: #111 !important; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 10pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   @media print {
     body { background: white !important; }
     .no-print { display: none !important; }
-    nav, header, footer.app-footer, .fixed, [data-radix-popper-content-wrapper] { display: none !important; }
+    .page { box-shadow: none !important; margin: 0 !important; }
     .section { page-break-inside: avoid; }
   }
-  @page { size: A4 portrait; margin: 15mm; }
-  .page { max-width: 210mm; margin: 0 auto; padding: 10mm; background: white; color: black; }
-  h1 { font-size: 22pt; font-weight: bold; }
-  h2 { font-size: 14pt; font-weight: bold; border-bottom: 2px solid black; padding-bottom: 4px; margin-bottom: 10px; }
-  h3 { font-size: 12pt; font-weight: bold; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 3px solid black; padding-bottom: 12px; }
-  .section { margin-bottom: 14px; border: 1px solid #ccc; border-radius: 4px; padding: 10px; }
-  .section-gray { background: #f5f5f5; }
-  .section-yellow { background: #fffde7; border-color: #f9a825; }
+  @page { size: A4 portrait; margin: 0; }
+
+  .page {
+    max-width: 210mm;
+    margin: 0 auto;
+    background: white;
+    min-height: 297mm;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top bar */
+  .top-bar {
+    background: #111;
+    color: white;
+    padding: 20px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .top-bar-logo { font-size: 20pt; font-weight: 900; letter-spacing: 0.12em; }
+  .top-bar-sub { font-size: 8pt; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; margin-top: 2px; }
+  .top-bar-title { font-size: 18pt; font-weight: 700; letter-spacing: 0.04em; text-align: center; }
+  .top-bar-meta { text-align: right; font-size: 9pt; color: rgba(255,255,255,0.7); line-height: 1.7; }
+  .top-bar-meta strong { color: white; }
+
+  .content { padding: 20px 28px; flex: 1; }
+
+  /* Sections */
+  .section {
+    margin-bottom: 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .section-header {
+    background: #f0f0ed;
+    padding: 7px 14px;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #444;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .section-body { padding: 12px 14px; }
+  .section-yellow .section-header { background: #fef9e7; border-bottom-color: #f4d03f; color: #7d6608; }
+  .section-yellow { border-color: #f4d03f; }
+
+  /* Grid */
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .label { font-size: 9pt; color: #555; text-transform: uppercase; letter-spacing: 0.05em; }
-  .value { font-size: 11pt; font-weight: 500; }
-  table { width: 100%; border-collapse: collapse; font-size: 10pt; }
-  th { background: #333; color: white; padding: 6px 8px; text-align: left; font-size: 10pt; }
-  td { padding: 5px 8px; border-bottom: 1px solid #ddd; }
-  tr:nth-child(even) td { background: #fafafa; }
-  .checkbox-cell { font-size: 14pt; text-align: center; }
-  .checklist-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 11pt; }
-  .sign-line { border-bottom: 1px solid black; min-width: 200px; display: inline-block; }
-  .footer { margin-top: 20px; padding-top: 8px; border-top: 1px solid #ccc; font-size: 9pt; color: #555; display: flex; justify-content: space-between; }
-  .print-btn { background: #1d4ed8; color: white; border: none; padding: 10px 24px; font-size: 14px; border-radius: 6px; cursor: pointer; margin: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  /* Fields */
+  .field { margin-bottom: 10px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label { font-size: 7.5pt; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+  .field-value { font-size: 10.5pt; font-weight: 500; color: #111; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #111; }
+  th { padding: 8px 10px; text-align: left; font-size: 8.5pt; font-weight: 600; letter-spacing: 0.04em; color: white; }
+  td { padding: 7px 10px; border-bottom: 1px solid #ececec; font-size: 9.5pt; color: #222; vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) td { background: #fafafa; }
+  .cb { font-size: 14pt; text-align: center; color: #bbb; }
+
+  /* Checklist */
+  .checklist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; }
+  .checklist-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 10pt; }
+  .checklist-item .cb { font-size: 15pt; color: #ccc; }
+
+  /* Signature */
+  .sig-row { display: flex; gap: 32px; margin-bottom: 12px; }
+  .sig-field { flex: 1; }
+  .sig-label { font-size: 8pt; color: #888; margin-bottom: 20px; }
+  .sig-line { border-bottom: 1px solid #333; display: block; width: 100%; margin-top: 24px; }
+
+  /* Footer */
+  .footer {
+    padding: 10px 28px;
+    border-top: 1px solid #e0e0e0;
+    font-size: 8pt;
+    color: #aaa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fafafa;
+  }
+
+  /* Print button */
+  .print-bar { background: #1d4ed8; padding: 12px 24px; display: flex; align-items: center; gap: 16px; }
+  .print-btn { background: white; color: #1d4ed8; border: none; padding: 8px 20px; font-size: 13px; font-weight: 600; border-radius: 5px; cursor: pointer; }
+  .print-info { color: rgba(255,255,255,0.8); font-size: 11px; }
+
+  .note-box { white-space: pre-wrap; font-size: 10pt; line-height: 1.6; color: #333; }
+  .total-row { text-align: right; font-size: 9pt; color: #555; padding-top: 6px; }
 `;
 
 const installationTypeLabels = {
@@ -43,7 +120,7 @@ const installationTypeLabels = {
   uthyrning_event: 'Uthyrning/event',
 };
 
-const priorityLabels = { låg: 'Låg', normal: 'Normal', hög: 'Hög', brådskande: 'BRÅDSKANDE' };
+const priorityLabels = { low: 'Låg', normal: 'Normal', high: 'Hög', urgent: 'BRÅDSKANDE' };
 
 export default function PrintWorkOrder() {
   const [workOrder, setWorkOrder] = useState(null);
@@ -57,10 +134,7 @@ export default function PrintWorkOrder() {
   const workOrderId = params.get('id');
 
   useEffect(() => {
-    if (!workOrderId) {
-      setLoading(false);
-      return;
-    }
+    if (!workOrderId) { setLoading(false); return; }
     (async () => {
       try {
         const res = await base44.functions.invoke('getWorkOrderPrintData', { workOrderId });
@@ -78,10 +152,10 @@ export default function PrintWorkOrder() {
     })();
   }, [workOrderId]);
 
-  if (!workOrderId) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Ingen arbetsorder angiven (saknar ?id=...)</div>;
-  if (loading) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Laddar...</div>;
+  if (!workOrderId) return <div style={{ padding: 40 }}>Ingen arbetsorder angiven (saknar ?id=...)</div>;
+  if (loading) return <div style={{ padding: 40, background: 'white' }}>Laddar...</div>;
   if (error) return <div style={{ padding: 40, background: 'white', color: 'red' }}>Fel: {error}</div>;
-  if (!workOrder || !order) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Data kunde inte laddas.</div>;
+  if (!workOrder || !order) return <div style={{ padding: 40, background: 'white' }}>Data kunde inte laddas.</div>;
 
   const materials = workOrder.materials_needed?.length > 0
     ? workOrder.materials_needed
@@ -95,244 +169,207 @@ export default function PrintWorkOrder() {
   const totalItems = materials.reduce((s, m) => s + (m.quantity_needed || 0), 0);
   const checklist = workOrder.checklist || {};
   const now = new Date();
+  const hasNotes = order.critical_notes || order.notes || order.ordering_notes || workOrder.project_description || workOrder.picking_notes || workOrder.production_notes;
 
   return (
-    <div style={{ backgroundColor: 'white', color: 'black', minHeight: '100vh' }}>
-      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
-      <button className="print-btn no-print" onClick={() => window.print()}>🖨️ Skriv ut</button>
+    <div style={{ backgroundColor: '#f4f4f0', minHeight: '100vh' }}>
+      <style dangerouslySetInnerHTML={{ __html: SHARED_CSS }} />
+
+      <div className="no-print print-bar">
+        <button className="print-btn" onClick={() => window.print()}>🖨️ Skriv ut</button>
+        <span className="print-info">ARBETSORDER — {order.customer_name} · {order.order_number || '—'}</span>
+      </div>
 
       <div className="page">
-        <div className="header">
+        {/* Header */}
+        <div className="top-bar">
           <div>
-            <div style={{ fontWeight: 'bold', fontSize: '20pt', letterSpacing: '0.05em' }}>IM VISION</div>
-            <div style={{ fontSize: '9pt', color: '#555' }}>IM Vision Group AB</div>
+            <div className="top-bar-logo">IM VISION</div>
+            <div className="top-bar-sub">IM Vision Group AB</div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <h1>ARBETSORDER</h1>
-          </div>
-          <div style={{ textAlign: 'right', fontSize: '10pt' }}>
+          <div className="top-bar-title">ARBETSORDER</div>
+          <div className="top-bar-meta">
             <div><strong>AO:</strong> {order.order_number || workOrder.order_number || '—'}</div>
             <div><strong>Datum:</strong> {format(new Date(workOrder.created_date), 'd MMM yyyy', { locale: sv })}</div>
-            <div><strong>Prioritet:</strong> {priorityLabels[workOrder.priority] || workOrder.priority || 'Normal'}</div>
+            <div><strong>Prioritet:</strong> {priorityLabels[workOrder.priority] || 'Normal'}</div>
           </div>
         </div>
 
-        <div className="section section-gray">
-          <h2>PROJEKTINFORMATION</h2>
-          <div className="grid2">
-            <div>
-              <div className="label">Kund</div>
-              <div className="value">{order.customer_name || '—'}</div>
-              <div style={{ marginTop: 8 }}>
-                <div className="label">Referens</div>
-                <div className="value">{order.customer_reference || '—'}</div>
-              </div>
-              <div style={{ marginTop: 8 }}>
-                <div className="label">Ordernr</div>
-                <div className="value">{order.order_number || '—'}</div>
-              </div>
-              {order.fortnox_project_number && (
-                <div style={{ marginTop: 8 }}>
-                  <div className="label">Fortnox Projekt</div>
-                  <div className="value">#{order.fortnox_project_number}{order.fortnox_project_name ? ` – ${order.fortnox_project_name}` : ''}</div>
-                </div>
-              )}
-              {order.installation_date && (
-                <div style={{ marginTop: 8 }}>
-                  <div className="label">Installationsdatum</div>
-                  <div className="value">{format(new Date(order.installation_date), 'd MMM yyyy', { locale: sv })}</div>
-                </div>
-              )}
-            </div>
-            <div>
-              <div className="label">Leveransdatum</div>
-              <div className="value">{order.delivery_date ? format(new Date(order.delivery_date), 'd MMM yyyy', { locale: sv }) : '—'}</div>
-              <div style={{ marginTop: 8 }}>
-                <div className="label">Leveransadress</div>
-                <div className="value">{order.delivery_address || '—'}</div>
-              </div>
-              <div style={{ marginTop: 8 }}>
-                <div className="label">Kontakt</div>
-                <div className="value">{[order.delivery_contact_name, order.delivery_contact_phone].filter(Boolean).join(' · ') || '—'}</div>
-              </div>
-              {order.delivery_method && (
-                <div style={{ marginTop: 8 }}>
-                  <div className="label">Leveranssätt</div>
-                  <div className="value">{order.delivery_method}</div>
-                </div>
-              )}
-              {order.shipping_company && (
-                <div style={{ marginTop: 8 }}>
-                  <div className="label">Speditör</div>
-                  <div className="value">{order.shipping_company}</div>
-                </div>
-              )}
-              {order.installation_type && (
-                <div style={{ marginTop: 8 }}>
-                  <div className="label">Installationstyp</div>
-                  <div className="value">{installationTypeLabels[order.installation_type] || order.installation_type}</div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {(order.screen_dimensions || order.pixel_pitch || order.module_count) && (
+        <div className="content">
+          {/* Project Info */}
           <div className="section">
-            <h2>TEKNISK INFORMATION</h2>
-            <div className="grid2">
-              <div>
-                {order.screen_dimensions && <div style={{ marginBottom: 6 }}><span className="label">Skärmdimensioner: </span><span className="value">{order.screen_dimensions}</span></div>}
-                {order.pixel_pitch && <div style={{ marginBottom: 6 }}><span className="label">Pixel pitch: </span><span className="value">{order.pixel_pitch}</span></div>}
-                {order.module_count != null && <div style={{ marginBottom: 6 }}><span className="label">Antal moduler: </span><span className="value">{order.module_count}</span></div>}
-              </div>
-              {order.site_visit_info && (
-                <div style={{ border: '1px solid #ccc', padding: 8, borderRadius: 4, background: '#fafafa' }}>
-                  <div className="label" style={{ marginBottom: 4 }}>Platsbesöksinfo</div>
-                  <div style={{ fontSize: '10pt', whiteSpace: 'pre-wrap' }}>{order.site_visit_info}</div>
+            <div className="section-header">Projektinformation</div>
+            <div className="section-body">
+              <div className="grid2">
+                <div>
+                  <div className="field"><div className="field-label">Kund</div><div className="field-value">{order.customer_name || '—'}</div></div>
+                  <div className="field"><div className="field-label">Referens</div><div className="field-value">{order.customer_reference || '—'}</div></div>
+                  <div className="field"><div className="field-label">Ordernummer</div><div className="field-value">{order.order_number || '—'}</div></div>
+                  {order.fortnox_project_number && (
+                    <div className="field"><div className="field-label">Fortnox Projekt</div><div className="field-value">#{order.fortnox_project_number}{order.fortnox_project_name ? ` – ${order.fortnox_project_name}` : ''}</div></div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="section">
-          <h2>MATERIALLISTA / PLOCKLISTA</h2>
-          <table>
-            <thead>
-              <tr>
-                <th style={{ width: 30 }}>#</th>
-                <th>Artikel</th>
-                <th style={{ width: 100 }}>Artikelnr</th>
-                <th style={{ width: 100 }}>Hyllplats</th>
-                <th style={{ width: 60, textAlign: 'center' }}>Antal</th>
-                <th style={{ width: 60, textAlign: 'center' }}>Plockad</th>
-              </tr>
-            </thead>
-            <tbody>
-              {materials.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', color: '#888', padding: 16 }}>Inga artiklar</td></tr>
-              ) : materials.map((m, i) => (
-                <tr key={i}>
-                  <td>{i + 1}</td>
-                  <td>{m.article_name || '—'}</td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '9pt' }}>{m.article_sku || m.article_id?.slice(0, 8) || '—'}</td>
-                  <td>{Array.isArray(m.shelf_address) ? m.shelf_address.join(', ') : (m.shelf_address || '—')}</td>
-                  <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{m.quantity_needed || 0}</td>
-                  <td className="checkbox-cell">☐</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div style={{ marginTop: 8, fontWeight: 'bold', textAlign: 'right', fontSize: '10pt' }}>
-            Totalantal: {totalItems} st
-          </div>
-        </div>
-
-        <div className="section">
-          <h2>CHECKLISTA</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 24px' }}>
-            {[
-              { key: 'picked', label: 'Material plockat' },
-              { key: 'assembled', label: 'Monterat' },
-              { key: 'tested', label: 'Testat' },
-              { key: 'packed', label: 'Paketerat' },
-              { key: 'ready_for_delivery', label: 'Redo för leverans' },
-            ].map(({ key, label }) => (
-              <div key={key} className="checklist-item">
-                <span style={{ fontSize: '16pt' }}>{checklist[key] ? '☑' : '☐'}</span>
-                <span>{label}</span>
+                <div>
+                  <div className="field"><div className="field-label">Leveransdatum</div><div className="field-value">{order.delivery_date ? format(new Date(order.delivery_date), 'd MMM yyyy', { locale: sv }) : '—'}</div></div>
+                  {order.installation_date && (
+                    <div className="field"><div className="field-label">Installationsdatum</div><div className="field-value">{format(new Date(order.installation_date), 'd MMM yyyy', { locale: sv })}</div></div>
+                  )}
+                  <div className="field"><div className="field-label">Leveransadress</div><div className="field-value">{order.delivery_address || '—'}</div></div>
+                  <div className="field"><div className="field-label">Kontakt</div><div className="field-value">{[order.delivery_contact_name, order.delivery_contact_phone].filter(Boolean).join(' · ') || '—'}</div></div>
+                  {order.installation_type && (
+                    <div className="field"><div className="field-label">Installationstyp</div><div className="field-value">{installationTypeLabels[order.installation_type] || order.installation_type}</div></div>
+                  )}
+                </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
 
-        <div className="section section-yellow">
-          <h2>OBS / SPECIELLA KRAV</h2>
-          {order.critical_notes && (
-            <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4, marginBottom: 8, fontWeight: 'bold' }}>
-              {order.critical_notes}
+          {/* Technical Info */}
+          {(order.screen_dimensions || order.pixel_pitch || order.module_count || order.site_visit_info) && (
+            <div className="section">
+              <div className="section-header">Teknisk information</div>
+              <div className="section-body">
+                <div className="grid2">
+                  <div>
+                    {order.screen_dimensions && <div className="field"><div className="field-label">Skärmdimensioner</div><div className="field-value">{order.screen_dimensions}</div></div>}
+                    {order.pixel_pitch && <div className="field"><div className="field-label">Pixel pitch</div><div className="field-value">{order.pixel_pitch}</div></div>}
+                    {order.module_count != null && <div className="field"><div className="field-label">Antal moduler</div><div className="field-value">{order.module_count}</div></div>}
+                  </div>
+                  {order.site_visit_info && (
+                    <div className="field"><div className="field-label">Platsbesöksinfo</div><div className="note-box" style={{ fontSize: '9.5pt' }}>{order.site_visit_info}</div></div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
-          {order.notes && (
-            <div>
-              <div className="label">Anteckningar (order)</div>
-              <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>{order.notes}</div>
-            </div>
-          )}
-          {order.ordering_notes && (
-            <div style={{ marginTop: 8 }}>
-              <div className="label">Beställningsanteckningar</div>
-              <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>{order.ordering_notes}</div>
-            </div>
-          )}
-          {workOrder.project_description && (
-            <div style={{ marginTop: 8 }}>
-              <div className="label">Projektbeskrivning (AO)</div>
-              <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>{workOrder.project_description}</div>
-            </div>
-          )}
-          {workOrder.picking_notes && (
-            <div style={{ marginTop: 8 }}>
-              <div className="label">Plockanteckningar</div>
-              <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>{workOrder.picking_notes}</div>
-            </div>
-          )}
-          {workOrder.production_notes && (
-            <div style={{ marginTop: 8 }}>
-              <div className="label">Produktionsanteckningar</div>
-              <div style={{ whiteSpace: 'pre-wrap', fontSize: '11pt', marginTop: 4 }}>{workOrder.production_notes}</div>
-            </div>
-          )}
-          {!order.critical_notes && !order.notes && !order.ordering_notes && !workOrder.project_description && !workOrder.picking_notes && !workOrder.production_notes && (
-            <div style={{ fontSize: '11pt', marginTop: 4 }}>Inga speciella krav</div>
-          )}
-        </div>
 
-        {tasks.length > 0 && (
+          {/* Materials */}
           <div className="section">
-            <h2>UPPGIFTER ({tasks.length} st)</h2>
+            <div className="section-header">Materiallista / Plocklista</div>
             <table>
               <thead>
                 <tr>
-                  <th style={{ width: 30 }}>#</th>
-                  <th>Uppgift</th>
-                  <th style={{ width: 80 }}>Prioritet</th>
-                  <th style={{ width: 120 }}>Tilldelad</th>
-                  <th style={{ width: 80 }}>Status</th>
-                  <th style={{ width: 50, textAlign: 'center' }}>Klar</th>
+                  <th style={{ width: 32 }}>#</th>
+                  <th>Artikel</th>
+                  <th style={{ width: 110 }}>Artikelnr</th>
+                  <th style={{ width: 100 }}>Hyllplats</th>
+                  <th style={{ width: 60, textAlign: 'center' }}>Antal</th>
+                  <th style={{ width: 50, textAlign: 'center' }}>☐</th>
                 </tr>
               </thead>
               <tbody>
-                {tasks.map((task, i) => (
-                  <tr key={task.id}>
-                    <td>{i + 1}</td>
-                    <td>
-                      <div style={{ fontWeight: 500 }}>{task.name}</div>
-                      {task.description && <div style={{ fontSize: '9pt', color: '#666', marginTop: 2 }}>{task.description}</div>}
-                    </td>
-                    <td>{task.priority === 'high' ? 'Hög' : task.priority === 'urgent' ? 'AKUT' : task.priority === 'low' ? 'Låg' : 'Normal'}</td>
-                    <td style={{ fontSize: '9pt' }}>{task.assigned_to || '—'}</td>
-                    <td style={{ fontSize: '9pt' }}>{task.status === 'completed' ? 'Klar' : task.status === 'in_progress' ? 'Pågår' : 'Ej påbörjad'}</td>
-                    <td className="checkbox-cell">{task.status === 'completed' ? '☑' : '☐'}</td>
+                {materials.length === 0 ? (
+                  <tr><td colSpan={6} style={{ textAlign: 'center', color: '#aaa', padding: 20 }}>Inga artiklar registrerade</td></tr>
+                ) : materials.map((m, i) => (
+                  <tr key={i}>
+                    <td style={{ color: '#999' }}>{i + 1}</td>
+                    <td style={{ fontWeight: 500 }}>{m.article_name || '—'}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '8.5pt', color: '#555' }}>{m.article_sku || m.article_id?.slice(0, 8) || '—'}</td>
+                    <td style={{ fontWeight: 600 }}>{Array.isArray(m.shelf_address) ? m.shelf_address.join(', ') : (m.shelf_address || '—')}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, fontSize: '11pt' }}>{m.quantity_needed || 0}</td>
+                    <td className="cb">☐</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {materials.length > 0 && (
+              <div className="total-row" style={{ padding: '8px 10px' }}>Totalantal: <strong>{totalItems} st</strong> · {materials.length} rader</div>
+            )}
           </div>
-        )}
 
-        <div className="section">
-          <h2>SIGNERING</h2>
-          <div style={{ marginBottom: 16 }}>
-            Godkänt av: <span className="sign-line" style={{ width: 200 }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;
-            Datum: <span className="sign-line" style={{ width: 120 }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+          {/* Checklist */}
+          <div className="section">
+            <div className="section-header">Checklista</div>
+            <div className="section-body">
+              <div className="checklist-grid">
+                {[
+                  { key: 'picked', label: 'Material plockat' },
+                  { key: 'assembled', label: 'Monterat' },
+                  { key: 'tested', label: 'Testat' },
+                  { key: 'packed', label: 'Paketerat' },
+                  { key: 'ready_for_delivery', label: 'Redo för leverans' },
+                ].map(({ key, label }) => (
+                  <div key={key} className="checklist-item">
+                    <span className="cb">{checklist[key] ? '☑' : '☐'}</span>
+                    <span>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div>
-            Avvikelser: <span className="sign-line" style={{ width: 360 }}>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+
+          {/* Notes */}
+          {hasNotes && (
+            <div className="section section-yellow">
+              <div className="section-header">OBS / Speciella krav</div>
+              <div className="section-body">
+                {order.critical_notes && <div className="field"><div className="field-label">Kritisk information</div><div className="note-box" style={{ fontWeight: 700, color: '#7d6608' }}>{order.critical_notes}</div></div>}
+                {order.notes && <div className="field"><div className="field-label">Anteckningar (order)</div><div className="note-box">{order.notes}</div></div>}
+                {order.ordering_notes && <div className="field"><div className="field-label">Beställningsanteckningar</div><div className="note-box">{order.ordering_notes}</div></div>}
+                {workOrder.project_description && <div className="field"><div className="field-label">Projektbeskrivning</div><div className="note-box">{workOrder.project_description}</div></div>}
+                {workOrder.picking_notes && <div className="field"><div className="field-label">Plockanteckningar</div><div className="note-box">{workOrder.picking_notes}</div></div>}
+                {workOrder.production_notes && <div className="field"><div className="field-label">Produktionsanteckningar</div><div className="note-box">{workOrder.production_notes}</div></div>}
+              </div>
+            </div>
+          )}
+
+          {/* Tasks */}
+          {tasks.length > 0 && (
+            <div className="section">
+              <div className="section-header">Uppgifter ({tasks.length} st)</div>
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ width: 32 }}>#</th>
+                    <th>Uppgift</th>
+                    <th style={{ width: 80 }}>Prioritet</th>
+                    <th style={{ width: 130 }}>Tilldelad</th>
+                    <th style={{ width: 80 }}>Status</th>
+                    <th style={{ width: 40, textAlign: 'center' }}>☐</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tasks.map((task, i) => (
+                    <tr key={task.id}>
+                      <td style={{ color: '#999' }}>{i + 1}</td>
+                      <td>
+                        <div style={{ fontWeight: 500 }}>{task.name}</div>
+                        {task.description && <div style={{ fontSize: '8.5pt', color: '#888', marginTop: 2 }}>{task.description}</div>}
+                      </td>
+                      <td style={{ fontSize: '9pt' }}>{task.priority === 'high' ? 'Hög' : task.priority === 'urgent' ? 'AKUT' : task.priority === 'low' ? 'Låg' : 'Normal'}</td>
+                      <td style={{ fontSize: '8.5pt', color: '#555' }}>{task.assigned_to || '—'}</td>
+                      <td style={{ fontSize: '9pt' }}>{task.status === 'completed' ? 'Klar' : task.status === 'in_progress' ? 'Pågår' : 'Ej påbörjad'}</td>
+                      <td className="cb">{task.status === 'completed' ? '☑' : '☐'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Signature */}
+          <div className="section">
+            <div className="section-header">Signering</div>
+            <div className="section-body">
+              <div className="sig-row">
+                <div className="sig-field">
+                  <div className="sig-label">Godkänt av</div>
+                  <span className="sig-line" />
+                </div>
+                <div className="sig-field" style={{ maxWidth: 140 }}>
+                  <div className="sig-label">Datum</div>
+                  <span className="sig-line" />
+                </div>
+              </div>
+              <div className="sig-field">
+                <div className="sig-label">Avvikelser / kommentarer</div>
+                <span className="sig-line" style={{ marginTop: 40 }} />
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Footer */}
         <div className="footer">
           <span>IM Vision Group AB</span>
           <span>Utskriven: {format(now, 'd MMM yyyy HH:mm', { locale: sv })}</span>

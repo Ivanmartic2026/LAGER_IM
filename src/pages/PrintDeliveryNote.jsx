@@ -3,38 +3,62 @@ import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
-const PRINT_CSS = `
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: white !important; color: black !important; font-family: system-ui, sans-serif; font-size: 11pt; }
+const SHARED_CSS = `
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f4f4f0 !important; color: #111 !important; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 10pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   @media print {
     body { background: white !important; }
     .no-print { display: none !important; }
-    nav, header, .fixed, [data-radix-popper-content-wrapper] { display: none !important; }
+    .page { box-shadow: none !important; margin: 0 !important; }
     .section { page-break-inside: avoid; }
   }
-  @page { size: A4 portrait; margin: 15mm; }
-  .page { max-width: 210mm; margin: 0 auto; padding: 10mm; background: white; color: black; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 3px solid black; padding-bottom: 12px; }
-  h1 { font-size: 22pt; font-weight: bold; }
-  h2 { font-size: 13pt; font-weight: bold; border-bottom: 2px solid black; padding-bottom: 4px; margin-bottom: 10px; }
-  .address-block { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
-  .address-box { border: 1px solid #ccc; padding: 12px; border-radius: 4px; }
-  .address-label { font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: #666; margin-bottom: 6px; }
-  .address-content { font-size: 11pt; line-height: 1.6; }
-  .delivery-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; border: 1px solid #ccc; padding: 12px; border-radius: 4px; background: #f9f9f9; }
-  .info-label { font-size: 9pt; color: #555; }
-  .info-value { font-size: 11pt; font-weight: 500; }
+  @page { size: A4 portrait; margin: 0; }
+
+  .page { max-width: 210mm; margin: 0 auto; background: white; min-height: 297mm; display: flex; flex-direction: column; }
+
+  .top-bar { background: #111; color: white; padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; }
+  .top-bar-logo { font-size: 20pt; font-weight: 900; letter-spacing: 0.12em; }
+  .top-bar-sub { font-size: 8pt; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; margin-top: 2px; }
+  .top-bar-title { font-size: 18pt; font-weight: 700; letter-spacing: 0.04em; text-align: center; }
+  .top-bar-meta { text-align: right; font-size: 9pt; color: rgba(255,255,255,0.7); line-height: 1.7; }
+  .top-bar-meta strong { color: white; }
+
+  .content { padding: 20px 28px; flex: 1; }
+
+  .address-block { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .address-card { border: 1px solid #e0e0e0; border-radius: 5px; padding: 12px 14px; }
+  .address-label { font-size: 7.5pt; color: #999; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+  .address-content { font-size: 10.5pt; line-height: 1.7; color: #111; }
+
+  .section { margin-bottom: 14px; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
+  .section-header { background: #f0f0ed; padding: 7px 14px; font-size: 8pt; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #444; border-bottom: 1px solid #e0e0e0; }
+  .section-body { padding: 12px 14px; }
+
+  .delivery-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+  .field { margin-bottom: 0; }
+  .field-label { font-size: 7.5pt; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+  .field-value { font-size: 10.5pt; font-weight: 500; color: #111; }
+
   table { width: 100%; border-collapse: collapse; }
-  th { background: #222; color: white; padding: 7px 10px; text-align: left; font-size: 10pt; }
-  td { padding: 7px 10px; border-bottom: 1px solid #ddd; font-size: 10pt; }
-  tr:nth-child(even) td { background: #f5f5f5; }
-  .confirmation { margin-top: 20px; border: 2px solid black; padding: 16px; border-radius: 4px; }
-  .confirmation h2 { border: none; margin-bottom: 6px; }
-  .conf-text { font-style: italic; color: #444; margin-bottom: 16px; font-size: 10pt; }
-  .sign-row { display: flex; gap: 40px; margin-bottom: 14px; }
-  .sign-line { border-bottom: 1px solid black; min-width: 180px; display: inline-block; }
-  .footer { margin-top: 20px; padding-top: 8px; border-top: 1px solid #ccc; font-size: 9pt; color: #555; display: flex; justify-content: space-between; }
-  .print-btn { background: #1d4ed8; color: white; border: none; padding: 10px 24px; font-size: 14px; border-radius: 6px; cursor: pointer; margin: 16px; }
+  thead tr { background: #111; }
+  th { padding: 8px 10px; text-align: left; font-size: 8.5pt; font-weight: 600; letter-spacing: 0.04em; color: white; }
+  td { padding: 7px 10px; border-bottom: 1px solid #ececec; font-size: 9.5pt; color: #222; vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) td { background: #fafafa; }
+  .total-row td { background: #f0f0ed !important; font-weight: 700; border-top: 2px solid #ddd; }
+
+  .confirmation-box { margin-top: 0; border-top: 2px solid #111; padding: 16px 14px; background: #f9f9f7; }
+  .conf-text { font-size: 9.5pt; color: #555; font-style: italic; margin-bottom: 16px; }
+  .sig-row { display: flex; gap: 32px; margin-bottom: 14px; }
+  .sig-field { flex: 1; }
+  .sig-label { font-size: 8pt; color: #888; margin-bottom: 2px; }
+  .sig-line { border-bottom: 1px solid #333; display: block; width: 100%; margin-top: 22px; }
+
+  .footer { padding: 10px 28px; border-top: 1px solid #e0e0e0; font-size: 8pt; color: #aaa; display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
+
+  .print-bar { background: #1d4ed8; padding: 12px 24px; display: flex; align-items: center; gap: 16px; }
+  .print-btn { background: white; color: #1d4ed8; border: none; padding: 8px 20px; font-size: 13px; font-weight: 600; border-radius: 5px; cursor: pointer; }
+  .print-info { color: rgba(255,255,255,0.8); font-size: 11px; }
 `;
 
 const deliveryMethodLabels = {
@@ -70,115 +94,124 @@ export default function PrintDeliveryNote() {
     })();
   }, [orderId]);
 
-  if (!orderId) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Ingen order angiven (saknar ?id=...)</div>;
-  if (loading) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Laddar...</div>;
+  if (!orderId) return <div style={{ padding: 40 }}>Ingen order angiven (saknar ?id=...)</div>;
+  if (loading) return <div style={{ padding: 40, background: 'white' }}>Laddar...</div>;
   if (error) return <div style={{ padding: 40, background: 'white', color: 'red' }}>Fel: {error}</div>;
-  if (!order) return <div style={{ padding: 40, background: 'white', color: 'black' }}>Data kunde inte laddas.</div>;
+  if (!order) return <div style={{ padding: 40, background: 'white' }}>Data kunde inte laddas.</div>;
 
   const now = new Date();
   const totalItems = orderItems.reduce((s, i) => s + (i.quantity_ordered || 0), 0);
 
   return (
-    <div style={{ backgroundColor: 'white', color: 'black', minHeight: '100vh' }}>
-      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
-      <button className="print-btn no-print" onClick={() => window.print()}>🖨️ Skriv ut</button>
+    <div style={{ backgroundColor: '#f4f4f0', minHeight: '100vh' }}>
+      <style dangerouslySetInnerHTML={{ __html: SHARED_CSS }} />
+
+      <div className="no-print print-bar">
+        <button className="print-btn" onClick={() => window.print()}>🖨️ Skriv ut</button>
+        <span className="print-info">LEVERANSSEDEL — {order.customer_name} · {order.order_number || '—'}</span>
+      </div>
 
       <div className="page">
-        <div className="header">
+        <div className="top-bar">
           <div>
-            <div style={{ fontWeight: 'bold', fontSize: '18pt', letterSpacing: '0.05em' }}>IM VISION</div>
-            <div style={{ fontSize: '9pt', color: '#555' }}>IM Vision Group AB</div>
+            <div className="top-bar-logo">IM VISION</div>
+            <div className="top-bar-sub">IM Vision Group AB</div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <h1>LEVERANSSEDEL</h1>
-            <div style={{ fontSize: '11pt', marginTop: 4 }}>Nr: {order.order_number || orderId?.slice(0, 8)}</div>
-          </div>
-          <div style={{ textAlign: 'right', fontSize: '10pt' }}>
+          <div className="top-bar-title">LEVERANSSEDEL</div>
+          <div className="top-bar-meta">
+            <div><strong>Nr: {order.order_number || orderId?.slice(0, 8)}</strong></div>
             <div>{format(now, 'd MMM yyyy', { locale: sv })}</div>
           </div>
         </div>
 
-        <div className="address-block">
-          <div className="address-box">
-            <div className="address-label">Avsändare</div>
-            <div className="address-content">
-              <strong>IM Vision Group AB</strong><br />
-              Göteborg, Sverige
+        <div className="content">
+          {/* Addresses */}
+          <div className="address-block">
+            <div className="address-card">
+              <div className="address-label">Avsändare</div>
+              <div className="address-content">
+                <strong>IM Vision Group AB</strong><br />
+                Göteborg, Sverige
+              </div>
+            </div>
+            <div className="address-card">
+              <div className="address-label">Mottagare</div>
+              <div className="address-content">
+                <strong>{order.customer_name}</strong><br />
+                {order.delivery_address && <>{order.delivery_address}<br /></>}
+                {order.delivery_contact_name && <>{order.delivery_contact_name}<br /></>}
+                {order.delivery_contact_phone && <>{order.delivery_contact_phone}</>}
+              </div>
             </div>
           </div>
-          <div className="address-box">
-            <div className="address-label">Mottagare</div>
-            <div className="address-content">
-              <strong>{order.customer_name}</strong><br />
-              {order.delivery_address && <>{order.delivery_address}<br /></>}
-              {order.delivery_contact_name && <>{order.delivery_contact_name}<br /></>}
-              {order.delivery_contact_phone && <>{order.delivery_contact_phone}</>}
+
+          {/* Delivery Info */}
+          {(order.delivery_date || order.delivery_method || order.shipping_company || order.tracking_number || order.customer_reference) && (
+            <div className="section">
+              <div className="section-header">Leveransinformation</div>
+              <div className="section-body">
+                <div className="delivery-info">
+                  {order.delivery_date && <div className="field"><div className="field-label">Leveransdatum</div><div className="field-value">{format(new Date(order.delivery_date), 'd MMM yyyy', { locale: sv })}</div></div>}
+                  {order.delivery_method && <div className="field"><div className="field-label">Leveranssätt</div><div className="field-value">{deliveryMethodLabels[order.delivery_method] || order.delivery_method}</div></div>}
+                  {order.shipping_company && <div className="field"><div className="field-label">Speditör</div><div className="field-value">{order.shipping_company}</div></div>}
+                  {order.tracking_number && <div className="field"><div className="field-label">Spårningsnummer</div><div className="field-value" style={{ fontFamily: 'monospace' }}>{order.tracking_number}</div></div>}
+                  {order.customer_reference && <div className="field"><div className="field-label">Er referens</div><div className="field-value">{order.customer_reference}</div></div>}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
 
-        <div className="delivery-info section">
-          {order.delivery_date && (
-            <div><div className="info-label">Leveransdatum</div><div className="info-value">{format(new Date(order.delivery_date), 'd MMM yyyy', { locale: sv })}</div></div>
-          )}
-          {order.delivery_method && (
-            <div><div className="info-label">Leveranssätt</div><div className="info-value">{deliveryMethodLabels[order.delivery_method] || order.delivery_method}</div></div>
-          )}
-          {order.shipping_company && (
-            <div><div className="info-label">Speditör</div><div className="info-value">{order.shipping_company}</div></div>
-          )}
-          {order.tracking_number && (
-            <div><div className="info-label">Spårningsnummer</div><div className="info-value" style={{ fontFamily: 'monospace' }}>{order.tracking_number}</div></div>
-          )}
-          {order.customer_reference && (
-            <div><div className="info-label">Er referens</div><div className="info-value">{order.customer_reference}</div></div>
-          )}
-        </div>
-
-        <div className="section" style={{ marginBottom: 16 }}>
-          <h2>ARTIKLAR</h2>
-          <table>
-            <thead>
-              <tr>
-                <th style={{ width: 36 }}>#</th>
-                <th>Artikel</th>
-                <th style={{ width: 120 }}>Artikelnr</th>
-                <th style={{ width: 80, textAlign: 'center' }}>Antal</th>
-                <th style={{ width: 70, textAlign: 'center' }}>Enhet</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orderItems.length === 0 ? (
-                <tr><td colSpan={5} style={{ textAlign: 'center', color: '#888', padding: 16 }}>Inga artiklar</td></tr>
-              ) : orderItems.map((item, i) => (
-                <tr key={item.id}>
-                  <td>{i + 1}</td>
-                  <td style={{ fontWeight: 500 }}>{item.article_name || '—'}</td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '9pt' }}>{item.article_batch_number || '—'}</td>
-                  <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{item.quantity_ordered}</td>
-                  <td style={{ textAlign: 'center' }}>st</td>
-                </tr>
-              ))}
-              {orderItems.length > 0 && (
+          {/* Articles */}
+          <div className="section">
+            <div className="section-header">Artiklar</div>
+            <table>
+              <thead>
                 <tr>
-                  <td colSpan={3} style={{ textAlign: 'right', fontWeight: 'bold', background: '#f0f0f0' }}>Totalt:</td>
-                  <td style={{ textAlign: 'center', fontWeight: 'bold', background: '#f0f0f0' }}>{totalItems}</td>
-                  <td style={{ background: '#f0f0f0' }}>st</td>
+                  <th style={{ width: 32 }}>#</th>
+                  <th>Artikel</th>
+                  <th style={{ width: 120 }}>Artikelnr</th>
+                  <th style={{ width: 80, textAlign: 'center' }}>Antal</th>
+                  <th style={{ width: 60, textAlign: 'center' }}>Enhet</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="confirmation section">
-          <h2>MOTTAGNINGSBEKRÄFTELSE</h2>
-          <p className="conf-text">Ovanstående artiklar har mottagits i gott skick.</p>
-          <div className="sign-row">
-            <div>Mottaget av: <span className="sign-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
-            <div>Datum: <span className="sign-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
-          </div>
-          <div>
-            Signatur: <span className="sign-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+              </thead>
+              <tbody>
+                {orderItems.length === 0 ? (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', color: '#aaa', padding: 24 }}>Inga artiklar</td></tr>
+                ) : orderItems.map((item, i) => (
+                  <tr key={item.id}>
+                    <td style={{ color: '#999' }}>{i + 1}</td>
+                    <td style={{ fontWeight: 500 }}>{item.article_name || '—'}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '8.5pt', color: '#555' }}>{item.article_batch_number || '—'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700 }}>{item.quantity_ordered}</td>
+                    <td style={{ textAlign: 'center', color: '#777' }}>st</td>
+                  </tr>
+                ))}
+                {orderItems.length > 0 && (
+                  <tr className="total-row">
+                    <td colSpan={3} style={{ textAlign: 'right', paddingRight: 16 }}>Totalt:</td>
+                    <td style={{ textAlign: 'center' }}>{totalItems}</td>
+                    <td style={{ textAlign: 'center' }}>st</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+            <div className="confirmation-box">
+              <div className="conf-text">Ovanstående artiklar har mottagits i gott skick och utan synliga transportskador.</div>
+              <div className="sig-row">
+                <div className="sig-field">
+                  <div className="sig-label">Mottaget av (namnförtydligande)</div>
+                  <span className="sig-line" />
+                </div>
+                <div className="sig-field" style={{ maxWidth: 140 }}>
+                  <div className="sig-label">Datum</div>
+                  <span className="sig-line" />
+                </div>
+              </div>
+              <div className="sig-field">
+                <div className="sig-label">Signatur</div>
+                <span className="sig-line" style={{ marginTop: 28 }} />
+              </div>
+            </div>
           </div>
         </div>
 
