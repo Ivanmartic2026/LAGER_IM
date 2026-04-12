@@ -23,7 +23,8 @@ function RoleRow({ label, color, emailVal, onEmailChange, extraField, extraVal, 
       <select
         value={emailVal || ''}
         onChange={e => onEmailChange(e.target.value)}
-        className="flex-1 bg-white/5 border border-white/10 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-white/30"
+        className="flex-1 bg-black border border-white/10 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-white/30"
+        style={{ colorScheme: 'dark', backgroundColor: '#111' }}
       >
         <option value="">— Ej tilldelad —</option>
         {TEAM_MEMBERS.map(m => <option key={m} value={m}>{getName(m)} ({m})</option>)}
