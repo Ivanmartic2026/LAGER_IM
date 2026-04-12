@@ -146,7 +146,7 @@ export default function StageContent({
   const checklist = workOrder.checklist || {};
   const isChecklistComplete = currentRequirements.length === 0 || currentRequirements.every(field => checklist[field]);
   const hasResponsible = !!responsibleName || !!responsibleEmail;
-  const canAdvance = isChecklistComplete && hasResponsible;
+  const canAdvance = isChecklistComplete;
 
   const handleAdvance = () => {
     if (!canAdvance) return;
