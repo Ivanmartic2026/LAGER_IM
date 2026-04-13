@@ -341,7 +341,6 @@ export default function ProjectInfoSection({ formData, setFormData, workOrders =
       <FormSection title={t('section_documents', language)} icon="📎">
         <p className="text-xs text-slate-400 -mt-2 mb-2">{t('help_documents', language)}</p>
 
-        {/* Kundorder / PO */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-300">{t('btn_customer_order', language)}</label>
           {formData.source_document_url ? (
