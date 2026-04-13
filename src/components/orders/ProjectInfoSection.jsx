@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import AddressAutocomplete from '@/components/orders/AddressAutocomplete';
+import AddressAutocomplete from '@/components/orders/AddressAutocomplete';
 import FortnoxCustomerSelect from '@/components/orders/FortnoxCustomerSelect';
 import FilePreviewItem from '@/components/shared/FilePreview';
 import { Input } from "@/components/ui/input";
@@ -207,12 +209,17 @@ export default function ProjectInfoSection({ formData, setFormData, workOrders =
       {/* 3. LEVERANSINFORMATION */}
       <FormSection title={t('section_delivery_info', language)} icon="🚚">
         <FormGroup label={t('field_delivery_address', language)} required>
-          <Textarea
-            value={formData.delivery_address}
-            onChange={(e) => setFormData({ ...formData, delivery_address: e.target.value })}
+          <AddressAutocomplete
+            value={formData.delivery_address || ''}
+            onChange={(val) => setFormData(prev => ({ ...prev, delivery_address: val }))}
+            onSelect={({ street, city, postcode }) => setFormData(prev => ({
+              ...prev,
+              delivery_address: street,
+              ...(city ? { delivery_city: city } : {}),
+              ...(postcode ? { delivery_postcode: postcode } : {}),
+            }))}
             placeholder={t('ph_delivery_address', language)}
-            className="bg-slate-800 border-slate-700 text-white h-20"
-            required
+            className="bg-slate-800 border-slate-700 text-white"
           />
         </FormGroup>
 
