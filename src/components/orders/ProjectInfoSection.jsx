@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import AddressAutocomplete from '@/components/orders/AddressAutocomplete';
-import AddressAutocomplete from '@/components/orders/AddressAutocomplete';
 import FortnoxCustomerSelect from '@/components/orders/FortnoxCustomerSelect';
 import FilePreviewItem from '@/components/shared/FilePreview';
 import { Input } from "@/components/ui/input";
