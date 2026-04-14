@@ -28,9 +28,11 @@ export default function FortnoxCustomers() {
 
   const handleSync = async () => {
     setSyncing(true);
+    toast.info('Hämtar alla kunder från Fortnox (kan ta en stund)...');
     try {
       const res = await base44.functions.invoke('syncFortnoxCustomers', {});
-      toast.success(res.data.message || 'Kunder synkade!');
+      const { created = 0, updated = 0, total_in_fortnox } = res.data;
+      toast.success(`✓ ${res.data.message}${total_in_fortnox ? ` (${total_in_fortnox} totalt i Fortnox)` : ''}`);
       refetch();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Synk misslyckades');

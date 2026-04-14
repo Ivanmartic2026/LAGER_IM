@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     }
 
     // Get FortnoxConfig to retrieve OAuth tokens
-    const configs = await base44.entities.FortnoxConfig.list();
+    const configs = await base44.asServiceRole.entities.FortnoxConfig.list();
     if (!configs.length) {
       return Response.json({ error: 'No Fortnox configuration found' }, { status: 400 });
     }
@@ -38,24 +38,24 @@ Deno.serve(async (req) => {
       const refreshData = await refreshRes.json();
       accessToken = refreshData.access_token;
 
-      // Update config with new token
       const expiresAt = new Date();
       expiresAt.setSeconds(expiresAt.getSeconds() + refreshData.expires_in);
-      await base44.entities.FortnoxConfig.update(config.id, {
+      await base44.asServiceRole.entities.FortnoxConfig.update(config.id, {
         access_token: accessToken,
         refresh_token: refreshData.refresh_token || config.refresh_token,
         expires_at: expiresAt.toISOString(),
       });
     }
 
-    // Fetch all customers from Fortnox API
+    // Fetch ALL customers from Fortnox using page-based pagination (500 per page)
+    const PAGE_SIZE = 500;
     let allCustomers = [];
     let page = 1;
-    let hasMore = true;
+    let totalResources = null;
 
-    while (hasMore) {
+    while (true) {
       const apiRes = await fetch(
-        `https://api.fortnox.se/3/customers?limit=100&offset=${(page - 1) * 100}`,
+        `https://api.fortnox.se/3/customers?limit=${PAGE_SIZE}&page=${page}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -69,44 +69,88 @@ Deno.serve(async (req) => {
       }
 
       const data = await apiRes.json();
-      allCustomers = allCustomers.concat(data.Customers || []);
-      hasMore = (data.Customers || []).length === 100;
+      const customers = data.Customers || [];
+      allCustomers = allCustomers.concat(customers);
+
+      // Get total on first page
+      if (totalResources === null) {
+        totalResources = data.MetaInformation?.['@TotalResources'] || customers.length;
+        console.log(`Total resources in Fortnox: ${totalResources}`);
+      }
+
+      console.log(`Fetched page ${page}: ${customers.length} customers (total so far: ${allCustomers.length})`);
+
+      // Stop if we've fetched all
+      if (allCustomers.length >= totalResources || customers.length < PAGE_SIZE) {
+        break;
+      }
+
       page++;
     }
 
-    // Clear existing customers
+    console.log(`Total customers fetched: ${allCustomers.length}`);
+
+    // Load existing customers for upsert (index by customer_number)
     const existing = await base44.asServiceRole.entities.FortnoxCustomer.list();
-    for (const cust of existing) {
-      await base44.asServiceRole.entities.FortnoxCustomer.delete(cust.id);
+    const existingMap = {};
+    for (const c of existing) {
+      existingMap[c.customer_number] = c;
     }
 
-    // Sync all customers
-    const syncedCustomers = [];
+    let created = 0;
+    let updated = 0;
+
     for (const fc of allCustomers) {
-      try {
-        const created = await base44.asServiceRole.entities.FortnoxCustomer.create({
-          customer_number: String(fc.CustomerNumber || ''),
-          name: fc.Name || '',
-          organisation_number: fc.OrganisationNumber || '',
-          city: fc.City || '',
-          email: fc.Email || '',
-          phone: fc.Phone || '',
-          address1: fc.Address1 || '',
-          zip_code: fc.ZipCode || '',
-          active: fc.Active !== false,
-        });
-        syncedCustomers.push(created);
-      } catch (e) {
-        console.error(`Failed to sync customer ${fc.CustomerNumber}:`, e);
+      const customerNumber = String(fc.CustomerNumber || '');
+      if (!customerNumber) continue;
+
+      const payload = {
+        customer_number: customerNumber,
+        name: fc.Name || '',
+        organisation_number: fc.OrganisationNumber || '',
+        city: fc.City || '',
+        email: fc.Email || '',
+        phone: fc.Phone || '',
+        address1: fc.Address1 || '',
+        zip_code: fc.ZipCode || '',
+        active: fc.Active !== false,
+      };
+
+      if (existingMap[customerNumber]) {
+        // Update existing
+        await base44.asServiceRole.entities.FortnoxCustomer.update(existingMap[customerNumber].id, payload);
+        updated++;
+      } else {
+        // Create new
+        await base44.asServiceRole.entities.FortnoxCustomer.create(payload);
+        created++;
       }
     }
 
+    const total = created + updated;
+
+    // Log to SyncLog
+    await base44.asServiceRole.entities.SyncLog.create({
+      sync_type: 'customers_from_fortnox',
+      status: 'success',
+      records_processed: allCustomers.length,
+      records_created: created,
+      records_updated: updated,
+      records_skipped: 0,
+      triggered_by: user.email,
+      details: { total_in_fortnox: totalResources, pages_fetched: page },
+    });
+
     return Response.json({
       success: true,
-      synced_count: syncedCustomers.length,
-      message: `${syncedCustomers.length} kunder synkade från Fortnox`,
+      synced_count: total,
+      created,
+      updated,
+      total_in_fortnox: totalResources,
+      message: `${total} kunder synkade (${created} nya, ${updated} uppdaterade)`,
     });
   } catch (error) {
+    console.error('syncFortnoxCustomers error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
