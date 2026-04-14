@@ -49,7 +49,8 @@ export default function FortnoxCustomers() {
           <div>
             <h1 className="text-2xl font-bold text-white">Fortnox-kunder</h1>
             <p className="text-sm text-white/50 mt-1">
-              {filtered.length} kund{filtered.length !== 1 ? 'er' : ''} synkade
+              {customers.length} kund{customers.length !== 1 ? 'er' : ''} synkade
+              {search && ` (visar ${filtered.length} matchningar)`}
             </p>
           </div>
           <Button onClick={handleSync} disabled={syncing}

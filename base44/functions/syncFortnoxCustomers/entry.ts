@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
     console.log(`Total customers fetched: ${allCustomers.length}`);
 
     // Load existing customers for upsert (index by customer_number)
-    const existing = await base44.asServiceRole.entities.FortnoxCustomer.list();
+    const existing = await base44.asServiceRole.entities.FortnoxCustomer.list('-created_date', 5000);
     const existingMap = {};
     for (const c of existing) {
       existingMap[c.customer_number] = c;
