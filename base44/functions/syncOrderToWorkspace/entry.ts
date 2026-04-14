@@ -1,6 +1,6 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-const WORKSPACE_APP_ID = '6951895d1643f7057890a865';
+const WORKSPACE_BASE_URL = 'https://medarbetarappen-7890a865.base44.app/functions';
 
 Deno.serve(async (req) => {
   try {
@@ -12,78 +12,109 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Ingen order i payload' }, { status: 400 });
     }
 
-    // Only sync if order has a fortnox project number
     if (!order.fortnox_project_number) {
       return Response.json({ success: true, message: 'Ingen fortnox_project_number, hoppar över workspace-sync' });
     }
 
     const orderId = order.id || payload.event?.entity_id;
+    const fortnoxProjectNumber = order.fortnox_project_number;
+    const projectName = order.fortnox_project_name || order.order_number || order.customer_name || fortnoxProjectNumber;
 
-    // Use Base44 cross-app API to sync to IM Workspace
-    const baseUrl = `https://api.base44.app/api/apps/${WORKSPACE_APP_ID}/entities/WorkspaceProject`;
-    
-    // Get service token for cross-app call
-    // We use the app's own service role token via the SDK's internal mechanism
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-App-Id': WORKSPACE_APP_ID,
-    };
+    // --- Upsert ProjectLink in lager app (prevent duplicates here first) ---
+    const existingLinks = await base44.asServiceRole.entities.ProjectLink.filter({
+      projectNumber: fortnoxProjectNumber
+    });
 
-    // Try to find existing WorkspaceProject linked to this order
-    const searchRes = await fetch(
-      `${baseUrl}?filters=${encodeURIComponent(JSON.stringify({ fortnoxProjectNumber: order.fortnox_project_number }))}`,
-      { headers }
-    );
+    let workspaceProjectId = existingLinks.length > 0 ? existingLinks[0].wsProjectId : null;
 
-    let workspaceProjectId = null;
+    // --- Try to find/create WorkspaceProject in the workspace app ---
+    // Fetch all workspace projects and search for matching project_code
+    let wsProjectId = null;
+    try {
+      const listRes = await fetch(`${WORKSPACE_BASE_URL}/listWorkspaceProjects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
 
-    const projectData = {
-      name: order.order_number || order.customer_name || 'Projekt',
-      fortnoxProjectNumber: order.fortnox_project_number,
-      createdFromLager: true,
-      customerName: order.customer_name,
-      orderNumber: order.order_number,
-    };
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        const allProjects = listData.projects || [];
 
-    if (searchRes.ok) {
-      const existing = await searchRes.json();
-      const existingProjects = Array.isArray(existing) ? existing : existing.results || [];
-      
-      if (existingProjects.length > 0) {
-        workspaceProjectId = existingProjects[0].id;
-        // Update existing
-        await fetch(`${baseUrl}/${workspaceProjectId}`, {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify(projectData)
-        });
-      } else {
-        // Create new
-        const createRes = await fetch(baseUrl, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(projectData)
-        });
-        if (createRes.ok) {
-          const created = await createRes.json();
-          workspaceProjectId = created.id;
+        // Find existing project by project_code matching fortnox_project_number
+        const existing = allProjects.find(p =>
+          p.project_code === fortnoxProjectNumber ||
+          p.project_code === String(fortnoxProjectNumber) ||
+          p.name === fortnoxProjectNumber
+        );
+
+        if (existing) {
+          wsProjectId = existing.id;
+          console.log('Found existing WorkspaceProject:', wsProjectId, 'for project_code:', fortnoxProjectNumber);
+        } else {
+          // Create new workspace project via the workspace app's function
+          const createRes = await fetch(`${WORKSPACE_BASE_URL}/createWorkspaceProjectFromLager`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              project_code: fortnoxProjectNumber,
+              name: projectName,
+              customerName: order.customer_name,
+              orderNumber: order.order_number,
+            })
+          });
+
+          if (createRes.ok) {
+            const created = await createRes.json();
+            wsProjectId = created.id || created.project?.id;
+            console.log('Created WorkspaceProject:', wsProjectId, 'for project:', fortnoxProjectNumber);
+          } else {
+            const errText = await createRes.text();
+            console.warn('createWorkspaceProjectFromLager not available:', errText);
+            // Fall back to just using what we already have from the link
+            wsProjectId = workspaceProjectId;
+          }
         }
       }
+    } catch (wsError) {
+      console.warn('Workspace app unreachable, skipping WS project sync:', wsError.message);
+      wsProjectId = workspaceProjectId;
     }
 
-    // Update order with workspace link if we got an ID
-    if (workspaceProjectId && orderId && !order.rm_system_id) {
+    // Use the found/created wsProjectId, fall back to what was already linked
+    const finalWsProjectId = wsProjectId || workspaceProjectId;
+
+    // --- Upsert ProjectLink ---
+    if (finalWsProjectId) {
+      if (existingLinks.length > 0) {
+        // Update only if wsProjectId changed
+        if (existingLinks[0].wsProjectId !== finalWsProjectId) {
+          await base44.asServiceRole.entities.ProjectLink.update(existingLinks[0].id, {
+            wsProjectId: finalWsProjectId,
+            wsProjectName: projectName,
+          });
+        }
+      } else {
+        await base44.asServiceRole.entities.ProjectLink.create({
+          projectNumber: fortnoxProjectNumber,
+          wsProjectId: finalWsProjectId,
+          wsProjectName: projectName,
+        });
+      }
+      console.log('ProjectLink upserted for project:', fortnoxProjectNumber);
+    }
+
+    // Update order with workspace link if not already set
+    if (finalWsProjectId && orderId && !order.rm_system_id) {
       await base44.asServiceRole.entities.Order.update(orderId, {
-        rm_system_id: workspaceProjectId
+        rm_system_id: finalWsProjectId
       });
     }
 
-    console.log('Workspace sync klar för order:', orderId, 'workspace project:', workspaceProjectId);
-    return Response.json({ success: true, workspace_project_id: workspaceProjectId });
+    return Response.json({ success: true, workspace_project_id: finalWsProjectId });
 
   } catch (error) {
     console.error('syncOrderToWorkspace error:', error.message);
-    // Don't fail hard - workspace sync is secondary
     return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 });
