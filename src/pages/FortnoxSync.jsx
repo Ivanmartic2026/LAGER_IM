@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertCircle, CheckCircle2, XCircle, Loader2, Settings, Package, ShoppingCart, Users, Download, Link2, Unlink2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import SynkaKunderTab from "@/components/fortnox/SynkaKunderTab";
 
 function FortnoxConnectionPanel({ onConnected }) {
   const [isConnected, setIsConnected] = useState(false);
@@ -390,7 +391,7 @@ export default function FortnoxSyncPage() {
   const [syncing, setSyncing] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [syncResult, setSyncResult] = useState(null);
-  const [mode, setMode] = useState('manual'); // 'manual', 'suppliers', 'purchaseOrders', 'fortnoxImport'
+  const [mode, setMode] = useState('manual'); // 'manual', 'suppliers', 'purchaseOrders', 'fortnoxImport', 'customers'
   const [syncingArticleId, setSyncingArticleId] = useState(null);
   const [fortnoxArticles, setFortnoxArticles] = useState([]);
   const [fortnoxLoading, setFortnoxLoading] = useState(false);
@@ -749,6 +750,17 @@ export default function FortnoxSyncPage() {
           >
             <Download className="w-4 h-4 inline mr-2" />
             Fortnox → Lager AI
+          </button>
+          <button
+            onClick={() => setMode('customers')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              mode === 'customers'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white/5 border border-white/10 text-white/50 hover:text-white'
+            }`}
+          >
+            <Users className="w-4 h-4 inline mr-2" />
+            Synka Kunder
           </button>
         </motion.div>
 
@@ -1127,6 +1139,16 @@ export default function FortnoxSyncPage() {
                 </div>
               </motion.div>
             )}
+          </motion.div>
+        )}
+
+        {/* Customers Mode */}
+        {mode === 'customers' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <SynkaKunderTab />
           </motion.div>
         )}
 
