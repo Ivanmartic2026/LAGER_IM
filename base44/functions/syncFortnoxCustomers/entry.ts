@@ -72,7 +72,6 @@ Deno.serve(async (req) => {
       const customers = data.Customers || [];
       allCustomers = allCustomers.concat(customers);
 
-      // Get total on first page
       if (totalResources === null) {
         totalResources = data.MetaInformation?.['@TotalResources'] || customers.length;
         console.log(`Total resources in Fortnox: ${totalResources}`);
@@ -80,7 +79,6 @@ Deno.serve(async (req) => {
 
       console.log(`Fetched page ${page}: ${customers.length} customers (total so far: ${allCustomers.length})`);
 
-      // Stop if we've fetched all
       if (allCustomers.length >= totalResources || customers.length < PAGE_SIZE) {
         break;
       }
@@ -88,7 +86,7 @@ Deno.serve(async (req) => {
       page++;
     }
 
-    console.log(`Total customers fetched: ${allCustomers.length}`);
+    console.log(`Total customers fetched from Fortnox: ${allCustomers.length}`);
 
     // Load existing customers for upsert (index by customer_number)
     const existing = await base44.asServiceRole.entities.FortnoxCustomer.list('-created_date', 5000);
@@ -97,8 +95,9 @@ Deno.serve(async (req) => {
       existingMap[c.customer_number] = c;
     }
 
-    let created = 0;
-    let updated = 0;
+    // Split into new and to-update
+    const toCreate = [];
+    const toUpdate = []; // { id, payload }
 
     for (const fc of allCustomers) {
       const customerNumber = String(fc.CustomerNumber || '');
@@ -117,15 +116,36 @@ Deno.serve(async (req) => {
       };
 
       if (existingMap[customerNumber]) {
-        // Update existing
-        await base44.asServiceRole.entities.FortnoxCustomer.update(existingMap[customerNumber].id, payload);
-        updated++;
+        toUpdate.push({ id: existingMap[customerNumber].id, payload });
       } else {
-        // Create new
-        await base44.asServiceRole.entities.FortnoxCustomer.create(payload);
-        created++;
+        toCreate.push(payload);
       }
     }
+
+    // Bulk create new customers in batches of 100
+    const BATCH_SIZE = 100;
+    let created = 0;
+    for (let i = 0; i < toCreate.length; i += BATCH_SIZE) {
+      const batch = toCreate.slice(i, i + BATCH_SIZE);
+      await base44.asServiceRole.entities.FortnoxCustomer.bulkCreate(batch);
+      created += batch.length;
+      console.log(`Created batch: ${created}/${toCreate.length}`);
+    }
+
+    // Update existing customers in parallel batches of 20
+    const PARALLEL = 20;
+    let updated = 0;
+    for (let i = 0; i < toUpdate.length; i += PARALLEL) {
+      const batch = toUpdate.slice(i, i + PARALLEL);
+      await Promise.all(
+        batch.map(({ id, payload }) =>
+          base44.asServiceRole.entities.FortnoxCustomer.update(id, payload)
+        )
+      );
+      updated += batch.length;
+    }
+
+    console.log(`Sync complete: ${created} created, ${updated} updated`);
 
     const total = created + updated;
 
