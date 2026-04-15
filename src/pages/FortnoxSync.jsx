@@ -9,6 +9,7 @@ import { AlertCircle, CheckCircle2, XCircle, Loader2, Settings, Package, Shoppin
 import { toast } from "sonner";
 import SynkaKunderTab from "@/components/fortnox/SynkaKunderTab";
 import SupplierSyncPanel from "@/components/fortnox/SupplierSyncPanel";
+import PurchaseOrderSyncPanel from "@/components/fortnox/PurchaseOrderSyncPanel";
 
 function FortnoxConnectionPanel({ onConnected }) {
   const [isConnected, setIsConnected] = useState(false);
@@ -1078,39 +1079,8 @@ export default function FortnoxSyncPage() {
 
         {/* Purchase Orders Mode */}
         {mode === 'purchaseOrders' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-              <p className="text-white/70 mb-4">Synka alla inköpsorder till Fortnox</p>
-              <Button
-                onClick={() => setConfirmDialog({ type: 'purchaseOrders', count: 'alla', label: 'inköpsorder' })}
-                disabled={syncing}
-                className="bg-blue-600 hover:bg-blue-500 text-white"
-              >
-                {syncing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Synkar...</> : 'Synka Inköpsorder'}
-              </Button>
-            </div>
-            {syncResult && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                className={`p-6 rounded-2xl backdrop-blur-xl border ${syncResult.success ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}
-              >
-                <div className="flex items-start gap-4">
-                  {syncResult.success ? <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" /> : <XCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />}
-                  <div>
-                    <h3 className={`font-semibold mb-2 ${syncResult.success ? 'text-green-400' : 'text-red-400'}`}>
-                      {syncResult.success ? 'Synkronisering slutförd' : 'Synkronisering misslyckades'}
-                    </h3>
-                    <div className="space-y-1 text-sm text-white/70">
-                      {syncResult.synced > 0 && <p>✓ {syncResult.synced} inköpsorder synkade</p>}
-                      {syncResult.error && <p className="text-red-400">{syncResult.error}</p>}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <PurchaseOrderSyncPanel />
           </motion.div>
         )}
 
