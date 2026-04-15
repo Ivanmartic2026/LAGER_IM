@@ -92,11 +92,17 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const pushMissing = body.push_missing_to_fortnox === true;
     const supplierIds = body.supplier_ids ? new Set(body.supplier_ids) : null; // null = sync all
+    const dryRun = body.dry_run === true;
 
     const accessToken = await getAccessToken(base44);
 
     // Fetch all suppliers from Fortnox
     const fortnoxSuppliers = await fetchAllFortnoxSuppliers(accessToken);
+
+    // dry_run: just return the Fortnox list for the import tab
+    if (dryRun) {
+      return Response.json({ success: true, fortnox_list: fortnoxSuppliers });
+    }
 
     // Build name -> SupplierNumber map (case-insensitive)
     const nameMap = {};
