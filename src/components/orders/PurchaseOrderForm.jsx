@@ -63,11 +63,11 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [itemsLoaded, setItemsLoaded] = useState(false);
 
   useEffect(() => {
-    if (existingItems.length > 0 && !itemsLoaded) {
+    if (!itemsLoaded && existingItems.length > 0) {
       setPOItems(existingItems);
       setItemsLoaded(true);
     }
-  }, [existingItems.length, itemsLoaded]);
+  }, [existingItems]);
 
   const savePOMutation = useMutation({
     mutationFn: async (data) => {
@@ -463,7 +463,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
       return;
     }
 
-    if (poItems.length === 0) {
+    if (poItems.length === 0 && !purchaseOrder) {
       toast.error("Lägg till minst en artikel");
       return;
     }
