@@ -522,6 +522,28 @@ export default function PurchaseOrdersPage() {
                               <Download className="w-3 h-3" />Kvitto
                             </button>
                           )}
+                          {po.status === 'received' && (
+                            <button
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-emerald-300 hover:text-white hover:bg-emerald-600/30 border border-emerald-500/30 transition-colors"
+                              onClick={async () => {
+                                if (!confirm(`Skapa inleverans i Fortnox för ${po.po_number || po.id.slice(0,8)}?`)) return;
+                                const t = toast.loading("Skapar inleverans i Fortnox...");
+                                try {
+                                  await base44.functions.invoke('fortnoxSyncV2', {
+                                    purchaseOrderId: po.id,
+                                    createInboundDelivery: true
+                                  });
+                                  toast.dismiss(t);
+                                  toast.success('Inleverans skapad i Fortnox!');
+                                  queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+                                } catch (e) {
+                                  toast.error('Misslyckades: ' + e.message, { id: t });
+                                }
+                              }}
+                            >
+                              <Package className="w-3 h-3" />Inleverans → FN
+                            </button>
+                          )}
                           {po.invoice_file_url && (
                             <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-amber-400 hover:bg-amber-500/10 transition-colors" onClick={() => window.open(po.invoice_file_url, '_blank')}>
                               <FileText className="w-3 h-3" />Faktura
