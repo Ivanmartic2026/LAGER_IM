@@ -39,14 +39,19 @@ export default function AutoAnalysisReview({
       const byBatch = await base44.entities.Article.filter({ batch_number: batchNum });
       
       // Also do fuzzy match via full list if exact match fails
+      // Only do fuzzy if batchNum is at least 6 characters to avoid false positives
       let allMatches = [...byBatch];
-      if (byBatch.length === 0) {
+      if (byBatch.length === 0 && batchNum.length >= 6) {
         const allArticles = await base44.entities.Article.list();
         const fuzzy = allArticles.filter(a => {
-          if (!a.batch_number) return false;
+          if (!a.batch_number || a.batch_number.length < 4) return false;
           const a1 = a.batch_number.toUpperCase().replace(/\s+/g, '');
           const a2 = batchNum.toUpperCase().replace(/\s+/g, '');
-          return a1.includes(a2) || a2.includes(a1);
+          // Require meaningful overlap: at least 6 chars must match and the match must be >50% of the shorter string
+          const minLen = Math.min(a1.length, a2.length);
+          if (minLen < 6) return false;
+          const overlap = a1.includes(a2) || a2.includes(a1);
+          return overlap && minLen >= 6;
         });
         allMatches = fuzzy;
       }
