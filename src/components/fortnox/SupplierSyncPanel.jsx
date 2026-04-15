@@ -11,9 +11,11 @@ export default function SupplierSyncPanel() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [syncing, setSyncing] = useState({}); // { [key]: true }
+  const [fetchError, setFetchError] = useState(null);
 
   const fetchAll = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const [intRes, fnRes] = await Promise.all([
         base44.entities.Supplier.list(),
@@ -24,7 +26,9 @@ export default function SupplierSyncPanel() {
       const fnData = fnRes.data;
 
       if (!fnData?.fortnox_list) {
-        toast.error('Kunde inte hämta Fortnox-leverantörer: ' + (fnData?.error || 'okänt fel'));
+        const errMsg = fnData?.error || 'okänt fel';
+        setFetchError(errMsg);
+        toast.error('Kunde inte hämta Fortnox-leverantörer: ' + errMsg);
         setLoading(false);
         return;
       }
@@ -89,6 +93,7 @@ export default function SupplierSyncPanel() {
 
       setRows(merged);
     } catch (err) {
+      setFetchError(err.message);
       toast.error('Fel: ' + err.message);
     } finally {
       setLoading(false);
@@ -156,23 +161,15 @@ export default function SupplierSyncPanel() {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
 
-      <div className="p-4 rounded-xl bg-red-500/15 border border-red-500/40 flex items-start gap-3">
-        <span className="text-2xl">🔐</span>
-        <div className="flex-1">
-          <p className="text-red-300 font-semibold text-sm">Återauktorisering krävs för leverantörssynk</p>
-          <p className="text-red-300/70 text-sm mt-1">
-            Fortnox-anslutningen saknar <code className="bg-black/30 px-1 rounded text-xs">supplier</code>-behörighet. 
-            Du måste koppla från och återansluta för att bevilja rätt scope.
-          </p>
-          <Button
-            size="sm"
-            className="mt-3 bg-red-600 hover:bg-red-500 text-white"
-            onClick={() => window.open('https://apps.fortnox.se/oauth-v1/auth?client_id=mp08u6gAFPz2&redirect_uri=https%3A%2F%2Flager-ai-7d26cc74.base44.app%2FFortnoxSync&scope=companyinformation%20article%20project%20invoice%20supplierinvoice%20supplier%20customer&state=fortnox_connect&access_type=offline&response_type=code', '_blank')}
-          >
-            🔗 Klicka här för att återansluta Fortnox med rätt behörigheter
-          </Button>
+      {fetchError && (
+        <div className="p-4 rounded-xl bg-red-500/15 border border-red-500/40 flex items-start gap-3">
+          <span className="text-2xl">⚠️</span>
+          <div className="flex-1">
+            <p className="text-red-300 font-semibold text-sm">Fel vid hämtning</p>
+            <p className="text-red-300/70 text-sm mt-1 font-mono">{fetchError}</p>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 space-y-4">
 
