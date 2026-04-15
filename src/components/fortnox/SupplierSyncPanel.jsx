@@ -103,19 +103,28 @@ export default function SupplierSyncPanel() {
   // Push one internal supplier → Fortnox (match or create)
   const pushToFortnox = async (row) => {
     setSyncing(p => ({ ...p, [row.key]: true }));
+    const toastId = toast.loading(`Synkar ${row.internal.name} till Fortnox...`);
     try {
       const res = await base44.functions.invoke('syncSuppliersWithFortnox', {
         supplier_ids: [row.internal.id],
         push_missing_to_fortnox: true
       });
       const data = res.data;
-      if (data.success) {
-        toast.success(`${row.internal.name} synkad till Fortnox`);
+      toast.dismiss(toastId);
+      if (data?.error) {
+        toast.error('Misslyckades: ' + data.error);
+      } else if (data?.suppliers_pushed_to_fortnox > 0) {
+        toast.success(`${row.internal.name} skapad i Fortnox ✓`);
+        await fetchAll();
+      } else if (data?.suppliers_matched > 0) {
+        toast.success(`${row.internal.name} matchad och länkad i Fortnox ✓`);
         await fetchAll();
       } else {
-        toast.error('Misslyckades: ' + data.error);
+        toast.warning(`${row.internal.name}: Ingen åtgärd utfördes (leverantören kanske redan finns i Fortnox)`);
+        await fetchAll();
       }
     } catch (err) {
+      toast.dismiss(toastId);
       toast.error('Fel: ' + err.message);
     } finally {
       setSyncing(p => ({ ...p, [row.key]: false }));
