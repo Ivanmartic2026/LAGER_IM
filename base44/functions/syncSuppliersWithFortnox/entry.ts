@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const pushMissing = body.push_missing_to_fortnox === true;
+    const supplierIds = body.supplier_ids ? new Set(body.supplier_ids) : null; // null = sync all
 
     const accessToken = await getAccessToken(base44);
 
@@ -103,8 +104,9 @@ Deno.serve(async (req) => {
       if (s.Name) nameMap[s.Name.toLowerCase().trim()] = s.SupplierNumber;
     }
 
-    // Load all internal suppliers
-    const internalSuppliers = await base44.asServiceRole.entities.Supplier.list();
+    // Load all internal suppliers (or just the selected ones)
+    const allSuppliers = await base44.asServiceRole.entities.Supplier.list();
+    const internalSuppliers = supplierIds ? allSuppliers.filter(s => supplierIds.has(s.id)) : allSuppliers;
 
     let matched = 0, pushed = 0, skipped = 0;
     const missing = [];

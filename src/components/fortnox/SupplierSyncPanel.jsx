@@ -1,97 +1,191 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, XCircle, Loader2, ArrowLeftRight, ArrowRight, ArrowLeft } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { CheckCircle2, XCircle, Loader2, ArrowLeftRight, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 export default function SupplierSyncPanel() {
-  const [loading, setLoading] = useState(false);
+  const [suppliers, setSuppliers] = useState([]);
+  const [loadingSuppliers, setLoadingSuppliers] = useState(true);
+  const [selected, setSelected] = useState(new Set());
+  const [searchTerm, setSearchTerm] = useState('');
+  const [syncing, setSyncing] = useState(false);
   const [result, setResult] = useState(null);
-  const [pushMissing, setPushMissing] = useState(false);
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+  const fetchSuppliers = async () => {
+    setLoadingSuppliers(true);
+    try {
+      const data = await base44.entities.Supplier.list();
+      setSuppliers(data.sort((a, b) => a.name?.localeCompare(b.name || '') || 0));
+    } catch (err) {
+      toast.error('Kunde inte hämta leverantörer');
+    } finally {
+      setLoadingSuppliers(false);
+    }
+  };
+
+  const filtered = suppliers.filter(s =>
+    !searchTerm ||
+    s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.fortnox_supplier_number?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const toggleAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map(s => s.id)));
+    }
+  };
+
+  const toggle = (id) => {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelected(next);
+  };
 
   const runSync = async () => {
-    setLoading(true);
+    if (selected.size === 0) {
+      toast.error('Välj minst en leverantör');
+      return;
+    }
+    setSyncing(true);
     setResult(null);
     try {
+      const selectedSuppliers = suppliers.filter(s => selected.has(s.id));
       const res = await base44.functions.invoke('syncSuppliersWithFortnox', {
-        push_missing_to_fortnox: pushMissing
+        supplier_ids: selectedSuppliers.map(s => s.id),
+        push_missing_to_fortnox: true
       });
       const data = res.data;
       setResult(data);
       if (data.success) {
-        toast.success(`Leverantörssynk klar — ${data.suppliers_matched} matchade, ${data.suppliers_pushed_to_fortnox} skapade i Fortnox`);
+        toast.success(`Synk klar — ${data.suppliers_matched} matchade, ${data.suppliers_pushed_to_fortnox} skapade i Fortnox`);
+        await fetchSuppliers();
+        setSelected(new Set());
       } else {
         toast.error(`Synk misslyckades: ${data.error}`);
       }
-    } catch (error) {
-      toast.error('Synk misslyckades: ' + error.message);
-      setResult({ success: false, error: error.message });
+    } catch (err) {
+      toast.error('Synk misslyckades: ' + err.message);
+      setResult({ success: false, error: err.message });
     } finally {
-      setLoading(false);
+      setSyncing(false);
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-4"
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+      
+      <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
+        <span className="text-amber-400 text-sm mt-0.5">⚠️</span>
+        <p className="text-sm text-amber-300">
+          <strong>Kräver nytt scope:</strong> Klicka på <strong>"Återanslut Fortnox"</strong> uppe till höger och godkänn om innan du synkar leverantörer.
+        </p>
+      </div>
+
       <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 space-y-4">
-        <div>
-          <h3 className="text-white font-semibold mb-1">Synkronisera leverantörer med Fortnox</h3>
-          <p className="text-sm text-white/50">
-            Hämtar alla leverantörer från Fortnox, matchar på namn och skriver tillbaka Fortnox-leverantörsnumret på dina interna leverantörer.
-          </p>
-        </div>
-
-        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
-          <span className="text-amber-400 text-sm">⚠️</span>
-          <div className="text-sm text-amber-300">
-            <strong>Kräver nytt scope:</strong> Klicka på <strong>"Återanslut Fortnox"</strong> uppe till höger för att auktorisera om med <code className="bg-black/30 px-1 rounded">supplier</code>-scope, annars fungerar inte leverantörssynken.
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-white font-semibold">Välj leverantörer att synka</h3>
+            <p className="text-sm text-white/50 mt-0.5">Välj vilka leverantörer som ska matchas/skapas i Fortnox</p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={fetchSuppliers} variant="outline" size="sm" className="bg-white/5 border-white/20 text-white/70 hover:text-white">
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={runSync}
+              disabled={syncing || selected.size === 0}
+              className="bg-blue-600 hover:bg-blue-500 text-white"
+            >
+              {syncing
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Synkar...</>
+                : <><ArrowLeftRight className="w-4 h-4 mr-2" />Synka {selected.size > 0 ? `${selected.size} ` : ''}valda</>
+              }
+            </Button>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-white/70">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10">
-              <ArrowLeft className="w-4 h-4 text-blue-400" />
-              <span>Fortnox → Lager AI</span>
-              <span className="text-white/40 text-xs">(matcha & spara FN-nr)</span>
-            </div>
+        <Input
+          placeholder="Sök leverantör..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="bg-slate-800 border-slate-700 text-white"
+        />
+
+        {loadingSuppliers ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
           </div>
+        ) : (
+          <div className="overflow-x-auto -mx-6">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="p-3 pl-6 text-left">
+                    <Checkbox
+                      checked={filtered.length > 0 && selected.size === filtered.length}
+                      onCheckedChange={toggleAll}
+                    />
+                  </th>
+                  <th className="p-3 text-left text-white/70">Leverantör</th>
+                  <th className="p-3 text-left text-white/70">E-post</th>
+                  <th className="p-3 text-left text-white/70">Telefon</th>
+                  <th className="p-3 text-left text-white/70">Fortnox-nr</th>
+                  <th className="p-3 text-left text-white/70">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((s) => (
+                  <tr key={s.id} className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer" onClick={() => toggle(s.id)}>
+                    <td className="p-3 pl-6">
+                      <Checkbox
+                        checked={selected.has(s.id)}
+                        onCheckedChange={() => toggle(s.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </td>
+                    <td className="p-3 text-white font-medium">{s.name}</td>
+                    <td className="p-3 text-white/60">{s.email || '–'}</td>
+                    <td className="p-3 text-white/60">{s.phone || '–'}</td>
+                    <td className="p-3 text-white font-mono text-xs">{s.fortnox_supplier_number || '–'}</td>
+                    <td className="p-3">
+                      {s.fortnox_supplier_number ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs">
+                          <CheckCircle2 className="w-3 h-3" /> Synkad
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full bg-slate-500/20 text-slate-400 text-xs">
+                          Ej synkad
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-white/40">Inga leverantörer hittades</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-          <label className="flex items-center gap-2 text-sm text-white/70 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={pushMissing}
-              onChange={(e) => setPushMissing(e.target.checked)}
-              className="rounded"
-            />
-            <span>Skapa saknade leverantörer i Fortnox</span>
-            <ArrowRight className="w-4 h-4 text-green-400" />
-            <span className="text-white/40 text-xs">(Lager AI → Fortnox)</span>
-          </label>
-        </div>
-
-        <Button
-          onClick={runSync}
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-500 text-white"
-        >
-          {loading ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Synkar...</>
-          ) : (
-            <><ArrowLeftRight className="w-4 h-4 mr-2" />Synka leverantörer nu</>
-          )}
-        </Button>
+        <p className="text-xs text-white/30">{suppliers.length} leverantörer totalt • {suppliers.filter(s => s.fortnox_supplier_number).length} synkade</p>
       </div>
 
       {result && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className={`p-6 rounded-2xl border ${result.success ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}
         >
           <div className="flex items-start gap-4">
@@ -115,13 +209,6 @@ export default function SupplierSyncPanel() {
                       <p className="text-xs text-white/50 mt-1">{label}</p>
                     </div>
                   ))}
-                </div>
-              )}
-              {result.missing_names && result.missing_names.length > 0 && !pushMissing && (
-                <div className="mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                  <p className="text-xs text-amber-400 font-medium mb-1">Leverantörer som saknas i Fortnox:</p>
-                  <p className="text-xs text-amber-300/70">{result.missing_names.join(', ')}</p>
-                  <p className="text-xs text-amber-300/50 mt-1">Kryssa i "Skapa saknade..." och kör synken igen för att pusha dem.</p>
                 </div>
               )}
               {result.error && <p className="text-sm text-red-400 mt-2">{result.error}</p>}
