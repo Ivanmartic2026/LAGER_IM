@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { X, Plus, Trash2, Package, FileText, Sparkles, Edit2, CheckCircle2, ExternalLink, Zap } from "lucide-react";
+import { X, Plus, Trash2, Package, FileText, Sparkles, Edit2, CheckCircle2, ExternalLink, Zap, AlertTriangle } from "lucide-react";
 
 export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [formData, setFormData] = useState({
@@ -192,6 +192,10 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
       toast.error('Kunde inte spara inköpsorder: ' + error.message);
     }
   });
+
+  const selectedSupplier = suppliers.find(s => s.id === formData.supplier_id);
+  const supplierMissingFortnoxNumber = formData.supplier_id && !selectedSupplier?.fortnox_supplier_number;
+  const itemsMissingSkus = poItems.filter(item => !item.article_sku && !(item.article_id && articles.find(a => a.id === item.article_id)?.sku));
 
   const handleSupplierChange = (supplierId) => {
     const supplier = suppliers.find(s => s.id === supplierId);
@@ -533,7 +537,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                 <SelectContent>
                   {suppliers.map((supplier) => (
                     <SelectItem key={supplier.id} value={supplier.id}>
-                      {supplier.name}
+                      {supplier.name}{supplier.fortnox_supplier_number ? ` (FN: ${supplier.fortnox_supplier_number})` : ' ⚠️ Saknar FN-nr'}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1081,6 +1085,26 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
               </div>
             )}
           </div>
+
+          {/* Fortnox sync readiness warnings */}
+          {(supplierMissingFortnoxNumber || itemsMissingSkus.length > 0) && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2">
+              <div className="flex items-center gap-2 text-amber-400 font-medium text-sm">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                Förutsättningar saknas för Fortnox-sync
+              </div>
+              {supplierMissingFortnoxNumber && (
+                <p className="text-xs text-amber-300/80 pl-6">
+                  Leverantören saknar <strong>Fortnox leverantörsnummer</strong> — lägg till det under Leverantörer för att inleverans-sync ska fungera.
+                </p>
+              )}
+              {itemsMissingSkus.length > 0 && (
+                <p className="text-xs text-amber-300/80 pl-6">
+                  <strong>{itemsMissingSkus.length} artikel{itemsMissingSkus.length > 1 ? 'ar' : ''}</strong> saknar Article Number (SKU) — krävs för att Fortnox ska känna igen artiklarna vid inleverans.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Actions */}
            <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">

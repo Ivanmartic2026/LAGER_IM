@@ -1,0 +1,51 @@
+{
+  "name": "Supplier",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Leverant\u00f6rens namn"
+    },
+    "fortnox_supplier_number": {
+      "type": "string",
+      "description": "Fortnox leverant\u00f6rsnummer (kr\u00e4vs f\u00f6r Fortnox-sync)"
+    },
+    "contact_person": {
+      "type": "string",
+      "description": "Kontaktperson"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-postadress"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefonnummer"
+    },
+    "address": {
+      "type": "string",
+      "description": "Adress"
+    },
+    "website": {
+      "type": "string",
+      "description": "Webbsida"
+    },
+    "standard_delivery_days": {
+      "type": "number",
+      "description": "Standard leveranstid i dagar",
+      "default": 7
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om leverant\u00f6ren \u00e4r aktiv"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
