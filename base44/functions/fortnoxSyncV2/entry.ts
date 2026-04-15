@@ -184,6 +184,62 @@ async function syncPurchaseOrders(accessToken, base44, poId) {
     return { succeeded, failed };
 }
 
+async function ensureSupplierInFortnox(accessToken, base44, supplierId) {
+  if (!supplierId) return null;
+
+  const supplier = await base44.asServiceRole.entities.Supplier.get(supplierId).catch(() => null);
+  if (!supplier) return null;
+
+  // Already has a Fortnox supplier number
+  if (supplier.fortnox_supplier_number) return supplier.fortnox_supplier_number;
+
+  // Check if supplier exists in Fortnox by name
+  const searchRes = await fetch(`${FORTNOX_API_BASE}/suppliers?limit=500`, {
+    headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json' }
+  });
+
+  if (searchRes.ok) {
+    const searchData = await searchRes.json();
+    const allSuppliers = searchData.Suppliers || [];
+    const match = allSuppliers.find(s => s.Name?.toLowerCase().trim() === supplier.name?.toLowerCase().trim());
+    if (match) {
+      await base44.asServiceRole.entities.Supplier.update(supplierId, {
+        fortnox_supplier_number: match.SupplierNumber
+      });
+      return match.SupplierNumber;
+    }
+  }
+
+  // Not found — create in Fortnox
+  const createRes = await fetch(`${FORTNOX_API_BASE}/suppliers`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      Supplier: {
+        Name: supplier.name?.trim() || '',
+        Address1: (supplier.address || '').trim(),
+        Email: (supplier.email || '').trim()
+      }
+    })
+  });
+
+  if (createRes.ok) {
+    const createData = await createRes.json();
+    const fortnoxNumber = createData?.Supplier?.SupplierNumber;
+    if (fortnoxNumber) {
+      await base44.asServiceRole.entities.Supplier.update(supplierId, {
+        fortnox_supplier_number: fortnoxNumber
+      });
+      return fortnoxNumber;
+    }
+  } else {
+    const errText = await createRes.text();
+    console.warn(`ensureSupplierInFortnox: kunde inte skapa leverantör ${supplier.name}: ${errText}`);
+  }
+
+  return null;
+}
+
 async function createFortnoxInboundDelivery(accessToken, base44, poId) {
   const diagnostics = {
     po: null,
@@ -255,12 +311,11 @@ async function createFortnoxInboundDelivery(accessToken, base44, poId) {
     return { succeeded: 0, failed: 0, diagnostics, error: 'Inga rader med mottagna artiklar och giltiga SKU:er att skicka' };
   }
 
-  // SupplierNumber ska vara Fortnox leverantörsnummer, inte internt ID
-  // Försök hämta Fortnox-leverantörsnummer från leverantörsentiteten
+  // Säkerställ att leverantören finns i Fortnox (matcha, skapa vid behov) och hämta nummer
   let supplierNumber = '';
   if (po.supplier_id) {
-    const supplier = await base44.asServiceRole.entities.Supplier.get(po.supplier_id).catch(() => null);
-    supplierNumber = supplier?.fortnox_supplier_number || supplier?.supplier_number || '';
+    supplierNumber = await ensureSupplierInFortnox(accessToken, base44, po.supplier_id) || '';
+    console.log(`Leverantör Fortnox-nummer: ${supplierNumber || '(ej funnet)'}`);
   }
 
   const deliveryData = {
