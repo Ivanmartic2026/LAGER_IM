@@ -119,8 +119,17 @@ async function syncSuppliers(accessToken, base44) {
       });
 
       if (response.ok) {
+        const responseData = await response.json();
+        const fortnoxNumber = responseData?.Supplier?.SupplierNumber;
+        if (fortnoxNumber) {
+          await base44.asServiceRole.entities.Supplier.update(supplier.id, {
+            fortnox_supplier_number: fortnoxNumber
+          });
+        }
         succeeded++;
       } else {
+        const errText = await response.text();
+        console.warn(`Failed to push supplier ${supplier.name}: ${response.status} - ${errText}`);
         failed++;
       }
     } catch (error) {
