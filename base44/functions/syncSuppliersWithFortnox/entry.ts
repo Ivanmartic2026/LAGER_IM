@@ -64,12 +64,9 @@ async function createSupplierInFortnox(accessToken, supplier) {
     headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify({
       Supplier: {
-        Name: supplier.name,
-        Address1: supplier.address || '',
-        ContactPerson: supplier.contact_person || '',
-        Email: supplier.email || '',
-        Phone: supplier.phone || '',
-        WWW: supplier.website || ''
+        Name: supplier.name?.trim() || '',
+        Address1: (supplier.address || '').trim(),
+        Email: (supplier.email || '').trim()
       }
     })
   });
