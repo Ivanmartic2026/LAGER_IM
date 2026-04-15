@@ -156,8 +156,22 @@ export default function SupplierSyncPanel() {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
 
-      <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-sm text-amber-300">
-        ⚠️ <strong>Kräver supplier-scope:</strong> Klicka <strong>"Återanslut Fortnox"</strong> uppe till höger och godkänn innan du synkar.
+      <div className="p-4 rounded-xl bg-red-500/15 border border-red-500/40 flex items-start gap-3">
+        <span className="text-2xl">🔐</span>
+        <div className="flex-1">
+          <p className="text-red-300 font-semibold text-sm">Återauktorisering krävs för leverantörssynk</p>
+          <p className="text-red-300/70 text-sm mt-1">
+            Fortnox-anslutningen saknar <code className="bg-black/30 px-1 rounded text-xs">supplier</code>-behörighet. 
+            Du måste koppla från och återansluta för att bevilja rätt scope.
+          </p>
+          <Button
+            size="sm"
+            className="mt-3 bg-red-600 hover:bg-red-500 text-white"
+            onClick={() => window.open('https://apps.fortnox.se/oauth-v1/auth?client_id=mp08u6gAFPz2&redirect_uri=https%3A%2F%2Flager-ai-7d26cc74.base44.app%2FFortnoxSync&scope=companyinformation%20article%20project%20invoice%20supplierinvoice%20supplier%20customer&state=fortnox_connect&access_type=offline&response_type=code', '_blank')}
+          >
+            🔗 Klicka här för att återansluta Fortnox med rätt behörigheter
+          </Button>
+        </div>
       </div>
 
       <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 space-y-4">
