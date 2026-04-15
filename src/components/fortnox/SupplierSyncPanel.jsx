@@ -46,6 +46,13 @@ export default function SupplierSyncPanel() {
           </p>
         </div>
 
+        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
+          <span className="text-amber-400 text-sm">⚠️</span>
+          <div className="text-sm text-amber-300">
+            <strong>Kräver nytt scope:</strong> Klicka på <strong>"Återanslut Fortnox"</strong> uppe till höger för att auktorisera om med <code className="bg-black/30 px-1 rounded">supplier</code>-scope, annars fungerar inte leverantörssynken.
+          </div>
+        </div>
+
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-white/70">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10">
