@@ -176,82 +176,121 @@ async function syncPurchaseOrders(accessToken, base44, poId) {
 }
 
 async function createFortnoxInboundDelivery(accessToken, base44, poId) {
-  let succeeded = 0;
-  let failed = 0;
+  const diagnostics = {
+    po: null,
+    items: [],
+    rows: [],
+    skippedItems: [],
+    fortnoxRequest: null,
+    fortnoxResponse: null,
+    fortnoxResponseBody: null
+  };
 
   const po = await base44.asServiceRole.entities.PurchaseOrder.get(poId);
-  if (!po || po.status !== 'received') {
-    throw new Error(`PO ${poId} not received or not found`);
+  if (!po) throw new Error(`PO ${poId} hittades inte`);
+  if (po.status !== 'received') throw new Error(`PO ${poId} har status '${po.status}', måste vara 'received'`);
+
+  diagnostics.po = {
+    id: po.id,
+    po_number: po.po_number,
+    supplier_name: po.supplier_name,
+    supplier_id: po.supplier_id,
+    status: po.status,
+    fortnox_project_number: po.fortnox_project_number
+  };
+
+  const items = await base44.asServiceRole.entities.PurchaseOrderItem.filter({
+    purchase_order_id: poId
+  });
+
+  diagnostics.items = items.map(i => ({
+    id: i.id,
+    article_id: i.article_id,
+    article_name: i.article_name,
+    article_sku: i.article_sku,
+    quantity_ordered: i.quantity_ordered,
+    quantity_received: i.quantity_received
+  }));
+
+  if (!items || items.length === 0) {
+    return { succeeded: 0, failed: 0, diagnostics, error: 'Inga orderrader hittades för denna PO' };
   }
 
-  try {
-    // Fetch all items for this PO
-    const items = await base44.asServiceRole.entities.PurchaseOrderItem.filter({
-      purchase_order_id: poId
-    });
-
-    if (!items || items.length === 0) {
-      return { succeeded: 0, failed: 0 };
+  const rows = [];
+  for (const item of items) {
+    if (!item.quantity_received || item.quantity_received <= 0) {
+      diagnostics.skippedItems.push({ id: item.id, reason: 'quantity_received är 0 eller saknas', article_name: item.article_name });
+      continue;
     }
 
-    // Build delivery rows with article numbers and quantities
-    const rows = [];
-    for (const item of items) {
-      if (item.quantity_received <= 0) continue;
+    const article = item.article_id
+      ? await base44.asServiceRole.entities.Article.get(item.article_id)
+      : null;
 
-      const article = item.article_id 
-        ? await base44.asServiceRole.entities.Article.get(item.article_id)
-        : null;
+    const articleNumber = article?.sku || item.article_sku;
+    if (!articleNumber) {
+      diagnostics.skippedItems.push({ id: item.id, reason: 'Saknar artikelnummer (sku)', article_name: item.article_name });
+      console.warn(`Ingen SKU för artikel i rad ${item.id}, hoppar över`);
+      continue;
+    }
 
-      const articleNumber = article?.fortnox_article_number || article?.sku || item.article_sku;
-      if (!articleNumber) {
-        console.warn(`No article number for item ${item.id}, skipping`);
-        continue;
-      }
+    rows.push({
+      ArticleNumber: articleNumber,
+      DeliveredQuantity: item.quantity_received
+    });
+  }
 
-      rows.push({
-        ArticleNumber: articleNumber,
-        DeliveredQuantity: item.quantity_received
+  diagnostics.rows = rows;
+
+  if (rows.length === 0) {
+    return { succeeded: 0, failed: 0, diagnostics, error: 'Inga rader med mottagna artiklar och giltiga SKU:er att skicka' };
+  }
+
+  // SupplierNumber ska vara Fortnox leverantörsnummer, inte internt ID
+  // Försök hämta Fortnox-leverantörsnummer från leverantörsentiteten
+  let supplierNumber = '';
+  if (po.supplier_id) {
+    const supplier = await base44.asServiceRole.entities.Supplier.get(po.supplier_id).catch(() => null);
+    supplierNumber = supplier?.fortnox_supplier_number || supplier?.supplier_number || '';
+  }
+
+  const deliveryData = {
+    SupplierNumber: supplierNumber,
+    DeliveryDate: po.received_date ? po.received_date.split('T')[0] : new Date().toISOString().split('T')[0],
+    Rows: rows
+  };
+
+  diagnostics.fortnoxRequest = deliveryData;
+
+  const response = await fetch(`${FORTNOX_API_BASE}/inbounddeliveries`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({ InboundDelivery: deliveryData })
+  });
+
+  const responseBody = await response.text();
+  diagnostics.fortnoxResponse = { status: response.status, statusText: response.statusText };
+
+  let parsedBody;
+  try { parsedBody = JSON.parse(responseBody); } catch { parsedBody = responseBody; }
+  diagnostics.fortnoxResponseBody = parsedBody;
+
+  if (response.ok) {
+    const goodsReceiptNumber = parsedBody?.InboundDelivery?.GoodsReceiptNumber;
+    if (goodsReceiptNumber) {
+      await base44.asServiceRole.entities.PurchaseOrder.update(poId, {
+        fortnox_incoming_goods_id: goodsReceiptNumber
       });
     }
-
-    if (rows.length === 0) {
-      return { succeeded: 0, failed: 0 };
-    }
-
-    // Create inbound delivery in Fortnox
-    const deliveryData = {
-      SupplierNumber: po.supplier_id || '',
-      DeliveryDate: new Date().toISOString().split('T')[0],
-      Rows: rows
-    };
-
-    const response = await fetch(`${FORTNOX_API_BASE}/inbounddeliveries`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ InboundDelivery: deliveryData })
-    });
-
-    if (response.ok) {
-      succeeded = 1;
-    } else if (response.status === 400) {
-      failed = 1;
-      console.error('Fortnox Lager-modul är inte aktiverad - aktivera modulen i Fortnox för att synka lagerinleveranser');
-    } else {
-      const errorText = await response.text();
-      console.error(`Fortnox inbound delivery creation failed: ${response.status} - ${errorText}`);
-      failed = 1;
-    }
-  } catch (error) {
-    console.error(`Error creating inbound delivery for PO ${poId}:`, error);
-    failed = 1;
+    return { succeeded: 1, failed: 0, diagnostics, goodsReceiptNumber };
+  } else {
+    console.error(`Fortnox inleverans misslyckades: ${response.status} - ${responseBody}`);
+    return { succeeded: 0, failed: 1, diagnostics, error: `Fortnox svarade ${response.status}: ${responseBody}` };
   }
-
-  return { succeeded, failed };
 }
 
 Deno.serve(async (req) => {
@@ -272,9 +311,11 @@ Deno.serve(async (req) => {
       if (purchaseOrderId && createInboundDelivery) {
         const result = await createFortnoxInboundDelivery(accessToken, base44, purchaseOrderId);
         return Response.json({
-          success: result.failed === 0,
+          success: result.succeeded > 0,
           synced: result.succeeded,
-          errors: result.failed > 0 ? ['Failed to create inbound delivery'] : []
+          goodsReceiptNumber: result.goodsReceiptNumber || null,
+          diagnostics: result.diagnostics,
+          errors: result.error ? [result.error] : []
         });
       }
 
