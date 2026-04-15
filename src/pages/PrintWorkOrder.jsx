@@ -15,6 +15,7 @@ export default function PrintWorkOrder() {
   const [orderItems, setOrderItems] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [articles, setArticles] = useState([]);
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [activePage, setActivePage] = useState(1);
 
   useEffect(() => {
@@ -42,10 +43,17 @@ export default function PrintWorkOrder() {
         setTasks(taskList);
         setArticles(articleList);
 
+        const extraFetches = [];
         if (ord) {
-          const items = await base44.entities.OrderItem.filter({ order_id: ord.id });
-          setOrderItems(items);
+          extraFetches.push(base44.entities.OrderItem.filter({ order_id: ord.id }).then(setOrderItems));
         }
+        if (wo.fortnox_project_number) {
+          extraFetches.push(
+            base44.entities.PurchaseOrder.filter({ fortnox_project_number: wo.fortnox_project_number })
+              .then(setPurchaseOrders)
+          );
+        }
+        await Promise.all(extraFetches);
       } catch (e) {
         setError('Fel vid hämtning: ' + e.message);
       } finally {
@@ -130,6 +138,7 @@ export default function PrintWorkOrder() {
             orderItems={orderItems}
             articles={articles}
             tasks={tasks}
+            purchaseOrders={purchaseOrders}
           />
         </div>
         <div style={{ display: activePage === 2 ? 'block' : 'none' }} className="print-show-always">

@@ -99,6 +99,42 @@
       "type": "number",
       "description": "Antal moduler"
     },
+    "config_cols": {
+      "type": "number",
+      "description": "Moduler horisontellt"
+    },
+    "config_rows": {
+      "type": "number",
+      "description": "Moduler vertikalt"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Produktnamn"
+    },
+    "quote_items": {
+      "type": "array",
+      "description": "Offertsammanst\u00e4llning fr\u00e5n CRM",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "discount_percent": {
+            "type": "number"
+          }
+        }
+      }
+    },
     "critical_notes": {
       "type": "string",
       "description": "Kritisk information / OBS (visas som gul varning)"

@@ -4,6 +4,7 @@ import PrintTasksSection from './PrintTasksSection';
 import PrintChecklist from './PrintChecklist';
 import PrintSignature from './PrintSignature';
 import { sectionTitle, label, value, WARNING_BG, WARNING_BORDER, BLUE, DELIVERY_METHOD_LABELS, BORDER_COLOR } from './printStyles';
+import { PrintScreenConfig, PrintQuoteItems, PrintOrderItems, PrintLinkedPurchaseOrders } from './PrintExtraSections';
 
 const STAGES = [
   { key: 'säljare', label: 'Säljare', assignField: null },
@@ -95,7 +96,7 @@ function ProcessFlowPrint({ workOrder }) {
   );
 }
 
-export default function PrintPage1({ workOrder, order, orderItems, articles, tasks }) {
+export default function PrintPage1({ workOrder, order, orderItems, articles, tasks, purchaseOrders }) {
   const wo = workOrder || {};
   const o = order || {};
   const criticalNotes = wo.critical_notes || o.critical_notes;
@@ -132,6 +133,12 @@ export default function PrintPage1({ workOrder, order, orderItems, articles, tas
       {/* Rollfördelning & flöde */}
       <div style={sectionTitle}>Rollfördelning & flöde</div>
       <ProcessFlowPrint workOrder={wo} />
+
+      {/* Extra sections: screen config, quote items, order items, purchase orders */}
+      <PrintScreenConfig workOrder={wo} />
+      <PrintQuoteItems workOrder={wo} />
+      <PrintOrderItems orderItems={orderItems} />
+      <PrintLinkedPurchaseOrders purchaseOrders={purchaseOrders || []} />
 
       {/* BOM */}
       <PrintMaterialTable workOrder={wo} orderItems={orderItems} articles={articles} />
