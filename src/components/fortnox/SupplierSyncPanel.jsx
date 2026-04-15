@@ -1,200 +1,93 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, XCircle, Loader2, ArrowLeftRight, ArrowDown, ArrowUp, RefreshCw } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, ArrowLeftRight, ArrowRight, ArrowLeft, RefreshCw, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-// ── Tab: Lager AI → Fortnox ────────────────────────────────────────────────
-function PushToFortnoxTab() {
-  const [suppliers, setSuppliers] = useState([]);
-  const [loadingSuppliers, setLoadingSuppliers] = useState(true);
-  const [selected, setSelected] = useState(new Set());
-  const [searchTerm, setSearchTerm] = useState('');
-  const [syncing, setSyncing] = useState(false);
-  const [result, setResult] = useState(null);
-
-  useEffect(() => { fetchSuppliers(); }, []);
-
-  const fetchSuppliers = async () => {
-    setLoadingSuppliers(true);
-    try {
-      const data = await base44.entities.Supplier.list();
-      setSuppliers(data.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
-    } catch {
-      toast.error('Kunde inte hämta leverantörer');
-    } finally {
-      setLoadingSuppliers(false);
-    }
-  };
-
-  const filtered = suppliers.filter(s =>
-    !searchTerm ||
-    s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.fortnox_supplier_number?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const toggle = (id) => {
-    const next = new Set(selected);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setSelected(next);
-  };
-
-  const toggleAll = () => {
-    setSelected(selected.size === filtered.length ? new Set() : new Set(filtered.map(s => s.id)));
-  };
-
-  const runSync = async () => {
-    if (selected.size === 0) { toast.error('Välj minst en leverantör'); return; }
-    setSyncing(true);
-    setResult(null);
-    try {
-      const res = await base44.functions.invoke('syncSuppliersWithFortnox', {
-        supplier_ids: [...selected],
-        push_missing_to_fortnox: true
-      });
-      const data = res.data;
-      setResult(data);
-      if (data.success) {
-        toast.success(`Synk klar — ${data.suppliers_matched} matchade, ${data.suppliers_pushed_to_fortnox} skapade i Fortnox`);
-        await fetchSuppliers();
-        setSelected(new Set());
-      } else {
-        toast.error(`Synk misslyckades: ${data.error}`);
-      }
-    } catch (err) {
-      toast.error('Synk misslyckades: ' + err.message);
-      setResult({ success: false, error: err.message });
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-sm text-amber-300">
-        ⚠️ <strong>Kräver supplier-scope:</strong> Klicka på <strong>"Återanslut Fortnox"</strong> uppe till höger och godkänn om innan du synkar.
-      </div>
-
-      <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-white font-semibold">Lager AI → Fortnox</h3>
-            <p className="text-sm text-white/50">Matcha interna leverantörer mot Fortnox eller skapa nya</p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={fetchSuppliers} variant="outline" size="sm" className="bg-white/5 border-white/20 text-white/70 hover:text-white">
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-            <Button onClick={runSync} disabled={syncing || selected.size === 0} className="bg-blue-600 hover:bg-blue-500 text-white">
-              {syncing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Synkar...</> : <><ArrowUp className="w-4 h-4 mr-2" />Synka {selected.size > 0 ? `${selected.size} ` : ''}valda</>}
-            </Button>
-          </div>
-        </div>
-
-        <Input placeholder="Sök leverantör..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-slate-800 border-slate-700 text-white" />
-
-        {loadingSuppliers ? (
-          <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 text-blue-400 animate-spin" /></div>
-        ) : (
-          <div className="overflow-x-auto -mx-6">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="p-3 pl-6 text-left"><Checkbox checked={filtered.length > 0 && selected.size === filtered.length} onCheckedChange={toggleAll} /></th>
-                  <th className="p-3 text-left text-white/70">Leverantör</th>
-                  <th className="p-3 text-left text-white/70">E-post</th>
-                  <th className="p-3 text-left text-white/70">Telefon</th>
-                  <th className="p-3 text-left text-white/70">Fortnox-nr</th>
-                  <th className="p-3 text-left text-white/70">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((s) => (
-                  <tr key={s.id} className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer" onClick={() => toggle(s.id)}>
-                    <td className="p-3 pl-6"><Checkbox checked={selected.has(s.id)} onCheckedChange={() => toggle(s.id)} onClick={(e) => e.stopPropagation()} /></td>
-                    <td className="p-3 text-white font-medium">{s.name}</td>
-                    <td className="p-3 text-white/60">{s.email || '–'}</td>
-                    <td className="p-3 text-white/60">{s.phone || '–'}</td>
-                    <td className="p-3 text-white font-mono text-xs">{s.fortnox_supplier_number || '–'}</td>
-                    <td className="p-3">
-                      {s.fortnox_supplier_number ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs"><CheckCircle2 className="w-3 h-3" /> Synkad</span>
-                      ) : (
-                        <span className="px-2 py-1 rounded-full bg-slate-500/20 text-slate-400 text-xs">Ej synkad</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {filtered.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-white/40">Inga leverantörer hittades</td></tr>}
-              </tbody>
-            </table>
-          </div>
-        )}
-        <p className="text-xs text-white/30">{suppliers.length} leverantörer totalt • {suppliers.filter(s => s.fortnox_supplier_number).length} synkade</p>
-      </div>
-
-      {result && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className={`p-6 rounded-2xl border ${result.success ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}
-        >
-          <div className="flex items-start gap-4">
-            {result.success ? <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" /> : <XCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />}
-            <div className="flex-1">
-              <h3 className={`font-semibold mb-3 ${result.success ? 'text-green-400' : 'text-red-400'}`}>
-                {result.success ? 'Synkronisering slutförd' : 'Synkronisering misslyckades'}
-              </h3>
-              {result.success && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { label: 'Fortnox-leverantörer', value: result.fortnox_suppliers },
-                    { label: 'Matchade & uppdaterade', value: result.suppliers_matched },
-                    { label: 'Skapade i Fortnox', value: result.suppliers_pushed_to_fortnox },
-                    { label: 'Saknas i Fortnox', value: result.missing_count },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="p-3 rounded-lg bg-white/5 border border-white/10 text-center">
-                      <p className="text-2xl font-bold text-white">{value ?? 0}</p>
-                      <p className="text-xs text-white/50 mt-1">{label}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {result.error && <p className="text-sm text-red-400 mt-2">{result.error}</p>}
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </div>
-  );
-}
-
-// ── Tab: Fortnox → Lager AI ────────────────────────────────────────────────
-function ImportFromFortnoxTab() {
-  const [fortnoxSuppliers, setFortnoxSuppliers] = useState([]);
-  const [internalSuppliers, setInternalSuppliers] = useState([]);
+export default function SupplierSyncPanel() {
+  const [rows, setRows] = useState([]);          // merged view
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selected, setSelected] = useState(new Set());
-  const [importing, setImporting] = useState(false);
+  const [syncing, setSyncing] = useState({}); // { [key]: true }
 
-  const fetchData = async () => {
+  const fetchAll = async () => {
     setLoading(true);
     try {
       const [intRes, fnRes] = await Promise.all([
         base44.entities.Supplier.list(),
         base44.functions.invoke('syncSuppliersWithFortnox', { dry_run: true, supplier_ids: [] })
       ]);
-      setInternalSuppliers(intRes);
 
-      // dry_run returns fortnox list in details
+      const internal = intRes || [];
       const fnData = fnRes.data;
-      if (fnData?.fortnox_list) {
-        setFortnoxSuppliers(fnData.fortnox_list);
-      } else {
+
+      if (!fnData?.fortnox_list) {
         toast.error('Kunde inte hämta Fortnox-leverantörer: ' + (fnData?.error || 'okänt fel'));
+        setLoading(false);
+        return;
       }
+
+      const fortnox = fnData.fortnox_list || [];
+
+      // Build lookup maps
+      const fnByNumber = {};
+      const fnByName = {};
+      for (const s of fortnox) {
+        if (s.SupplierNumber) fnByNumber[s.SupplierNumber] = s;
+        if (s.Name) fnByName[s.Name.toLowerCase().trim()] = s;
+      }
+
+      const intById = {};
+      const intByFnNumber = {};
+      const intByName = {};
+      for (const s of internal) {
+        intById[s.id] = s;
+        if (s.fortnox_supplier_number) intByFnNumber[s.fortnox_supplier_number] = s;
+        if (s.name) intByName[s.name.toLowerCase().trim()] = s;
+      }
+
+      const merged = [];
+      const usedFortnoxNumbers = new Set();
+
+      // Start with internal suppliers
+      for (const s of internal) {
+        const fnMatch =
+          (s.fortnox_supplier_number && fnByNumber[s.fortnox_supplier_number]) ||
+          fnByName[s.name?.toLowerCase().trim()];
+
+        merged.push({
+          key: s.id,
+          internal: s,
+          fortnox: fnMatch || null,
+          inLagerAI: true,
+          inFortnox: !!fnMatch,
+        });
+
+        if (fnMatch) usedFortnoxNumbers.add(fnMatch.SupplierNumber);
+      }
+
+      // Add Fortnox-only suppliers (not matched above)
+      for (const s of fortnox) {
+        if (!usedFortnoxNumbers.has(s.SupplierNumber)) {
+          merged.push({
+            key: 'fn_' + s.SupplierNumber,
+            internal: null,
+            fortnox: s,
+            inLagerAI: false,
+            inFortnox: true,
+          });
+        }
+      }
+
+      merged.sort((a, b) => {
+        const nameA = (a.internal?.name || a.fortnox?.Name || '').toLowerCase();
+        const nameB = (b.internal?.name || b.fortnox?.Name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+
+      setRows(merged);
     } catch (err) {
       toast.error('Fel: ' + err.message);
     } finally {
@@ -202,154 +95,220 @@ function ImportFromFortnoxTab() {
     }
   };
 
-  const internalNumberSet = new Set(internalSuppliers.map(s => s.fortnox_supplier_number).filter(Boolean));
-  const internalNameSet = new Set(internalSuppliers.map(s => s.name?.toLowerCase().trim()).filter(Boolean));
-
-  const enriched = fortnoxSuppliers.map(s => ({
-    ...s,
-    existsLocally: internalNumberSet.has(s.SupplierNumber) || internalNameSet.has(s.Name?.toLowerCase().trim())
-  }));
-
-  const filtered = enriched.filter(s =>
-    !searchTerm ||
-    s.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.SupplierNumber?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const missing = filtered.filter(s => !s.existsLocally);
-
-  const toggle = (num) => {
-    const next = new Set(selected);
-    next.has(num) ? next.delete(num) : next.add(num);
-    setSelected(next);
-  };
-
-  const toggleAll = () => {
-    setSelected(selected.size === missing.length ? new Set() : new Set(missing.map(s => s.SupplierNumber)));
-  };
-
-  const importSelected = async () => {
-    if (selected.size === 0) { toast.error('Välj minst en leverantör'); return; }
-    setImporting(true);
+  // Push one internal supplier → Fortnox (match or create)
+  const pushToFortnox = async (row) => {
+    setSyncing(p => ({ ...p, [row.key]: true }));
     try {
-      const toImport = fortnoxSuppliers.filter(s => selected.has(s.SupplierNumber));
-      await Promise.all(toImport.map(s =>
-        base44.entities.Supplier.create({
-          name: s.Name,
-          fortnox_supplier_number: s.SupplierNumber,
-          email: s.Email || '',
-          phone: s.Phone || '',
-          address: s.Address1 || '',
-          is_active: true
-        })
-      ));
-      toast.success(`${toImport.length} leverantörer importerade!`);
-      setSelected(new Set());
-      await fetchData();
+      const res = await base44.functions.invoke('syncSuppliersWithFortnox', {
+        supplier_ids: [row.internal.id],
+        push_missing_to_fortnox: true
+      });
+      const data = res.data;
+      if (data.success) {
+        toast.success(`${row.internal.name} synkad till Fortnox`);
+        await fetchAll();
+      } else {
+        toast.error('Misslyckades: ' + data.error);
+      }
     } catch (err) {
-      toast.error('Import misslyckades: ' + err.message);
+      toast.error('Fel: ' + err.message);
     } finally {
-      setImporting(false);
+      setSyncing(p => ({ ...p, [row.key]: false }));
     }
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-white font-semibold">Fortnox → Lager AI</h3>
-            <p className="text-sm text-white/50">Hämta leverantörer från Fortnox och importera de som saknas</p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={fetchData} disabled={loading} variant="outline" className="bg-white/5 border-white/20 text-white/70 hover:text-white">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              {loading ? '' : ' Hämta från Fortnox'}
-            </Button>
-            <Button onClick={importSelected} disabled={importing || selected.size === 0} className="bg-green-600 hover:bg-green-500 text-white">
-              {importing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Importerar...</> : <><ArrowDown className="w-4 h-4 mr-2" />Importera {selected.size > 0 ? `${selected.size} ` : ''}valda</>}
-            </Button>
-          </div>
-        </div>
+  // Import one Fortnox supplier → Lager AI
+  const importToLagerAI = async (row) => {
+    setSyncing(p => ({ ...p, [row.key]: true }));
+    try {
+      const s = row.fortnox;
+      await base44.entities.Supplier.create({
+        name: s.Name,
+        fortnox_supplier_number: s.SupplierNumber,
+        email: s.Email || '',
+        phone: s.Phone || '',
+        address: s.Address1 || '',
+        is_active: true
+      });
+      toast.success(`${s.Name} importerad till Lager AI`);
+      await fetchAll();
+    } catch (err) {
+      toast.error('Import misslyckades: ' + err.message);
+    } finally {
+      setSyncing(p => ({ ...p, [row.key]: false }));
+    }
+  };
 
-        {fortnoxSuppliers.length === 0 && !loading ? (
-          <div className="text-center py-12 text-white/40">Klicka "Hämta från Fortnox" för att ladda leverantörer</div>
-        ) : loading ? (
-          <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 text-blue-400 animate-spin" /></div>
-        ) : (
-          <>
-            <Input placeholder="Sök leverantör eller nummer..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-slate-800 border-slate-700 text-white" />
-            <div className="overflow-x-auto -mx-6">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="p-3 pl-6 text-left"><Checkbox checked={missing.length > 0 && selected.size === missing.length} onCheckedChange={toggleAll} /></th>
-                    <th className="p-3 text-left text-white/70">Leverantörsnummer</th>
-                    <th className="p-3 text-left text-white/70">Namn</th>
-                    <th className="p-3 text-left text-white/70">E-post</th>
-                    <th className="p-3 text-left text-white/70">Telefon</th>
-                    <th className="p-3 text-left text-white/70">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((s) => (
-                    <tr key={s.SupplierNumber} className={`border-b border-white/5 transition-colors ${!s.existsLocally ? 'hover:bg-white/5 cursor-pointer' : 'opacity-50'}`}
-                      onClick={() => !s.existsLocally && toggle(s.SupplierNumber)}>
-                      <td className="p-3 pl-6">
-                        {!s.existsLocally && (
-                          <Checkbox checked={selected.has(s.SupplierNumber)} onCheckedChange={() => toggle(s.SupplierNumber)} onClick={(e) => e.stopPropagation()} />
-                        )}
-                      </td>
-                      <td className="p-3 text-white font-mono text-xs">{s.SupplierNumber}</td>
-                      <td className="p-3 text-white font-medium">{s.Name}</td>
-                      <td className="p-3 text-white/60">{s.Email || '–'}</td>
-                      <td className="p-3 text-white/60">{s.Phone || '–'}</td>
-                      <td className="p-3">
-                        {s.existsLocally ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs"><CheckCircle2 className="w-3 h-3" /> Finns i Lager AI</span>
-                        ) : (
-                          <span className="px-2 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs">Saknas i Lager AI</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {filtered.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-white/40">Inga leverantörer hittades</td></tr>}
-                </tbody>
-              </table>
-            </div>
-            <p className="text-xs text-white/30">{fortnoxSuppliers.length} i Fortnox • {enriched.filter(s => s.existsLocally).length} finns redan • {enriched.filter(s => !s.existsLocally).length} saknas</p>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
+  const filtered = rows.filter(r => {
+    if (!searchTerm) return true;
+    const name = (r.internal?.name || r.fortnox?.Name || '').toLowerCase();
+    const num = (r.internal?.fortnox_supplier_number || r.fortnox?.SupplierNumber || '').toLowerCase();
+    return name.includes(searchTerm.toLowerCase()) || num.includes(searchTerm.toLowerCase());
+  });
 
-// ── Main Panel ─────────────────────────────────────────────────────────────
-export default function SupplierSyncPanel() {
-  const [tab, setTab] = useState('push');
+  const stats = {
+    total: rows.length,
+    bothSystems: rows.filter(r => r.inLagerAI && r.inFortnox).length,
+    onlyLagerAI: rows.filter(r => r.inLagerAI && !r.inFortnox).length,
+    onlyFortnox: rows.filter(r => !r.inLagerAI && r.inFortnox).length,
+  };
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-      <div className="flex gap-2">
-        <button
-          onClick={() => setTab('push')}
-          className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all ${tab === 'push' ? 'bg-blue-600 text-white' : 'bg-white/5 border border-white/10 text-white/50 hover:text-white'}`}
-        >
-          <ArrowUp className="w-4 h-4 inline mr-2" />
-          Lager AI → Fortnox
-        </button>
-        <button
-          onClick={() => setTab('import')}
-          className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all ${tab === 'import' ? 'bg-blue-600 text-white' : 'bg-white/5 border border-white/10 text-white/50 hover:text-white'}`}
-        >
-          <ArrowDown className="w-4 h-4 inline mr-2" />
-          Fortnox → Lager AI
-        </button>
+
+      <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-sm text-amber-300">
+        ⚠️ <strong>Kräver supplier-scope:</strong> Klicka <strong>"Återanslut Fortnox"</strong> uppe till höger och godkänn innan du synkar.
       </div>
 
-      {tab === 'push' && <PushToFortnoxTab />}
-      {tab === 'import' && <ImportFromFortnoxTab />}
+      <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 space-y-4">
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-white font-semibold">Leverantörer — Lager AI ↔ Fortnox</h3>
+            <p className="text-sm text-white/50">Kombinerad vy. Klicka på en rad för att synka åt valfritt håll.</p>
+          </div>
+          <Button onClick={fetchAll} disabled={loading} className="bg-blue-600 hover:bg-blue-500 text-white">
+            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Laddar...</> : <><RefreshCw className="w-4 h-4 mr-2" />Hämta båda system</>}
+          </Button>
+        </div>
+
+        {/* Stats */}
+        {rows.length > 0 && (
+          <div className="grid grid-cols-3 gap-3">
+            <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-center">
+              <p className="text-xl font-bold text-green-400">{stats.bothSystems}</p>
+              <p className="text-xs text-green-400/70 mt-0.5">I båda system</p>
+            </div>
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-center">
+              <p className="text-xl font-bold text-blue-400">{stats.onlyLagerAI}</p>
+              <p className="text-xs text-blue-400/70 mt-0.5">Saknas i Fortnox</p>
+            </div>
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
+              <p className="text-xl font-bold text-amber-400">{stats.onlyFortnox}</p>
+              <p className="text-xs text-amber-400/70 mt-0.5">Saknas i Lager AI</p>
+            </div>
+          </div>
+        )}
+
+        <Input
+          placeholder="Sök leverantör eller nummer..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="bg-slate-800 border-slate-700 text-white"
+        />
+
+        {loading ? (
+          <div className="flex items-center justify-center py-16"><Loader2 className="w-7 h-7 text-blue-400 animate-spin" /></div>
+        ) : rows.length === 0 ? (
+          <div className="text-center py-16 text-white/40">
+            Klicka <strong className="text-white/60">"Hämta båda system"</strong> för att ladda leverantörer
+          </div>
+        ) : (
+          <div className="overflow-x-auto -mx-6">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-white/50 text-xs uppercase tracking-wide">
+                  <th className="p-3 pl-6 text-left">Leverantör</th>
+                  <th className="p-3 text-center">Lager AI</th>
+                  <th className="p-3 text-center w-16"></th>
+                  <th className="p-3 text-center">Fortnox</th>
+                  <th className="p-3 text-left">Fortnox-nr</th>
+                  <th className="p-3 text-right pr-6">Åtgärd</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((row) => {
+                  const name = row.internal?.name || row.fortnox?.Name || '–';
+                  const isSyncing = syncing[row.key];
+                  const both = row.inLagerAI && row.inFortnox;
+
+                  return (
+                    <tr key={row.key} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      {/* Name */}
+                      <td className="p-3 pl-6 text-white font-medium">{name}</td>
+
+                      {/* Lager AI status */}
+                      <td className="p-3 text-center">
+                        {row.inLagerAI ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs">
+                            <CheckCircle2 className="w-3 h-3" /> Finns
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-500/15 text-slate-500 text-xs">
+                            <XCircle className="w-3 h-3" /> Saknas
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Arrow */}
+                      <td className="p-3 text-center">
+                        {both ? (
+                          <ArrowLeftRight className="w-4 h-4 text-green-400 mx-auto" />
+                        ) : row.inLagerAI ? (
+                          <ArrowRight className="w-4 h-4 text-blue-400 mx-auto" />
+                        ) : (
+                          <ArrowLeft className="w-4 h-4 text-amber-400 mx-auto" />
+                        )}
+                      </td>
+
+                      {/* Fortnox status */}
+                      <td className="p-3 text-center">
+                        {row.inFortnox ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs">
+                            <CheckCircle2 className="w-3 h-3" /> Finns
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-500/15 text-slate-500 text-xs">
+                            <XCircle className="w-3 h-3" /> Saknas
+                          </span>
+                        )}
+                      </td>
+
+                      {/* FN number */}
+                      <td className="p-3 font-mono text-xs text-white/50">
+                        {row.internal?.fortnox_supplier_number || row.fortnox?.SupplierNumber || '–'}
+                      </td>
+
+                      {/* Action */}
+                      <td className="p-3 pr-6 text-right">
+                        {both ? (
+                          <span className="text-xs text-green-400/60">Synkad ✓</span>
+                        ) : row.inLagerAI && !row.inFortnox ? (
+                          <Button
+                            size="sm"
+                            onClick={() => pushToFortnox(row)}
+                            disabled={isSyncing}
+                            className="bg-blue-600/30 hover:bg-blue-600/60 text-blue-300 border-0 text-xs h-7 px-3"
+                          >
+                            {isSyncing ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Upload className="w-3 h-3 mr-1" />→ Fortnox</>}
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => importToLagerAI(row)}
+                            disabled={isSyncing}
+                            className="bg-amber-600/30 hover:bg-amber-600/60 text-amber-300 border-0 text-xs h-7 px-3"
+                          >
+                            {isSyncing ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Download className="w-3 h-3 mr-1" />→ Lager AI</>}
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <tr><td colSpan={6} className="p-8 text-center text-white/40">Inga leverantörer matchar sökningen</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {rows.length > 0 && (
+          <p className="text-xs text-white/30">{stats.total} leverantörer totalt</p>
+        )}
+      </div>
     </motion.div>
   );
 }
