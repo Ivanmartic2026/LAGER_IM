@@ -1,52 +1,59 @@
 import { useEffect } from 'react';
 
 /**
- * PWA optimization component for iOS and Android
- * Handles:
- * - Service Worker registration
- * - Manifest registration
- * - Mobile viewport optimization
- * - Status bar styling
- * - Add to home screen prompt
+ * PWA optimizer: registers Service Worker, handles install prompt, viewport fixes.
  */
 export default function PWAOptimizer() {
   useEffect(() => {
-    // Service worker registration disabled - not needed for this app
-    // If you need offline support, create /public/sw.js first
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then((registration) => {
+        console.log('[PWA] Service Worker registered, scope:', registration.scope);
 
-    // Disable zoom on input focus (iOS performance)
-    const inputs = document.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
-      input.addEventListener('focus', () => {
-        document.body.style.zoom = '1';
+        // Listen for updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker?.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[PWA] New version available');
+              // Dispatch event so UI can show "update available" prompt if desired
+              window.dispatchEvent(new CustomEvent('pwa-update-available'));
+            }
+          });
+        });
+      }).catch((err) => {
+        console.warn('[PWA] Service Worker registration failed:', err);
       });
+
+      // Listen for messages from SW (e.g. background sync)
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'BACKGROUND_SYNC') {
+          window.dispatchEvent(new CustomEvent('pwa-sync'));
+        }
+      });
+    }
+
+    // Handle install prompt (Android/Chrome)
+    const handleInstallPrompt = (e) => {
+      e.preventDefault();
+      window.installPrompt = e;
+      window.dispatchEvent(new CustomEvent('pwa-installable'));
+    };
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+
+    // Log install event
+    window.addEventListener('appinstalled', () => {
+      console.log('[PWA] App installed');
+      window.installPrompt = null;
     });
 
-    // Prevent default touch-hold menu on long press (improves UX)
+    // Prevent multi-touch zoom
     document.addEventListener('touchmove', (e) => {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
+      if (e.touches.length > 1) e.preventDefault();
     }, { passive: false });
 
-    // Handle app installation prompt
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      // You can store this and trigger it from a button if needed
-      window.installPrompt = deferredPrompt;
-    });
-
-    // Log installation
-    window.addEventListener('appinstalled', () => {
-      console.log('PWA was installed');
-    });
-
     return () => {
-      inputs.forEach(input => {
-        input.removeEventListener('focus', () => {});
-      });
+      window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
     };
   }, []);
 

@@ -11,6 +11,7 @@ import RecentActivityWidget from "@/components/activity/RecentActivityWidget";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import PWAOptimizer from "@/components/pwa/PWAOptimizer";
 import PushManager from "@/components/pwa/PushManager";
+import InstallPrompt from "@/components/pwa/InstallPrompt";
 import { LanguageProvider } from "@/components/language/LanguageProvider";
 import LanguageToggle from "@/components/language/LanguageToggle";
 import { useLanguage } from "@/components/language/LanguageProvider";
@@ -157,6 +158,7 @@ function LayoutContent({ children, currentPageName }) {
       <PWAOptimizer />
       <PushManager />
       <OfflineIndicator />
+      <InstallPrompt />
       <RecentActivityWidget />
 
 
