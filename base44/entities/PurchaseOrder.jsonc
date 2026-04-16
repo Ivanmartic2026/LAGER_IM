@@ -286,7 +286,6 @@
     }
   },
   "required": [
-    "supplier_name",
-    "fortnox_project_number"
+    "supplier_name"
   ]
 }

@@ -12,6 +12,22 @@ const COST_CENTER_MAP = {
   "99_generell": "99"
 };
 
+const WAY_OF_DELIVERY_MAP = {
+  "air_freight_express": "FLYGFRAKT",
+  "air_freight_economy": "FLYGFRAKT",
+  "sea_freight": "SJÖFRAKT",
+  "rail_transport": "JÄRNVÄG",
+  "road_transport": "LANDTRANSPORT",
+  "courier": "KURIR"
+};
+
+const PAYMENT_TERMS_MAP = {
+  "30_dagar_netto": "30",
+  "10_dagar_2_procent": "10",
+  "omedelbar_betalning": "0",
+  "60_dagar_netto": "60"
+};
+
 const PURCHASE_TYPE_LABEL = {
   "påfyllning_lager": "Påfyllning lager",
   "specifik_kundorder": "Specifik kundorder",
@@ -180,7 +196,6 @@ Deno.serve(async (req) => {
       stockPointCode: warehouseStockPointCode || 'JKP-HER',
       ourReference: ourRef,
       remarks: comments,
-      paymentTermsCode: 'K30',
       deliveryName: supplierName,
       deliveryAddress: addressParts[0] || supplierAddress || '-',
       deliveryZipCode: '-',
@@ -196,6 +211,10 @@ Deno.serve(async (req) => {
     if (po.expected_delivery_date) poBody.deliveryDate = po.expected_delivery_date;
     if (po.fortnox_project_number && po.fortnox_project_number !== '-') poBody.project = po.fortnox_project_number;
     if (costCenter) poBody.costCenter = costCenter;
+    if (po.delivery_terms) poBody.deliveryTerms = po.delivery_terms;
+    if (po.mode_of_transport && WAY_OF_DELIVERY_MAP[po.mode_of_transport]) poBody.wayOfDelivery = WAY_OF_DELIVERY_MAP[po.mode_of_transport];
+    const mappedPaymentTerms = po.payment_terms ? PAYMENT_TERMS_MAP[po.payment_terms] : null;
+    if (mappedPaymentTerms) poBody.paymentTermsCode = mappedPaymentTerms;
 
     const poPayload = poBody;
 

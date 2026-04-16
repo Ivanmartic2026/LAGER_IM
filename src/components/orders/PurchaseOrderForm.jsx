@@ -507,11 +507,6 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
       return;
     }
 
-    if (!formData.fortnox_project_number) {
-      toast.error("Projektnummer Fortnox krävs");
-      return;
-    }
-
     if (poItems.length === 0 && !purchaseOrder) {
       toast.error("Lägg till minst en artikel");
       return;
@@ -558,7 +553,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-slate-300 mb-2 block">
-                Ordernummer
+                Ordernummer / Referens
               </label>
               <Input
                 value={formData.po_number}
@@ -612,7 +607,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             <div>
               <label className="text-sm font-medium text-slate-300 mb-2 block">
-                Intern referens
+                Vår referens
               </label>
               <Input
                 value={formData.intern_reference}
@@ -624,7 +619,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             <div>
               <label className="text-sm font-medium text-slate-300 mb-2 block">
-                Projekt (Fortnox) *
+                Projekt (Fortnox)
               </label>
               <Select
                 value={formData.fortnox_project_number}
@@ -670,7 +665,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             <div>
               <label className="text-sm font-medium text-slate-300 mb-2 block">
-                Förväntat leveransdatum
+                Leveransdatum
               </label>
               <Input
                 type="date"
@@ -707,7 +702,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             <div>
               <label className="text-sm font-medium text-slate-300 mb-2 block">
-                Delivery Terms (Incoterms)
+                Leveransvillkor
               </label>
               <Select
                 value={formData.delivery_terms}
@@ -719,7 +714,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                 <SelectContent>
                   <SelectItem value="EXW">EXW – Ex Works</SelectItem>
                   <SelectItem value="FOB">FOB – Free On Board</SelectItem>
-                  <SelectItem value="CIF">CIF – Cost, Insurance & Freight</SelectItem>
+                  <SelectItem value="CIF">CIF – Cost, Insurance &amp; Freight</SelectItem>
                   <SelectItem value="DAP">DAP – Delivered At Place</SelectItem>
                   <SelectItem value="DDP">DDP – Delivered Duty Paid</SelectItem>
                 </SelectContent>
@@ -728,7 +723,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             <div>
               <label className="text-sm font-medium text-slate-300 mb-2 block">
-                Mode of Transport
+                Fraktsätt
               </label>
               <Select
                 value={formData.mode_of_transport}
@@ -738,12 +733,12 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                   <SelectValue placeholder="Välj transportsätt..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="air_freight_express">Air Freight – Express</SelectItem>
-                  <SelectItem value="air_freight_economy">Air Freight – Economy</SelectItem>
-                  <SelectItem value="sea_freight">Sea Freight</SelectItem>
-                  <SelectItem value="rail_transport">Rail Transport</SelectItem>
-                  <SelectItem value="road_transport">Road Transport (Truck)</SelectItem>
-                  <SelectItem value="courier">Courier (DHL, FedEx, UPS, etc.)</SelectItem>
+                  <SelectItem value="air_freight_express">Flygfrakt Express</SelectItem>
+                  <SelectItem value="air_freight_economy">Flygfrakt Economy</SelectItem>
+                  <SelectItem value="sea_freight">Sjöfrakt</SelectItem>
+                  <SelectItem value="rail_transport">Järnväg</SelectItem>
+                  <SelectItem value="road_transport">Landtransport</SelectItem>
+                  <SelectItem value="courier">Kurir/Paket</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -761,7 +756,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="30_dagar_netto">30 dagar netto</SelectItem>
-                  <SelectItem value="10_dagar_2_procent">10 dagar, 2%</SelectItem>
+                  <SelectItem value="10_dagar_2_procent">10 dagar 2%</SelectItem>
                   <SelectItem value="omedelbar_betalning">Omedelbar betalning</SelectItem>
                   <SelectItem value="60_dagar_netto">60 dagar netto</SelectItem>
                 </SelectContent>
