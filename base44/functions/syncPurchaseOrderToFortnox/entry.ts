@@ -151,7 +151,7 @@ Deno.serve(async (req) => {
       Price: item.unit_price || 0
     }));
 
-    const costCenter = COST_CENTER_MAP[po.cost_center] || '';
+    const costCenter = po.cost_center ? po.cost_center.split('_')[0] : '';
     const purchaseTypeLabel = PURCHASE_TYPE_LABEL[po.purchase_type] || po.purchase_type || '';
     const comments = [
       purchaseTypeLabel ? `Typ: ${purchaseTypeLabel}` : '',
@@ -163,14 +163,24 @@ Deno.serve(async (req) => {
     const supplierAddress = supplier.address || '';
     const addressParts = supplierAddress.split(',').map(s => s.trim());
 
+    // === GET WAREHOUSE STOCK POINT CODE ===
+    let warehouseStockPointCode = null;
+    if (po.warehouse_id) {
+      const warehouse = await base44.asServiceRole.entities.Warehouse.get(po.warehouse_id).catch(() => null);
+      if (warehouse?.fortnox_stock_point_code) {
+        warehouseStockPointCode = warehouse.fortnox_stock_point_code;
+      }
+    }
+
     // === CREATE PURCHASE ORDER IN FORTNOX (warehouse API v1, camelCase) ===
+    const ourRef = po.intern_reference || po.po_number || '';
     const poBody = {
       supplierNumber: supplier.fortnox_supplier_number,
       orderDate: po.order_date || new Date().toISOString().split('T')[0],
-      stockPointCode: 'JKP-HER',
-      ourReference: po.po_number || '',
+      stockPointCode: warehouseStockPointCode || 'JKP-HER',
+      ourReference: ourRef,
       remarks: comments,
-      paymentTermsCode: 'K30', // 30 dagar netto
+      paymentTermsCode: 'K30',
       deliveryName: supplierName,
       deliveryAddress: addressParts[0] || supplierAddress || '-',
       deliveryZipCode: '-',

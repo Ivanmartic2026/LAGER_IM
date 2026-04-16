@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Purchase Order nummer"
     },
+    "intern_reference": {
+      "type": "string",
+      "description": "Intern referens (skickas som ourReference till Fortnox)"
+    },
     "supplier_id": {
       "type": "string",
       "description": "Referens till leverant\u00f6r"

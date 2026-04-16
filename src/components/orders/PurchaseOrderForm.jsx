@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -12,8 +12,11 @@ import { X, Plus, Trash2, Package, FileText, Sparkles, Edit2, CheckCircle2, Exte
 export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [formData, setFormData] = useState({
      po_number: purchaseOrder?.po_number || '',
+     intern_reference: purchaseOrder?.intern_reference || purchaseOrder?.po_number || '',
      supplier_id: purchaseOrder?.supplier_id || '',
      supplier_name: purchaseOrder?.supplier_name || '',
+     warehouse_id: purchaseOrder?.warehouse_id || '',
+     warehouse_name: purchaseOrder?.warehouse_name || '',
      fortnox_project_number: purchaseOrder?.fortnox_project_number || '',
      status: purchaseOrder?.status || 'draft',
      expected_delivery_date: purchaseOrder?.expected_delivery_date || '',
@@ -54,6 +57,29 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
     queryKey: ['suppliers'],
     queryFn: () => base44.entities.Supplier.list(),
   });
+
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: () => base44.entities.Warehouse.filter({ is_active: true }),
+  });
+
+  const [fortnoxProjects, setFortnoxProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [projectsLoaded, setProjectsLoaded] = useState(false);
+
+  const loadFortnoxProjects = async () => {
+    if (projectsLoaded || loadingProjects) return;
+    setLoadingProjects(true);
+    try {
+      const res = await base44.functions.invoke('getFortnoxProjects', {});
+      setFortnoxProjects(res.data?.projects || []);
+      setProjectsLoaded(true);
+    } catch (e) {
+      console.warn('Kunde inte hämta Fortnox-projekt:', e.message);
+    } finally {
+      setLoadingProjects(false);
+    }
+  };
 
   const { data: existingItems = [] } = useQuery({
     queryKey: ['purchaseOrderItems', purchaseOrder?.id],
@@ -200,11 +226,29 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
   const handleSupplierChange = (supplierId) => {
     const supplier = suppliers.find(s => s.id === supplierId);
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       supplier_id: supplierId,
       supplier_name: supplier?.name || ''
-    });
+    }));
+  };
+
+  const handleWarehouseChange = (warehouseId) => {
+    const warehouse = warehouses.find(w => w.id === warehouseId);
+    setFormData(prev => ({
+      ...prev,
+      warehouse_id: warehouseId,
+      warehouse_name: warehouse?.name || ''
+    }));
+  };
+
+  const handlePoNumberChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      po_number: value,
+      // Auto-fill intern_reference only if it hasn't been manually changed
+      intern_reference: prev.intern_reference === prev.po_number ? value : prev.intern_reference
+    }));
   };
 
   const handleAddArticle = () => {
@@ -518,7 +562,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
               </label>
               <Input
                 value={formData.po_number}
-                onChange={(e) => setFormData({ ...formData, po_number: e.target.value })}
+                onChange={(e) => handlePoNumberChange(e.target.value)}
                 placeholder="T.ex. PO-2025-001"
                 className="bg-slate-800 border-slate-700 text-white"
               />
@@ -547,15 +591,69 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
 
             <div>
               <label className="text-sm font-medium text-slate-300 mb-2 block">
-                Projektnummer Fortnox *
+                Lagerställe *
+              </label>
+              <Select
+                value={formData.warehouse_id}
+                onValueChange={handleWarehouseChange}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Välj lagerställe..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {warehouses.map((wh) => (
+                    <SelectItem key={wh.id} value={wh.id}>
+                      {wh.name}{wh.fortnox_stock_point_code ? ` (${wh.fortnox_stock_point_code})` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                Intern referens
               </label>
               <Input
-                value={formData.fortnox_project_number}
-                onChange={(e) => setFormData({ ...formData, fortnox_project_number: e.target.value })}
-                placeholder="T.ex. PRJ-2025-001"
+                value={formData.intern_reference}
+                onChange={(e) => setFormData(prev => ({ ...prev, intern_reference: e.target.value }))}
+                placeholder="Fylls i automatiskt från ordernummer"
                 className="bg-slate-800 border-slate-700 text-white"
-                required
               />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                Projekt (Fortnox) *
+              </label>
+              <Select
+                value={formData.fortnox_project_number}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, fortnox_project_number: value }))}
+                onOpenChange={(open) => { if (open) loadFortnoxProjects(); }}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder={loadingProjects ? "Hämtar projekt..." : "Välj projekt..."} />
+                </SelectTrigger>
+                <SelectContent>
+                  {loadingProjects && (
+                    <div className="px-3 py-2 text-sm text-slate-400">Hämtar projekt från Fortnox...</div>
+                  )}
+                  {fortnoxProjects.map((p) => (
+                    <SelectItem key={p.projectNumber} value={p.projectNumber}>
+                      {p.projectNumber} – {p.description}
+                    </SelectItem>
+                  ))}
+                  {!loadingProjects && projectsLoaded && fortnoxProjects.length === 0 && (
+                    <div className="px-3 py-2 text-sm text-slate-400">Inga projekt hittades</div>
+                  )}
+                  {/* Allow keeping a manually entered value if not in list */}
+                  {formData.fortnox_project_number && !fortnoxProjects.find(p => p.projectNumber === formData.fortnox_project_number) && (
+                    <SelectItem value={formData.fortnox_project_number}>
+                      {formData.fortnox_project_number} (nuvarande)
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -676,13 +774,13 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
               </label>
               <Select
                 value={formData.cost_center}
-                onValueChange={(value) => setFormData({ ...formData, cost_center: value })}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, cost_center: value }))}
               >
                 <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                   <SelectValue placeholder="Välj kostnadsställe..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="10_support_service">10 – Support & Service</SelectItem>
+                  <SelectItem value="10_support_service">10 – Support/Service</SelectItem>
                   <SelectItem value="20_rental">20 – Rental</SelectItem>
                   <SelectItem value="30_sales">30 – Sales</SelectItem>
                   <SelectItem value="99_generell">99 – Generell</SelectItem>
