@@ -458,6 +458,16 @@ export default function PurchaseOrdersPage() {
                               }[po.mode_of_transport] || po.mode_of_transport}
                             </span>
                           )}
+                          {po.cost_center && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-violet-500/10 border border-violet-500/20 text-violet-300">
+                              {{
+                                '10_support_service': '10 – Support & Service',
+                                '20_rental': '20 – Rental',
+                                '30_sales': '30 – Sales',
+                                '99_generell': '99 – Generell',
+                              }[po.cost_center] || po.cost_center}
+                            </span>
+                          )}
                           {po.notes && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-white/5 text-white/30 max-w-xs truncate">
                               {po.notes}

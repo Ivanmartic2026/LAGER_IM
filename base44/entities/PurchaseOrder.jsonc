@@ -72,11 +72,12 @@
     "cost_center": {
       "type": "string",
       "enum": [
-        "Rental",
-        "Fix install",
-        "Support & Service"
+        "10_support_service",
+        "20_rental",
+        "30_sales",
+        "99_generell"
       ],
-      "description": "Kostnadsst\u00e4lle"
+      "description": "Kostnadsst\u00e4lle (Fortnox)"
     },
     "fortnox_project_number": {
       "type": "string",

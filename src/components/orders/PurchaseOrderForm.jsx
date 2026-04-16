@@ -27,6 +27,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
      mode_of_transport: purchaseOrder?.mode_of_transport || '',
      payment_terms: purchaseOrder?.payment_terms || '',
      shipping_cost: purchaseOrder?.shipping_cost || '',
+     cost_center: purchaseOrder?.cost_center || '',
    });
 
   const [poItems, setPOItems] = useState([]);
@@ -665,6 +666,26 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                   <SelectItem value="10_dagar_2_procent">10 dagar, 2%</SelectItem>
                   <SelectItem value="omedelbar_betalning">Omedelbar betalning</SelectItem>
                   <SelectItem value="60_dagar_netto">60 dagar netto</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-300 mb-2 block">
+                Kostnadsställe (Fortnox)
+              </label>
+              <Select
+                value={formData.cost_center}
+                onValueChange={(value) => setFormData({ ...formData, cost_center: value })}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Välj kostnadsställe..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10_support_service">10 – Support & Service</SelectItem>
+                  <SelectItem value="20_rental">20 – Rental</SelectItem>
+                  <SelectItem value="30_sales">30 – Sales</SelectItem>
+                  <SelectItem value="99_generell">99 – Generell</SelectItem>
                 </SelectContent>
               </Select>
             </div>
