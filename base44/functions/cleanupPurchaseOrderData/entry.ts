@@ -51,6 +51,12 @@ Deno.serve(async (req) => {
         needsUpdate = true;
       }
 
+      // 6. cost_center is null or missing → set to default
+      if (!po.cost_center) {
+        updateData.cost_center = '30_sales';
+        needsUpdate = true;
+      }
+
       if (needsUpdate) {
         updates.push({
           id: po.id,
