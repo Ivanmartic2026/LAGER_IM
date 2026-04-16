@@ -218,7 +218,8 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: `Fortnox fel ${createRes.status}: ${responseText}` }, { status: 500 });
     }
 
-    const documentNumber = responseData?.documentNumber || responseData?.PurchaseOrder?.DocumentNumber;
+    console.log('Fortnox PO response:', JSON.stringify(responseData));
+    const documentNumber = responseData?.id || responseData?.documentNumber || responseData?.purchaseOrderNumber || responseData?.PurchaseOrder?.DocumentNumber;
 
     // === SAVE SUCCESS ===
     await base44.asServiceRole.entities.PurchaseOrder.update(purchaseOrderId, {
