@@ -292,7 +292,11 @@ async function createFortnoxInboundDelivery(accessToken, base44, poId) {
       ? await base44.asServiceRole.entities.Article.get(item.article_id)
       : null;
 
-    let articleNumber = article?.sku || item.article_sku;
+    // Fortnox tillåter endast a-z, A-Z, 0-9, _ - / + i artikelnummer
+    const sanitizeSku = (sku) => sku ? sku.replace(/[^a-zA-Z0-9_\-\/+]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') : null;
+
+    let rawArticleNumber = article?.sku || item.article_sku;
+    let articleNumber = sanitizeSku(rawArticleNumber);
 
     // Om articleNumber saknas, försök skapa artikeln i Fortnox automatiskt
     if (!articleNumber) {
@@ -335,8 +339,13 @@ async function createFortnoxInboundDelivery(accessToken, base44, poId) {
         continue;
       }
     } else {
-      // Artikelnummer finns — verifiera att artikeln existerar i Fortnox, skapa om inte
-      const checkRes = await fetch(`${FORTNOX_API_BASE}/articles/${encodeURIComponent(articleNumber)}`, {
+    // Artikelnummer finns — verifiera att artikeln existerar i Fortnox, skapa om inte
+    // Om SKU-sanering ändrade articleNumber, uppdatera artikeln med det rensade SKU:et
+    if (rawArticleNumber !== articleNumber && article?.id) {
+      await base44.asServiceRole.entities.Article.update(article.id, { sku: articleNumber });
+      console.log(`Rensade SKU "${rawArticleNumber}" → "${articleNumber}" för artikel ${article.id}`);
+    }
+    const checkRes = await fetch(`${FORTNOX_API_BASE}/articles/${encodeURIComponent(articleNumber)}`, {
         headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json' }
       });
 
