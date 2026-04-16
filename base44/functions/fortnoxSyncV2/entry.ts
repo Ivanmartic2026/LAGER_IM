@@ -100,12 +100,7 @@ async function syncSuppliers(accessToken, base44) {
   for (const supplier of activeSuppliers) {
     try {
       const supplierData = {
-        Name: supplier.name,
-        Address: supplier.address || '',
-        ContactPerson: supplier.contact_person || '',
-        Email: supplier.email || '',
-        Phone: supplier.phone || '',
-        Website: supplier.website || ''
+        Name: supplier.name
       };
 
       const response = await fetch(`${FORTNOX_API_BASE}/suppliers`, {
@@ -216,9 +211,7 @@ async function ensureSupplierInFortnox(accessToken, base44, supplierId) {
     headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify({
       Supplier: {
-        Name: supplier.name?.trim() || '',
-        Address1: (supplier.address || '').trim(),
-        Email: (supplier.email || '').trim()
+        Name: supplier.name?.trim() || ''
       }
     })
   });
