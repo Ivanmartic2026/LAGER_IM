@@ -1,0 +1,38 @@
+{
+  "name": "Warehouse",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Namn p\u00e5 lagerst\u00e4lle (t.ex. Huvudlager, Lager A)"
+    },
+    "code": {
+      "type": "string",
+      "description": "Kort kod f\u00f6r lagret (t.ex. HL, LA)"
+    },
+    "address": {
+      "type": "string",
+      "description": "Fysisk adress till lagret"
+    },
+    "contact_person": {
+      "type": "string",
+      "description": "Kontaktperson f\u00f6r lagret"
+    },
+    "fortnox_stock_point_code": {
+      "type": "string",
+      "description": "Fortnox lagerst\u00e4llekod (StockPointCode)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om lagret \u00e4r aktivt"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar om lagret"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
