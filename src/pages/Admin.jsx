@@ -10,6 +10,7 @@ import { base44 } from "@/api/base44Client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import DataCleanupPanel from "@/components/admin/DataCleanupPanel";
 
 export default function AdminPage() {
   const [testingNotification, setTestingNotification] = useState(false);
@@ -260,11 +261,21 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Info Card */}
+        {/* Data Cleanup Panel */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+          className="mt-8"
+        >
+          <DataCleanupPanel />
+        </motion.div>
+
+        {/* Info Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
           className="mt-8 p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10"
         >
           <div className="flex items-start gap-4">
@@ -285,7 +296,7 @@ export default function AdminPage() {
          <motion.div
            initial={{ opacity: 0, y: 20 }}
            animate={{ opacity: 1, y: 0 }}
-           transition={{ delay: 0.45 }}
+           transition={{ delay: 0.5 }}
            className="mt-8 p-6 rounded-2xl bg-red-500/5 backdrop-blur-xl border border-red-500/20"
          >
            <div className="flex items-start gap-4">
@@ -329,7 +340,7 @@ export default function AdminPage() {
          <motion.div
            initial={{ opacity: 0, y: 20 }}
            animate={{ opacity: 1, y: 0 }}
-           transition={{ delay: 0.5 }}
+           transition={{ delay: 0.55 }}
            className="mt-6 flex gap-3 justify-center flex-wrap"
          >
            <Button

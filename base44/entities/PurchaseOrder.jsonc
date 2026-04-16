@@ -46,7 +46,8 @@
         "30_dagar_netto",
         "10_dagar_2_procent",
         "omedelbar_betalning",
-        "60_dagar_netto"
+        "60_dagar_netto",
+        "100_procent_forskott"
       ],
       "description": "Betalningsvillkor"
     },
