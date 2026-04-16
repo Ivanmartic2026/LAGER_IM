@@ -23,6 +23,7 @@ import InvoiceScanButton from "@/components/orders/InvoiceScanButton";
 import PODocumentHub from "@/components/purchaseorders/PODocumentHub";
 import POStatusFlow from "@/components/purchaseorders/POStatusFlow";
 import ActivityFeed from "@/components/activity/ActivityFeed";
+import FortnoxPOSyncButton from "@/components/purchaseorders/FortnoxPOSyncButton";
 
 export default function PurchaseOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -485,6 +486,7 @@ export default function PurchaseOrdersPage() {
                       {/* Actions */}
                       <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/6 bg-white/[0.02]">
                         <div className="flex flex-wrap gap-1">
+                          <FortnoxPOSyncButton po={po} />
                           <POStatusFlow po={po} />
                           {(po.status === 'ordered' || po.status === 'partially_received') && (
                             <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors" onClick={() => setReceivingPO(po)}>

@@ -87,6 +87,29 @@
       "type": "string",
       "description": "Fortnox inleverans-ID (GoodsReceiptNumber)"
     },
+    "fortnox_po_id": {
+      "type": "string",
+      "description": "Fortnox DocumentNumber f\u00f6r leverant\u00f6rsorder"
+    },
+    "fortnox_po_sync_status": {
+      "type": "string",
+      "enum": [
+        "not_synced",
+        "synced",
+        "sync_error"
+      ],
+      "default": "not_synced",
+      "description": "Synkstatus f\u00f6r leverant\u00f6rsorder i Fortnox"
+    },
+    "fortnox_po_synced_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt f\u00f6r senaste lyckade synk till Fortnox"
+    },
+    "fortnox_po_sync_error": {
+      "type": "string",
+      "description": "Felmeddelande om synk misslyckades"
+    },
     "status": {
       "type": "string",
       "enum": [

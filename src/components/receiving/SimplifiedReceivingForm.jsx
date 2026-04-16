@@ -10,8 +10,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { 
   Package, CheckCircle2, AlertTriangle, Upload, X, 
-  Calendar, User, FileText, Camera
+  Calendar, User, FileText, Camera, CloudUpload, Loader2
 } from "lucide-react";
+import { useState as useLocalState } from 'react';
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -77,6 +78,7 @@ function ExistingDocuments({ purchaseOrderId }) {
 export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComplete }) {
   const queryClient = useQueryClient();
   const [receivingData, setReceivingData] = useState({});
+  const [syncingIncoming, setSyncingIncoming] = useLocalState(false);
   const [globalNotes, setGlobalNotes] = useState("");
   const [uploadingImages, setUploadingImages] = useState(false);
   const [globalImages, setGlobalImages] = useState([]);
@@ -637,6 +639,38 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
             >
               Avbryt
             </Button>
+            {purchaseOrder.fortnox_po_id && (
+              <Button
+                onClick={async () => {
+                  setSyncingIncoming(true);
+                  try {
+                    const res = await base44.functions.invoke('syncIncomingGoodsToFortnox', {
+                      purchaseOrderId: purchaseOrder.id
+                    });
+                    const data = res.data;
+                    if (data?.success) {
+                      toast.success(`✅ Inleverans #${data.incomingGoodsNumber} registrerad i Fortnox!`);
+                      queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+                    } else {
+                      toast.error(`❌ Misslyckades: ${data?.error || 'Okänt fel'}`, { duration: 8000 });
+                    }
+                  } catch (e) {
+                    toast.error('Misslyckades: ' + e.message);
+                  } finally {
+                    setSyncingIncoming(false);
+                  }
+                }}
+                disabled={syncingIncoming}
+                className="bg-teal-600 hover:bg-teal-500 text-white"
+              >
+                {syncingIncoming ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <CloudUpload className="w-4 h-4 mr-2" />
+                )}
+                {syncingIncoming ? 'Registrerar...' : 'Inleverans i Fortnox'}
+              </Button>
+            )}
             <Button
               onClick={handleSubmit}
               disabled={receiveMutation.isPending || totalReceiving === 0}
