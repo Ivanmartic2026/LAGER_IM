@@ -22,10 +22,13 @@ const WAY_OF_DELIVERY_MAP = {
 };
 
 const PAYMENT_TERMS_MAP = {
+  "100_procent_forskott": "0",
   "30_dagar_netto": "30",
+  "30_dagar": "30",
   "10_dagar_2_procent": "10",
   "omedelbar_betalning": "0",
-  "60_dagar_netto": "60"
+  "60_dagar_netto": "60",
+  "60_dagar": "60"
 };
 
 const PURCHASE_TYPE_LABEL = {
@@ -189,7 +192,7 @@ Deno.serve(async (req) => {
     }
 
     // === CREATE PURCHASE ORDER IN FORTNOX (warehouse API v1, camelCase) ===
-    const ourRef = po.intern_reference || po.po_number || '';
+    const ourRef = (po.intern_reference || po.po_number || '').substring(0, 50);
     const poBody = {
       supplierNumber: supplier.fortnox_supplier_number,
       orderDate: po.order_date || new Date().toISOString().split('T')[0],
@@ -213,8 +216,8 @@ Deno.serve(async (req) => {
     if (costCenter) poBody.costCenter = costCenter;
     if (po.delivery_terms) poBody.deliveryTerms = po.delivery_terms;
     if (po.mode_of_transport && WAY_OF_DELIVERY_MAP[po.mode_of_transport]) poBody.wayOfDelivery = WAY_OF_DELIVERY_MAP[po.mode_of_transport];
-    const mappedPaymentTerms = po.payment_terms ? PAYMENT_TERMS_MAP[po.payment_terms] : null;
-    if (mappedPaymentTerms) poBody.paymentTermsCode = mappedPaymentTerms;
+    const mappedPaymentTerms = po.payment_terms ? PAYMENT_TERMS_MAP[po.payment_terms] : "30";
+    poBody.paymentTermsCode = mappedPaymentTerms;
 
     const poPayload = poBody;
 
