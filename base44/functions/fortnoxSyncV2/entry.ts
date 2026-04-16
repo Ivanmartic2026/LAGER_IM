@@ -43,7 +43,7 @@ async function getFortnoxToken(base44) {
 
 async function syncArticles(accessToken, base44, articles) {
   let succeeded = 0;
-  let failed = 0;
+  const errors = [];
 
   for (const article of articles) {
     try {
@@ -66,7 +66,7 @@ async function syncArticles(accessToken, base44, articles) {
 
       let createResponse;
       if (!checkRes.ok) {
-        // Create new article
+        // Create new article (no SalesPrice - read-only)
         createResponse = await fetch(`${FORTNOX_API_BASE}/articles`, {
           method: 'POST',
           headers: {
@@ -79,7 +79,6 @@ async function syncArticles(accessToken, base44, articles) {
               ArticleNumber: articleNumber,
               Description: description,
               PurchasePrice: article.unit_cost || 0,
-              SalesPrice: article.unit_cost || 0,
               Type: article.storage_type === 'company_owned' ? 'STOCK' : 'SERVICE',
               Manufacturer: article.manufacturer || '',
               ManufacturerArticleNumber: article.supplier_product_code || '',
@@ -91,7 +90,7 @@ async function syncArticles(accessToken, base44, articles) {
           })
         });
       } else {
-        // Update existing article
+        // Update existing article (no SalesPrice - read-only)
         createResponse = await fetch(`${FORTNOX_API_BASE}/articles/${encodeURIComponent(articleNumber)}`, {
           method: 'PUT',
           headers: {
@@ -103,7 +102,6 @@ async function syncArticles(accessToken, base44, articles) {
             Article: {
               Description: description,
               PurchasePrice: article.unit_cost || 0,
-              SalesPrice: article.unit_cost || 0,
               Type: article.storage_type === 'company_owned' ? 'STOCK' : 'SERVICE',
               Manufacturer: article.manufacturer || '',
               ManufacturerArticleNumber: article.supplier_product_code || '',
@@ -123,15 +121,15 @@ async function syncArticles(accessToken, base44, articles) {
       } else {
         const errorText = await createResponse.text();
         console.error(`Failed to sync article ${articleNumber}: ${createResponse.status} - ${errorText}`);
-        failed++;
+        errors.push({ sku: articleNumber, error: errorText });
       }
     } catch (error) {
       console.error(`Error syncing article ${article.id}:`, error);
-      failed++;
+      errors.push({ sku: article.sku, error: error.message });
     }
   }
 
-  return { succeeded, failed };
+  return { succeeded, errors };
 }
 
 async function syncSuppliers(accessToken, base44) {
@@ -538,9 +536,9 @@ Deno.serve(async (req) => {
       }
 
       return Response.json({
-        success: true,
+        success: result.errors.length === 0,
         synced: result.succeeded,
-        errors: []
+        errors: result.errors || []
       });
     } catch (error) {
       console.error('Fortnox sync error:', error);
