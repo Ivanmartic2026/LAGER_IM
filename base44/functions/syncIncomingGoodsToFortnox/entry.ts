@@ -102,8 +102,11 @@ Deno.serve(async (req) => {
     const accessToken = await getFortnoxToken(base44);
 
     // === CREATE INLEVERANS (warehouse API uses camelCase) ===
-    // deliveryNoteId = Fortnox PO document number (required)
-    const deliveryNoteId = po.fortnox_po_id || po.po_number || po.id;
+    // deliveryNoteId MUST be the Fortnox PO ID from the linked PurchaseOrder
+    const deliveryNoteId = po.fortnox_po_id;
+    if (!deliveryNoteId) {
+      return Response.json({ error: 'Inköpsordern saknar Fortnox PO-nummer. Kör "Skicka till Fortnox" först.' }, { status: 422 });
+    }
     const payload = {
       supplierNumber: supplier.fortnox_supplier_number,
       deliveryNoteId: String(deliveryNoteId),

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -83,6 +83,8 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
   const [uploadingImages, setUploadingImages] = useState(false);
   const [globalImages, setGlobalImages] = useState([]);
   const [shippingDocuments, setShippingDocuments] = useState([]);
+  const [fortnoxPoId, setFortnoxPoId] = useState(purchaseOrder?.fortnox_po_id || "");
+  const [showPoMissingWarning, setShowPoMissingWarning] = useState(false);
 
   const { data: items = [] } = useQuery({
     queryKey: ['purchaseOrderItems', purchaseOrder.id],
@@ -97,21 +99,30 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
     queryFn: () => base44.auth.me()
   });
 
-  // Initialize receiving data with full quantities
-   React.useEffect(() => {
-     const initialData = {};
-     items.forEach(item => {
-       const remaining = item.quantity_ordered - (item.quantity_received || 0);
-       initialData[item.id] = {
-         quantity_received: remaining > 0 ? remaining : 0,
-         has_discrepancy: false,
-         discrepancy_reason: "",
-         quality_check_passed: true,
-         image_urls: []
-       };
-     });
-     setReceivingData(initialData);
-   }, [items]);
+  // Initialize receiving data with full quantities and check PO sync status
+  useEffect(() => {
+    const initialData = {};
+    items.forEach(item => {
+      const remaining = item.quantity_ordered - (item.quantity_received || 0);
+      initialData[item.id] = {
+        quantity_received: remaining > 0 ? remaining : 0,
+        has_discrepancy: false,
+        discrepancy_reason: "",
+        quality_check_passed: true,
+        image_urls: []
+      };
+    });
+    setReceivingData(initialData);
+
+    // Auto-fill fortnoxPoId and show warning if not synced
+    if (purchaseOrder?.fortnox_po_id) {
+      setFortnoxPoId(purchaseOrder.fortnox_po_id);
+      setShowPoMissingWarning(false);
+    } else {
+      setFortnoxPoId("");
+      setShowPoMissingWarning(true);
+    }
+  }, [items, purchaseOrder]);
 
   const receiveMutation = useMutation({
     mutationFn: async (data) => {
@@ -359,6 +370,48 @@ export default function SimplifiedReceivingForm({ purchaseOrder, onClose, onComp
 
           {/* Existing Documents */}
           <ExistingDocuments purchaseOrderId={purchaseOrder.id} />
+        </div>
+
+        {/* Fortnox PO Reference */}
+        <div className="p-6 border-b border-white/10">
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium text-white mb-2 block">
+                Fortnox leverantörsorder-nr (deliveryNoteId)
+              </label>
+              <Input
+                type="text"
+                value={fortnoxPoId}
+                onChange={(e) => setFortnoxPoId(e.target.value)}
+                placeholder="Auto-fylld från kopplat inköp..."
+                className={cn(
+                  "bg-zinc-900 border-white/10 text-white",
+                  purchaseOrder?.fortnox_po_id ? "opacity-60" : ""
+                )}
+                disabled={!!purchaseOrder?.fortnox_po_id}
+              />
+              <p className="text-xs text-slate-400 mt-2">
+                Hämtas automatiskt från kopplat inköps Fortnox PO-nummer. Inköpet måste vara synkat till Fortnox (Steg 1 – Skicka till Fortnox) innan inleverans kan registreras i Fortnox.
+              </p>
+            </div>
+
+            {showPoMissingWarning && (
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-200">
+                  <strong>⚠️ Inköpet är inte skickat till Fortnox ännu.</strong> Kör "Skicka till Fortnox" (Steg 1) på inköpsordern först.
+                </div>
+              </div>
+            )}
+
+            {fortnoxPoId && (
+              <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                <p className="text-sm text-blue-300">
+                  → Kopplad till Fortnox leverantörsorder <strong>#{fortnoxPoId}</strong>
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Items List */}
