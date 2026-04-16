@@ -3,6 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 const CLIENT_ID = 'mp08u6gAFPz2';
 const CLIENT_SECRET = 'GjAMHv9Mm7wZW356pZmLdkkBlie0QaPg';
 const FORTNOX_API_BASE = 'https://api.fortnox.se/3';
+const FORTNOX_WAREHOUSE_BASE = 'https://api.fortnox.se/api/warehouse';
 
 const COST_CENTER_MAP = {
   "10_support_service": "10",
@@ -110,7 +111,7 @@ Deno.serve(async (req) => {
       }
     };
 
-    const createRes = await fetch(`${FORTNOX_API_BASE}/incominggoods`, {
+    const createRes = await fetch(`${FORTNOX_WAREHOUSE_BASE}/incominggoods-v1`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -138,7 +139,7 @@ Deno.serve(async (req) => {
 
     // === COMPLETE THE INLEVERANS ===
     if (incomingGoodsNumber) {
-      const completeRes = await fetch(`${FORTNOX_API_BASE}/incominggoods/${incomingGoodsNumber}/complete`, {
+      const completeRes = await fetch(`${FORTNOX_WAREHOUSE_BASE}/incominggoods-v1/${incomingGoodsNumber}/complete`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json' }
       });

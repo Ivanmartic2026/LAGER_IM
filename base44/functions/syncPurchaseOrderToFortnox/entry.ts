@@ -3,6 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 const CLIENT_ID = 'mp08u6gAFPz2';
 const CLIENT_SECRET = 'GjAMHv9Mm7wZW356pZmLdkkBlie0QaPg';
 const FORTNOX_API_BASE = 'https://api.fortnox.se/3';
+const FORTNOX_WAREHOUSE_BASE = 'https://api.fortnox.se/api/warehouse';
 
 const COST_CENTER_MAP = {
   "10_support_service": "10",
@@ -157,23 +158,38 @@ Deno.serve(async (req) => {
       po.notes || ''
     ].filter(Boolean).join(' | ');
 
-    // === CREATE PURCHASE ORDER IN FORTNOX ===
+    // === GET SUPPLIER DETAILS ===
+    const supplierName = supplier.name || po.supplier_name || 'Okänd leverantör';
+    const supplierAddress = supplier.address || '';
+    const addressParts = supplierAddress.split(',').map(s => s.trim());
+
+    // === CREATE PURCHASE ORDER IN FORTNOX (warehouse API v1, camelCase) ===
     const poBody = {
-      SupplierNumber: supplier.fortnox_supplier_number,
-      OrderDate: po.order_date || new Date().toISOString().split('T')[0],
-      StockPointCode: 'JKP-HER',
-      OurReference: po.po_number || '',
-      Comments: comments,
-      PurchaseOrderRows: rows
+      supplierNumber: supplier.fortnox_supplier_number,
+      orderDate: po.order_date || new Date().toISOString().split('T')[0],
+      stockPointCode: 'JKP-HER',
+      ourReference: po.po_number || '',
+      remarks: comments,
+      paymentTermsCode: 'K30', // 30 dagar netto
+      deliveryName: supplierName,
+      deliveryAddress: addressParts[0] || supplierAddress || '-',
+      deliveryZipCode: '-',
+      deliveryCity: addressParts[1] || '-',
+      rows: rows.map(r => ({
+        itemId: r.ArticleNumber,
+        description: r.Description,
+        orderedQuantity: r.OrderedQuantity,
+        price: r.Price
+      }))
     };
 
-    if (po.expected_delivery_date) poBody.DeliveryDate = po.expected_delivery_date;
-    if (po.fortnox_project_number && po.fortnox_project_number !== '-') poBody.Project = po.fortnox_project_number;
-    if (costCenter) poBody.CostCenter = costCenter;
+    if (po.expected_delivery_date) poBody.deliveryDate = po.expected_delivery_date;
+    if (po.fortnox_project_number && po.fortnox_project_number !== '-') poBody.project = po.fortnox_project_number;
+    if (costCenter) poBody.costCenter = costCenter;
 
-    const poPayload = { PurchaseOrder: poBody };
+    const poPayload = poBody;
 
-    const createRes = await fetch(`${FORTNOX_API_BASE}/purchaseorders`, {
+    const createRes = await fetch(`${FORTNOX_WAREHOUSE_BASE}/purchaseorders-v1`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -202,7 +218,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: `Fortnox fel ${createRes.status}: ${responseText}` }, { status: 500 });
     }
 
-    const documentNumber = responseData?.PurchaseOrder?.DocumentNumber;
+    const documentNumber = responseData?.documentNumber || responseData?.PurchaseOrder?.DocumentNumber;
 
     // === SAVE SUCCESS ===
     await base44.asServiceRole.entities.PurchaseOrder.update(purchaseOrderId, {
