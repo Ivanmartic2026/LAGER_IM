@@ -11,6 +11,7 @@ Search, Plus, ShoppingCart, Download, Calendar,
 Truck, Package, User, Printer, Mail, Eye, X, CheckCircle2, AlertCircle, Link2, Copy, FileText,
 TrendingUp, Clock, PackageCheck, Send, ChevronDown, ChevronRight, ArrowRight
 } from "lucide-react";
+// CheckCircle2 already imported above
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -522,27 +523,32 @@ export default function PurchaseOrdersPage() {
                               <Download className="w-3 h-3" />Kvitto
                             </button>
                           )}
-                          {po.status === 'received' && (
+                          {po.status === 'received' && !po.fortnox_incoming_goods_id && (
                             <button
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-emerald-300 hover:text-white hover:bg-emerald-600/30 border border-emerald-500/30 transition-colors"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/40 shadow-lg shadow-emerald-500/20 transition-all"
                               onClick={async () => {
-                                if (!confirm(`Skapa inleverans i Fortnox för ${po.po_number || po.id.slice(0,8)}?`)) return;
-                                const t = toast.loading("Skapar inleverans i Fortnox...");
+                                if (!confirm(`Synca inleverans till Fortnox för ${po.po_number || po.id.slice(0,8)}?`)) return;
+                                const t = toast.loading("Syncar till Fortnox...");
                                 try {
                                   await base44.functions.invoke('fortnoxSyncV2', {
                                     purchaseOrderId: po.id,
                                     createInboundDelivery: true
                                   });
                                   toast.dismiss(t);
-                                  toast.success('Inleverans skapad i Fortnox!');
+                                  toast.success('✅ Inleverans skapad i Fortnox!');
                                   queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
                                 } catch (e) {
                                   toast.error('Misslyckades: ' + e.message, { id: t });
                                 }
                               }}
                             >
-                              <Package className="w-3 h-3" />Inleverans → FN
+                              <Package className="w-4 h-4" />Synca till Fortnox
                             </button>
+                          )}
+                          {po.status === 'received' && po.fortnox_incoming_goods_id && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                              <CheckCircle2 className="w-3.5 h-3.5" />Synkad FN #{po.fortnox_incoming_goods_id}
+                            </span>
                           )}
                           {po.invoice_file_url && (
                             <button className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs text-amber-400 hover:bg-amber-500/10 transition-colors" onClick={() => window.open(po.invoice_file_url, '_blank')}>
