@@ -125,10 +125,12 @@ Deno.serve(async (req) => {
       errors.push('Leverantören saknar Fortnox-leverantörsnummer');
     }
 
-    const items = await base44.asServiceRole.entities.PurchaseOrderItem.filter({ purchase_order_id: purchaseOrderId });
-    const itemsMissingSku = items.filter(i => !i.article_sku);
-    if (itemsMissingSku.length > 0) {
-      errors.push(`Artiklar saknar SKU: ${itemsMissingSku.map(i => i.article_name || i.id).join(', ')}`);
+    const allItems = await base44.asServiceRole.entities.PurchaseOrderItem.filter({ purchase_order_id: purchaseOrderId });
+    // Skip items without SKU — warn but don't block
+    const itemsMissingSku = allItems.filter(i => !i.article_sku);
+    const items = allItems.filter(i => i.article_sku);
+    if (items.length === 0) {
+      errors.push('Inga artiklar med SKU hittades');
     }
 
     if (errors.length > 0) {
@@ -244,7 +246,11 @@ Deno.serve(async (req) => {
       actor_email: user.email
     });
 
-    return Response.json({ success: true, documentNumber });
+    return Response.json({ 
+      success: true, 
+      documentNumber,
+      skipped_items: itemsMissingSku.map(i => i.article_name || i.id)
+    });
 
   } catch (error) {
     console.error('syncPurchaseOrderToFortnox error:', error);
