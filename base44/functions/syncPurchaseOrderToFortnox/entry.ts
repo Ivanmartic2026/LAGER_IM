@@ -59,7 +59,8 @@ async function getFortnoxToken(base44) {
 }
 
 async function ensureArticleInFortnox(accessToken, base44, item) {
-  const sku = item.article_sku;
+  // Sanitize SKU: replace spaces with dash, keep only allowed chars: A-Z a-z 0-9 _ - / +
+  const sku = (item.article_sku || '').replace(/ /g, '-').replace(/[^A-Za-z0-9_\-\/+]/g, '');
   if (!sku) throw new Error(`Artikel "${item.article_name}" saknar SKU`);
 
   // Check if exists
@@ -76,8 +77,6 @@ async function ensureArticleInFortnox(accessToken, base44, item) {
     category = art?.category;
   }
 
-  const articleGroupCode = CATEGORY_GROUP_MAP[category] || 'OVR';
-
   const createRes = await fetch(`${FORTNOX_API_BASE}/articles`, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -85,8 +84,7 @@ async function ensureArticleInFortnox(accessToken, base44, item) {
       Article: {
         ArticleNumber: sku,
         Description: item.article_name || sku,
-        PurchasePrice: item.unit_price || 0,
-        ArticleGroupCode: articleGroupCode
+        PurchasePrice: item.unit_price || 0
       }
     })
   });
@@ -147,7 +145,7 @@ Deno.serve(async (req) => {
 
     // === BUILD PO ROWS ===
     const rows = items.map(item => ({
-      ArticleNumber: item.article_sku,
+      ArticleNumber: (item.article_sku || '').replace(/ /g, '-').replace(/[^A-Za-z0-9_\-\/+]/g, ''),
       Description: item.article_name || '',
       OrderedQuantity: item.quantity_ordered,
       Price: item.unit_price || 0
