@@ -44,6 +44,13 @@ Deno.serve(async (req) => {
         needsUpdate = true;
       }
 
+      // 5. warehouse_id is null or missing → set to default warehouse
+      if (!po.warehouse_id) {
+        updateData.warehouse_id = '6957cd0c7959e14755b284e2';
+        updateData.warehouse_name = 'IMV Huvudlager – Jönköping – Herkulesvägen 56';
+        needsUpdate = true;
+      }
+
       if (needsUpdate) {
         updates.push({
           id: po.id,
