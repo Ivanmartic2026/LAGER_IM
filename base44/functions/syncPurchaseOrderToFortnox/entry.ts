@@ -123,12 +123,6 @@ Deno.serve(async (req) => {
     if (!supplier?.fortnox_supplier_number) {
       errors.push('Leverantören saknar Fortnox-leverantörsnummer');
     }
-    if (!po.fortnox_project_number || po.fortnox_project_number === '-') {
-      errors.push('Fortnox projektnummer saknas');
-    }
-    if (!po.cost_center) {
-      errors.push('Kostnadsställe saknas');
-    }
 
     const items = await base44.asServiceRole.entities.PurchaseOrderItem.filter({ purchase_order_id: purchaseOrderId });
     const itemsMissingSku = items.filter(i => !i.article_sku);
@@ -164,19 +158,20 @@ Deno.serve(async (req) => {
     ].filter(Boolean).join(' | ');
 
     // === CREATE PURCHASE ORDER IN FORTNOX ===
-    const poPayload = {
-      PurchaseOrder: {
-        SupplierNumber: supplier.fortnox_supplier_number,
-        OrderDate: po.order_date || new Date().toISOString().split('T')[0],
-        DeliveryDate: po.expected_delivery_date || undefined,
-        Project: po.fortnox_project_number,
-        CostCenter: costCenter,
-        StockPointCode: 'JKP-HER',
-        OurReference: po.po_number || '',
-        Comments: comments,
-        PurchaseOrderRows: rows
-      }
+    const poBody = {
+      SupplierNumber: supplier.fortnox_supplier_number,
+      OrderDate: po.order_date || new Date().toISOString().split('T')[0],
+      StockPointCode: 'JKP-HER',
+      OurReference: po.po_number || '',
+      Comments: comments,
+      PurchaseOrderRows: rows
     };
+
+    if (po.expected_delivery_date) poBody.DeliveryDate = po.expected_delivery_date;
+    if (po.fortnox_project_number && po.fortnox_project_number !== '-') poBody.Project = po.fortnox_project_number;
+    if (costCenter) poBody.CostCenter = costCenter;
+
+    const poPayload = { PurchaseOrder: poBody };
 
     const createRes = await fetch(`${FORTNOX_API_BASE}/purchaseorders`, {
       method: 'POST',
