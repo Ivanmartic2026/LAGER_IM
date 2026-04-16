@@ -41,44 +41,88 @@ async function getFortnoxToken(base44) {
   return data.access_token;
 }
 
-async function syncArticles(accessToken, articles) {
+async function syncArticles(accessToken, base44, articles) {
   let succeeded = 0;
   let failed = 0;
 
   for (const article of articles) {
     try {
-      const articleNumber = article.sku || article.ArticleNumber || `ART-${article.id}`;
-      const description = article.name || article.Description;
+      // Skip articles without SKU
+      if (!article.sku) {
+        console.warn(`Skipping article ${article.id} - no SKU`);
+        continue;
+      }
 
-      const createResponse = await fetch(`${FORTNOX_API_BASE}/articles`, {
-        method: 'POST',
+      const articleNumber = article.sku;
+      const description = article.name || articleNumber;
+
+      // First check if article exists in Fortnox
+      const checkRes = await fetch(`${FORTNOX_API_BASE}/articles/${encodeURIComponent(articleNumber)}`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
           'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          Article: {
-            ArticleNumber: articleNumber,
-            Description: description,
-            PurchasePrice: article.unit_cost || 0,
-            SalesPrice: article.unit_cost || 0,
-            Type: article.storage_type === 'company_owned' ? 'STOCK' : 'SERVICE',
-            Manufacturer: article.manufacturer || '',
-            ManufacturerArticleNumber: article.supplier_product_code || '',
-            Height: article.dimensions_height_mm || 0,
-            Depth: article.dimensions_depth_mm || 0,
-            Note: article.transit_notes || '',
-            StockWarning: article.min_stock_level || 0
-          }
-        })
+        }
       });
 
+      let createResponse;
+      if (!checkRes.ok) {
+        // Create new article
+        createResponse = await fetch(`${FORTNOX_API_BASE}/articles`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            Article: {
+              ArticleNumber: articleNumber,
+              Description: description,
+              PurchasePrice: article.unit_cost || 0,
+              SalesPrice: article.unit_cost || 0,
+              Type: article.storage_type === 'company_owned' ? 'STOCK' : 'SERVICE',
+              Manufacturer: article.manufacturer || '',
+              ManufacturerArticleNumber: article.supplier_product_code || '',
+              Height: article.dimensions_height_mm || 0,
+              Depth: article.dimensions_depth_mm || 0,
+              Note: article.transit_notes || '',
+              StockWarning: article.min_stock_level || 0
+            }
+          })
+        });
+      } else {
+        // Update existing article
+        createResponse = await fetch(`${FORTNOX_API_BASE}/articles/${encodeURIComponent(articleNumber)}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            Article: {
+              Description: description,
+              PurchasePrice: article.unit_cost || 0,
+              SalesPrice: article.unit_cost || 0,
+              Type: article.storage_type === 'company_owned' ? 'STOCK' : 'SERVICE',
+              Manufacturer: article.manufacturer || '',
+              ManufacturerArticleNumber: article.supplier_product_code || '',
+              Height: article.dimensions_height_mm || 0,
+              Depth: article.dimensions_depth_mm || 0,
+              Note: article.transit_notes || '',
+              StockWarning: article.min_stock_level || 0
+            }
+          })
+        });
+      }
+
       if (createResponse.ok) {
+        // Mark as synced in database
+        await base44.asServiceRole.entities.Article.update(article.id, { fortnox_synced: true }).catch(() => {});
         succeeded++;
       } else {
         const errorText = await createResponse.text();
-        console.error(`Failed to create article ${articleNumber}: ${createResponse.status} - ${errorText}`);
+        console.error(`Failed to sync article ${articleNumber}: ${createResponse.status} - ${errorText}`);
         failed++;
       }
     } catch (error) {
@@ -484,7 +528,7 @@ Deno.serve(async (req) => {
         if (!articles || articles.length === 0) {
           return Response.json({ error: 'No articles provided' }, { status: 400 });
         }
-        result = await syncArticles(accessToken, articles);
+        result = await syncArticles(accessToken, base44, articles);
       } else if (syncType === 'suppliers') {
         result = await syncSuppliers(accessToken, base44);
       } else if (syncType === 'purchaseOrders') {
