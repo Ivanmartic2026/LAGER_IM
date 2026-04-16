@@ -141,14 +141,51 @@ Deno.serve(async (req) => {
     // Warehouse API returns camelCase: id or goodsReceiptNumber
     const incomingGoodsNumber = responseData?.id || responseData?.goodsReceiptNumber || responseData?.IncomingGoods?.GivenNumber;
 
-    // === COMPLETE THE INLEVERANS ===
+    // === FETCH FULL RECORD TO GET UUID ===
+    let resourceUuid = null;
     if (incomingGoodsNumber) {
-      const completeRes = await fetch(`${FORTNOX_WAREHOUSE_BASE}/incominggoods-v1/${incomingGoodsNumber}/complete`, {
-        method: 'POST',
+      const getRes = await fetch(`${FORTNOX_WAREHOUSE_BASE}/incominggoods-v1/${incomingGoodsNumber}`, {
         headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json' }
       });
-      if (!completeRes.ok) {
-        console.warn(`Could not complete inleverans ${incomingGoodsNumber}: ${await completeRes.text()}`);
+      const getText = await getRes.text();
+      console.log(`GET inleverans ${incomingGoodsNumber} → ${getRes.status}: ${getText}`);
+      try {
+        const getJson = JSON.parse(getText);
+        resourceUuid = getJson?.uuid || getJson?.id;
+      } catch {}
+    }
+
+    // === COMPLETE THE INLEVERANS via PUT with completed:true ===
+    let completed = false;
+    let completeError = null;
+    if (incomingGoodsNumber && responseData) {
+      // Build updated payload with completed:true
+      const updatePayload = { ...responseData, completed: true };
+      const putRes = await fetch(`${FORTNOX_WAREHOUSE_BASE}/incominggoods-v1/${incomingGoodsNumber}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatePayload)
+      });
+      const putText = await putRes.text();
+      console.log(`PUT complete inleverans ${incomingGoodsNumber} → ${putRes.status}: ${putText}`);
+      if (putRes.ok) {
+        completed = true;
+      } else {
+        completeError = `PUT ${putRes.status}: ${putText}`;
+        // Fallback: try PATCH
+        const patchRes = await fetch(`${FORTNOX_WAREHOUSE_BASE}/incominggoods-v1/${incomingGoodsNumber}`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ completed: true })
+        });
+        const patchText = await patchRes.text();
+        console.log(`PATCH complete inleverans ${incomingGoodsNumber} → ${patchRes.status}: ${patchText}`);
+        if (patchRes.ok) {
+          completed = true;
+          completeError = null;
+        } else {
+          completeError += ` | PATCH ${patchRes.status}: ${patchText}`;
+        }
       }
     }
 
@@ -176,7 +213,7 @@ Deno.serve(async (req) => {
       actor_email: user.email
     });
 
-    return Response.json({ success: true, incomingGoodsNumber });
+    return Response.json({ success: true, incomingGoodsNumber, completed, completeError });
 
   } catch (error) {
     console.error('syncIncomingGoodsToFortnox error:', error);
