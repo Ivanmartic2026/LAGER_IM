@@ -391,22 +391,30 @@ async function createFortnoxInboundDelivery(accessToken, base44, poId) {
     console.log(`Leverantör Fortnox-nummer: ${supplierNumber || '(ej funnet)'}`);
   }
 
-  const deliveryData = {
+  const invoiceDate = po.received_date ? po.received_date.split('T')[0] : new Date().toISOString().split('T')[0];
+
+  const supplierInvoiceData = {
     SupplierNumber: supplierNumber,
-    DeliveryDate: po.received_date ? po.received_date.split('T')[0] : new Date().toISOString().split('T')[0],
-    Rows: rows
+    InvoiceDate: invoiceDate,
+    DueDate: invoiceDate,
+    Comments: po.po_number ? `Inköpsorder: ${po.po_number}` : '',
+    SupplierInvoiceRows: rows.map(r => ({
+      ArticleNumber: r.ArticleNumber,
+      Quantity: r.DeliveredQuantity,
+      Price: 0
+    }))
   };
 
-  diagnostics.fortnoxRequest = deliveryData;
+  diagnostics.fortnoxRequest = supplierInvoiceData;
 
-  const response = await fetch(`${FORTNOX_API_BASE}/inbounddeliveries`, {
+  const response = await fetch(`${FORTNOX_API_BASE}/supplierinvoices`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    body: JSON.stringify({ InboundDelivery: deliveryData })
+    body: JSON.stringify({ SupplierInvoice: supplierInvoiceData })
   });
 
   const responseBody = await response.text();
@@ -417,10 +425,10 @@ async function createFortnoxInboundDelivery(accessToken, base44, poId) {
   diagnostics.fortnoxResponseBody = parsedBody;
 
   if (response.ok) {
-    const goodsReceiptNumber = parsedBody?.InboundDelivery?.GoodsReceiptNumber;
+    const goodsReceiptNumber = parsedBody?.SupplierInvoice?.GivenNumber || parsedBody?.SupplierInvoice?.SupplierInvoiceNumber;
     if (goodsReceiptNumber) {
       await base44.asServiceRole.entities.PurchaseOrder.update(poId, {
-        fortnox_incoming_goods_id: goodsReceiptNumber
+        fortnox_incoming_goods_id: String(goodsReceiptNumber)
       });
     }
     return { succeeded: 1, failed: 0, diagnostics, goodsReceiptNumber };
