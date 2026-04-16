@@ -292,11 +292,82 @@ async function createFortnoxInboundDelivery(accessToken, base44, poId) {
       ? await base44.asServiceRole.entities.Article.get(item.article_id)
       : null;
 
-    const articleNumber = article?.sku || item.article_sku;
+    let articleNumber = article?.sku || item.article_sku;
+
+    // Om articleNumber saknas, försök skapa artikeln i Fortnox automatiskt
     if (!articleNumber) {
-      diagnostics.skippedItems.push({ id: item.id, reason: 'Saknar artikelnummer (sku)', article_name: item.article_name });
-      console.warn(`Ingen SKU för artikel i rad ${item.id}, hoppar över`);
-      continue;
+      const articleName = article?.name || item.article_name || `Artikel-${item.id.slice(0, 8)}`;
+      console.log(`Ingen SKU för "${articleName}", försöker skapa i Fortnox automatiskt...`);
+
+      // Skapa artikel i Fortnox
+      const autoSku = `AUTO-${item.id.slice(0, 8).toUpperCase()}`;
+      const createArticleRes = await fetch(`${FORTNOX_API_BASE}/articles`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          Article: {
+            ArticleNumber: autoSku,
+            Description: articleName,
+            PurchasePrice: article?.unit_cost || item.unit_price || 0,
+            Type: 'STOCK'
+          }
+        })
+      });
+
+      if (createArticleRes.ok) {
+        const created = await createArticleRes.json();
+        articleNumber = created?.Article?.ArticleNumber || autoSku;
+        console.log(`Skapade artikel i Fortnox: ${articleNumber}`);
+
+        // Spara SKU på artikeln i Lager AI om vi har ett article_id
+        if (article?.id) {
+          await base44.asServiceRole.entities.Article.update(article.id, { sku: articleNumber });
+          console.log(`Uppdaterade SKU på artikel ${article.id} → ${articleNumber}`);
+        }
+      } else {
+        const errText = await createArticleRes.text();
+        console.warn(`Kunde inte skapa artikel "${articleName}" i Fortnox: ${errText}`);
+        diagnostics.skippedItems.push({ id: item.id, reason: `Kunde inte skapa artikel i Fortnox: ${errText}`, article_name: articleName });
+        continue;
+      }
+    } else {
+      // Artikelnummer finns — verifiera att artikeln existerar i Fortnox, skapa om inte
+      const checkRes = await fetch(`${FORTNOX_API_BASE}/articles/${encodeURIComponent(articleNumber)}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json' }
+      });
+
+      if (!checkRes.ok) {
+        console.log(`Artikel "${articleNumber}" finns inte i Fortnox, skapar...`);
+        const articleName = article?.name || item.article_name || articleNumber;
+        const createRes = await fetch(`${FORTNOX_API_BASE}/articles`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            Article: {
+              ArticleNumber: articleNumber,
+              Description: articleName,
+              PurchasePrice: article?.unit_cost || item.unit_price || 0,
+              Type: 'STOCK'
+            }
+          })
+        });
+
+        if (!createRes.ok) {
+          const errText = await createRes.text();
+          console.warn(`Kunde inte skapa artikel "${articleNumber}" i Fortnox: ${errText}`);
+          diagnostics.skippedItems.push({ id: item.id, reason: `Artikel saknas i Fortnox och kunde inte skapas: ${errText}`, article_name: articleName });
+          continue;
+        }
+        console.log(`Skapade artikel "${articleNumber}" i Fortnox`);
+      }
     }
 
     rows.push({
