@@ -81,16 +81,18 @@ Deno.serve(async (req) => {
     for (const record of receivingRecords) {
       if (!record.quantity_received || record.quantity_received <= 0) continue;
       const poItem = itemMap[record.purchase_order_item_id];
-      const sku = poItem?.article_sku;
-      if (!sku) continue;
+      const rawSku = poItem?.article_sku;
+      if (!rawSku) continue;
+      const sku = rawSku.replace(/ /g, '-').replace(/[^A-Za-z0-9_\-\/+]/g, '');
 
-      rows.push({
-        ArticleNumber: sku,
-        ReceivedQuantity: record.quantity_received,
-        Project: po.fortnox_project_number || '',
-        CostCenter: costCenter,
-        StockPointCode: 'JKP-HER'
-      });
+      const row = {
+        itemId: sku,
+        receivedQuantity: record.quantity_received,
+        stockPointCode: 'JKP-HER'
+      };
+      if (po.fortnox_project_number) row.project = po.fortnox_project_number;
+      if (costCenter) row.costCenter = costCenter;
+      rows.push(row);
     }
 
     if (rows.length === 0) {
@@ -99,16 +101,16 @@ Deno.serve(async (req) => {
 
     const accessToken = await getFortnoxToken(base44);
 
-    // === CREATE INLEVERANS ===
+    // === CREATE INLEVERANS (warehouse API uses camelCase) ===
+    // deliveryNoteId = Fortnox PO document number (required)
+    const deliveryNoteId = po.fortnox_po_id || po.po_number || po.id;
     const payload = {
-      IncomingGoods: {
-        SupplierNumber: supplier.fortnox_supplier_number,
-        Date: today,
-        DeliveryNoteId: po.po_number || '',
-        HasDeliveryNote: true,
-        Note: `Inkommande Gods registrerat via Lager AI – PO ${po.po_number || po.id}`,
-        IncomingGoodsRows: rows
-      }
+      supplierNumber: supplier.fortnox_supplier_number,
+      deliveryNoteId: String(deliveryNoteId),
+      stockPointCode: 'JKP-HER',
+      date: today,
+      note: `Inkommande Gods registrerat via Lager AI – PO ${po.po_number || po.id}`,
+      rows
     };
 
     const createRes = await fetch(`${FORTNOX_WAREHOUSE_BASE}/incominggoods-v1`, {
@@ -135,7 +137,9 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: `Fortnox fel ${createRes.status}: ${responseText}` }, { status: 500 });
     }
 
-    const incomingGoodsNumber = responseData?.IncomingGoods?.GivenNumber;
+    console.log('Fortnox inleverans response:', JSON.stringify(responseData));
+    // Warehouse API returns camelCase: id or goodsReceiptNumber
+    const incomingGoodsNumber = responseData?.id || responseData?.goodsReceiptNumber || responseData?.IncomingGoods?.GivenNumber;
 
     // === COMPLETE THE INLEVERANS ===
     if (incomingGoodsNumber) {
