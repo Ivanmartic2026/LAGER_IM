@@ -530,12 +530,23 @@ export default function PurchaseOrdersPage() {
                                 if (!confirm(`Synca inleverans till Fortnox för ${po.po_number || po.id.slice(0,8)}?`)) return;
                                 const t = toast.loading("Syncar till Fortnox...");
                                 try {
-                                  await base44.functions.invoke('fortnoxSyncV2', {
+                                  const res = await base44.functions.invoke('fortnoxSyncV2', {
                                     purchaseOrderId: po.id,
                                     createInboundDelivery: true
                                   });
                                   toast.dismiss(t);
-                                  toast.success('✅ Inleverans skapad i Fortnox!');
+                                  const data = res.data;
+                                  if (data?.success) {
+                                    const skipped = data?.diagnostics?.skippedItems?.length || 0;
+                                    const gnr = data?.goodsReceiptNumber;
+                                    toast.success(
+                                      `✅ Inleverans skapad i Fortnox!${gnr ? ` (GR#${gnr})` : ''}${skipped > 0 ? ` · ${skipped} rad(er) hoppades över` : ''}`,
+                                      { duration: 6000 }
+                                    );
+                                  } else {
+                                    const errMsg = data?.errors?.[0] || data?.error || 'Okänt fel';
+                                    toast.error(`❌ Misslyckades: ${errMsg}`, { duration: 8000 });
+                                  }
                                   queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
                                 } catch (e) {
                                   toast.error('Misslyckades: ' + e.message, { id: t });
