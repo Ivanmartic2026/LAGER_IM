@@ -47,12 +47,13 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
       if (files.length === 0) return;
       
       const validFiles = files.filter(f => {
-        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-        const rawExtensions = ['.raw', '.cr2', '.nef', '.arw', '.dng', '.rw2', '.raf', '.x3f'];
-        const isRaw = rawExtensions.some(ext => f.name.toLowerCase().endsWith(ext));
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+        const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.raw', '.cr2', '.nef', '.arw', '.dng', '.rw2', '.raf', '.x3f'];
+        const hasValidExt = validExtensions.some(ext => f.name.toLowerCase().endsWith(ext));
+        const hasValidType = validTypes.includes(f.type) || f.type.startsWith('image/');
         
-        if (!validTypes.includes(f.type) && !isRaw) {
-          toast.error(`${f.name} är inte ett stödd bildformat (JPEG, PNG, WebP, RAW)`);
+        if (!hasValidType && !hasValidExt) {
+          toast.error(`${f.name} är inte ett bildformat som stöds`);
           return false;
         }
         return true;
@@ -67,7 +68,8 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
   };
 
   const processFiles = (files) => {
-    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.raw', '.cr2', '.nef', '.arw', '.dng'];
+    const imageFiles = files.filter(f => f.type.startsWith('image/') || imageExtensions.some(ext => f.name.toLowerCase().endsWith(ext)));
     if (imageFiles.length === 0) return;
 
     const previewPromises = imageFiles.map(file => {
