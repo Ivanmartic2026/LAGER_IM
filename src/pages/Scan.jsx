@@ -586,8 +586,67 @@ Returnera som strukturerad JSON med denna format:
 
   const handleFieldChange = (field, value) => {
     setExtractedData(prev => ({ ...prev, [field]: value }));
-    // Boost confidence when user manually edits
     setConfidences(prev => ({ ...prev, [field]: 1.0 }));
+  };
+
+  const handleSavePending = async (formData) => {
+    setIsSaving(true);
+    try {
+      const article = await base44.entities.Article.create({
+        ...formData, stock_qty: parseInt(formData.stock_qty) || 0,
+        status: "pending_verification", image_urls: imageUrls,
+      });
+      await base44.entities.StockMovement.create({
+        article_id: article.id, movement_type: "inbound",
+        quantity: parseInt(formData.stock_qty) || 0,
+        previous_qty: 0, new_qty: article.stock_qty,
+        reason: "Registrerad utan inköp – väntande verifiering"
+      });
+      setPendingArticleForLink(article);
+      setShowLinkToOrder(true);
+    } catch (error) {
+      toast.error("Kunde inte spara artikel");
+    } finally { setIsSaving(false); }
+  };
+
+  const handleLinkToOrder = async ({ type, id }) => {
+    setShowLinkToOrder(false);
+    const article = pendingArticleForLink;
+    if (!article) { setStep("success"); return; }
+    try {
+      if (type === 'order') {
+        await base44.entities.OrderItem.create({
+          order_id: id, article_id: article.id,
+          article_name: article.name || article.batch_number,
+          article_batch_number: article.batch_number,
+          quantity_ordered: article.stock_qty || 1, quantity_picked: 0, status: "pending"
+        });
+        toast.success("Kopplad till order!");
+      } else {
+        const woList = await base44.entities.WorkOrder.filter({ id });
+        if (woList.length > 0) {
+          const ex = woList[0].materials_needed || [];
+          await base44.entities.WorkOrder.update(id, {
+            materials_needed: [...ex, {
+              article_id: article.id, article_name: article.name || article.batch_number,
+              batch_number: article.batch_number, quantity: article.stock_qty || 1,
+              in_stock: article.stock_qty || 0, missing: 0, needs_purchase: false
+            }]
+          });
+          toast.success("Kopplad till arbetsorder!");
+        }
+      }
+    } catch { toast.error("Kunde inte koppla, men artikel är sparad"); }
+    setSavedArticle(article);
+    setPendingArticleForLink(null);
+    setStep("success");
+  };
+
+  const handleSkipLink = () => {
+    setShowLinkToOrder(false);
+    setSavedArticle(pendingArticleForLink);
+    setPendingArticleForLink(null);
+    setStep("success");
   };
 
   const handleSaveUnknown = async (formData) => {
