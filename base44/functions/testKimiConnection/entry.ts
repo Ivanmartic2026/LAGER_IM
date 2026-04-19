@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
         : `❌ Kimi K2.5 fel: ${errorMessage}`;
 
       await base44.asServiceRole.entities.Notification.create({
-        recipient_email: 'ivan@imvision.se',
+        user_email: 'ivan@imvision.se',
         type: 'system',
         title: ok ? 'Kimi-anslutning OK' : 'Kimi-anslutning FEL',
         message: notificationBody,
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
       errorMessage = fetchErr.message;
 
       await base44.asServiceRole.entities.Notification.create({
-        recipient_email: 'ivan@imvision.se',
+        user_email: 'ivan@imvision.se',
         type: 'system',
         title: 'Kimi-anslutning FEL',
         message: `❌ Nätverksfel: ${fetchErr.message}`,
