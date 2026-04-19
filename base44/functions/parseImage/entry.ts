@@ -3,6 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 const KIMI_API_KEY = Deno.env.get("KIMI_API_KEY");
 const KIMI_API_URL = "https://api.moonshot.cn/v1/chat/completions";
 const KIMI_MODEL = "moonshot-v1-8k-vision-preview";
+// v2
 
 Deno.serve(async (req) => {
   try {
@@ -13,6 +14,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log("KIMI_API_KEY prefix:", KIMI_API_KEY ? KIMI_API_KEY.substring(0, 8) + "..." : "MISSING");
     const body = await req.json();
     const { fileUrls, articleContext = null, imageType = 'auto' } = body;
 
