@@ -509,7 +509,8 @@ export default function InventoryPage() {
     lowStock: articles.filter(a => a.status === "low_stock").length,
     outOfStock: articles.filter(a => a.status === "out_of_stock").length,
     onRepair: articles.filter(a => a.status === "on_repair").length,
-    onPurchaseOrder: articles.filter(a => !!incomingQuantities[a.id] || a.status === 'in_transit').length
+    onPurchaseOrder: articles.filter(a => !!incomingQuantities[a.id] || a.status === 'in_transit').length,
+    pendingVerification: articles.filter(a => a.status === "pending_verification").length
   };
 
   // Save state to localStorage when filters change
@@ -1010,6 +1011,7 @@ export default function InventoryPage() {
                 { label: 'Slut', value: 'out_of_stock', filter: 'status', count: stats.outOfStock },
                 { label: 'Reparation', value: 'on_repair', filter: 'status', count: stats.onRepair },
                 { label: 'På inköp', value: 'on_purchase_order', filter: 'status', count: stats.onPurchaseOrder },
+                { label: '⏳ Väntande', value: 'pending_verification', filter: 'status', count: stats.pendingVerification },
                 { label: 'Kundägd', value: 'customer_owned', filter: 'storage', count: articles.filter(a => a.storage_type === 'customer_owned').length },
                 { label: 'Uthyrning', value: 'rental_stock', filter: 'storage', count: articles.filter(a => a.storage_type === 'rental_stock').length },
               ].map(chip => {
