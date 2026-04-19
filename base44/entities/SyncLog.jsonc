@@ -4,7 +4,7 @@
   "properties": {
     "sync_type": {
       "type": "string",
-      "description": "Typ av synk (t.ex. articles_from_fortnox, customers_with_fortnox)"
+      "description": "Typ av synk (t.ex. articles_from_fortnox, purchase_order_to_fortnox)"
     },
     "status": {
       "type": "string",
@@ -14,6 +14,23 @@
         "error"
       ],
       "description": "Resultatstatus"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Entitetstyp som synkades (t.ex. PurchaseOrder)"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID p\u00e5 entiteten som synkades"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "to_fortnox",
+        "from_fortnox",
+        "internal"
+      ],
+      "description": "Synkningsriktning"
     },
     "records_processed": {
       "type": "number",
@@ -34,6 +51,14 @@
     "error_message": {
       "type": "string",
       "description": "Felmeddelande om synken misslyckades"
+    },
+    "error_detail": {
+      "type": "string",
+      "description": "Detaljerat felmeddelande"
+    },
+    "duration_ms": {
+      "type": "number",
+      "description": "K\u00f6rtid i millisekunder"
     },
     "details": {
       "type": "object",

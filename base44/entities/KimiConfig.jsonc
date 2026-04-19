@@ -36,6 +36,30 @@
       "type": "boolean",
       "default": true,
       "description": "Om konfigurationen \u00e4r aktiv"
+    },
+    "cost_limit_per_run": {
+      "type": "number",
+      "default": 10,
+      "description": "USD-tak per bulk-omanalys"
+    },
+    "monthly_cost_limit": {
+      "type": "number",
+      "default": 300,
+      "description": "USD-tak per m\u00e5nad"
+    },
+    "current_month_spend": {
+      "type": "number",
+      "default": 0,
+      "description": "Ackumulerad kostnad denna m\u00e5nad i USD"
+    },
+    "current_month": {
+      "type": "string",
+      "description": "YYYY-MM f\u00f6r att nollst\u00e4lla m\u00e5nadsbudget"
+    },
+    "min_confidence_to_save_batch": {
+      "type": "number",
+      "default": 0.4,
+      "description": "Minsta confidence f\u00f6r att spara Batch-post"
     }
   },
   "required": []

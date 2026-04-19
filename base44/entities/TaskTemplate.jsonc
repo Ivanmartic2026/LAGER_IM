@@ -1,0 +1,106 @@
+{
+  "name": "TaskTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Mall-namn"
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "s\u00e4ljare",
+        "konstruktion",
+        "produktion",
+        "lager",
+        "montering",
+        "tekniker"
+      ],
+      "description": "Fas i fl\u00f6det"
+    },
+    "trigger_event": {
+      "type": "string",
+      "enum": [
+        "order_created",
+        "sales_completed",
+        "workorder_created",
+        "po_sent",
+        "po_confirmed",
+        "po_received",
+        "batch_pending_verification",
+        "batch_quarantine",
+        "production_started",
+        "production_completed",
+        "site_report_created"
+      ],
+      "description": "H\u00e4ndelse som triggar skapande av Task"
+    },
+    "default_role": {
+      "type": "string",
+      "enum": [
+        "s\u00e4ljare",
+        "konstruktor",
+        "inkopare",
+        "lager",
+        "produktion",
+        "tekniker",
+        "ivan"
+      ],
+      "description": "Roll som utf\u00f6r uppgiften"
+    },
+    "auto_assign_rule": {
+      "type": "string",
+      "enum": [
+        "assigned_to_field",
+        "round_robin",
+        "specific_user",
+        "manual"
+      ],
+      "default": "assigned_to_field",
+      "description": "Regel f\u00f6r auto-tilldelning"
+    },
+    "assigned_to_field_name": {
+      "type": "string",
+      "description": "T.ex. 'assigned_to_lager' om auto_assign_rule = assigned_to_field"
+    },
+    "specific_user_email": {
+      "type": "string",
+      "description": "Email om auto_assign_rule = specific_user"
+    },
+    "title_template": {
+      "type": "string",
+      "description": "T.ex. 'Plocka material f\u00f6r {order_number}'"
+    },
+    "description_template": {
+      "type": "string",
+      "description": "Beskrivningsmall med variabler"
+    },
+    "due_days_offset": {
+      "type": "number",
+      "description": "Dagar fr\u00e5n triggerh\u00e4ndelse till deadline"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal",
+      "description": "Prioritet"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om mallen \u00e4r aktiv"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

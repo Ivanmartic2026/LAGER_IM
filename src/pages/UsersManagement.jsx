@@ -1,750 +1,165 @@
-import React, { useState } from 'react';
-import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
-import { Users, Loader2, Plus, Mail, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { useLanguage } from "@/components/language/LanguageProvider";
-import { t } from "@/components/language/translations";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { useState } from 'react';
+import { Pencil, Save, X, Shield, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/ui/use-toast';
+import { Switch } from '@/components/ui/switch';
 
-const AVAILABLE_MODULES = [
-  { id: "Inventory", labelKey: "module_inventory" },
-  { id: "Orders", labelKey: "module_orders" },
-  { id: "Production", labelKey: "module_production" },
-  { id: "PurchaseOrders", labelKey: "module_purchase_orders" },
-  { id: "SiteReports", labelKey: "module_site_reports" },
-  { id: "UnknownDeliveries", labelKey: "module_unknown_deliveries" },
-  { id: "Repairs", labelKey: "module_repairs" },
-  { id: "Reports", labelKey: "module_reports" }
-];
+const ROLES = ['säljare', 'konstruktor', 'inkopare', 'lager', 'produktion', 'tekniker', 'ivan', 'admin'];
+const ROLE_COLORS = {
+  admin: 'bg-red-500/20 text-red-300',
+  ivan: 'bg-purple-500/20 text-purple-300',
+  konstruktor: 'bg-blue-500/20 text-blue-300',
+  inkopare: 'bg-green-500/20 text-green-300',
+  lager: 'bg-yellow-500/20 text-yellow-300',
+  produktion: 'bg-orange-500/20 text-orange-300',
+  tekniker: 'bg-cyan-500/20 text-cyan-300',
+  säljare: 'bg-pink-500/20 text-pink-300'
+};
 
 export default function UsersManagement() {
-  const [expandedUser, setExpandedUser] = useState(null);
-  const [editingUserId, setEditingUserId] = useState(null);
-  const [editingName, setEditingName] = useState('');
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('user');
-  const [createName, setCreateName] = useState('');
-  const [createEmail, setCreateEmail] = useState('');
-  const [createPassword, setCreatePassword] = useState('');
-  const [createRole, setCreateRole] = useState('user');
-  const [createModules, setCreateModules] = useState([]);
-  const [activeTab, setActiveTab] = useState('list');
-  const { language } = useLanguage();
-  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [editingId, setEditingId] = useState(null);
+  const [editData, setEditData] = useState({});
 
-  const { data: users, isLoading, error } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
-    initialData: [],
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ['users-mgmt'],
+    queryFn: () => base44.entities.User.list()
   });
 
-  const { data: registrations, isLoading: registrationsLoading } = useQuery({
-    queryKey: ['user_registrations'],
-    queryFn: () => base44.entities.UserRegistration.list('-created_date', 100),
-    initialData: [],
-  });
-
-  const updateUserMutation = useMutation({
-    mutationFn: async ({ userId, allowed_modules }) => {
-      const response = await base44.functions.invoke('updateUserModules', { userId, allowed_modules });
-      return response.data;
-    },
+  const update = useMutation({
+    mutationFn: ({ id, data }) => base44.auth.updateMe ? base44.entities.User.update(id, data) : Promise.resolve(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success(language === 'sv' ? 'Användaråtkomst uppdaterad' : 'User access updated');
+      qc.invalidateQueries(['users-mgmt']);
+      setEditingId(null);
+      toast({ title: 'Användare uppdaterad' });
     },
-    onError: (error) => {
-      toast.error(language === 'sv' ? 'Kunde inte uppdatera användaråtkomst' : 'Failed to update user access');
-    }
+    onError: (e) => toast({ title: 'Fel', description: e.message, variant: 'destructive' })
   });
 
-  const updateNameMutation = useMutation({
-    mutationFn: async ({ userId, full_name }) => {
-      const response = await base44.functions.invoke('updateUserName', { userId, full_name });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setEditingUserId(null);
-      setEditingName('');
-      toast.success(language === 'sv' ? 'Namn uppdaterat' : 'Name updated');
-    },
-    onError: (error) => {
-      toast.error(language === 'sv' ? 'Kunde inte uppdatera namn' : 'Failed to update name');
-    }
-  });
-
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ userId, is_active, role }) => {
-      const response = await base44.functions.invoke('updateUserStatus', { userId, is_active, role });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success(language === 'sv' ? 'Användare uppdaterad' : 'User updated');
-    },
-    onError: (error) => {
-      toast.error(language === 'sv' ? 'Kunde inte uppdatera användare' : 'Failed to update user');
-    }
-  });
-
-  const handleModuleToggle = (userId, moduleId, currentModules) => {
-    const newModules = currentModules.includes(moduleId)
-      ? currentModules.filter(m => m !== moduleId)
-      : [...currentModules, moduleId];
-    
-    updateUserMutation.mutate({ userId, allowed_modules: newModules });
-  };
-
-  const handleSaveName = (userId, newName) => {
-    if (newName.trim()) {
-      updateNameMutation.mutate({ userId, full_name: newName });
-    }
-  };
-
-  const inviteUserMutation = useMutation({
-    mutationFn: async ({ email, role }) => {
-      const response = await base44.users.inviteUser(email, role);
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setInviteEmail('');
-      setInviteRole('user');
-      setShowInviteModal(false);
-      toast.success(language === 'sv' ? 'Användare inbjuden!' : 'User invited!');
-    },
-    onError: (error) => {
-      toast.error(language === 'sv' ? 'Kunde inte bjuda in användare' : 'Failed to invite user');
-    }
-  });
-
-  const handleInviteUser = () => {
-    if (!inviteEmail.trim()) {
-      toast.error(language === 'sv' ? 'Ange e-postadress' : 'Enter email address');
-      return;
-    }
-    inviteUserMutation.mutate({ email: inviteEmail, role: inviteRole });
-  };
-
-  const createUserMutation = useMutation({
-    mutationFn: async ({ name, email, password, role, allowed_modules }) => {
-      const response = await base44.functions.invoke('createUserWithPassword', { 
-        full_name: name, 
-        email, 
-        password, 
-        role,
-        allowed_modules: allowed_modules || []
-      });
-      return response.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['user_registrations'] });
-      
-      // Show success message with created user details
-      toast.success(
-        language === 'sv' 
-          ? `Användare skapad! ${createName} (${createEmail}) har lagts till som ${createRole === 'admin' ? 'admin' : 'användare'}.`
-          : `User created! ${createName} (${createEmail}) has been added as ${createRole === 'admin' ? 'admin' : 'user'}.`,
-        { duration: 5000 }
-      );
-      
-      // Clear form and close modal after delay
-      setTimeout(() => {
-        setCreateName('');
-        setCreateEmail('');
-        setCreatePassword('');
-        setCreateRole('user');
-        setCreateModules([]);
-        setShowCreateModal(false);
-      }, 1500);
-    },
-    onError: (error) => {
-      toast.error(
-        language === 'sv' 
-          ? `Kunde inte skapa användare: ${error.message || 'Okänt fel'}`
-          : `Failed to create user: ${error.message || 'Unknown error'}`
-      );
-    }
-  });
-
-  const handleCreateUser = () => {
-    if (!createName.trim() || !createEmail.trim() || !createPassword.trim()) {
-      toast.error(language === 'sv' ? 'Fyll i alla fält' : 'Fill in all fields');
-      return;
-    }
-    createUserMutation.mutate({ 
-      name: createName, 
-      email: createEmail, 
-      password: createPassword, 
-      role: createRole,
-      allowed_modules: createModules
+  const startEdit = (user) => {
+    setEditingId(user.id);
+    setEditData({
+      role: user.role || 'lager',
+      home_page_override: user.home_page_override || '',
+      mobile_preferred: user.mobile_preferred || false,
+      is_active: user.is_active !== false
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-white animate-spin" />
-      </div>
-    );
-  }
+  const save = () => {
+    update.mutate({ id: editingId, data: editData });
+  };
+
+  if (isLoading) return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           className="mb-8"
-         >
-           <div className="flex items-center justify-between mb-6">
-             <div className="flex items-center gap-3">
-               <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center">
-                 <Users className="w-6 h-6 text-indigo-400" />
-               </div>
-               <div>
-                 <h1 className="text-2xl md:text-3xl font-bold text-white">{t('users_title', language)}</h1>
-                 <p className="text-sm text-white/50">{t('users_manage_access', language)}</p>
-               </div>
-             </div>
-             <div className="flex gap-3">
-               <Button
-                 onClick={() => setShowCreateModal(true)}
-                 className="bg-green-600 hover:bg-green-500 text-white"
-               >
-                 <Plus className="w-4 h-4 mr-2" />
-                 {language === 'sv' ? 'Skapa användare' : 'Create User'}
-               </Button>
-               <Button
-                 onClick={() => setShowInviteModal(true)}
-                 className="bg-indigo-600 hover:bg-indigo-500 text-white"
-               >
-                 <Plus className="w-4 h-4 mr-2" />
-                 {language === 'sv' ? 'Bjud in användare' : 'Invite User'}
-               </Button>
-             </div>
-           </div>
+    <div className="min-h-screen bg-black text-white p-4 md:p-6">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <Shield className="w-6 h-6 text-purple-400" />
+          <h1 className="text-2xl font-bold">Användarhantering</h1>
+          <Badge className="bg-white/10 text-white/60 border-0">{users.length} användare</Badge>
+        </div>
 
-           {/* Tabs */}
-           <div className="flex gap-2 mb-6 border-b border-white/10">
-             <button
-               onClick={() => setActiveTab('list')}
-               className={cn(
-                 "px-4 py-2 font-medium border-b-2 transition-colors",
-                 activeTab === 'list'
-                   ? "border-indigo-500 text-indigo-400"
-                   : "border-transparent text-white/50 hover:text-white"
-               )}
-             >
-               {language === 'sv' ? 'Användare' : 'Users'} ({users.length})
-             </button>
-             <button
-               onClick={() => setActiveTab('registrations')}
-               className={cn(
-                 "px-4 py-2 font-medium border-b-2 transition-colors",
-                 activeTab === 'registrations'
-                   ? "border-indigo-500 text-indigo-400"
-                   : "border-transparent text-white/50 hover:text-white"
-               )}
-             >
-               {language === 'sv' ? 'Registreringar' : 'Registrations'} ({registrations.length})
-             </button>
-           </div>
-         </motion.div>
-
-        {/* Users Tab */}
-        {activeTab === 'list' && (
-        <div className="space-y-4">
-           {users.length > 0 ? (
-             users.map((user, index) => (
-              <motion.div
-                key={user.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="bg-white/5 border-white/10 hover:border-white/20 transition-all cursor-pointer">
-                  <div
-                    onClick={() => setExpandedUser(expandedUser === user.id ? null : user.id)}
-                    className="p-6"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        {editingUserId === user.id ? (
-                          <div className="flex gap-2 mb-3">
-                            <input
-                              type="text"
-                              value={editingName}
-                              onChange={(e) => setEditingName(e.target.value)}
-                              placeholder={user.full_name}
-                              className="flex-1 bg-white/10 border border-white/20 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                            />
-                            <Button
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSaveName(user.id, editingName);
-                              }}
-                              disabled={updateNameMutation.isPending}
-                              className="bg-blue-600 hover:bg-blue-700"
-                            >
-                              {updateNameMutation.isPending ? 'Sparar...' : 'Spara'}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingUserId(null);
-                              }}
-                            >
-                              Avbryt
-                            </Button>
-                          </div>
-                        ) : (
-                          <h3
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingUserId(user.id);
-                              setEditingName(user.full_name);
-                            }}
-                            className="text-lg font-semibold text-white hover:text-blue-400 cursor-pointer transition-colors"
-                          >
-                            {user.full_name}
-                          </h3>
-                        )}
-                        <p className="text-sm text-white/50">{user.email}</p>
-                        <div className="flex items-center gap-3 mt-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-white/40">{t('users_role', language)}:</span>
-                            <select
-                              value={user.role}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                updateStatusMutation.mutate({ userId: user.id, role: e.target.value });
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="bg-blue-500/20 text-blue-300 text-xs px-2 py-1 rounded border border-blue-500/30 focus:outline-none focus:border-blue-500"
-                            >
-                              <option value="user">{language === 'sv' ? 'Användare' : 'User'}</option>
-                              <option value="admin">Admin</option>
-                            </select>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              updateStatusMutation.mutate({ userId: user.id, is_active: !user.is_active });
-                            }}
-                            className={cn(
-                              "text-xs px-3 py-1 rounded-full transition-colors",
-                              user.is_active === false
-                                ? "bg-red-500/20 text-red-300 hover:bg-red-500/30"
-                                : "bg-green-500/20 text-green-300 hover:bg-green-500/30"
-                            )}
-                          >
-                            {user.is_active === false 
-                              ? (language === 'sv' ? 'Inaktiv' : 'Inactive')
-                              : (language === 'sv' ? 'Aktiv' : 'Active')}
-                          </button>
-                        </div>
+        <div className="space-y-3">
+          {users.map(user => (
+            <div key={user.id} className={`p-4 rounded-xl border transition-colors ${editingId === user.id ? 'bg-white/10 border-blue-500/30' : 'bg-white/5 border-white/10'}`}>
+              {editingId === user.id ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-medium">{user.full_name}</p>
+                      <p className="text-white/40 text-sm">{user.email}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700 h-8" onClick={save} disabled={update.isPending}>
+                        <Save className="w-4 h-4 mr-1" />Spara
+                      </Button>
+                      <Button size="sm" variant="outline" className="border-white/20 text-white h-8" onClick={() => setEditingId(null)}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                      <label className="text-xs text-white/40 block mb-1">Roll</label>
+                      <Select value={editData.role} onValueChange={v => setEditData(d => ({ ...d, role: v }))}>
+                        <SelectTrigger className="bg-white/10 border-white/20 text-white h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/40 block mb-1">Startsida (override)</label>
+                      <Input
+                        value={editData.home_page_override}
+                        onChange={e => setEditData(d => ({ ...d, home_page_override: e.target.value }))}
+                        placeholder="/home/lager"
+                        className="bg-white/10 border-white/20 text-white h-9 text-sm"
+                      />
+                    </div>
+                    <div className="flex flex-col justify-between">
+                      <label className="text-xs text-white/40 mb-1">Mobilvy</label>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={editData.mobile_preferred}
+                          onCheckedChange={v => setEditData(d => ({ ...d, mobile_preferred: v }))}
+                        />
+                        <span className="text-sm text-white/60">{editData.mobile_preferred ? 'Ja' : 'Nej'}</span>
                       </div>
-                      <div className="text-right">
-                        <p className="text-xs text-white/50 mb-2">
-                          {user.allowed_modules?.length || 0}/{AVAILABLE_MODULES.length} {t('users_modules', language)}
-                        </p>
-                        <div className="flex gap-1 flex-wrap justify-end">
-                          {user.allowed_modules?.slice(0, 3).map(mod => (
-                            <span key={mod} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded">
-                              {mod}
-                            </span>
-                          ))}
-                          {user.allowed_modules?.length > 3 && (
-                            <span className="px-2 py-1 bg-blue-500/10 text-blue-300 text-xs rounded">
-                              +{user.allowed_modules.length - 3}
-                            </span>
-                          )}
-                        </div>
+                    </div>
+                    <div className="flex flex-col justify-between">
+                      <label className="text-xs text-white/40 mb-1">Aktiv</label>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={editData.is_active}
+                          onCheckedChange={v => setEditData(d => ({ ...d, is_active: v }))}
+                        />
+                        <span className="text-sm text-white/60">{editData.is_active ? 'Aktiv' : 'Inaktiv'}</span>
                       </div>
                     </div>
                   </div>
-
-                  {expandedUser === user.id && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="border-t border-white/10 p-6"
-                    >
-                      <p className="text-sm font-semibold text-white/70 mb-6">{t('users_select_modules', language)}</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {AVAILABLE_MODULES.map(module => (
-                          <label 
-                            key={module.id} 
-                            className="flex items-center gap-4 p-4 rounded-lg bg-white/5 hover:bg-white/10 hover:border hover:border-white/20 transition-all cursor-pointer border border-white/10"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleModuleToggle(user.id, module.id, user.allowed_modules || []);
-                            }}
-                          >
-                            <Checkbox
-                              checked={user.allowed_modules?.includes(module.id) || false}
-                              onCheckedChange={(checked) => {
-                                handleModuleToggle(user.id, module.id, user.allowed_modules || []);
-                              }}
-                              disabled={updateUserMutation.isPending}
-                              className="w-6 h-6 pointer-events-none"
-                            />
-                            <span className="text-white/80 font-medium">{t(module.labelKey, language)}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </Card>
-              </motion.div>
-            ))
-           ) : (
-             <div className="text-center py-12">
-               <p className="text-white/50">{language === 'sv' ? 'Inga användare hittade' : 'No users found'}</p>
-             </div>
-           )}
-        </div>
-        )}
-
-
-        {/* Registrations Tab */}
-        {activeTab === 'registrations' && (
-        <div className="space-y-4">
-         {registrationsLoading ? (
-           <div className="text-center py-12">
-             <Loader2 className="w-8 h-8 text-white animate-spin mx-auto" />
-           </div>
-         ) : (
-           <>
-             {registrations.map((reg, index) => (
-               <motion.div
-                 key={reg.id}
-                 initial={{ opacity: 0, y: 20 }}
-                 animate={{ opacity: 1, y: 0 }}
-                 transition={{ delay: index * 0.05 }}
-               >
-                 <Card className="bg-white/5 border-white/10">
-                   <CardContent className="p-6">
-                     <div className="flex items-start justify-between">
-                       <div className="flex-1">
-                         <h3 className="text-lg font-semibold text-white">{reg.email}</h3>
-                         {reg.full_name && (
-                           <p className="text-sm text-white/70 mt-1">{reg.full_name}</p>
-                         )}
-                         <div className="flex flex-wrap gap-3 mt-3">
-                           <span className={cn(
-                             "text-xs px-3 py-1 rounded-full",
-                             reg.registration_method === 'admin_created' && 'bg-green-500/20 text-green-300',
-                             reg.registration_method === 'invite' && 'bg-blue-500/20 text-blue-300',
-                             reg.registration_method === 'self_register' && 'bg-purple-500/20 text-purple-300'
-                           )}>
-                             {language === 'sv' 
-                               ? reg.registration_method === 'admin_created' ? 'Admin skapad'
-                               : reg.registration_method === 'invite' ? 'Inbjuden'
-                               : 'Självregistrerad'
-                               : reg.registration_method === 'admin_created' ? 'Admin Created'
-                               : reg.registration_method === 'invite' ? 'Invited'
-                               : 'Self Registered'}
-                           </span>
-                           <span className={cn(
-                             "text-xs px-3 py-1 rounded-full",
-                             reg.status === 'completed' && 'bg-green-500/20 text-green-300',
-                             reg.status === 'verified' && 'bg-blue-500/20 text-blue-300',
-                             reg.status === 'pending' && 'bg-yellow-500/20 text-yellow-300'
-                           )}>
-                             {language === 'sv'
-                               ? reg.status === 'pending' ? 'Väntande'
-                               : reg.status === 'completed' ? 'Slutförd'
-                               : 'Verifierad'
-                               : reg.status === 'pending' ? 'Pending'
-                               : reg.status === 'completed' ? 'Completed'
-                               : 'Verified'}
-                           </span>
-                         </div>
-                       </div>
-                       <div className="text-right text-sm text-white/50">
-                         <p>{new Date(reg.created_date).toLocaleDateString(language === 'sv' ? 'sv-SE' : 'en-US')}</p>
-                         <p className="text-xs mt-1">{new Date(reg.created_date).toLocaleTimeString()}</p>
-                       </div>
-                     </div>
-                   </CardContent>
-                 </Card>
-               </motion.div>
-             ))}
-             {registrations.length === 0 && (
-               <div className="text-center py-12">
-                 <p className="text-white/50">{language === 'sv' ? 'Inga registreringar' : 'No registrations'}</p>
-               </div>
-             )}
-           </>
-         )}
-        </div>
-        )}
-
-        {/* Create User Modal */}
-         <AnimatePresence>
-           {showCreateModal && (
-             <motion.div
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-               onClick={() => setShowCreateModal(false)}
-             >
-               <motion.div
-                 initial={{ scale: 0.95, opacity: 0 }}
-                 animate={{ scale: 1, opacity: 1 }}
-                 exit={{ scale: 0.95, opacity: 0 }}
-                 onClick={(e) => e.stopPropagation()}
-                 className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6"
-               >
-                 <div className="flex items-center justify-between mb-6">
-                   <h2 className="text-2xl font-bold text-white">
-                     {language === 'sv' ? 'Skapa användare' : 'Create User'}
-                   </h2>
-                   <Button
-                     variant="ghost"
-                     size="icon"
-                     onClick={() => setShowCreateModal(false)}
-                     className="text-slate-400 hover:text-white"
-                   >
-                     <X className="w-5 h-5" />
-                   </Button>
-                 </div>
-
-                 <div className="space-y-4">
-                   <div>
-                     <label className="block text-sm font-medium text-white mb-2">
-                       {language === 'sv' ? 'Namn' : 'Full Name'}
-                     </label>
-                     <Input
-                       type="text"
-                       value={createName}
-                       onChange={(e) => setCreateName(e.target.value)}
-                       placeholder={language === 'sv' ? 'Namn' : 'Full name'}
-                       className="bg-slate-800 border-slate-700 text-white"
-                     />
-                   </div>
-
-                   <div>
-                     <label className="block text-sm font-medium text-white mb-2">
-                       {language === 'sv' ? 'E-postadress' : 'Email Address'}
-                     </label>
-                     <Input
-                       type="email"
-                       value={createEmail}
-                       onChange={(e) => setCreateEmail(e.target.value)}
-                       placeholder="user@example.com"
-                       className="bg-slate-800 border-slate-700 text-white"
-                     />
-                   </div>
-
-                   <div>
-                     <label className="block text-sm font-medium text-white mb-2">
-                       {language === 'sv' ? 'Lösenord' : 'Password'}
-                     </label>
-                     <Input
-                       type="password"
-                       value={createPassword}
-                       onChange={(e) => setCreatePassword(e.target.value)}
-                       placeholder={language === 'sv' ? 'Lösenord' : 'Password'}
-                       className="bg-slate-800 border-slate-700 text-white"
-                     />
-                   </div>
-
-                   <div>
-                     <label className="block text-sm font-medium text-white mb-2">
-                       {language === 'sv' ? 'Roll' : 'Role'}
-                     </label>
-                     <select
-                       value={createRole}
-                       onChange={(e) => setCreateRole(e.target.value)}
-                       className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
-                     >
-                       <option value="user">{language === 'sv' ? 'Användare' : 'User'}</option>
-                       <option value="admin">{language === 'sv' ? 'Admin' : 'Admin'}</option>
-                     </select>
-                   </div>
-
-                   <div>
-                     <label className="block text-sm font-medium text-white mb-2">
-                       {language === 'sv' ? 'Moduler & tillgång' : 'Modules & Access'}
-                     </label>
-                     <div className="grid grid-cols-2 gap-2">
-                       {AVAILABLE_MODULES.map(module => (
-                         <label
-                           key={module.id}
-                           className="flex items-center gap-2 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 cursor-pointer border border-slate-700"
-                         >
-                           <Checkbox
-                             checked={createModules.includes(module.id)}
-                             onCheckedChange={(checked) => {
-                               setCreateModules(prev =>
-                                 checked ? [...prev, module.id] : prev.filter(m => m !== module.id)
-                               );
-                             }}
-                             className="w-4 h-4"
-                           />
-                           <span className="text-sm text-white/80">{t(module.labelKey, language)}</span>
-                         </label>
-                       ))}
-                     </div>
-                   </div>
-
-                   <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3">
-                     <p className="text-sm text-slate-300">
-                       {language === 'sv' 
-                         ? 'Användaren skapas omedelbar med det angivna lösenordet.'
-                         : 'The user will be created immediately with the provided password.'}
-                     </p>
-                   </div>
-                 </div>
-
-                 <div className="flex gap-3 mt-6">
-                   <Button
-                     onClick={() => setShowCreateModal(false)}
-                     variant="outline"
-                     className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-                   >
-                     {language === 'sv' ? 'Avbryt' : 'Cancel'}
-                   </Button>
-                   <Button
-                     onClick={handleCreateUser}
-                     disabled={createUserMutation.isPending || !createName.trim() || !createEmail.trim() || !createPassword.trim()}
-                     className="flex-1 bg-green-600 hover:bg-green-500"
-                   >
-                     {createUserMutation.isPending ? (
-                       <>
-                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                         {language === 'sv' ? 'Skapar...' : 'Creating...'}
-                       </>
-                     ) : (
-                       <>
-                         <Plus className="w-4 h-4 mr-2" />
-                         {language === 'sv' ? 'Skapa' : 'Create'}
-                       </>
-                     )}
-                   </Button>
-                 </div>
-               </motion.div>
-             </motion.div>
-           )}
-         </AnimatePresence>
-
-        {/* Invite Modal */}
-         <AnimatePresence>
-           {showInviteModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => setShowInviteModal(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-white">
-                    {language === 'sv' ? 'Bjud in användare' : 'Invite User'}
-                  </h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowInviteModal(false)}
-                    className="text-slate-400 hover:text-white"
-                  >
-                    <X className="w-5 h-5" />
-                  </Button>
                 </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-2">
-                      {language === 'sv' ? 'E-postadress' : 'Email Address'}
-                    </label>
-                    <Input
-                      type="email"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="user@example.com"
-                      className="bg-slate-800 border-slate-700 text-white"
-                    />
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-white/60" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">{user.full_name}</p>
+                      <p className="text-white/40 text-xs">{user.email}</p>
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-2">
-                      {language === 'sv' ? 'Roll' : 'Role'}
-                    </label>
-                    <select
-                      value={inviteRole}
-                      onChange={(e) => setInviteRole(e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
-                    >
-                      <option value="user">{language === 'sv' ? 'Användare' : 'User'}</option>
-                      <option value="admin">{language === 'sv' ? 'Admin' : 'Admin'}</option>
-                    </select>
-                  </div>
-
-                  <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3">
-                    <p className="text-sm text-slate-300">
-                      {language === 'sv' 
-                        ? 'Användaren kommer att få en inbjudningslänk på denna e-postadress.'
-                        : 'The user will receive an invitation link at this email address.'}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <Badge className={`border-0 text-xs ${ROLE_COLORS[user.role] || 'bg-white/10 text-white/60'}`}>
+                      {user.role || 'ej satt'}
+                    </Badge>
+                    {user.is_active === false && <Badge className="border-0 text-xs bg-red-500/20 text-red-300">Inaktiv</Badge>}
+                    {user.mobile_preferred && <Badge className="border-0 text-xs bg-cyan-500/20 text-cyan-300">📱</Badge>}
+                    <Button size="sm" variant="ghost" className="text-white/50 hover:text-white h-8 w-8 p-0" onClick={() => startEdit(user)}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                 </div>
-
-                <div className="flex gap-3 mt-6">
-                  <Button
-                    onClick={() => setShowInviteModal(false)}
-                    variant="outline"
-                    className="flex-1 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white"
-                  >
-                    {language === 'sv' ? 'Avbryt' : 'Cancel'}
-                  </Button>
-                  <Button
-                    onClick={handleInviteUser}
-                    disabled={inviteUserMutation.isPending || !inviteEmail.trim()}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-500"
-                  >
-                    {inviteUserMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        {language === 'sv' ? 'Bjuder in...' : 'Inviting...'}
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="w-4 h-4 mr-2" />
-                        {language === 'sv' ? 'Bjud in' : 'Invite'}
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              )}
+            </div>
+          ))}
         </div>
-        </div>
-        );
-        }
+      </div>
+    </div>
+  );
+}

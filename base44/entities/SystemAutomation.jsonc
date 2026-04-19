@@ -1,0 +1,42 @@
+{
+  "name": "SystemAutomation",
+  "type": "object",
+  "properties": {
+    "automation_type": {
+      "type": "string",
+      "enum": [
+        "task_generation",
+        "blocked_task_notification",
+        "po_late_warning",
+        "batch_verification_reminder",
+        "fortnox_sync_healthcheck",
+        "material_shortage_alert"
+      ],
+      "description": "Typ av automation"
+    },
+    "is_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om automationen \u00e4r aktiverad"
+    },
+    "config": {
+      "type": "object",
+      "description": "Konfigurationsobjekt"
+    },
+    "last_run_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Senaste k\u00f6rning"
+    },
+    "next_run_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4sta planerade k\u00f6rning"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    }
+  },
+  "required": []
+}

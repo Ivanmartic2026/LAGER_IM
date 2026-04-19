@@ -1,0 +1,62 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "allowed_modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Moduler anv\u00e4ndaren har tillg\u00e5ng till"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om anv\u00e4ndaren \u00e4r aktiv eller inaktiverad"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "s\u00e4ljare",
+        "konstruktor",
+        "inkopare",
+        "lager",
+        "produktion",
+        "tekniker",
+        "ivan",
+        "admin"
+      ],
+      "default": "lager",
+      "description": "Prim\u00e4r roll \u2014 styr startsida och r\u00e4ttigheter"
+    },
+    "secondary_roles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "s\u00e4ljare",
+          "konstruktor",
+          "inkopare",
+          "lager",
+          "produktion",
+          "tekniker",
+          "ivan",
+          "admin"
+        ]
+      },
+      "description": "Sekund\u00e4ra roller \u2014 ger \u00e5tkomst utan att \u00e4ndra startsida"
+    },
+    "home_page_override": {
+      "type": "string",
+      "description": "Valfri custom startsida ist\u00e4llet f\u00f6r /home/{role}"
+    },
+    "mobile_preferred": {
+      "type": "boolean",
+      "default": false,
+      "description": "Anv\u00e4ndaren f\u00f6redrar mobilvyn"
+    }
+  },
+  "required": [
+    "allowed_modules"
+  ]
+}

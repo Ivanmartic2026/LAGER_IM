@@ -33,6 +33,15 @@ import BatchReview from '@/pages/BatchReview';
 import BatchReanalyze from '@/pages/BatchReanalyze';
 import BatchDashboard from '@/pages/BatchDashboard';
 import BatchDetail from '@/pages/BatchDetail';
+import BatchSuggestions from '@/pages/BatchSuggestions';
+import HomeSaljare from '@/pages/HomeSaljare';
+import HomeKonstruktor from '@/pages/HomeKonstruktor';
+import HomeInkopare from '@/pages/HomeInkopare';
+import HomeLager from '@/pages/HomeLager';
+import HomeProduktion from '@/pages/HomeProduktion';
+import HomeTekniker from '@/pages/HomeTekniker';
+import HomeIvan from '@/pages/HomeIvan';
+import UsersManagement from '@/pages/UsersManagement';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -208,6 +217,26 @@ function App() {
             <Route path="/BatchDetail" element={
               <LayoutWrapper currentPageName="Admin">
                 <BatchDetail />
+              </LayoutWrapper>
+            } />
+            <Route path="/BatchSuggestions" element={
+              <LayoutWrapper currentPageName="Admin">
+                <BatchSuggestions />
+              </LayoutWrapper>
+            } />
+            {/* Role-based home pages */}
+            <Route path="/home/saljare" element={<LayoutWrapper currentPageName="Home"><HomeSaljare /></LayoutWrapper>} />
+            <Route path="/home/konstruktor" element={<LayoutWrapper currentPageName="Home"><HomeKonstruktor /></LayoutWrapper>} />
+            <Route path="/home/inkopare" element={<LayoutWrapper currentPageName="Home"><HomeInkopare /></LayoutWrapper>} />
+            <Route path="/home/lager" element={<LayoutWrapper currentPageName="Home"><HomeLager /></LayoutWrapper>} />
+            <Route path="/home/produktion" element={<LayoutWrapper currentPageName="Home"><HomeProduktion /></LayoutWrapper>} />
+            <Route path="/home/tekniker" element={<LayoutWrapper currentPageName="Home"><HomeTekniker /></LayoutWrapper>} />
+            <Route path="/home/ivan" element={<LayoutWrapper currentPageName="Home"><HomeIvan /></LayoutWrapper>} />
+            <Route path="/home/admin" element={<LayoutWrapper currentPageName="Admin"><HomeIvan /></LayoutWrapper>} />
+            {/* User management */}
+            <Route path="/UsersManagement" element={
+              <LayoutWrapper currentPageName="Admin">
+                <UsersManagement />
               </LayoutWrapper>
             } />
             {/* Print views - public, no layout */}
