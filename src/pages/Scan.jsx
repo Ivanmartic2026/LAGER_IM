@@ -230,6 +230,17 @@ export default function ScanPage() {
         urls.push(file_url);
       }
       setImageUrls(urls);
+      setProgress(100);
+
+      // For pending_verification mode, skip AI analysis and go directly to form
+      if (mode === "pending_verification") {
+        setIsProcessing(false);
+        setProgress(0);
+        setExtractedData({ image_urls: urls });
+        setStep("pending_form");
+        return;
+      }
+
       setProgress(30);
       
       // First, do detailed image analysis for better accuracy
@@ -578,9 +589,10 @@ Returnera som strukturerad JSON med denna format:
       } catch (error) {
       console.error("Error processing image:", error);
       toast.error(`Kunde inte analysera bilden: ${error.message || 'Okänt fel'}`);
+      setStep("capture");
+    } finally {
       setIsProcessing(false);
       setProgress(0);
-      setStep("capture");
     }
   };
 
