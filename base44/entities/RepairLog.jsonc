@@ -22,6 +22,22 @@
       "type": "string",
       "description": "Referens till Batch-post"
     },
+    "label_scan_id": {
+      "type": "string",
+      "description": "Scan av etikett n\u00e4r hemkommen del togs emot"
+    },
+    "batch_analysis_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Diagnoser under reparation"
+    },
+    "return_scan_required": {
+      "type": "boolean",
+      "default": true,
+      "description": "Kr\u00e4ver scanning vid mottagning"
+    },
     "repair_date_start": {
       "type": "string",
       "format": "date-time",

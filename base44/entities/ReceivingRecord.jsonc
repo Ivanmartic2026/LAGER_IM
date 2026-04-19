@@ -45,7 +45,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Bilder fr\u00e5n mottagningen (f\u00f6ljesedel, skador, etc.)"
+      "description": "LEGACY upload-f\u00e4lt. Nya bilder ska skapas via scanAndProcess som producerar LabelScan + Batch. Denna f\u00e4lt l\u00e4ses fortfarande men b\u00f6r inte skrivas till direkt."
     },
     "notes": {
       "type": "string",

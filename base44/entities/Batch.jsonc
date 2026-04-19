@@ -12,7 +12,7 @@
     },
     "article_id": {
       "type": "string",
-      "description": "Referens till artikel"
+      "description": "FK till Article (required, null endast om legacy_unmigrated=true)"
     },
     "article_sku": {
       "type": "string",
@@ -124,6 +124,38 @@
       "type": "string",
       "format": "date-time",
       "description": "Verifieringstidpunkt"
+    },
+    "legacy_unmigrated": {
+      "type": "boolean",
+      "default": false,
+      "description": "Markerar poster skapade fr\u00e5n migration men d\u00e4r artikelkopplingen \u00e4r os\u00e4ker"
+    },
+    "merged_from_batch_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Historik om batchen skapats genom auto-merge av dubletter"
+    },
+    "coupling_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Antal kopplingar (PO-items, receiving, repair, orders, withdrawals)"
+    },
+    "source_context": {
+      "type": "string",
+      "enum": [
+        "purchase_receiving",
+        "article_creation",
+        "repair_return",
+        "site_report",
+        "production",
+        "manual",
+        "migrated_from_article",
+        "migrated_from_repairlog"
+      ],
+      "default": "manual",
+      "description": "K\u00e4lla/kontext f\u00f6r batchen"
     },
     "notes": {
       "type": "string",

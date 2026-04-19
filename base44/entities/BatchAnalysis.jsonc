@@ -1,0 +1,120 @@
+{
+  "name": "BatchAnalysis",
+  "type": "object",
+  "properties": {
+    "batch_id": {
+      "type": "string",
+      "description": "FK till Batch (required)"
+    },
+    "article_id": {
+      "type": "string",
+      "description": "FK till Article (redundant cache f\u00f6r snabb query)"
+    },
+    "analysis_type": {
+      "type": "string",
+      "enum": [
+        "quality_check",
+        "production_test",
+        "repair_diagnosis",
+        "site_inspection",
+        "return_inspection",
+        "label_verification",
+        "supplier_qc",
+        "other"
+      ],
+      "description": "Typ av analys"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "ai_scan",
+        "document_parse",
+        "technician_report",
+        "production_scan",
+        "external_lab"
+      ],
+      "description": "K\u00e4lltyp f\u00f6r analysen"
+    },
+    "source_reference_id": {
+      "type": "string",
+      "description": "ID till k\u00e4llposten (LabelScan/SiteReport/RepairLog/ProductionRecord osv)"
+    },
+    "source_reference_entity": {
+      "type": "string",
+      "description": "Entity-namn p\u00e5 k\u00e4llan (t.ex. 'LabelScan', 'SiteReport')"
+    },
+    "analysis_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Analysdatum"
+    },
+    "analyzed_by": {
+      "type": "string",
+      "description": "Analyserad av (email)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "passed",
+        "failed",
+        "needs_review",
+        "conclusive",
+        "inconclusive"
+      ],
+      "default": "pending",
+      "description": "Status p\u00e5 analysen"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "critical"
+      ],
+      "default": "info",
+      "description": "Allvarlighetsgrad"
+    },
+    "summary": {
+      "type": "string",
+      "description": "AI/human sammanfattning"
+    },
+    "findings": {
+      "type": "object",
+      "description": "Strukturerade fynd: {issue_type, description, affected_quantity, recommended_action}"
+    },
+    "measurements": {
+      "type": "object",
+      "description": "M\u00e4tdata: brightness, dimension, pixel_pitch_measured, etc"
+    },
+    "image_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Bilder fr\u00e5n analys"
+    },
+    "label_scan_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Kopplade LabelScans"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Taggar f\u00f6r kategorisering"
+    }
+  },
+  "required": [
+    "batch_id"
+  ]
+}

@@ -88,7 +88,11 @@
     },
     "batch_number": {
       "type": "string",
-      "description": "Batch nummer"
+      "description": "LEGACY \u2014 migreras till Batch-entity, anv\u00e4nds bara f\u00f6r s\u00f6kning. Nya data skrivs till Batch.batch_number"
+    },
+    "legacy_batch_number": {
+      "type": "string",
+      "description": "Sparad kopia av ursprunglig batch_number f\u00f6r auditsp\u00e5rning"
     },
     "primary_batch_id": {
       "type": "string",

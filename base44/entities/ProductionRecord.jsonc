@@ -1,0 +1,113 @@
+{
+  "name": "ProductionRecord",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "Referens till order/projekt"
+    },
+    "article_id": {
+      "type": "string",
+      "description": "FK till Article"
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "FK till Batch"
+    },
+    "label_scan_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Scanningar av serienummer"
+    },
+    "batch_analysis_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Kvalitetstester kopplade till produktionen"
+    },
+    "serial_number": {
+      "type": "string",
+      "description": "Slutgiltigt serienummer n\u00e4r monterad"
+    },
+    "production_status": {
+      "type": "string",
+      "enum": [
+        "started",
+        "in_progress",
+        "assembled",
+        "tested",
+        "completed"
+      ],
+      "default": "started",
+      "description": "Status i produktionen"
+    },
+    "assembly_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Monteringsdatum"
+    },
+    "responsible_person": {
+      "type": "string",
+      "description": "Ansvarig mont\u00f6r (email)"
+    },
+    "responsible_name": {
+      "type": "string",
+      "description": "Mont\u00f6rens namn"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Kommentarer fr\u00e5n produktion"
+    },
+    "deviations": {
+      "type": "string",
+      "description": "Avvikelser som uppt\u00e4ckts"
+    },
+    "assembly_images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Bilder p\u00e5 f\u00e4rdigmonterad enhet"
+    },
+    "serial_number_images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "LEGACY upload-f\u00e4lt. Nya serienummerfoton skapar LabelScan via scanAndProcess med context='production'."
+    },
+    "checklist": {
+      "type": "object",
+      "properties": {
+        "assembled": {
+          "type": "boolean",
+          "default": false
+        },
+        "tested": {
+          "type": "boolean",
+          "default": false
+        },
+        "ready_for_installation": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "description": "Produktionschecklista"
+    },
+    "test_results": {
+      "type": "string",
+      "description": "Testresultat och protokoll"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r produktionen avslutades"
+    }
+  },
+  "required": [
+    "order_id"
+  ]
+}

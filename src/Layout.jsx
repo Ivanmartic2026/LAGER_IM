@@ -78,6 +78,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: "BatchSuggestions", label: "Förslag", icon: Lightbulb },
     { name: "BatchReanalyze", label: "Omanalysera", icon: RefreshCw },
     { name: "UsersManagement", label: "Användare", icon: Users },
+    { name: "MigrationCenter", label: "Migration", icon: RefreshCw },
   ];
 
   const visibleNavItems = NAV_ITEMS.filter(item => !item.module || userModules.includes(item.module));

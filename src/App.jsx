@@ -42,6 +42,7 @@ import HomeProduktion from '@/pages/HomeProduktion';
 import HomeTekniker from '@/pages/HomeTekniker';
 import HomeIvan from '@/pages/HomeIvan';
 import UsersManagement from '@/pages/UsersManagement';
+import MigrationCenter from '@/pages/MigrationCenter';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -237,6 +238,12 @@ function App() {
             <Route path="/UsersManagement" element={
               <LayoutWrapper currentPageName="Admin">
                 <UsersManagement />
+              </LayoutWrapper>
+            } />
+            {/* Migration Center */}
+            <Route path="/MigrationCenter" element={
+              <LayoutWrapper currentPageName="Admin">
+                <MigrationCenter />
               </LayoutWrapper>
             } />
             {/* Print views - public, no layout */}

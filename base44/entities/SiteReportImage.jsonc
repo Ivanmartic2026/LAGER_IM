@@ -1,0 +1,90 @@
+{
+  "name": "SiteReportImage",
+  "type": "object",
+  "properties": {
+    "site_report_id": {
+      "type": "string",
+      "description": "Referens till site-rapport"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Bild-URL fr\u00e5n site"
+    },
+    "image_description": {
+      "type": "string",
+      "description": "AI-genererad beskrivning av bilden"
+    },
+    "matched_article_id": {
+      "type": "string",
+      "description": "Matchad artikel-ID"
+    },
+    "match_confidence": {
+      "type": "number",
+      "description": "Matchningss\u00e4kerhet (0-1)"
+    },
+    "match_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "matched",
+        "confirmed",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Status p\u00e5 matchningen"
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "FK till Batch (n\u00e4r matchning bekr\u00e4ftats)"
+    },
+    "label_scan_id": {
+      "type": "string",
+      "description": "FK till LabelScan om bilden gick genom AI-scanner"
+    },
+    "batch_analysis_id": {
+      "type": "string",
+      "description": "FK till BatchAnalysis om diagnos skrevs"
+    },
+    "component_status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "needs_replacement",
+        "needs_repair",
+        "documented"
+      ],
+      "default": "documented",
+      "description": "Status p\u00e5 komponenten"
+    },
+    "confirmed_by": {
+      "type": "string",
+      "description": "Vem som bekr\u00e4ftade matchningen"
+    },
+    "form_data": {
+      "type": "object",
+      "description": "Dynamisk formul\u00e4rdata baserat p\u00e5 artikeltyp"
+    },
+    "replaced": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om komponenten byttes ut"
+    },
+    "replacement_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Datum f\u00f6r byte"
+    },
+    "old_batch_number": {
+      "type": "string",
+      "description": "Batch nummer p\u00e5 gamla komponenten"
+    },
+    "new_batch_number": {
+      "type": "string",
+      "description": "Batch nummer p\u00e5 nya komponenten"
+    }
+  },
+  "required": [
+    "site_report_id",
+    "image_url"
+  ]
+}

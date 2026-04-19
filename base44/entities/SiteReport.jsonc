@@ -1,0 +1,121 @@
+{
+  "name": "SiteReport",
+  "type": "object",
+  "properties": {
+    "site_name": {
+      "type": "string",
+      "description": "Plats/site namn"
+    },
+    "site_address": {
+      "type": "string",
+      "description": "Adress till site"
+    },
+    "rm_service_id": {
+      "type": "string",
+      "description": "RM Install/Service ID"
+    },
+    "technician_name": {
+      "type": "string",
+      "description": "Teknikerens namn"
+    },
+    "technician_email": {
+      "type": "string",
+      "description": "Teknikerens email"
+    },
+    "report_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Datum f\u00f6r site-bes\u00f6k"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_review",
+        "in_review",
+        "completed",
+        "archived"
+      ],
+      "default": "pending_review",
+      "description": "Status p\u00e5 rapporten"
+    },
+    "summary": {
+      "type": "string",
+      "description": "AI-genererad sammanfattning av rapporten f\u00f6r snabb \u00f6verblick"
+    },
+    "batch_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Alla batcher som ber\u00f6rs p\u00e5 denna site (uppdateras automatiskt n\u00e4r SiteReportImages l\u00e4nkas)"
+    },
+    "batch_analysis_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Diagnoser/inspektioner fr\u00e5n bes\u00f6ket"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar fr\u00e5n teknikern"
+    },
+    "gps_latitude": {
+      "type": "number",
+      "description": "GPS-latitud"
+    },
+    "gps_longitude": {
+      "type": "number",
+      "description": "GPS-longitud"
+    },
+    "linked_order_id": {
+      "type": "string",
+      "description": "Kopplad order-ID"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Vem som granskat rapporten (email)"
+    },
+    "reviewed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r rapporten granskades"
+    },
+    "problem_description": {
+      "type": "string",
+      "description": "Beskrivning av problem som kunden rapporterat"
+    },
+    "solution_description": {
+      "type": "string",
+      "description": "Beskrivning av \u00e5tg\u00e4rd/l\u00f6sning"
+    },
+    "parts_replaced": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "article_id": {
+            "type": "string"
+          },
+          "article_name": {
+            "type": "string"
+          },
+          "batch_number": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Lista \u00f6ver utbytta delar"
+    }
+  },
+  "required": [
+    "site_name",
+    "report_date"
+  ]
+}

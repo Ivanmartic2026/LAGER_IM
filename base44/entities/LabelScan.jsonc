@@ -143,7 +143,8 @@
         "processing",
         "completed",
         "failed",
-        "manual_review"
+        "manual_review",
+        "migrated_legacy"
       ],
       "default": "queued",
       "description": "Bearbetningsstatus"
@@ -172,6 +173,7 @@
         "article_creation",
         "repair_return",
         "site_report",
+        "production",
         "manual_scan",
         "reanalysis"
       ],

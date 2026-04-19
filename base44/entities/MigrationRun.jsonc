@@ -1,0 +1,51 @@
+{
+  "name": "MigrationRun",
+  "type": "object",
+  "properties": {
+    "run_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r migrationen k\u00f6rdes"
+    },
+    "ran_by": {
+      "type": "string",
+      "description": "Vem som k\u00f6rde migrationen (email)"
+    },
+    "steps_json": {
+      "type": "object",
+      "description": "JSON-logg f\u00f6r varje migrationssteq"
+    },
+    "success_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Antal lyckade operationer"
+    },
+    "error_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Antal felaktiga operationer"
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Felmeddelanden"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "completed",
+        "failed"
+      ],
+      "default": "running",
+      "description": "Status f\u00f6r k\u00f6rningen"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar/sammanfattning"
+    }
+  },
+  "required": []
+}
