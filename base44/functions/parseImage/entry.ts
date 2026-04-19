@@ -20,20 +20,22 @@ Deno.serve(async (req) => {
     let articleExamples = [];
     try {
       const articles = await base44.asServiceRole.entities.Article.list('-updated_date', 20);
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.gif', '.bmp'];
       articleExamples = articles
-        .filter(a => a.image_urls && a.image_urls.length > 0)
-        .slice(0, 10)
-        .map(a => ({
-          id: a.id,
-          name: a.name,
-          sku: a.sku,
-          batch_number: a.batch_number,
-          manufacturer: a.manufacturer,
-          supplier_name: a.supplier_name,
-          category: a.category,
-          pixel_pitch_mm: a.pixel_pitch_mm,
-          image_urls: a.image_urls.slice(0, 1)
-        }));
+      .filter(a => a.image_urls && a.image_urls.length > 0)
+      .map(a => ({
+        id: a.id,
+        name: a.name,
+        sku: a.sku,
+        batch_number: a.batch_number,
+        manufacturer: a.manufacturer,
+        supplier_name: a.supplier_name,
+        category: a.category,
+        pixel_pitch_mm: a.pixel_pitch_mm,
+        image_urls: a.image_urls.filter(url => imageExtensions.some(ext => url.toLowerCase().includes(ext))).slice(0, 1)
+      }))
+      .filter(a => a.image_urls.length > 0)
+      .slice(0, 10);
     } catch (e) {
       console.log("Could not fetch articles for context");
     }
@@ -253,9 +255,9 @@ ${contextPrompt}`;
 
     const analysis = await base44.integrations.Core.InvokeLLM({
       prompt,
-      file_urls: fileUrls.concat(articleExamples.flatMap(a => a.image_urls || [])),
+      file_urls: fileUrls,
       response_json_schema: schema,
-      model: "claude_sonnet_4_6"
+      model: "gpt_5"
     });
 
     return Response.json({
