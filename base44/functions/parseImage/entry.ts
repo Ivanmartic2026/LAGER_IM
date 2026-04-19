@@ -254,7 +254,8 @@ ${contextPrompt}`;
     const analysis = await base44.integrations.Core.InvokeLLM({
       prompt,
       file_urls: fileUrls.concat(articleExamples.flatMap(a => a.image_urls || [])),
-      response_json_schema: schema
+      response_json_schema: schema,
+      model: "claude_sonnet_4_6"
     });
 
     return Response.json({
