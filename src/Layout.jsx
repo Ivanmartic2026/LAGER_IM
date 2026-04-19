@@ -159,7 +159,6 @@ function LayoutContent({ children, currentPageName }) {
       <PushManager />
       <OfflineIndicator />
       <InstallPrompt />
-      <RecentActivityWidget />
 
 
       {/* Logo and Notifications - Top */}
