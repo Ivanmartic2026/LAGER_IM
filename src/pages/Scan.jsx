@@ -232,37 +232,30 @@ export default function ScanPage() {
       setImageUrls(urls);
       setProgress(100);
 
-      // For pending_verification mode, run Kimi AI to extract batch number
+      // For pending_verification mode: show form immediately, run Kimi in background
       if (mode === "pending_verification") {
-        setProgress(40);
-        try {
-          const analysisResult = await base44.functions.invoke('parseImage', {
-            fileUrls: urls
-          });
-          
-          const extracted = analysisResult?.data?.extracted || {};
-          
-          // Pick best batch number from extracted data
-          let batchNumber = "";
-          if (extracted.batch_numbers?.length > 0) {
-            const best = extracted.batch_numbers.sort((a, b) => (b.confidence || 0) - (a.confidence || 0))[0];
-            batchNumber = best.value || "";
-          }
-          
-          // Also check article_numbers if no batch found
-          if (!batchNumber && extracted.article_numbers?.length > 0) {
-            const best = extracted.article_numbers.sort((a, b) => (b.confidence || 0) - (a.confidence || 0))[0];
-            batchNumber = best.value || "";
-          }
-
-          setExtractedData({ image_urls: urls, batch_number: batchNumber, raw_text: extracted.raw_text || "" });
-        } catch (e) {
-          console.log("Kimi analysis failed for pending_verification:", e);
-          setExtractedData({ image_urls: urls });
-        }
+        setExtractedData({ image_urls: urls, batch_number: "" });
         setIsProcessing(false);
         setProgress(0);
         setStep("pending_form");
+        // Run Kimi in background — updates form when done
+        base44.functions.invoke('parseImage', { fileUrls: urls })
+          .then(analysisResult => {
+            const extracted = analysisResult?.data?.extracted || {};
+            let batchNumber = "";
+            if (extracted.batch_numbers?.length > 0) {
+              const best = extracted.batch_numbers.sort((a, b) => (b.confidence || 0) - (a.confidence || 0))[0];
+              batchNumber = best.value || "";
+            }
+            if (!batchNumber && extracted.article_numbers?.length > 0) {
+              const best = extracted.article_numbers.sort((a, b) => (b.confidence || 0) - (a.confidence || 0))[0];
+              batchNumber = best.value || "";
+            }
+            if (batchNumber) {
+              setExtractedData(prev => ({ ...prev, batch_number: batchNumber }));
+            }
+          })
+          .catch(e => console.log("Kimi background analysis failed:", e));
         return;
       }
 

@@ -24,11 +24,13 @@ export default function PendingVerificationForm({ imageUrls = [], extractedBatch
     supplier_name: "",
     notes: "",
   });
+  const [aiAnalyzing, setAiAnalyzing] = useState(imageUrls.length > 0 && !extractedBatch);
 
-  // Update batch_number if Kimi analysis completes after mount
+  // Update batch_number when Kimi background analysis completes
   React.useEffect(() => {
     if (extractedBatch) {
       setFormData(p => ({ ...p, batch_number: extractedBatch }));
+      setAiAnalyzing(false);
     }
   }, [extractedBatch]);
 
@@ -68,11 +70,19 @@ export default function PendingVerificationForm({ imageUrls = [], extractedBatch
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label className="text-sm text-white/70 mb-1.5 block">Batchnummer <span className="text-red-400">*</span></Label>
+          <Label className="text-sm text-white/70 mb-1.5 block">
+            Batchnummer <span className="text-red-400">*</span>
+            {aiAnalyzing && (
+              <span className="ml-2 text-xs text-blue-400 inline-flex items-center gap-1">
+                <span className="w-3 h-3 border border-blue-400 border-t-transparent rounded-full animate-spin inline-block" />
+                AI analyserar...
+              </span>
+            )}
+          </Label>
           <Input
             value={formData.batch_number}
-            onChange={(e) => setFormData(p => ({ ...p, batch_number: e.target.value }))}
-            placeholder="T.ex. P2.5250721228"
+            onChange={(e) => { setFormData(p => ({ ...p, batch_number: e.target.value })); setAiAnalyzing(false); }}
+            placeholder={aiAnalyzing ? "Väntar på AI-analys..." : "T.ex. P2.5250721228"}
             className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
             required
           />
