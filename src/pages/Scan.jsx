@@ -35,6 +35,13 @@ const MODE_OPTIONS = [
     color: "from-blue-500 to-blue-600"
   },
   {
+    id: "pending_verification",
+    title: "Registrera utan inköp",
+    description: "Hittad batch – inväntar leverantörsinformation",
+    icon: AlertTriangle,
+    color: "from-orange-500 to-orange-600"
+  },
+  {
     id: "inventory",
     title: "Inventering",
     description: "Justera lagersaldo för befintlig artikel",
@@ -61,13 +68,6 @@ const MODE_OPTIONS = [
     description: "Registrera vara som kommit utan order",
     icon: PackageSearch,
     color: "from-amber-500 to-amber-600"
-  },
-  {
-    id: "pending_verification",
-    title: "Registrera utan inköp",
-    description: "Hittad batch – inväntar leverantörsinformation",
-    icon: AlertTriangle,
-    color: "from-orange-500 to-orange-600"
   }
 ];
 
