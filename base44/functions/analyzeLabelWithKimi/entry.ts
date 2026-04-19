@@ -1,7 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-const KIMI_API_KEY = Deno.env.get("KIMI_API_KEY");
-const KIMI_API_URL = "https://api.moonshot.cn/v1/chat/completions";
+const MOONSHOT_API_KEY = Deno.env.get("MOONSHOT_API_KEY");
 
 const PROMPT_V1 = `You are a specialized OCR and label analysis system for warehouse management.
 Analyze the provided label/product image and extract all information.
@@ -61,15 +60,28 @@ Deno.serve(async (req) => {
     const { image_url, context, context_reference_id } = body;
 
     if (!image_url) return Response.json({ error: 'image_url required' }, { status: 400 });
-    if (!KIMI_API_KEY) return Response.json({ error: 'KIMI_API_KEY not configured' }, { status: 500 });
+    if (!MOONSHOT_API_KEY) return Response.json({ error: 'MOONSHOT_API_KEY not configured' }, { status: 500 });
 
-    // Get config
-    let config = { model_name: 'kimi-k2-5-vision', prompt_version: 'v1', timeout_ms: 30000 };
+    // Get KimiConfig
+    let config = {
+      model_name: 'kimi-k2.5',
+      api_base_url: 'https://api.moonshot.ai/v1',
+      thinking_mode: false,
+      prompt_version: 'v1',
+      timeout_ms: 30000,
+      confidence_threshold_auto_approve: 0.85,
+      confidence_threshold_manual_review: 0.60
+    };
+    let configId = null;
     try {
       const configs = await base44.asServiceRole.entities.KimiConfig.filter({ is_active: true }, '-created_date', 1);
-      if (configs.length > 0) config = { ...config, ...configs[0] };
+      if (configs.length > 0) {
+        config = { ...config, ...configs[0] };
+        configId = configs[0].id;
+      }
     } catch (e) { /* use defaults */ }
 
+    const apiUrl = `${config.api_base_url}/chat/completions`;
     const startTime = Date.now();
 
     // Create LabelScan record
@@ -87,19 +99,23 @@ Deno.serve(async (req) => {
 
     const kimiPayload = {
       model: config.model_name,
+      temperature: 0.0,
+      max_tokens: 2048,
+      response_format: { type: "json_object" },
+      chat_template_kwargs: { thinking: config.thinking_mode || false },
       messages: [
         { role: "system", content: PROMPT_V1 },
         {
           role: "user",
           content: [
-            { type: "image_url", image_url: { url: image_url } },
-            { type: "text", text: "Analyze this label and extract all information. Return only JSON." }
+            {
+              type: "text",
+              text: "Extrahera batch-info från denna etikett som JSON med fälten: batch_number, article_sku, article_name, supplier_name, manufacturing_date, expiry_date, production_date, quantity, series, pixel_pitch, other_text[]. För varje fält även confidence 0-1. Lägg även overall_confidence 0-1."
+            },
+            { type: "image_url", image_url: { url: image_url } }
           ]
         }
-      ],
-      temperature: 0.0,
-      max_tokens: 2000,
-      response_format: { type: "json_object" }
+      ]
     };
 
     const controller = new AbortController();
@@ -107,11 +123,11 @@ Deno.serve(async (req) => {
 
     let kimiData;
     try {
-      const kimiResponse = await fetch(KIMI_API_URL, {
+      const kimiResponse = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${KIMI_API_KEY}`
+          'Authorization': `Bearer ${MOONSHOT_API_KEY}`
         },
         body: JSON.stringify(kimiPayload),
         signal: controller.signal
@@ -124,7 +140,7 @@ Deno.serve(async (req) => {
           status: 'failed',
           error_message: `Kimi API error ${kimiResponse.status}: ${errText}`
         });
-        return Response.json({ error: `Kimi API error: ${kimiResponse.status}` }, { status: 500 });
+        return Response.json({ error: `Kimi API error: ${kimiResponse.status}`, detail: errText }, { status: 500 });
       }
       kimiData = await kimiResponse.json();
     } catch (fetchErr) {
@@ -139,8 +155,8 @@ Deno.serve(async (req) => {
     const duration = Date.now() - startTime;
     const rawContent = kimiData.choices?.[0]?.message?.content;
     const tokensUsed = kimiData.usage?.total_tokens || 0;
-    // Estimate cost: ~$0.0001 per 1k tokens
-    const costUsd = (tokensUsed / 1000) * 0.0001;
+    // Kimi K2.5 pricing placeholder: $0.0000012 per token
+    const costUsd = tokensUsed * 0.0000012;
 
     let parsed;
     try {
@@ -155,13 +171,11 @@ Deno.serve(async (req) => {
     }
 
     const overallConfidence = parsed.confidence?.overall || 0;
-    const scanStatus = overallConfidence >= (config.confidence_threshold_auto_approve || 0.85)
-      ? 'completed'
-      : overallConfidence >= (config.confidence_threshold_manual_review || 0.60)
+    const scanStatus = overallConfidence >= (config.confidence_threshold_manual_review || 0.60)
       ? 'completed'
       : 'manual_review';
 
-    // Update LabelScan with results
+    // Update LabelScan
     await base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
       ai_raw_response: kimiData,
       ai_processing_duration_ms: duration,
@@ -172,6 +186,14 @@ Deno.serve(async (req) => {
       status: scanStatus
     });
 
+    // Update monthly spend on KimiConfig
+    if (configId && costUsd > 0) {
+      const newSpend = (config.current_month_spend || 0) + costUsd;
+      await base44.asServiceRole.entities.KimiConfig.update(configId, {
+        current_month_spend: newSpend
+      });
+    }
+
     return Response.json({
       success: true,
       label_scan_id: labelScan.id,
@@ -180,6 +202,8 @@ Deno.serve(async (req) => {
       label_layout_description: parsed.label_layout_description || '',
       warnings: parsed.warnings || [],
       processing_duration_ms: duration,
+      tokens_used: tokensUsed,
+      cost_usd: costUsd,
       status: scanStatus
     });
 

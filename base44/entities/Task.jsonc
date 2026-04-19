@@ -54,9 +54,14 @@
     "role": {
       "type": "string",
       "enum": [
-        "pl_konstruktor",
+        "s\u00e4ljare",
+        "konstruktor",
+        "inkopare",
         "lager",
-        "tekniker"
+        "produktion",
+        "tekniker",
+        "ivan",
+        "admin"
       ],
       "description": "Vilken roll som utf\u00f6r uppgiften"
     },

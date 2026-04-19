@@ -4,8 +4,18 @@
   "properties": {
     "model_name": {
       "type": "string",
-      "default": "kimi-k2.5-vision",
+      "default": "kimi-k2.5",
       "description": "Kimi-modell att anv\u00e4nda"
+    },
+    "api_base_url": {
+      "type": "string",
+      "default": "https://api.moonshot.ai/v1",
+      "description": "Moonshot API bas-URL"
+    },
+    "thinking_mode": {
+      "type": "boolean",
+      "default": false,
+      "description": "Aktivera Kimi K2.5 thinking mode \u2014 av f\u00f6r deterministisk label-parsing"
     },
     "prompt_version": {
       "type": "string",

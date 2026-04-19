@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RefreshCw, Search, AlertTriangle, CheckCircle2, Clock, DollarSign, ImageIcon } from "lucide-react";
+import { RefreshCw, Search, AlertTriangle, CheckCircle2, Clock, DollarSign, ImageIcon, Plug, Wifi, WifiOff } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 export default function BatchReanalyze() {
@@ -17,6 +17,16 @@ export default function BatchReanalyze() {
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState(null);
+  const [testingKimi, setTestingKimi] = useState(false);
+  const [kimiTestResult, setKimiTestResult] = useState(null);
+
+  const testKimiConnection = async () => {
+    setTestingKimi(true);
+    setKimiTestResult(null);
+    const resp = await base44.functions.invoke('testKimiConnection', {});
+    setKimiTestResult(resp.data);
+    setTestingKimi(false);
+  };
 
   const discover = async () => {
     setDiscovering(true);
@@ -69,9 +79,31 @@ export default function BatchReanalyze() {
   return (
     <div className="min-h-screen bg-black text-white p-6">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Bulk-omanalys av historiska bilder</h1>
-          <p className="text-white/50 mt-1">Analysera alla befintliga bilder i systemet med Kimi AI för att förbättra batchdata</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Bulk-omanalys av historiska bilder</h1>
+            <p className="text-white/50 mt-1">Analysera alla befintliga bilder i systemet med Kimi AI för att förbättra batchdata</p>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <Button
+              onClick={testKimiConnection}
+              disabled={testingKimi}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10 whitespace-nowrap"
+            >
+              {testingKimi
+                ? <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Testar...</>
+                : <><Plug className="w-4 h-4 mr-2" /> Testa Kimi-anslutning</>}
+            </Button>
+            {kimiTestResult && (
+              <div className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg ${kimiTestResult.ok ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'}`}>
+                {kimiTestResult.ok ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+                {kimiTestResult.ok
+                  ? `OK — ${kimiTestResult.response_time_ms}ms`
+                  : kimiTestResult.error_message}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Filter */}
