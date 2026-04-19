@@ -1,9 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-
-const KIMI_API_KEY = Deno.env.get("KIMI_API_KEY");
-const KIMI_API_URL = "https://api.moonshot.cn/v1/chat/completions";
-const KIMI_MODEL = "moonshot-v1-8k-vision-preview";
-// v2
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -14,7 +9,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log("KIMI_API_KEY prefix:", KIMI_API_KEY ? KIMI_API_KEY.substring(0, 8) + "..." : "MISSING");
+    const KIMI_API_KEY = Deno.env.get("KIMI_API_KEY");
+    if (!KIMI_API_KEY) {
+      return Response.json({ error: 'KIMI_API_KEY not configured' }, { status: 500 });
+    }
+
     const body = await req.json();
     const { fileUrls, articleContext = null, imageType = 'auto' } = body;
 
@@ -53,11 +52,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    const systemPrompt = `Du är ett avancerat OCR- och bildanalyssystem för lagerhantering. 
+    const systemPrompt = `Du är ett avancerat OCR- och bildanalyssystem för lagerhantering av LED-skärmar och AV-utrustning.
 Din uppgift är att extrahera ALL synlig text och information från bilder av produktetiketter, följesedlar, fakturor och produkter.
-Returnera ALLTID ett JSON-objekt med exakt den struktur som begärs. Gissa aldrig — skriv exakt vad du ser.`;
+Returnera ALLTID ett JSON-objekt med exakt den struktur som begärs. Gissa aldrig — skriv exakt vad du ser.
+Du har djup förståelse för LED-produkter, batch-koder, pixelpitchar och tillverkningsdatum.`;
 
-    const userPrompt = `Analysera denna/dessa bilder och extrahera all synlig information. Returnera ett JSON-objekt med följande struktur:
+    const userPrompt = `Analysera denna/dessa bilder och extrahera all synlig information med hög precision. Returnera ett JSON-objekt med följande struktur:
 
 {
   "raw_text": "ALL text du ser på bilden, exakt som den visas",
@@ -82,6 +82,7 @@ KRITISKT:
 - Om du ser "VCP186" skriv "VCP186", om du ser "D/C 2443:001" skriv det exakt
 - Returnera raw_text med absolut all text på bilden
 - Sätt confidence 0-1 baserat på hur tydlig texten är
+- Använd din förståelse för LED-produkter och batchnummer för att identifiera fält korrekt
 ${contextPrompt}`;
 
     // Build messages with image URLs
@@ -101,14 +102,16 @@ ${contextPrompt}`;
       }
     ];
 
-    const kimiResponse = await fetch(KIMI_API_URL, {
+    const startTime = Date.now();
+
+    const kimiResponse = await fetch("https://api.moonshot.ai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${KIMI_API_KEY}`
       },
       body: JSON.stringify({
-        model: KIMI_MODEL,
+        model: "kimi-k2-5",
         messages,
         temperature: 0.1,
         response_format: { type: "json_object" }
@@ -123,6 +126,9 @@ ${contextPrompt}`;
 
     const kimiData = await kimiResponse.json();
     const content = kimiData.choices?.[0]?.message?.content;
+    const durationMs = Date.now() - startTime;
+
+    console.log(`Kimi K2.5 vision analysis completed in ${durationMs}ms`);
 
     if (!content) {
       return Response.json({ error: 'No response from Kimi' }, { status: 500 });
@@ -138,7 +144,9 @@ ${contextPrompt}`;
 
     return Response.json({
       success: true,
-      extracted: analysis
+      extracted: analysis,
+      model_used: "kimi-k2-5",
+      duration_ms: durationMs
     });
 
   } catch (error) {
