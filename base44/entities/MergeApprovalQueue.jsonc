@@ -1,0 +1,89 @@
+{
+  "name": "MergeApprovalQueue",
+  "type": "object",
+  "properties": {
+    "queue_type": {
+      "type": "string",
+      "enum": [
+        "article_duplicate",
+        "batch_duplicate"
+      ],
+      "default": "article_duplicate",
+      "description": "Typ av dublett-merge"
+    },
+    "candidate_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs p\u00e5 potentiella dubletter"
+    },
+    "candidate_entity": {
+      "type": "string",
+      "description": "Entity-namn, t.ex. Article eller Batch"
+    },
+    "similarity_key": {
+      "type": "string",
+      "description": "V\u00e4rde som gjorde klassificering, t.ex. batch_number"
+    },
+    "winner_suggested_id": {
+      "type": "string",
+      "description": "ID p\u00e5 post med h\u00f6gst coupling_count (f\u00f6rslag)"
+    },
+    "coupling_counts": {
+      "type": "object",
+      "description": "ID \u2192 coupling count mappning"
+    },
+    "coupling_breakdown": {
+      "type": "object",
+      "description": "Detaljerad breakdown per ID: {id: {po_items: n, receiving: n, repairs: n, orders: n, ...}}"
+    },
+    "fields_diff": {
+      "type": "object",
+      "description": "Visar f\u00e4ltskillnader: {field_name: {id1: value1, id2: value2, ...}}"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_review",
+        "approved_merge",
+        "rejected_keep_separate",
+        "skipped"
+      ],
+      "default": "pending_review",
+      "description": "Status p\u00e5 godk\u00e4nnande"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Granskad av (email)"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Granskningstidpunkt"
+    },
+    "review_notes": {
+      "type": "string",
+      "description": "Noteringar fr\u00e5n granskning"
+    },
+    "merge_executed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om merge redan exekverad"
+    },
+    "merge_executed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt f\u00f6r merge-exekvering"
+    },
+    "rollback_snapshot": {
+      "type": "object",
+      "description": "FULL snapshot av alla kandidat-poster + downstream-referenser INNAN merge"
+    }
+  },
+  "required": [
+    "candidate_ids",
+    "candidate_entity",
+    "status"
+  ]
+}

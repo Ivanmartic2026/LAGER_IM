@@ -2,50 +2,55 @@
   "name": "MigrationRun",
   "type": "object",
   "properties": {
+    "migration_name": {
+      "type": "string",
+      "description": "Migrations-namn, t.ex. migrateArticleBatchNumbersToBatchEntity"
+    },
     "run_date": {
       "type": "string",
       "format": "date-time",
-      "description": "N\u00e4r migrationen k\u00f6rdes"
+      "description": "K\u00f6rtidpunkt"
     },
     "ran_by": {
       "type": "string",
-      "description": "Vem som k\u00f6rde migrationen (email)"
+      "description": "K\u00f6rdes av (email)"
     },
-    "steps_json": {
+    "input_summary": {
       "type": "object",
-      "description": "JSON-logg f\u00f6r varje migrationssteq"
+      "description": "Antal poster innan migration"
     },
-    "success_count": {
-      "type": "number",
-      "default": 0,
-      "description": "Antal lyckade operationer"
+    "output_summary": {
+      "type": "object",
+      "description": "Antal skapade/uppdaterade poster"
     },
-    "error_count": {
-      "type": "number",
-      "default": 0,
-      "description": "Antal felaktiga operationer"
+    "rollback_snapshot": {
+      "type": "object",
+      "description": "FULL snapshot av f\u00f6r\u00e4ndrade poster f\u00f6r rollback"
+    },
+    "rollback_available": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om rollback m\u00f6jlig"
+    },
+    "rolled_back": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om redan rulladbak"
+    },
+    "rolled_back_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Rollback-tidpunkt"
     },
     "errors": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Felmeddelanden"
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "running",
-        "completed",
-        "failed"
-      ],
-      "default": "running",
-      "description": "Status f\u00f6r k\u00f6rningen"
-    },
-    "notes": {
-      "type": "string",
-      "description": "Anteckningar/sammanfattning"
+      "description": "Felmeddelanden under migration"
     }
   },
-  "required": []
+  "required": [
+    "migration_name"
+  ]
 }
