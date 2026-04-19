@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-const MOONSHOT_API_KEY = Deno.env.get("MOONSHOT_API_KEY");
+const MOONSHOT_API_KEY = Deno.env.get("KIMI_API_KEY");
 
 const PROMPT_V1 = `You are a specialized OCR and label analysis system for warehouse management.
 Analyze the provided label/product image and extract all information.
