@@ -1,5 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const KIMI_API_KEY = Deno.env.get("KIMI_API_KEY");
+const KIMI_API_URL = "https://api.moonshot.cn/v1/chat/completions";
+const KIMI_MODEL = "moonshot-v1-8k-vision-preview";
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -16,254 +20,125 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No files provided' }, { status: 400 });
     }
 
-    // Get sample articles for learning (top 20 by recency)
+    // Get sample articles for context
     let articleExamples = [];
     try {
       const articles = await base44.asServiceRole.entities.Article.list('-updated_date', 20);
-      const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.gif', '.bmp'];
       articleExamples = articles
-      .filter(a => a.image_urls && a.image_urls.length > 0)
-      .map(a => ({
-        id: a.id,
-        name: a.name,
-        sku: a.sku,
-        batch_number: a.batch_number,
-        manufacturer: a.manufacturer,
-        supplier_name: a.supplier_name,
-        category: a.category,
-        pixel_pitch_mm: a.pixel_pitch_mm,
-        image_urls: a.image_urls.filter(url => imageExtensions.some(ext => url.toLowerCase().includes(ext))).slice(0, 1)
-      }))
-      .filter(a => a.image_urls.length > 0)
-      .slice(0, 10);
+        .filter(a => a.name)
+        .map(a => ({
+          name: a.name,
+          sku: a.sku,
+          batch_number: a.batch_number,
+          manufacturer: a.manufacturer,
+          supplier_name: a.supplier_name,
+          category: a.category,
+        }))
+        .slice(0, 15);
     } catch (e) {
       console.log("Could not fetch articles for context");
     }
 
-    // Build article learning context
     let contextPrompt = '';
     if (articleExamples.length > 0) {
-      contextPrompt = `\n\nHÄR ÄR EXEMPEL PÅ PRODUKTER I LAGRET (lär dig av dessa bilder):\n`;
-      articleExamples.forEach((article, idx) => {
-        contextPrompt += `\nProdukt ${idx + 1}: ${article.name}`;
-        if (article.sku) contextPrompt += ` | SKU: ${article.sku}`;
-        if (article.batch_number) contextPrompt += ` | Batch: ${article.batch_number}`;
-        if (article.manufacturer) contextPrompt += ` | Tillverkare: ${article.manufacturer}`;
-        if (article.category) contextPrompt += ` | Kategori: ${article.category}`;
+      contextPrompt = `\n\nEXEMPEL PÅ PRODUKTER I LAGRET (använd för referens):\n`;
+      articleExamples.forEach((a, idx) => {
+        contextPrompt += `\n${idx + 1}. ${a.name}`;
+        if (a.sku) contextPrompt += ` | SKU: ${a.sku}`;
+        if (a.batch_number) contextPrompt += ` | Batch: ${a.batch_number}`;
+        if (a.manufacturer) contextPrompt += ` | Tillverkare: ${a.manufacturer}`;
+        if (a.category) contextPrompt += ` | Kategori: ${a.category}`;
       });
     }
 
-    const schema = {
-      type: "object",
-      properties: {
-        raw_text: { 
-          type: "string",
-          description: "All raw text found on the image"
-        },
-        image_type_detected: {
-          type: "string",
-          enum: ["label", "packing_slip", "invoice", "site_photo", "product_photo", "unknown"],
-          description: "What type of image this is"
-        },
-        article_numbers: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              value: { type: "string" },
-              confidence: { type: "number" },
-              field_type: { type: "string", enum: ["sku", "supplier_code", "internal_code"] }
-            }
-          },
-          description: "All article/product numbers found"
-        },
-        product_names: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              value: { type: "string" },
-              confidence: { type: "number" }
-            }
-          },
-          description: "Product/article names or descriptions"
-        },
-        suppliers: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              value: { type: "string" },
-              confidence: { type: "number" }
-            }
-          },
-          description: "Supplier/manufacturer names"
-        },
-        barcodes: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              value: { type: "string" },
-              type: { type: "string", enum: ["EAN", "GTIN", "SSCC", "Code128", "QR", "unknown"] },
-              confidence: { type: "number" }
-            }
-          },
-          description: "All detected barcodes"
-        },
-        batch_numbers: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              value: { type: "string" },
-              confidence: { type: "number" }
-            }
-          }
-        },
-        serial_numbers: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              value: { type: "string" },
-              confidence: { type: "number" }
-            }
-          }
-        },
-        units: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              value: { type: "string" },
-              confidence: { type: "number" }
-            }
-          },
-          description: "Unit of measurement (st, pcs, pack, kg, etc)"
-        },
-        quantities: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              value: { type: "number" },
-              context: { type: "string" },
-              confidence: { type: "number" }
-            }
-          },
-          description: "Quantities found in different contexts"
-        },
-        dates: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              value: { type: "string" },
-              type: { type: "string", enum: ["manufacturing", "expiration", "delivery", "unknown"] },
-              confidence: { type: "number" }
-            }
-          }
-        },
-        dimensions: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              dimension: { type: "string", enum: ["width", "height", "depth", "diagonal"] },
-              value: { type: "number" },
-              unit: { type: "string" },
-              confidence: { type: "number" }
-            }
-          },
-          description: "Physical dimensions"
-        },
-        weight_volume: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              value: { type: "number" },
-              unit: { type: "string" },
-              confidence: { type: "number" }
-            }
-          }
-        },
-        technical_specs: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              spec_name: { type: "string" },
-              value: { type: "string" },
-              confidence: { type: "number" }
-            }
-          },
-          description: "Technical specifications (pixel pitch, brightness, etc)"
-        },
-        visual_features: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              feature: { type: "string" },
-              description: { type: "string" }
-            }
-          },
-          description: "Visual features visible in the image for matching"
-        }
-      }
-    };
+    const systemPrompt = `Du är ett avancerat OCR- och bildanalyssystem för lagerhantering. 
+Din uppgift är att extrahera ALL synlig text och information från bilder av produktetiketter, följesedlar, fakturor och produkter.
+Returnera ALLTID ett JSON-objekt med exakt den struktur som begärs. Gissa aldrig — skriv exakt vad du ser.`;
 
-    const prompt = `Du ska analysera denna/dessa bildar och EXAKT extrahera all synlig information.
-Detta kan vara: etiketter, följesedlar, fakturabilder, site-foton, eller produktfoton.
+    const userPrompt = `Analysera denna/dessa bilder och extrahera all synlig information. Returnera ett JSON-objekt med följande struktur:
 
-KRITISKT VIKTIGT - LÄSA AV TEXTER:
-- Läs EXAKT alla siffror, bokstäver och koder som syns på etiketter
-- Gissa ALDRIG eller "normalisera" koderna - skriva exakt som de syns
-- Om du ser "VCP186", skriv "VCP186" - inte varianter
-- Om du ser "D/C 2443:001", skriv detta exakt - inte gissa betydelse
-- Returnera raw_text med allt du ser för verifiering
+{
+  "raw_text": "ALL text du ser på bilden, exakt som den visas",
+  "image_type_detected": "label|packing_slip|invoice|site_photo|product_photo|unknown",
+  "article_numbers": [{"value": "...", "confidence": 0.9, "field_type": "sku|supplier_code|internal_code"}],
+  "product_names": [{"value": "...", "confidence": 0.9}],
+  "suppliers": [{"value": "...", "confidence": 0.9}],
+  "barcodes": [{"value": "...", "type": "EAN|GTIN|SSCC|Code128|QR|unknown", "confidence": 0.9}],
+  "batch_numbers": [{"value": "...", "confidence": 0.9}],
+  "serial_numbers": [{"value": "...", "confidence": 0.9}],
+  "units": [{"value": "...", "confidence": 0.9}],
+  "quantities": [{"value": 0, "context": "...", "confidence": 0.9}],
+  "dates": [{"value": "...", "type": "manufacturing|expiration|delivery|unknown", "confidence": 0.9}],
+  "dimensions": [{"dimension": "width|height|depth|diagonal", "value": 0, "unit": "mm", "confidence": 0.9}],
+  "weight_volume": [{"value": 0, "unit": "kg", "confidence": 0.9}],
+  "technical_specs": [{"spec_name": "...", "value": "...", "confidence": 0.9}],
+  "visual_features": [{"feature": "...", "description": "..."}]
+}
 
-För varje typ av information, returnera en array med alla möjliga värden tillsammans med:
-- value: Det identifierade värdet (EXAKT som det syns)
-- confidence: Din säkerhet (0-1) - låg confidence om texten är suddig/svårtolkad
-- Andra relevanta fält (field_type, type, context, unit, etc)
-
-Titta efter:
-1. Artikelnummer/Produktkoder (SKU, leverantörskod, interna koder, D/C-nummer)
-2. Produktnamn/Benämning
-3. Leverantörer/Tillverkare
-4. Streckkoder (EAN, GTIN, SSCC, QR, etc)
-5. Batch/Lot-nummer
-6. Serienummer (SN)
-7. Enheter (st, pcs, pack, kg, etc)
-8. Antal/Kvantiteter
-9. Datum (tillverkning, utgång, leverans)
-10. Dimensioner (bredd, höjd, djup)
-11. Vikt/Volym
-12. Tekniska specifikationer (pixel pitch, ljusstyrka, resolution, etc)
-13. Visuella drag för matchning (design, kabinett-typ, LED-panel, färg, anslutningar, etc)
-
-RETURNERA ALLT du hittar, även låga confidence-värden. Bättre att ge all info än att gissa.
-
-Inkludera även:
-- raw_text: EXAKT all text du ser på bilden (dump av allt)
-- image_type_detected: Vad är denna bild (etikett, följesedel, etc)
-- visual_features: Fysiska egenskaper du kan se för matchning med andra bilder
+KRITISKT:
+- Skriv EXAKT vad du ser - aldrig gissa eller normalisera koder
+- Om du ser "VCP186" skriv "VCP186", om du ser "D/C 2443:001" skriv det exakt
+- Returnera raw_text med absolut all text på bilden
+- Sätt confidence 0-1 baserat på hur tydlig texten är
 ${contextPrompt}`;
 
-    const analysis = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      file_urls: fileUrls,
-      response_json_schema: schema,
-      model: "gpt_5"
+    // Build messages with image URLs
+    const imageMessages = fileUrls.map(url => ({
+      type: "image_url",
+      image_url: { url }
+    }));
+
+    const messages = [
+      { role: "system", content: systemPrompt },
+      {
+        role: "user",
+        content: [
+          ...imageMessages,
+          { type: "text", text: userPrompt }
+        ]
+      }
+    ];
+
+    const kimiResponse = await fetch(KIMI_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${KIMI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: KIMI_MODEL,
+        messages,
+        temperature: 0.1,
+        response_format: { type: "json_object" }
+      })
     });
+
+    if (!kimiResponse.ok) {
+      const errText = await kimiResponse.text();
+      console.error("Kimi API error:", errText);
+      return Response.json({ error: `Kimi API error: ${kimiResponse.status} - ${errText}` }, { status: 500 });
+    }
+
+    const kimiData = await kimiResponse.json();
+    const content = kimiData.choices?.[0]?.message?.content;
+
+    if (!content) {
+      return Response.json({ error: 'No response from Kimi' }, { status: 500 });
+    }
+
+    let analysis;
+    try {
+      analysis = typeof content === 'string' ? JSON.parse(content) : content;
+    } catch (e) {
+      console.error("Failed to parse Kimi JSON response:", content);
+      return Response.json({ error: 'Failed to parse Kimi response as JSON' }, { status: 500 });
+    }
 
     return Response.json({
       success: true,
       extracted: analysis
     });
+
   } catch (error) {
     console.error('Error parsing image:', error);
     return Response.json({ error: error.message }, { status: 500 });
