@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,13 @@ export default function PendingVerificationForm({ imageUrls = [], extractedBatch
     supplier_name: "",
     notes: "",
   });
+
+  // Update batch_number if Kimi analysis completes after mount
+  React.useEffect(() => {
+    if (extractedBatch) {
+      setFormData(p => ({ ...p, batch_number: extractedBatch }));
+    }
+  }, [extractedBatch]);
 
   const { data: suppliers = [] } = useQuery({
     queryKey: ['suppliers'],
