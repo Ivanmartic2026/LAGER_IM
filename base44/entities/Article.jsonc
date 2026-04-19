@@ -90,6 +90,15 @@
       "type": "string",
       "description": "Batch nummer"
     },
+    "primary_batch_id": {
+      "type": "string",
+      "description": "Referens till prim\u00e4r Batch-post"
+    },
+    "ai_scan_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Antal AI-scanningar"
+    },
     "pixel_pitch_mm": {
       "type": "number",
       "description": "Pixel Pitch (mm)"

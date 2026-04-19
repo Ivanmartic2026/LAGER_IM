@@ -1,0 +1,50 @@
+{
+  "name": "SupplierLabelPattern",
+  "type": "object",
+  "properties": {
+    "supplier_id": {
+      "type": "string",
+      "description": "Referens till leverant\u00f6r"
+    },
+    "supplier_name": {
+      "type": "string",
+      "description": "Leverant\u00f6rsnamn"
+    },
+    "batch_prefix_patterns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "K\u00e4nda prefix-m\u00f6nster f\u00f6r batchnummer"
+    },
+    "batch_length_distribution": {
+      "type": "object",
+      "description": "F\u00f6rdelning av batchnummerl\u00e4ngder"
+    },
+    "batch_regex": {
+      "type": "string",
+      "description": "H\u00e4rlett regex f\u00f6r batchnummer"
+    },
+    "label_layout_fingerprint": {
+      "type": "string",
+      "description": "Fingeravtryck f\u00f6r etikettlayout"
+    },
+    "sample_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Antal prover som m\u00f6nstret baseras p\u00e5"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Senast uppdaterad"
+    },
+    "confidence_threshold_override": {
+      "type": "number",
+      "description": "Leverant\u00f6rsspecifikt confidence-tr\u00f6skelv\u00e4rde"
+    }
+  },
+  "required": [
+    "supplier_id"
+  ]
+}

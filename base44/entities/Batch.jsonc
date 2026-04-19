@@ -1,0 +1,136 @@
+{
+  "name": "Batch",
+  "type": "object",
+  "properties": {
+    "batch_number": {
+      "type": "string",
+      "description": "Normaliserat batchnummer (prim\u00e4rt index)"
+    },
+    "raw_batch_number": {
+      "type": "string",
+      "description": "Originalt batchnummer exakt som det l\u00e4stes"
+    },
+    "article_id": {
+      "type": "string",
+      "description": "Referens till artikel"
+    },
+    "article_sku": {
+      "type": "string",
+      "description": "Artikelnummer (SKU)"
+    },
+    "article_name": {
+      "type": "string",
+      "description": "Artikelnamn"
+    },
+    "supplier_id": {
+      "type": "string",
+      "description": "Referens till leverant\u00f6r"
+    },
+    "supplier_name": {
+      "type": "string",
+      "description": "Leverant\u00f6rsnamn"
+    },
+    "supplier_source": {
+      "type": "string",
+      "enum": [
+        "label_explicit",
+        "ai_inferred",
+        "po_linked",
+        "manual",
+        "unknown"
+      ],
+      "default": "unknown",
+      "description": "Hur leverant\u00f6ren identifierades"
+    },
+    "purchase_order_id": {
+      "type": "string",
+      "description": "Referens till ink\u00f6psorder"
+    },
+    "receiving_record_id": {
+      "type": "string",
+      "description": "Referens till mottagningspost"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Kvantitet"
+    },
+    "manufacturing_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Tillverkningsdatum"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Utg\u00e5ngsdatum"
+    },
+    "production_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Produktionsdatum"
+    },
+    "batch_pattern": {
+      "type": "object",
+      "properties": {
+        "prefix": {
+          "type": "string"
+        },
+        "length": {
+          "type": "number"
+        },
+        "structure": {
+          "type": "string"
+        }
+      },
+      "description": "M\u00f6nsteranalys av batchnummer"
+    },
+    "risk_score": {
+      "type": "number",
+      "default": 0,
+      "description": "Riskpo\u00e4ng 0-100"
+    },
+    "risk_flags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "low_ai_confidence",
+          "supplier_mismatch",
+          "batch_pattern_deviation",
+          "unknown_supplier",
+          "duplicate_batch",
+          "no_po_match",
+          "label_format_changed"
+        ]
+      },
+      "description": "Riskflaggor"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_verification",
+        "verified",
+        "rejected",
+        "quarantine"
+      ],
+      "default": "pending_verification",
+      "description": "Status p\u00e5 batchen"
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "Verifierad av (email)"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Verifieringstidpunkt"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    }
+  },
+  "required": [
+    "batch_number"
+  ]
+}

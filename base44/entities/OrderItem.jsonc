@@ -1,0 +1,54 @@
+{
+  "name": "OrderItem",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "Referens till order"
+    },
+    "article_id": {
+      "type": "string",
+      "description": "Referens till artikel"
+    },
+    "article_name": {
+      "type": "string",
+      "description": "Artikelnamn"
+    },
+    "article_batch_number": {
+      "type": "string",
+      "description": "Batch nummer (legacy alias, anv\u00e4nd batch_number)"
+    },
+    "batch_number": {
+      "type": "string",
+      "description": "Batch nummer (normaliserat)"
+    },
+    "shelf_address": {
+      "type": "string",
+      "description": "Hyllplats"
+    },
+    "quantity_ordered": {
+      "type": "number",
+      "description": "Best\u00e4lld m\u00e4ngd"
+    },
+    "quantity_picked": {
+      "type": "number",
+      "default": 0,
+      "description": "Plockad m\u00e4ngd"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "partial",
+        "picked"
+      ],
+      "default": "pending",
+      "description": "Status p\u00e5 plockrad"
+    }
+  },
+  "required": [
+    "order_id",
+    "article_id",
+    "quantity_ordered"
+  ]
+}

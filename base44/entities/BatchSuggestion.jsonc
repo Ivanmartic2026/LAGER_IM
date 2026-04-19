@@ -1,0 +1,74 @@
+{
+  "name": "BatchSuggestion",
+  "type": "object",
+  "properties": {
+    "batch_id": {
+      "type": "string",
+      "description": "Referens till Batch"
+    },
+    "suggestion_type": {
+      "type": "string",
+      "enum": [
+        "supplier_link",
+        "article_link",
+        "batch_number_correction",
+        "date_fill",
+        "pattern_normalization",
+        "reanalyze_image",
+        "merge_duplicate"
+      ],
+      "description": "Typ av f\u00f6rslag"
+    },
+    "current_value": {
+      "type": "string",
+      "description": "Nuvarande v\u00e4rde"
+    },
+    "suggested_value": {
+      "type": "string",
+      "description": "F\u00f6reslagit v\u00e4rde"
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Confidence f\u00f6r f\u00f6rslaget (0-1)"
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "F\u00f6rklaring av varf\u00f6r f\u00f6rslaget gjordes"
+    },
+    "based_on_pattern_id": {
+      "type": "string",
+      "description": "Referens till SupplierLabelPattern"
+    },
+    "based_on_batch_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Batcher som f\u00f6rslaget baseras p\u00e5"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "rejected",
+        "expired"
+      ],
+      "default": "pending",
+      "description": "Status p\u00e5 f\u00f6rslaget"
+    },
+    "decided_by": {
+      "type": "string",
+      "description": "Beslutad av (email)"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Beslutstidpunkt"
+    }
+  },
+  "required": [
+    "batch_id",
+    "suggestion_type"
+  ]
+}

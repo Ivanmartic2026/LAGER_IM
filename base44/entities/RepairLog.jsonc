@@ -1,0 +1,70 @@
+{
+  "name": "RepairLog",
+  "type": "object",
+  "properties": {
+    "article_id": {
+      "type": "string",
+      "description": "Referens till artikeln"
+    },
+    "article_name": {
+      "type": "string",
+      "description": "Artikelnamn (f\u00f6r enklare s\u00f6kning)"
+    },
+    "article_batch_number": {
+      "type": "string",
+      "description": "Batch nummer (legacy alias, anv\u00e4nd batch_number)"
+    },
+    "batch_number": {
+      "type": "string",
+      "description": "Batch nummer (normaliserat)"
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "Referens till Batch-post"
+    },
+    "repair_date_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Datum d\u00e5 reparationen p\u00e5b\u00f6rjades"
+    },
+    "repair_date_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Datum d\u00e5 reparationen avslutades/artikeln \u00e5terf\u00f6rdes"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar om reparationen"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "completed",
+        "discarded",
+        "cancelled"
+      ],
+      "default": "in_progress",
+      "description": "Status f\u00f6r reparationen"
+    },
+    "returned_quantity": {
+      "type": "number",
+      "default": 0,
+      "description": "Antal returnerade till lager"
+    },
+    "discarded_quantity": {
+      "type": "number",
+      "default": 0,
+      "description": "Antal kasserade"
+    },
+    "processed_by": {
+      "type": "string",
+      "description": "Anv\u00e4ndaren som hanterade reparationen (email)"
+    }
+  },
+  "required": [
+    "article_id",
+    "repair_date_start",
+    "status"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "KimiConfig",
+  "type": "object",
+  "properties": {
+    "model_name": {
+      "type": "string",
+      "default": "kimi-k2.5-vision",
+      "description": "Kimi-modell att anv\u00e4nda"
+    },
+    "prompt_version": {
+      "type": "string",
+      "default": "v1",
+      "description": "Version av prompt-template"
+    },
+    "confidence_threshold_auto_approve": {
+      "type": "number",
+      "default": 0.85,
+      "description": "Confidence-tr\u00f6skel f\u00f6r automatiskt godk\u00e4nnande"
+    },
+    "confidence_threshold_manual_review": {
+      "type": "number",
+      "default": 0.6,
+      "description": "Confidence-tr\u00f6skel f\u00f6r manuell granskning"
+    },
+    "max_retries": {
+      "type": "number",
+      "default": 2,
+      "description": "Max antal f\u00f6rs\u00f6k vid fel"
+    },
+    "timeout_ms": {
+      "type": "number",
+      "default": 30000,
+      "description": "Timeout i millisekunder"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om konfigurationen \u00e4r aktiv"
+    }
+  },
+  "required": []
+}

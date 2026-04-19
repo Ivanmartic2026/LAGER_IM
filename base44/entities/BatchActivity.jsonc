@@ -1,0 +1,55 @@
+{
+  "name": "BatchActivity",
+  "type": "object",
+  "properties": {
+    "batch_id": {
+      "type": "string",
+      "description": "Referens till Batch"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "comment",
+        "system",
+        "decision",
+        "field_change",
+        "reanalysis",
+        "suggestion_accepted",
+        "suggestion_rejected"
+      ],
+      "description": "Typ av aktivitet"
+    },
+    "message": {
+      "type": "string",
+      "description": "Aktivitetsmeddelande"
+    },
+    "field_name": {
+      "type": "string",
+      "description": "F\u00e4ltnamn som \u00e4ndrades"
+    },
+    "old_value": {
+      "type": "string",
+      "description": "Gammalt v\u00e4rde"
+    },
+    "new_value": {
+      "type": "string",
+      "description": "Nytt v\u00e4rde"
+    },
+    "actor_email": {
+      "type": "string",
+      "description": "Akt\u00f6rens email"
+    },
+    "actor_name": {
+      "type": "string",
+      "description": "Akt\u00f6rens namn"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Extra metadata"
+    }
+  },
+  "required": [
+    "batch_id",
+    "type"
+  ]
+}

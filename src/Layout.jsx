@@ -1,7 +1,7 @@
 import React, { useEffect, useState as useReactState } from 'react';
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck, Clipboard, BarChart2, Layers, Users, Clock, Car } from "lucide-react";
+import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck, Clipboard, BarChart2, Layers, Users, Clock, Car, Scan, CheckCircle2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
@@ -73,6 +73,9 @@ function LayoutContent({ children, currentPageName }) {
     { name: "KilometerErsattning", label: t('nav_mileage', language), icon: Car },
     { name: "FortnoxSync", label: "Fortnox", icon: ShoppingCart },
     { name: "FortnoxCustomers", label: "Fortnox-kunder", icon: ShoppingCart },
+    { name: "BatchDashboard", label: "Batch AI", icon: Scan },
+    { name: "BatchReview", label: "Batch Review", icon: CheckCircle2 },
+    { name: "BatchReanalyze", label: "Omanalysera", icon: RefreshCw },
   ];
 
   const visibleNavItems = NAV_ITEMS.filter(item => !item.module || userModules.includes(item.module));

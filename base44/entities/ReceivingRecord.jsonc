@@ -1,0 +1,83 @@
+{
+  "name": "ReceivingRecord",
+  "type": "object",
+  "properties": {
+    "purchase_order_id": {
+      "type": "string",
+      "description": "Referens till ink\u00f6psorder"
+    },
+    "purchase_order_item_id": {
+      "type": "string",
+      "description": "Referens till ink\u00f6psorderrad"
+    },
+    "article_id": {
+      "type": "string",
+      "description": "Referens till artikel"
+    },
+    "article_name": {
+      "type": "string",
+      "description": "Artikelnamn"
+    },
+    "quantity_received": {
+      "type": "number",
+      "description": "Mottagen kvantitet"
+    },
+    "shelf_address": {
+      "type": "string",
+      "description": "Lagerplats d\u00e4r varorna placerats"
+    },
+    "quality_check_passed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om kvalitetskontroll utf\u00f6rts"
+    },
+    "has_discrepancy": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om det finns avvikelser"
+    },
+    "discrepancy_reason": {
+      "type": "string",
+      "description": "Anledning till avvikelse"
+    },
+    "image_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Bilder fr\u00e5n mottagningen (f\u00f6ljesedel, skador, etc.)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar om mottagningen"
+    },
+    "received_by": {
+      "type": "string",
+      "description": "Vem som mottog varorna (email)"
+    },
+    "batch_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Referens till Batch-poster"
+    },
+    "ai_scan_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Referens till LabelScan-poster"
+    },
+    "high_risk_batch_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Antal h\u00f6griskbatcher"
+    }
+  },
+  "required": [
+    "purchase_order_id",
+    "purchase_order_item_id",
+    "quantity_received"
+  ]
+}

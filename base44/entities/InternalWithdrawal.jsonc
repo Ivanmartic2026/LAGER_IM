@@ -1,0 +1,56 @@
+{
+  "name": "InternalWithdrawal",
+  "type": "object",
+  "properties": {
+    "article_id": {
+      "type": "string",
+      "description": "Referens till artikel"
+    },
+    "article_name": {
+      "type": "string",
+      "description": "Artikelnamn"
+    },
+    "article_batch_number": {
+      "type": "string",
+      "description": "Batch nummer (legacy alias, anv\u00e4nd batch_number)"
+    },
+    "batch_number": {
+      "type": "string",
+      "description": "Batch nummer (normaliserat)"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Uttagen kvantitet"
+    },
+    "customer_reference": {
+      "type": "string",
+      "description": "Kund/kommentar om vart det ska"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "linked"
+      ],
+      "default": "pending",
+      "description": "Status - v\u00e4ntar p\u00e5 koppling eller kopplad"
+    },
+    "linked_order_id": {
+      "type": "string",
+      "description": "Kopplad till order (n\u00e4r status \u00e4r linked)"
+    },
+    "withdrawn_by": {
+      "type": "string",
+      "description": "Vem som plockade ut (email)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    }
+  },
+  "required": [
+    "article_id",
+    "quantity",
+    "customer_reference"
+  ]
+}

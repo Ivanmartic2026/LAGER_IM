@@ -131,6 +131,30 @@ Deno.serve(async (req) => {
     const po = await base44.asServiceRole.entities.PurchaseOrder.get(purchaseOrderId);
     if (!po) return Response.json({ error: 'PO hittades inte' }, { status: 404 });
 
+    // === BATCH QUARANTINE HARD BLOCK ===
+    // Check if any batches linked to this PO's receiving records are in quarantine
+    const poReceivingRecords = await base44.asServiceRole.entities.ReceivingRecord.filter({ purchase_order_id: purchaseOrderId });
+    const allBatchIds = poReceivingRecords.flatMap(r => r.batch_ids || []);
+    if (allBatchIds.length > 0) {
+      const quarantinedBatches = await base44.asServiceRole.entities.Batch.filter({ status: 'quarantine' });
+      const blockedBatches = quarantinedBatches.filter(b => allBatchIds.includes(b.id));
+      if (blockedBatches.length > 0) {
+        await base44.asServiceRole.entities.POActivity.create({
+          purchase_order_id: purchaseOrderId,
+          type: 'system',
+          message: `Fortnox-synk blockerad: ${blockedBatches.length} batcher i karantän (${blockedBatches.map(b => b.batch_number).join(', ')})`,
+          actor_email: user.email
+        });
+        return Response.json({
+          success: false,
+          blocked: true,
+          quarantine_count: blockedBatches.length,
+          quarantine_batches: blockedBatches.map(b => ({ id: b.id, batch_number: b.batch_number })),
+          error: `Inleverans innehåller ${blockedBatches.length} batcher i karantän — verifiera först`
+        }, { status: 409 });
+      }
+    }
+
     // === VALIDATION ===
     const errors = [];
 

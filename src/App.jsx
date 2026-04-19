@@ -29,6 +29,10 @@ import PrintWorkOrder from '@/pages/PrintWorkOrder';
 import PrintPickList from '@/pages/PrintPickList';
 import PrintDeliveryNote from '@/pages/PrintDeliveryNote';
 import FortnoxCustomers from '@/pages/FortnoxCustomers';
+import BatchReview from '@/pages/BatchReview';
+import BatchReanalyze from '@/pages/BatchReanalyze';
+import BatchDashboard from '@/pages/BatchDashboard';
+import BatchDetail from '@/pages/BatchDetail';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -183,6 +187,27 @@ function App() {
             <Route path="/WorkOrders" element={
               <LayoutWrapper currentPageName="WorkOrders">
                 <WorkOrders />
+              </LayoutWrapper>
+            } />
+            {/* Batch AI scanning routes */}
+            <Route path="/BatchReview" element={
+              <LayoutWrapper currentPageName="Admin">
+                <BatchReview />
+              </LayoutWrapper>
+            } />
+            <Route path="/BatchReanalyze" element={
+              <LayoutWrapper currentPageName="Admin">
+                <BatchReanalyze />
+              </LayoutWrapper>
+            } />
+            <Route path="/BatchDashboard" element={
+              <LayoutWrapper currentPageName="Admin">
+                <BatchDashboard />
+              </LayoutWrapper>
+            } />
+            <Route path="/BatchDetail" element={
+              <LayoutWrapper currentPageName="Admin">
+                <BatchDetail />
               </LayoutWrapper>
             } />
             {/* Print views - public, no layout */}
