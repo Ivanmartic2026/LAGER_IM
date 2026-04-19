@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Bell, BellOff, AlertCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || Deno.env.get('VAPID_PUBLIC_KEY');
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 export default function PushNotificationOptIn() {
   const [isSupported, setIsSupported] = useState(false);
