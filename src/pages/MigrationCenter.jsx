@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { base44 } from '@/api/base44Client';
 import { CheckCircle2, AlertCircle, Loader2, FileText } from 'lucide-react';
 
@@ -179,11 +179,11 @@ export default function MigrationCenter() {
       </div>
 
       {/* Confirmation Dialog */}
-      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <AlertDialogContent className="bg-slate-800 border-slate-700">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Bekräfta migrering</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent className="bg-slate-800 border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Bekräfta migrering</DialogTitle>
+            <DialogDescription className="text-slate-400">
               Denna operation kommer att:
               <ul className="mt-2 list-disc list-inside space-y-1">
                 <li>Migrera 369 artiklar till Batch-entity</li>
@@ -192,21 +192,25 @@ export default function MigrationCenter() {
                 <li>Ta bort TEST-* batches</li>
               </ul>
               <p className="mt-3 font-semibold text-yellow-300">Ingen data raderas förutom test-batches.</p>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
           <div className="flex gap-3">
-            <AlertDialogCancel className="bg-slate-700 text-white hover:bg-slate-600">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirm(false)}
+              className="bg-slate-700 text-white hover:bg-slate-600"
+            >
               Avbryt
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
               onClick={handleStartMigration}
               className="bg-blue-600 text-white hover:bg-blue-700"
             >
               Starta migrering
-            </AlertDialogAction>
+            </Button>
           </div>
-        </AlertDialogContent>
-      </AlertDialog>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
