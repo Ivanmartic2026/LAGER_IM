@@ -20,7 +20,11 @@
     },
     "article_batch_number": {
       "type": "string",
-      "description": "Batch nummer"
+      "description": "Batch nummer (legacy alias, anv\u00e4nd batch_number)"
+    },
+    "batch_number": {
+      "type": "string",
+      "description": "Batch nummer (normaliserat)"
     },
     "quantity_ordered": {
       "type": "number",
@@ -40,8 +44,16 @@
       "items": {
         "type": "object",
         "properties": {
-          "batch_no": {
+          "batch_number": {
             "type": "string"
+          },
+          "batch_id": {
+            "type": "string",
+            "description": "Referens till Batch-post"
+          },
+          "label_scan_id": {
+            "type": "string",
+            "description": "Referens till LabelScan-post"
           },
           "quantity": {
             "type": "number"
