@@ -85,10 +85,21 @@ KRITISKT:
 - Använd din förståelse för LED-produkter och batchnummer för att identifiera fält korrekt
 ${contextPrompt}`;
 
-    // Build messages with image URLs
-    const imageMessages = fileUrls.map(url => ({
-      type: "image_url",
-      image_url: { url }
+    // Fetch images and convert to base64 (Kimi K2.5 requires base64)
+    const imageMessages = await Promise.all(fileUrls.map(async (url) => {
+      try {
+        const imgResp = await fetch(url);
+        const contentType = imgResp.headers.get("content-type") || "image/jpeg";
+        const arrayBuffer = await imgResp.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+        return {
+          type: "image_url",
+          image_url: { url: `data:${contentType};base64,${base64}` }
+        };
+      } catch (e) {
+        console.error("Failed to fetch/convert image:", url, e.message);
+        return { type: "image_url", image_url: { url } };
+      }
     }));
 
     const messages = [
@@ -111,9 +122,9 @@ ${contextPrompt}`;
         "Authorization": `Bearer ${KIMI_API_KEY}`
       },
       body: JSON.stringify({
-        model: "kimi-k2-5",
+        model: "kimi-k2.5",
         messages,
-        temperature: 0.1,
+        temperature: 1,
         response_format: { type: "json_object" }
       })
     });
