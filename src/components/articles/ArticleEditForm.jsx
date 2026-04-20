@@ -305,10 +305,11 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                       <SelectValue placeholder="Välj leverantör" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[60vh]" onCloseAutoFocus={(e) => e.preventDefault()}>
+                    <SelectContent className="max-h-[60vh]" style={{zIndex: 9999}} onCloseAutoFocus={(e) => e.preventDefault()}>
                       <div 
                         className="p-2 border-b border-slate-700 sticky top-0 bg-slate-900 z-10"
                         onPointerDown={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
                         onKeyDown={(e) => e.stopPropagation()}
                       >
                         <Input
@@ -317,6 +318,8 @@ export default function ArticleEditForm({ article, onSave, onCancel, isSaving })
                           onChange={(e) => setSupplierSearch(e.target.value)}
                           className="h-9 bg-slate-800 border-slate-700 text-white"
                           onKeyDown={(e) => e.stopPropagation()}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onTouchStart={(e) => e.stopPropagation()}
                         />
                       </div>
                       {filteredSuppliers.length === 0 ? (

@@ -62,6 +62,17 @@ const SelectContent = React.forwardRef(({ className, children, position = "poppe
 
   if (mobile) {
     // Mobile: Use Drawer (Action Sheet style)
+    // Split children: non-SelectItem nodes (like search inputs) go outside Viewport
+    const childArray = React.Children.toArray(children);
+    const nonItems = childArray.filter(child => 
+      child?.props?.className?.includes('sticky') || 
+      child?.type === 'div' ||
+      (child?.props && !child?.props?.value && child?.type !== SelectPrimitive.Item)
+    );
+    const items = childArray.filter(child => 
+      !nonItems.includes(child)
+    );
+
     return (
       <SelectPrimitive.Portal>
         <SelectPrimitive.Content
@@ -77,8 +88,13 @@ const SelectContent = React.forwardRef(({ className, children, position = "poppe
           <div className="flex justify-center py-3 border-b border-slate-800">
             <div className="w-12 h-1.5 rounded-full bg-slate-700" />
           </div>
-          <SelectPrimitive.Viewport className="p-2 max-h-[calc(80vh-60px)] overflow-y-auto">
-            {children}
+          {nonItems.length > 0 && (
+            <div onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+              {nonItems}
+            </div>
+          )}
+          <SelectPrimitive.Viewport className="p-2 max-h-[calc(80vh-120px)] overflow-y-auto">
+            {items.length > 0 ? items : children}
           </SelectPrimitive.Viewport>
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>
