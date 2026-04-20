@@ -80,7 +80,7 @@ export default function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [viewMode, setViewMode] = useState(storedState.viewMode || "grid");
-  const [statusFilter, setStatusFilter] = useState(initialStatus !== 'all' ? initialStatus : (storedState.statusFilter || 'all'));
+  const [statusFilter, setStatusFilter] = useState(initialStatus !== 'all' ? initialStatus : 'all');
   const [warehouseFilter, setWarehouseFilter] = useState(storedState.warehouseFilter || "all");
   const [storageTypeFilter, setStorageTypeFilter] = useState(storedState.storageTypeFilter || "all");
   const [categoryFilter, setCategoryFilter] = useState(storedState.categoryFilter || "all");
