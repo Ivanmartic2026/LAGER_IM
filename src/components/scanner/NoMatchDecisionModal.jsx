@@ -18,6 +18,7 @@ export default function NoMatchDecisionModal({
   barcodeValues = [],
   labelScanId,
   patternSuggestion = null, // { supplier_name, supplier_id, category, series, explanation, rule_ids }
+  activeContext = null,      // current scan context (e.g. "inventory_count", "stock_adjustment")
   onCreated,   // (result) => void — called after article/batch created
   onCancel,    // () => void — called on manual_review or close
   // Legacy compat
@@ -273,6 +274,40 @@ export default function NoMatchDecisionModal({
                   <p className="text-zinc-400 text-xs mt-0.5">Artikeln finns — denna batch är ny</p>
                 </div>
               </button>
+
+              {/* Context-specific extra options */}
+              {activeContext === 'inventory_count' && (
+                <button
+                  onClick={() => {
+                    if (onCreated) onCreated({ context_action: 'unexpected_item_in_count' });
+                    else handleDecision('unexpected_inventory_item', {});
+                  }}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-green-500/30 text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
+                    <Search className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-medium text-sm">Registrera som oväntad artikel i inventering</p>
+                    <p className="text-zinc-400 text-xs mt-0.5">Lägg till som avvikelse i pågående inventering</p>
+                  </div>
+                </button>
+              )}
+
+              {activeContext === 'stock_adjustment' && (
+                <button
+                  onClick={() => setView('pick_article')}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-yellow-500/30 text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center shrink-0">
+                    <Search className="w-5 h-5 text-yellow-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-medium text-sm">Ingen match — öppna artikelsök manuellt</p>
+                    <p className="text-zinc-400 text-xs mt-0.5">Sök och välj artikel för saldojustering</p>
+                  </div>
+                </button>
+              )}
 
               <button
                 onClick={handleManualReview}

@@ -13,7 +13,11 @@ Deno.serve(async (req) => {
     const fileUrls = image_urls || (image_url ? [image_url] : []);
     if (fileUrls.length === 0) return Response.json({ error: 'No images provided' }, { status: 400 });
 
-    const validContexts = ['purchase_receiving','article_creation','repair_return','site_report','production','manual_scan','reanalysis'];
+    const validContexts = [
+      'purchase_receiving','article_creation','repair_return','site_report','production',
+      'manual_scan','reanalysis','pick','ship_out','move_location','stock_adjustment',
+      'inventory_count','service'
+    ];
     if (!context || !validContexts.includes(context)) {
       return Response.json({ error: `Invalid context. Must be one of: ${validContexts.join(', ')}` }, { status: 400 });
     }
@@ -419,5 +423,78 @@ async function doContextLinking(base44, { context, context_reference_id, batchId
       if (!sids.includes(labelScanId)) sids.push(labelScanId);
       await base44.asServiceRole.entities.ProductionRecord.update(context_reference_id, { batch_id: batchId, label_scan_ids: sids });
     }
+  } else if (context === 'pick') {
+    // Link label scan to OrderPickList item
+    if (context_reference_id) {
+      const pickList = await base44.asServiceRole.entities.OrderPickList.get(context_reference_id).catch(() => null);
+      if (pickList) {
+        const items = pickList.pick_items || [];
+        // Find matching item by batch_id and attach scan
+        let updated = false;
+        const updatedItems = items.map(item => {
+          if (item.batch_id === batchId && !updated) {
+            updated = true;
+            const scanIds = item.label_scan_ids || [];
+            if (!scanIds.includes(labelScanId)) scanIds.push(labelScanId);
+            return { ...item, label_scan_ids: scanIds };
+          }
+          return item;
+        });
+        await base44.asServiceRole.entities.OrderPickList.update(context_reference_id, { pick_items: updatedItems });
+      }
+    }
+  } else if (context === 'ship_out') {
+    // Link label scan to DeliveryRecord item
+    if (context_reference_id) {
+      const delivery = await base44.asServiceRole.entities.DeliveryRecord.get(context_reference_id).catch(() => null);
+      if (delivery) {
+        const items = delivery.items || [];
+        let updated = false;
+        const updatedItems = items.map(item => {
+          if (item.batch_id === batchId && !updated) {
+            updated = true;
+            const scanIds = item.label_scan_ids || [];
+            if (!scanIds.includes(labelScanId)) scanIds.push(labelScanId);
+            return { ...item, label_scan_ids: scanIds };
+          }
+          return item;
+        });
+        await base44.asServiceRole.entities.DeliveryRecord.update(context_reference_id, { items: updatedItems });
+      }
+    }
+  } else if (context === 'stock_adjustment') {
+    // Update StockAdjustment to link scan
+    if (context_reference_id) {
+      await base44.asServiceRole.entities.StockAdjustment.update(context_reference_id, { label_scan_id: labelScanId }).catch(() => null);
+    }
+  } else if (context === 'inventory_count') {
+    // Add to active InventoryCount session
+    if (context_reference_id) {
+      const countSession = await base44.asServiceRole.entities.InventoryCount.get(context_reference_id).catch(() => null);
+      if (countSession && countSession.status === 'in_progress') {
+        const items = countSession.count_items || [];
+        const existingIdx = items.findIndex(i => i.batch_id === batchId);
+        if (existingIdx >= 0) {
+          // Update existing, append scan id
+          const scanIds = items[existingIdx].label_scan_ids || [];
+          if (!scanIds.includes(labelScanId)) scanIds.push(labelScanId);
+          items[existingIdx] = { ...items[existingIdx], label_scan_ids: scanIds };
+        } else {
+          items.push({ batch_id: batchId, label_scan_ids: [labelScanId], counted_qty: 0 });
+        }
+        await base44.asServiceRole.entities.InventoryCount.update(context_reference_id, {
+          count_items: items,
+          total_items: items.length
+        });
+      }
+    }
+  } else if (context === 'service') {
+    // Link to ServiceLog
+    if (context_reference_id) {
+      await base44.asServiceRole.entities.ServiceLog.update(context_reference_id, { batch_id: batchId, label_scan_id: labelScanId }).catch(() => null);
+    }
+  } else if (context === 'move_location') {
+    // move_location: just log — actual shelf update is done by UI with new location
+    // No automatic DB write needed here beyond the LabelScan linkage
   }
 }

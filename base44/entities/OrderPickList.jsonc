@@ -1,0 +1,83 @@
+{
+  "name": "OrderPickList",
+  "type": "object",
+  "properties": {
+    "sales_order_id": {
+      "type": "string",
+      "description": "FK till SalesOrder/Order"
+    },
+    "order_number": {
+      "type": "string",
+      "description": "Ordernummer"
+    },
+    "customer_name": {
+      "type": "string",
+      "description": "Kundnamn"
+    },
+    "pick_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "article_id": {
+            "type": "string"
+          },
+          "batch_id": {
+            "type": "string"
+          },
+          "requested_qty": {
+            "type": "number"
+          },
+          "picked_qty": {
+            "type": "number",
+            "default": 0
+          },
+          "shelf_location": {
+            "type": "string"
+          },
+          "label_scan_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "description": "Artiklar att plocka"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Status p\u00e5 plockningssession"
+    },
+    "started_by": {
+      "type": "string",
+      "description": "Startad av (email)"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Starttidpunkt"
+    },
+    "completed_by": {
+      "type": "string",
+      "description": "Slutf\u00f6rd av (email)"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Slutf\u00f6randetidpunkt"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    }
+  },
+  "required": []
+}

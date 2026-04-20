@@ -1,0 +1,110 @@
+{
+  "name": "InventoryCount",
+  "type": "object",
+  "properties": {
+    "count_name": {
+      "type": "string",
+      "description": "Namn p\u00e5 inventeringen"
+    },
+    "count_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Inventeringsdatum"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "full",
+        "location",
+        "category"
+      ],
+      "default": "full",
+      "description": "Scope f\u00f6r inventeringen"
+    },
+    "scope_value": {
+      "type": "string",
+      "description": "T.ex. 'A1-A5' eller 'LED Module'"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "pending_review",
+        "approved",
+        "cancelled"
+      ],
+      "default": "in_progress",
+      "description": "Status p\u00e5 inventeringssessionen"
+    },
+    "started_by": {
+      "type": "string",
+      "description": "Startad av (email)"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Starttidpunkt"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Slutf\u00f6randetidpunkt"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Godk\u00e4nd av (email)"
+    },
+    "count_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "article_id": {
+            "type": "string"
+          },
+          "batch_id": {
+            "type": "string"
+          },
+          "expected_qty": {
+            "type": "number"
+          },
+          "counted_qty": {
+            "type": "number"
+          },
+          "delta": {
+            "type": "number"
+          },
+          "shelf_location": {
+            "type": "string"
+          },
+          "label_scan_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Inventerade artiklar"
+    },
+    "total_items": {
+      "type": "number",
+      "default": 0,
+      "description": "Totalt antal artiklar inventerade"
+    },
+    "total_discrepancies": {
+      "type": "number",
+      "default": 0,
+      "description": "Antal med avvikelse"
+    },
+    "total_delta_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Totalt ekonomiskt v\u00e4rde av differens"
+    }
+  },
+  "required": []
+}

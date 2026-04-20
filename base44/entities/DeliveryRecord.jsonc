@@ -1,0 +1,87 @@
+{
+  "name": "DeliveryRecord",
+  "type": "object",
+  "properties": {
+    "delivery_number": {
+      "type": "string",
+      "description": "Leveransnummer (auto)"
+    },
+    "recipient_name": {
+      "type": "string",
+      "description": "Mottagarens namn"
+    },
+    "recipient_address": {
+      "type": "string",
+      "description": "Leveransadress"
+    },
+    "recipient_site": {
+      "type": "string",
+      "description": "Leveransplats/site"
+    },
+    "related_order_id": {
+      "type": "string",
+      "description": "FK till Order (valfritt)"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "article_id": {
+            "type": "string"
+          },
+          "batch_id": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "label_scan_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "description": "Levererade artiklar"
+    },
+    "shipped_by": {
+      "type": "string",
+      "description": "Avs\u00e4nd av (email)"
+    },
+    "shipped_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Avs\u00e4ndningstidpunkt"
+    },
+    "carrier": {
+      "type": "string",
+      "description": "Transportf\u00f6retag"
+    },
+    "tracking_number": {
+      "type": "string",
+      "description": "Sp\u00e5rningsnummer"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "shipped",
+        "delivered",
+        "cancelled"
+      ],
+      "default": "draft",
+      "description": "Leveransstatus"
+    },
+    "signed_by_recipient": {
+      "type": "string",
+      "description": "Signerat av mottagare"
+    },
+    "signature_image_url": {
+      "type": "string",
+      "description": "URL till signaturbild"
+    }
+  },
+  "required": []
+}

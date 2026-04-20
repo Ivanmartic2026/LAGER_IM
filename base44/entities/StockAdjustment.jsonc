@@ -1,0 +1,71 @@
+{
+  "name": "StockAdjustment",
+  "type": "object",
+  "properties": {
+    "article_id": {
+      "type": "string",
+      "description": "FK till Article (required)"
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "FK till Batch (valfritt)"
+    },
+    "adjustment_type": {
+      "type": "string",
+      "enum": [
+        "increase",
+        "decrease",
+        "set_absolute"
+      ],
+      "description": "Typ av justering"
+    },
+    "quantity_before": {
+      "type": "number",
+      "description": "Saldo f\u00f6re justering"
+    },
+    "quantity_after": {
+      "type": "number",
+      "description": "Saldo efter justering"
+    },
+    "quantity_delta": {
+      "type": "number",
+      "description": "F\u00f6r\u00e4ndring (positiv eller negativ)"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "shrinkage",
+        "found_stock",
+        "miscount",
+        "damaged",
+        "correction",
+        "other"
+      ],
+      "description": "Anledning till justering"
+    },
+    "reason_notes": {
+      "type": "string",
+      "description": "Fritext-kommentar till anledning"
+    },
+    "label_scan_id": {
+      "type": "string",
+      "description": "FK till LabelScan (valfritt)"
+    },
+    "adjusted_by": {
+      "type": "string",
+      "description": "Justerad av (email)"
+    },
+    "adjusted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Justeringstidpunkt"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Godk\u00e4nd av (email, valfritt f\u00f6r st\u00f6rre justeringar)"
+    }
+  },
+  "required": [
+    "article_id"
+  ]
+}
