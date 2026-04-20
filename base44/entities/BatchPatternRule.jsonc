@@ -1,0 +1,111 @@
+{
+  "name": "BatchPatternRule",
+  "type": "object",
+  "properties": {
+    "pattern_type": {
+      "type": "string",
+      "enum": [
+        "prefix",
+        "suffix",
+        "regex",
+        "length",
+        "composite"
+      ],
+      "description": "Typ av m\u00f6nster"
+    },
+    "pattern_value": {
+      "type": "string",
+      "description": "M\u00f6nsterv\u00e4rdet, t.ex. 'APP' f\u00f6r prefix"
+    },
+    "applies_to": {
+      "type": "string",
+      "enum": [
+        "article",
+        "batch",
+        "both"
+      ],
+      "default": "batch",
+      "description": "Vad m\u00f6nstret g\u00e4ller f\u00f6r"
+    },
+    "preferred_supplier_id": {
+      "type": "string",
+      "description": "FK till Supplier"
+    },
+    "preferred_supplier_name": {
+      "type": "string",
+      "description": "Leverant\u00f6rens namn"
+    },
+    "preferred_category": {
+      "type": "string",
+      "description": "F\u00f6redragen artikelkategori"
+    },
+    "preferred_series": {
+      "type": "string",
+      "description": "F\u00f6redragen produktserie"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "ai_inferred",
+        "manual",
+        "confirmed_from_ai"
+      ],
+      "default": "ai_inferred",
+      "description": "K\u00e4lla till regeln"
+    },
+    "confidence": {
+      "type": "number",
+      "default": 0,
+      "description": "Konfidens 0-1 baserat p\u00e5 datarenheten"
+    },
+    "sample_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Antal batcher som matchar m\u00f6nstret"
+    },
+    "sample_batch_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Exempelbatch-IDs"
+    },
+    "conflict_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Antal konflikterande batcher (annan leverant\u00f6r)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suggested",
+        "rejected",
+        "superseded"
+      ],
+      "default": "suggested",
+      "description": "Status p\u00e5 regeln"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Skapad av (email)"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Godk\u00e4nd av (email)"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Godk\u00e4nnandetidpunkt"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    }
+  },
+  "required": [
+    "pattern_type",
+    "pattern_value"
+  ]
+}

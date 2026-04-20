@@ -1,0 +1,77 @@
+{
+  "name": "ScanMatchAudit",
+  "type": "object",
+  "properties": {
+    "label_scan_id": {
+      "type": "string",
+      "description": "FK till LabelScan"
+    },
+    "identifiers_searched": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Alla identifierare (OCR + barcode-varianter + canonicals) som s\u00f6ktes"
+    },
+    "matches_found": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entity": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "matched_on": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Alla tr\u00e4ffar som hittades"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "auto_link",
+        "review_queue",
+        "no_match_prompt_create"
+      ],
+      "description": "Vilket beslut togs"
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Kombinerad confidence vid beslutet"
+    },
+    "pattern_rules_applied": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs p\u00e5 BatchPatternRules som matchade"
+    },
+    "supplier_inferred_from_rule": {
+      "type": "string",
+      "description": "Leverant\u00f6rsnamn infererat fr\u00e5n m\u00f6nsterregel"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_ms": {
+      "type": "number",
+      "description": "K\u00f6rtid f\u00f6r findExistingMatches i ms"
+    },
+    "actor": {
+      "type": "string",
+      "description": "Email p\u00e5 den som triggade scanningen"
+    }
+  },
+  "required": [
+    "label_scan_id"
+  ]
+}

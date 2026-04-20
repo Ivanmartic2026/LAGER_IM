@@ -79,6 +79,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: "BatchReanalyze", label: "Omanalysera", icon: RefreshCw },
     { name: "UsersManagement", label: "Användare", icon: Users },
     { name: "MigrationCenter", label: "Migration", icon: RefreshCw },
+    { name: "MatchReview", label: "Match Review", icon: CheckCircle2 },
   ];
 
   const visibleNavItems = NAV_ITEMS.filter(item => !item.module || userModules.includes(item.module));

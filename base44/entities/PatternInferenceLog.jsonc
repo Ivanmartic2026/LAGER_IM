@@ -1,0 +1,41 @@
+{
+  "name": "PatternInferenceLog",
+  "type": "object",
+  "properties": {
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Starttidpunkt"
+    },
+    "duration_ms": {
+      "type": "number",
+      "description": "K\u00f6rtid i millisekunder"
+    },
+    "samples_analyzed": {
+      "type": "number",
+      "description": "Antal batcher analyserade"
+    },
+    "patterns_found": {
+      "type": "number",
+      "description": "Antal m\u00f6nster som hittades"
+    },
+    "rules_created": {
+      "type": "number",
+      "description": "Antal nya regler skapade"
+    },
+    "rules_updated": {
+      "type": "number",
+      "description": "Antal regler uppdaterade"
+    },
+    "triggered_by": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "scheduled"
+      ],
+      "default": "manual",
+      "description": "Vad som triggade k\u00f6rningen"
+    }
+  },
+  "required": []
+}

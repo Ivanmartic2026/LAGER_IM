@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2, AlertTriangle, Activity, Package, Users, Image } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Activity, Package, Users, Image, GitBranch, Tag } from "lucide-react";
 import { format } from "date-fns";
 
 const statusColors = {
@@ -48,6 +48,12 @@ export default function BatchDetail() {
   const { data: activities = [] } = useQuery({
     queryKey: ['batch_activity', batchId],
     queryFn: () => base44.entities.BatchActivity.filter({ batch_id: batchId }, '-created_date', 50),
+    enabled: !!batchId
+  });
+
+  const { data: batchEvents = [] } = useQuery({
+    queryKey: ['batch_events', batchId],
+    queryFn: () => base44.entities.BatchEvent.filter({ batch_id: batchId }, '-timestamp', 50),
     enabled: !!batchId
   });
 
@@ -102,10 +108,23 @@ export default function BatchDetail() {
           </div>
         )}
 
+        {/* Aliases */}
+        {batch.aliases && batch.aliases.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 items-center">
+            <Tag className="w-3.5 h-3.5 text-white/30" />
+            {batch.aliases.map(a => (
+              <span key={a} className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white/50">{a}</span>
+            ))}
+          </div>
+        )}
+
         <Tabs defaultValue="scans">
-          <TabsList className="bg-white/5 border border-white/10">
+          <TabsList className="bg-white/5 border border-white/10 flex-wrap h-auto gap-1">
             <TabsTrigger value="scans" className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400">
               <Image className="w-4 h-4 mr-1.5" /> Etiketthistorik ({labelScans.length})
+            </TabsTrigger>
+            <TabsTrigger value="events" className="data-[state=active]:bg-signal/20 data-[state=active]:text-signal">
+              <GitBranch className="w-4 h-4 mr-1.5" /> Händelser ({batchEvents.length})
             </TabsTrigger>
             <TabsTrigger value="activity" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400">
               <Activity className="w-4 h-4 mr-1.5" /> Aktivitet ({activities.length})
@@ -150,6 +169,50 @@ export default function BatchDetail() {
                 </CardContent>
               </Card>
             ))}
+          </TabsContent>
+
+          <TabsContent value="events" className="mt-4">
+            {batchEvents.length === 0 ? (
+              <div className="text-center py-8 text-white/30">Inga BatchEvents ännu</div>
+            ) : (
+              <div className="relative pl-6">
+                <div className="absolute left-2 top-0 bottom-0 w-px bg-white/10" />
+                {batchEvents.map((ev, i) => {
+                  const iconMap = {
+                    created: '🟢', received: '📦', verified: '✅', rejected: '❌',
+                    quarantined: '🔴', alias_added: '🏷️', status_changed: '🔄',
+                    merged: '🔀', repaired: '🔧', deployed: '🚀', returned: '↩️',
+                    inspected: '🔍'
+                  };
+                  return (
+                    <div key={ev.id} className="relative mb-4">
+                      <div className="absolute -left-4 w-4 h-4 rounded-full bg-zinc-800 border border-white/20 flex items-center justify-center text-[9px]">
+                        {iconMap[ev.event_type] || '·'}
+                      </div>
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-white/80 text-xs font-brand uppercase tracking-wider">{ev.event_type?.replace(/_/g, ' ')}</span>
+                          <span className="text-white/30 text-[10px]">
+                            {ev.timestamp && format(new Date(ev.timestamp), 'yyyy-MM-dd HH:mm')}
+                          </span>
+                        </div>
+                        {(ev.from_status || ev.to_status) && (
+                          <p className="text-white/50 text-[10px] mb-1">
+                            {ev.from_status} → {ev.to_status}
+                          </p>
+                        )}
+                        {ev.payload && Object.keys(ev.payload).length > 0 && (
+                          <pre className="text-white/40 text-[10px] font-mono whitespace-pre-wrap bg-black/20 rounded p-2 mt-1 max-h-24 overflow-auto">
+                            {JSON.stringify(ev.payload, null, 2)}
+                          </pre>
+                        )}
+                        <p className="text-white/30 text-[10px] mt-1">{ev.actor}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="activity" className="mt-4 space-y-2">

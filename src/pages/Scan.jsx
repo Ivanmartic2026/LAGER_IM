@@ -23,6 +23,7 @@ import LinkToOrderModal from "@/components/scanner/LinkToOrderModal";
 import { RepairMatchStep, RepairLabelStep } from "@/components/scanner/RepairSteps";
 import SiteDocumentationFlow from "@/components/scan/SiteDocumentationFlow";
 import ImageZoomViewer from "@/components/scanner/ImageZoomViewer";
+import NoMatchDecisionModal from "@/components/scanner/NoMatchDecisionModal";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 
@@ -72,8 +73,28 @@ const MODE_OPTIONS = [
 ];
 
 export default function ScanPage() {
-  const [mode, setMode] = useState(null);
-  const [step, setStep] = useState("mode"); // mode, capture, barcode, review, success
+  // Läs kontext från query-sträng: /scan?context=purchase_receiving&ref=PO-123
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlContext = urlParams.get('context');
+  const urlRef = urlParams.get('ref');
+
+  const [mode, setMode] = useState(() => {
+    // Mappa context-param till mode
+    const ctxToMode = {
+      purchase_receiving: 'inbound',
+      repair_return: 'repair',
+      site_report: 'site_documentation',
+      production: 'inbound',
+      article_creation: 'inbound',
+      manual_scan: 'inbound'
+    };
+    return urlContext ? (ctxToMode[urlContext] || null) : null;
+  });
+  const [scanContext, setScanContext] = useState(urlContext || null);
+  const [scanContextRef, setScanContextRef] = useState(urlRef || null);
+  const [step, setStep] = useState(() => urlContext ? 'capture' : 'mode');
+  // Ingen match-modal state
+  const [noMatchData, setNoMatchData] = useState(null); // { extractedSummary, barcodeValues, imageUrl, labelScanId }
   const [barcodeResult, setBarcodeResult] = useState(null);
   const [searchingArticle, setSearchingArticle] = useState(false);
   const [imageFiles, setImageFiles] = useState([]);
@@ -98,6 +119,7 @@ export default function ScanPage() {
   const [isManualEntry, setIsManualEntry] = useState(false);
   const [showLinkToOrder, setShowLinkToOrder] = useState(false);
   const [pendingArticleForLink, setPendingArticleForLink] = useState(null);
+  const [scanAndProcessResult, setScanAndProcessResult] = useState(null);
 
 
   const levenshteinDistance = (str1, str2) => {
@@ -149,6 +171,16 @@ export default function ScanPage() {
   };
 
   const handleModeSelect = (selectedMode) => {
+    // Synka kontext med valt mode
+    const modeToContext = {
+      inbound: 'article_creation',
+      inventory: 'manual_scan',
+      repair: 'repair_return',
+      site_documentation: 'site_report',
+      pending_verification: 'article_creation',
+      unknown: 'manual_scan'
+    };
+    if (!scanContext) setScanContext(modeToContext[selectedMode] || 'manual_scan');
     setMode(selectedMode);
     if (selectedMode === "barcode") {
       setStep("barcode");
@@ -231,6 +263,53 @@ export default function ScanPage() {
       }
       setImageUrls(urls);
       setProgress(100);
+
+      // ── scanAndProcess-flöde för inbound / inventory / kontext från URL ──
+      if (mode === "inbound" || mode === "inventory" || scanContext) {
+        const resolvedContext = scanContext || (mode === 'inbound' ? 'article_creation' : 'manual_scan');
+        try {
+          const scanResp = await base44.functions.invoke('scanAndProcess', {
+            image_urls: urls,
+            context: resolvedContext,
+            context_reference_id: scanContextRef || undefined
+          });
+          const result = scanResp.data;
+          setScanAndProcessResult(result);
+
+          if (result.needs_user_decision) {
+            // Ingen match — visa modal
+            setNoMatchData({
+              extractedSummary: result.extracted_summary || {},
+              barcodeValues: result.barcode_values || [],
+              imageUrl: result.image_url || urls[0],
+              labelScanId: result.label_scan_id
+            });
+            setIsProcessing(false);
+            setProgress(0);
+            return;
+          }
+
+          if (result.needs_review) {
+            toast.info('Ärendet skickades till granskning (confidence < 90%)');
+            setIsProcessing(false);
+            setProgress(0);
+            setStep('success');
+            return;
+          }
+
+          if (result.batch_id || result.article_id) {
+            // Auto-länkat med hög confidence
+            toast.success('Match hittad och länkad automatiskt');
+            setIsProcessing(false);
+            setProgress(0);
+            setStep('success');
+            return;
+          }
+        } catch (scanErr) {
+          console.log('scanAndProcess failed, falling back to local analysis:', scanErr.message);
+          // Fallback till lokalt flöde nedan
+        }
+      }
 
       // For pending_verification mode: show form immediately, run Kimi in background
       if (mode === "pending_verification") {
@@ -939,8 +1018,43 @@ Returnera som strukturerad JSON med denna format:
     setStep("review");
   };
 
+  const handleNoMatchDecision = async (decision, extra) => {
+    setNoMatchData(null);
+    if (!noMatchData) return;
+    setIsSaving(true);
+    try {
+      const payload = {
+        image_urls: imageUrls,
+        context: scanContext || 'manual_scan',
+        context_reference_id: scanContextRef || undefined,
+        user_decision: decision,
+        user_selected_article_id: extra?.article_id,
+        article_data: extra?.article_data
+      };
+      const resp = await base44.functions.invoke('scanAndProcess', payload);
+      const result = resp.data;
+      if (result.success) {
+        const msg = decision === 'manual_review'
+          ? 'Sparad för manuell granskning'
+          : decision === 'new_article_and_batch'
+          ? 'Ny artikel och batch skapade'
+          : 'Ny batch kopplad till artikel';
+        toast.success(msg);
+        setStep('success');
+      }
+    } catch (e) {
+      toast.error(`Kunde inte slutföra: ${e.message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleReset = () => {
     setMode(null);
+    setScanContext(null);
+    setScanContextRef(null);
+    setNoMatchData(null);
+    setScanAndProcessResult(null);
     setStep("mode");
     setImageFiles([]);
     setImageUrls([]);
@@ -1804,6 +1918,19 @@ För varje fält ge confidence (0-1):
                   toast.error('Kunde inte analysera området');
                 }
               }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* No Match Decision Modal */}
+        <AnimatePresence>
+          {noMatchData && (
+            <NoMatchDecisionModal
+              imageUrl={noMatchData.imageUrl}
+              extractedSummary={noMatchData.extractedSummary}
+              barcodeValues={noMatchData.barcodeValues}
+              onDecision={handleNoMatchDecision}
+              onClose={() => { setNoMatchData(null); setStep('capture'); }}
             />
           )}
         </AnimatePresence>
