@@ -43,6 +43,7 @@ import HomeTekniker from '@/pages/HomeTekniker';
 import HomeIvan from '@/pages/HomeIvan';
 import UsersManagement from '@/pages/UsersManagement';
 import MigrationCenter from '@/pages/MigrationCenter';
+import PatternRules from '@/pages/PatternRules';
 import MatchReview from '@/pages/MatchReview';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -245,12 +246,6 @@ function App() {
             <Route path="/MigrationCenter" element={
               <LayoutWrapper currentPageName="Admin">
                 <MigrationCenter />
-              </LayoutWrapper>
-            } />
-            {/* Match Review */}
-            <Route path="/MatchReview" element={
-              <LayoutWrapper currentPageName="Admin">
-                <MatchReview />
               </LayoutWrapper>
             } />
             {/* Print views - public, no layout */}
