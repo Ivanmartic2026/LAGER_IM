@@ -237,11 +237,16 @@ export default function ScanPage() {
       const resolvedContext = scanContext || (mode === 'inbound' ? 'article_creation' : 'manual_scan');
 
       try {
-        const scanResp = await base44.functions.invoke('mobileScan', {
+        // 30s timeout — never hang forever
+        const scanPromise = base44.functions.invoke('mobileScan', {
           image_urls: urls,
           context: resolvedContext,
           context_reference_id: scanContextRef || undefined
         });
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 30000)
+        );
+        const scanResp = await Promise.race([scanPromise, timeoutPromise]);
         const result = scanResp.data;
         setScanAndProcessResult(result);
         setProgress(100);
@@ -252,12 +257,26 @@ export default function ScanPage() {
           allMatches: result.all_matches || [],
           imageUrl: result.image_url || urls[0],
           labelScanId: result.label_scan_id,
-          extractedSummary: result.extracted_summary || {}
+          extractedSummary: result.extracted_summary || {},
+          kimiError: result.kimi_error || null
         });
         setStep('mobile_result');
         return;
       } catch (scanErr) {
-        console.log('mobileScan failed, falling back:', scanErr.message);
+        console.warn('mobileScan failed, showing empty result:', scanErr.message);
+        // Never block — show empty result so user can retry or create new
+        setIsProcessing(false);
+        setProgress(0);
+        setMobileScanResult({
+          allNumbers: [],
+          allMatches: [],
+          imageUrl: urls[0],
+          labelScanId: null,
+          extractedSummary: {},
+          kimiError: scanErr.message
+        });
+        setStep('mobile_result');
+        return;
       }
 
       // ── Fallback: pending_verification ──
@@ -666,13 +685,20 @@ export default function ScanPage() {
                   setMobileScanResult(null);
                   setStep('success');
                 }}
-                onCreateNew={(type, prefill) => {
-                  // Pre-fill extracted data and go to manual entry
+                onCreateNew={async (type, prefill) => {
                   const firstNumber = prefill.allNumbers?.[0] || '';
                   setExtractedData({ batch_number: firstNumber, name: '' });
                   setIsManualEntry(true);
                   setMobileScanResult(null);
                   setStep('review');
+                  // Push: no match found, user chose to create new
+                  base44.functions.invoke('sendPushToUser', {
+                    user_email: (await base44.auth.me().catch(() => null))?.email,
+                    title: '➕ Skapar ny ' + (type === 'batch' ? 'batch' : 'artikel'),
+                    message: firstNumber ? `Nummer: ${firstNumber}` : 'Ingen match hittad i systemet',
+                    link_page: 'Inventory',
+                    type: 'scan_result'
+                  }).catch(() => {});
                 }}
                 onRetake={() => {
                   setMobileScanResult(null);

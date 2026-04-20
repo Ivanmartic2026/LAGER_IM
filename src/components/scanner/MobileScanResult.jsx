@@ -19,6 +19,7 @@ export default function MobileScanResult({
   allNumbers,
   allMatches,
   labelScanId,
+  kimiError,
   onConfirmMatch,   // (match) => void
   onCreateNew,      // (type: 'article'|'batch', prefill) => void
   onRetake          // () => void
@@ -41,6 +42,13 @@ export default function MobileScanResult({
       {imageUrl && (
         <div className="rounded-xl overflow-hidden bg-slate-900 border border-slate-700">
           <img src={imageUrl} alt="Skannad bild" className="w-full h-36 object-contain" />
+        </div>
+      )}
+
+      {kimiError && (
+        <div className="p-3 bg-amber-900/30 rounded-xl border border-amber-500/30 flex items-center gap-2">
+          <span className="text-amber-400 text-sm">⚠️</span>
+          <p className="text-xs text-amber-300">AI-analys misslyckades — visar barcode-resultat om tillgängligt</p>
         </div>
       )}
 

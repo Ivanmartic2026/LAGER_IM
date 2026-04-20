@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -12,26 +12,41 @@ Deno.serve(async (req) => {
     const { subscription, action } = await req.json();
 
     if (action === 'subscribe') {
-      // Save push subscription
-      const existing = await base44.entities.PushSubscription.filter({
+      const endpoint = subscription.endpoint;
+      const p256dh = subscription.keys?.p256dh || subscription.getKey?.('p256dh');
+      const auth = subscription.keys?.auth || subscription.getKey?.('auth');
+
+      const existing = await base44.asServiceRole.entities.PushSubscription.filter({
         user_email: user.email,
-        endpoint: subscription.endpoint
+        endpoint
       }).catch(() => []);
 
       if (existing.length > 0) {
-        await base44.entities.PushSubscription.update(existing[0].id, {
-          keys: subscription.keys,
-          user_agent: navigator?.userAgent || 'unknown',
+        await base44.asServiceRole.entities.PushSubscription.update(existing[0].id, {
+          key_p256dh: p256dh || '',
+          key_auth: auth || '',
           is_active: true
         });
       } else {
-        await base44.entities.PushSubscription.create({
+        await base44.asServiceRole.entities.PushSubscription.create({
           user_email: user.email,
-          endpoint: subscription.endpoint,
-          keys: subscription.keys,
-          user_agent: navigator?.userAgent || 'unknown',
+          endpoint: endpoint || '',
+          key_p256dh: p256dh || '',
+          key_auth: auth || '',
           is_active: true
         });
+      }
+
+      return Response.json({ success: true });
+    }
+
+    if (action === 'unsubscribe') {
+      const existing = await base44.asServiceRole.entities.PushSubscription.filter({
+        user_email: user.email,
+        endpoint: subscription.endpoint
+      }).catch(() => []);
+      if (existing.length > 0) {
+        await base44.asServiceRole.entities.PushSubscription.update(existing[0].id, { is_active: false });
       }
       return Response.json({ success: true });
     }
