@@ -161,16 +161,83 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── 9. Ambiguous candidates → review queue ──
+    // ── 9. Ambiguous candidates → filter + auto-link check ──
     if (matches.length > 0) {
-      const candidateBatchIds = matches.filter(m => m.entity === 'Batch').map(m => m.id);
-      const candidateArticleIds = matches.filter(m => m.entity === 'Article').map(m => m.id);
+      // Filter: drop candidates below 0.50 confidence
+      const qualifiedMatches = matches.filter(m => m.confidence >= 0.50);
+
+      // Check for single high-confidence candidate (≥ 0.88) → auto-link
+      const highConfBatch = qualifiedMatches
+        .filter(m => m.entity === 'Batch' && m.confidence >= 0.88)
+        .sort((a, b) => b.confidence - a.confidence)[0];
+
+      if (highConfBatch) {
+        const batchId = highConfBatch.id;
+        const articleMatch = qualifiedMatches.find(m => m.entity === 'Article');
+        const articleId = articleMatch?.id || null;
+
+        // Write audit entry as auto-approved
+        await base44.asServiceRole.entities.MatchReviewQueue.create({
+          label_scan_id: labelScan.id,
+          candidate_batch_ids: [batchId],
+          candidate_article_ids: articleId ? [articleId] : [],
+          confidence_scores: { [batchId]: highConfBatch.confidence },
+          extracted_summary: extracted,
+          image_url: firstUrl,
+          context,
+          context_reference_id,
+          suggested_action: 'link_existing_batch',
+          reason: 'ambiguous_match',
+          status: 'approved',
+          approved_batch_id: batchId,
+          approved_article_id: articleId,
+          reviewed_by: 'system:auto-link',
+          reviewed_at: new Date().toISOString(),
+          review_notes: `Auto-linked: single candidate with confidence ${highConfBatch.confidence}`
+        });
+
+        await base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
+          batch_id: batchId,
+          status: 'completed',
+          match_results: {
+            article_match_id: articleId,
+            article_match_confidence: articleMatch?.confidence || null,
+            batch_match_id: batchId,
+            batch_match_confidence: highConfBatch.confidence,
+            batch_match_method: highConfBatch.matched_on || 'auto_link',
+            review_queued: false
+          }
+        });
+
+        await doContextLinking(base44, { context, context_reference_id, batchId, labelScanId: labelScan.id });
+
+        return Response.json({
+          success: true,
+          batch_id: batchId,
+          article_id: articleId,
+          label_scan_id: labelScan.id,
+          match_type: 'auto_link',
+          confidence: highConfBatch.confidence
+        });
+      }
+
+      // Multiple/low-confidence candidates → send to review queue (top 3 only)
+      const topBatchIds = qualifiedMatches
+        .filter(m => m.entity === 'Batch')
+        .sort((a, b) => b.confidence - a.confidence)
+        .slice(0, 3)
+        .map(m => m.id);
+      const topArticleIds = qualifiedMatches
+        .filter(m => m.entity === 'Article')
+        .sort((a, b) => b.confidence - a.confidence)
+        .slice(0, 3)
+        .map(m => m.id);
 
       const reviewEntry = await base44.asServiceRole.entities.MatchReviewQueue.create({
         label_scan_id: labelScan.id,
-        candidate_batch_ids: candidateBatchIds,
-        candidate_article_ids: candidateArticleIds,
-        confidence_scores: Object.fromEntries(matches.map(m => [m.id, m.confidence])),
+        candidate_batch_ids: topBatchIds,
+        candidate_article_ids: topArticleIds,
+        confidence_scores: Object.fromEntries(qualifiedMatches.map(m => [m.id, m.confidence])),
         extracted_summary: extracted,
         image_url: firstUrl,
         context,

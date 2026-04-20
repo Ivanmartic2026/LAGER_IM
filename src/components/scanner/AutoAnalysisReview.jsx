@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
 import {
-  CheckCircle2, AlertCircle, Edit3, X, Sparkles, Search, Package, Loader2
+  CheckCircle2, AlertCircle, Edit3, X, Sparkles, Package, Loader2, ChevronDown, ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,8 +24,8 @@ export default function AutoAnalysisReview({
   const [matchingArticles, setMatchingArticles] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [showAlternatives, setShowAlternatives] = useState(false);
 
-  // Search for matching articles whenever batch number changes
   useEffect(() => {
     setBatchValue(extractedData.batch_number || '');
   }, [extractedData.batch_number]);
@@ -35,11 +35,7 @@ export default function AutoAnalysisReview({
     setIsSearching(true);
     setHasSearched(false);
     try {
-      // Search by batch number
       const byBatch = await base44.entities.Article.filter({ batch_number: batchNum });
-      
-      // Also do fuzzy match via full list if exact match fails
-      // Only do fuzzy if batchNum is at least 6 characters to avoid false positives
       let allMatches = [...byBatch];
       if (byBatch.length === 0 && batchNum.length >= 6) {
         const allArticles = await base44.entities.Article.list();
@@ -47,15 +43,12 @@ export default function AutoAnalysisReview({
           if (!a.batch_number || a.batch_number.length < 4) return false;
           const a1 = a.batch_number.toUpperCase().replace(/\s+/g, '');
           const a2 = batchNum.toUpperCase().replace(/\s+/g, '');
-          // Require meaningful overlap: at least 6 chars must match and the match must be >50% of the shorter string
           const minLen = Math.min(a1.length, a2.length);
           if (minLen < 6) return false;
-          const overlap = a1.includes(a2) || a2.includes(a1);
-          return overlap && minLen >= 6;
+          return (a1.includes(a2) || a2.includes(a1));
         });
         allMatches = fuzzy;
       }
-
       setMatchingArticles(allMatches);
     } catch (e) {
       console.error('Match search failed:', e);
@@ -72,177 +65,201 @@ export default function AutoAnalysisReview({
   };
 
   const batchConfidence = confidences?.batch_number || 0;
+  const articleName = extractedData.article_name || extractedData.name || null;
+  const batchNumber = extractedData.batch_number || null;
+  const supplierName = extractedData.supplier_name || null;
+
+  // Filtered secondary fields — exclude other_text and already-shown primary fields
+  const secondaryFields = Object.entries(extractedData).filter(([k, v]) => 
+    v && 
+    k !== 'batch_number' && 
+    k !== 'article_name' && 
+    k !== 'name' &&
+    k !== 'other_text' && 
+    k !== 'barcode_values' &&
+    k !== 'ocr_regions' &&
+    k !== 'image_urls' &&
+    k !== 'date'
+  );
+
+  // Auto-trigger search on mount
+  useEffect(() => {
+    if (extractedData.batch_number && !hasSearched && !isSearching) {
+      const timer = setTimeout(() => searchForMatches(extractedData.batch_number), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [extractedData.batch_number]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="space-y-6"
+      className="space-y-4"
     >
       {/* Bild */}
       {imageUrl && (
         <div className="rounded-xl overflow-hidden bg-slate-900 border border-slate-700">
-          <img
-            src={imageUrl}
-            alt="Skannad bild"
-            className="w-full h-48 object-contain"
-          />
+          <img src={imageUrl} alt="Skannad bild" className="w-full h-40 object-contain" />
         </div>
       )}
 
-      {/* AI Status */}
-      <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-start gap-3">
-        <Sparkles className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <p className="text-blue-300 font-medium mb-1">AI-analys genomförd</p>
-          <p className="text-sm text-blue-200">
-            Batchnummer extraherat — granska och bekräfta nedan
-          </p>
-        </div>
-      </div>
-
-      {/* Batchnummer - redigerbart */}
+      {/* PRIMARY ROW — stor och tydlig */}
       <div className={cn(
-        "p-4 rounded-xl border",
-        batchConfidence >= 0.9 ? "bg-emerald-500/10 border-emerald-500/30" :
-        batchConfidence >= 0.7 ? "bg-amber-500/10 border-amber-500/30" :
-        "bg-red-500/10 border-red-500/40"
+        "p-5 rounded-2xl border-2",
+        batchConfidence >= 0.88 ? "bg-emerald-500/10 border-emerald-500/40" :
+        batchConfidence >= 0.70 ? "bg-amber-500/10 border-amber-500/30" :
+        "bg-slate-800/60 border-slate-600"
       )}>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">📦</span>
-            <span className="font-semibold text-white">Batchnummer</span>
+        {isSearching ? (
+          <div className="flex items-center gap-3">
+            <Loader2 className="w-5 h-5 text-blue-400 animate-spin flex-shrink-0" />
+            <p className="text-slate-300 text-sm">Söker i lagret...</p>
           </div>
-          <div className="flex items-center gap-2">
-            {batchConfidence > 0 && (
-              <Badge className={cn(
-                "text-xs",
-                batchConfidence >= 0.9 ? "bg-emerald-500/20 text-emerald-400" :
-                batchConfidence >= 0.7 ? "bg-amber-500/20 text-amber-400" :
-                "bg-red-500/20 text-red-400"
-              )}>
-                {Math.round(batchConfidence * 100)}% säkerhet
-              </Badge>
+        ) : hasSearched && matchingArticles.length > 0 ? (
+          /* Known article — show primary match */
+          <div className="flex items-start gap-4">
+            {matchingArticles[0].image_urls?.[0] && (
+              <img
+                src={matchingArticles[0].image_urls[0]}
+                alt={matchingArticles[0].name}
+                className="w-14 h-14 rounded-lg object-cover bg-slate-900 flex-shrink-0"
+              />
             )}
-            {!editingBatch && (
-              <button
-                onClick={() => setEditingBatch(true)}
-                className="text-blue-400 hover:text-blue-300 p-1"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {editingBatch ? (
-          <div className="space-y-2">
-            <Input
-              value={batchValue}
-              onChange={(e) => setBatchValue(e.target.value)}
-              className="bg-white/5 border-white/10 text-white font-mono"
-              autoFocus
-              onKeyDown={(e) => e.key === 'Enter' && saveBatch()}
-            />
-            <div className="flex gap-2">
-              <Button size="sm" onClick={saveBatch} className="flex-1 bg-emerald-600 hover:bg-emerald-500 h-8">
-                Spara & sök matchningar
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setEditingBatch(false)} className="bg-white/5 border-white/10 h-8">
-                Avbryt
-              </Button>
+            <div className="flex-1 min-w-0">
+              <p className="text-lg font-bold text-white leading-tight truncate">
+                Det här är {matchingArticles[0].name}
+              </p>
+              {batchNumber && (
+                <p className="text-sm text-slate-400 mt-0.5 font-mono">
+                  Batch: <span className="text-white">{batchNumber}</span>
+                </p>
+              )}
+              <div className="flex items-center gap-2 mt-1">
+                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs">
+                  I lager: {matchingArticles[0].stock_qty || 0} st
+                </Badge>
+                {matchingArticles[0].shelf_address && (
+                  <Badge className="bg-slate-700 text-slate-300 text-xs border-0">
+                    📍 {Array.isArray(matchingArticles[0].shelf_address) ? matchingArticles[0].shelf_address[0] : matchingArticles[0].shelf_address}
+                  </Badge>
+                )}
+                {batchConfidence > 0 && (
+                  <Badge className={cn("text-xs",
+                    batchConfidence >= 0.88 ? "bg-emerald-500/20 text-emerald-400" :
+                    "bg-amber-500/20 text-amber-400"
+                  )}>
+                    {Math.round(batchConfidence * 100)}%
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between">
-            <span className="text-white font-mono text-lg">
-              {extractedData.batch_number || <span className="text-slate-500 italic text-sm">Inget batchnummer hittat</span>}
-            </span>
-            {extractedData.batch_number && !hasSearched && (
-              <Button
-                size="sm"
-                onClick={() => searchForMatches(extractedData.batch_number)}
-                className="bg-blue-600/20 border border-blue-500/30 hover:bg-blue-600/30 text-blue-300 h-8 text-xs"
-              >
-                <Search className="w-3 h-3 mr-1" />
-                Sök matchningar
-              </Button>
+          /* No match found — show extracted data */
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📦</span>
+                <span className="font-semibold text-white">Batchnummer</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {batchConfidence > 0 && (
+                  <Badge className={cn("text-xs",
+                    batchConfidence >= 0.88 ? "bg-emerald-500/20 text-emerald-400" :
+                    batchConfidence >= 0.70 ? "bg-amber-500/20 text-amber-400" :
+                    "bg-red-500/20 text-red-400"
+                  )}>
+                    {Math.round(batchConfidence * 100)}%
+                  </Badge>
+                )}
+                {!editingBatch && (
+                  <button onClick={() => setEditingBatch(true)} className="text-blue-400 hover:text-blue-300 p-1">
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+            {editingBatch ? (
+              <div className="space-y-2">
+                <Input
+                  value={batchValue}
+                  onChange={(e) => setBatchValue(e.target.value)}
+                  className="bg-white/5 border-white/10 text-white font-mono"
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && saveBatch()}
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveBatch} className="flex-1 bg-emerald-600 hover:bg-emerald-500 h-8">Spara</Button>
+                  <Button size="sm" variant="outline" onClick={() => setEditingBatch(false)} className="bg-white/5 border-white/10 h-8">Avbryt</Button>
+                </div>
+              </div>
+            ) : (
+              <span className="text-white font-mono text-lg">
+                {batchNumber || <span className="text-slate-500 italic text-sm">Inget batchnummer hittat</span>}
+              </span>
+            )}
+            {articleName && (
+              <p className="text-sm text-slate-400 mt-1">{articleName}{supplierName && ` · ${supplierName}`}</p>
+            )}
+            {hasSearched && matchingArticles.length === 0 && (
+              <p className="text-xs text-amber-300 mt-2">⚠ Inte funnen i lagret — ny artikel</p>
             )}
           </div>
         )}
       </div>
 
-      {/* Matchningssökning */}
-      {isSearching && (
-        <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700 flex items-center gap-3">
-          <Loader2 className="w-5 h-5 text-blue-400 animate-spin flex-shrink-0" />
-          <p className="text-slate-300 text-sm">Söker efter matchande artiklar i lagret...</p>
-        </div>
+      {/* ALTERNATIV — collapsed by default */}
+      {(secondaryFields.length > 0 || (hasSearched && matchingArticles.length > 1)) && (
+        <button
+          onClick={() => setShowAlternatives(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 text-sm transition-all"
+        >
+          <span>
+            Visa alternativ
+            {matchingArticles.length > 1 && ` (${matchingArticles.length} matchningar)`}
+          </span>
+          {showAlternatives ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
       )}
 
-      {/* Matchningsresultat */}
-      {hasSearched && !isSearching && (
-        <div className="space-y-3">
-          <h3 className="font-semibold text-white flex items-center gap-2">
-            {matchingArticles.length > 0 ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-amber-400" />
-            )}
-            {matchingArticles.length > 0
-              ? `${matchingArticles.length} matchande artikel${matchingArticles.length > 1 ? 'ar' : ''} hittad${matchingArticles.length > 1 ? 'e' : ''}`
-              : 'Inga matchande artiklar hittade'}
-          </h3>
-
-          {matchingArticles.length > 0 ? (
-            <div className="space-y-2">
-              {matchingArticles.slice(0, 3).map(article => (
-                <div key={article.id} className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
-                  <div className="flex items-start gap-3">
-                    {article.image_urls?.[0] && (
-                      <img
-                        src={article.image_urls[0]}
-                        alt={article.name}
-                        className="w-14 h-14 rounded-lg object-cover bg-slate-900 flex-shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-white truncate">{article.name}</p>
-                      <div className="mt-1 space-y-0.5 text-xs text-slate-400">
-                        <p>Batch: <span className="text-white font-mono">{article.batch_number}</span></p>
-                        {article.manufacturer && <p>Tillverkare: <span className="text-white">{article.manufacturer}</span></p>}
-                        {article.category && <p>Kategori: <span className="text-white">{article.category}</span></p>}
-                        <p>Lagersaldo: <span className="text-white font-semibold">{article.stock_qty || 0} st</span></p>
-                        {article.shelf_address?.length > 0 && (
-                          <p>Hyllplats: <span className="text-white">{Array.isArray(article.shelf_address) ? article.shelf_address.join(', ') : article.shelf_address}</span></p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+      <AnimatePresence>
+        {showAlternatives && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden space-y-3"
+          >
+            {/* Other match candidates */}
+            {matchingArticles.slice(1, 3).map(article => (
+              <div key={article.id} className="p-3 rounded-xl bg-slate-800/50 border border-slate-700 flex items-center gap-3">
+                {article.image_urls?.[0] && (
+                  <img src={article.image_urls[0]} alt={article.name} className="w-10 h-10 rounded-lg object-cover bg-slate-900 flex-shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{article.name}</p>
+                  <p className="text-xs text-slate-400 font-mono">{article.batch_number}</p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
-              <p className="text-amber-300 text-sm">
-                Ingen artikel med detta batchnummer finns i lagret. Du kan fortsätta för att skapa en ny eller fylla i fler uppgifter manuellt.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+                <span className="text-xs text-slate-400">{article.stock_qty || 0} st</span>
+              </div>
+            ))}
 
-      {/* Auto-sök när komponenten mountas */}
-      {extractedData.batch_number && !hasSearched && !isSearching && (
-        <div className="hidden">
-          {/* Auto-trigger search */}
-          {(() => { 
-            setTimeout(() => searchForMatches(extractedData.batch_number), 300); 
-            return null; 
-          })()}
-        </div>
-      )}
+            {/* Secondary extracted fields — no other_text */}
+            {secondaryFields.length > 0 && (
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
+                <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Extraherade fält</p>
+                {secondaryFields.map(([key, value]) => (
+                  <div key={key} className="flex justify-between text-sm">
+                    <span className="text-slate-400 capitalize">{key.replace(/_/g, ' ')}</span>
+                    <span className="text-white font-mono text-xs truncate max-w-[60%] text-right">{String(value)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Åtgärder */}
       <div className="space-y-3 pt-2">
@@ -251,7 +268,7 @@ export default function AutoAnalysisReview({
             onClick={onReject}
             disabled={isLoading}
             variant="outline"
-            className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-white h-11"
+            className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-white h-12"
           >
             <X className="w-4 h-4 mr-2" />
             Ta nytt foto
@@ -259,7 +276,7 @@ export default function AutoAnalysisReview({
           <Button
             onClick={onAccept}
             disabled={isLoading}
-            className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white h-11"
+            className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white h-12 text-base font-semibold"
           >
             {isLoading ? (
               <>
@@ -268,8 +285,8 @@ export default function AutoAnalysisReview({
               </>
             ) : (
               <>
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                Godkänn & spara
+                <CheckCircle2 className="w-5 h-5 mr-2" />
+                Bekräfta
               </>
             )}
           </Button>
