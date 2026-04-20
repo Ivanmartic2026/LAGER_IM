@@ -156,26 +156,50 @@ Deno.serve(async (req) => {
       ? "Analysera denna etikett noggrant. Prioritera barkod/Data Matrix-värden framför OCR för batch_number och article_sku. Skilj tydligt på batch_number, article_sku och serienummer. Returnera JSON enligt angiven struktur."
       : "Extrahera batch-info från denna etikett som JSON med fälten: batch_number, article_sku, article_name, supplier_name, manufacturing_date, expiry_date, production_date, quantity, series, pixel_pitch, other_text[]. För varje fält även confidence 0-1. Lägg även overall_confidence 0-1.";
 
+    // Kimi requires base64 data URIs — fetch and encode the image
+    let imageContent;
+    try {
+      const imgResp = await fetch(image_url);
+      if (!imgResp.ok) throw new Error(`Image fetch failed: ${imgResp.status}`);
+      const contentType = imgResp.headers.get('content-type') || 'image/jpeg';
+      const imgBuffer = await imgResp.arrayBuffer();
+      // Safe base64 encoding for large images
+      const bytes = new Uint8Array(imgBuffer);
+      let binary = '';
+      const chunkSize = 8192;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      const base64 = btoa(binary);
+      const dataUri = `data:${contentType};base64,${base64}`;
+      imageContent = { type: "image_url", image_url: { url: dataUri } };
+    } catch (fetchImgErr) {
+      await base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
+        status: 'failed',
+        error_message: `Image fetch error: ${fetchImgErr.message}`
+      });
+      return Response.json({ error: `Could not fetch image: ${fetchImgErr.message}` }, { status: 400 });
+    }
+
     const kimiPayload = {
       model: config.model_name,
       temperature: 1,
       max_tokens: 2048,
       response_format: { type: "json_object" },
-      chat_template_kwargs: { thinking: config.thinking_mode || false },
       messages: [
         { role: "system", content: activePrompt },
         {
           role: "user",
           content: [
             { type: "text", text: userText },
-            { type: "image_url", image_url: { url: image_url } }
+            imageContent
           ]
         }
       ]
     };
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), config.timeout_ms || 30000);
+    const timeoutId = setTimeout(() => controller.abort(), config.timeout_ms || 90000);
 
     let kimiData;
     try {
