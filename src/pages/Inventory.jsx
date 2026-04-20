@@ -66,8 +66,9 @@ export default function InventoryPage() {
     try {
       const stored = localStorage.getItem('inventory_state');
       const parsed = stored ? JSON.parse(stored) : {};
-      // Never restore on_purchase_order filter from cache - it causes empty lists
-      if (parsed.statusFilter === 'on_purchase_order') parsed.statusFilter = 'all';
+      // Only restore safe status filters from cache
+      const safeFilters = ['all', 'active', 'low_stock', 'out_of_stock'];
+      if (!safeFilters.includes(parsed.statusFilter)) parsed.statusFilter = 'all';
       return parsed;
     } catch {
       return {};
