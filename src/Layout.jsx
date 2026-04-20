@@ -1,7 +1,7 @@
 import React, { useEffect, useState as useReactState } from 'react';
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck, Clipboard, BarChart2, Layers, Users, Clock, Car, Scan, CheckCircle2, RefreshCw, Lightbulb, GitMerge } from "lucide-react";
+import { Home, Camera, Package, Menu, X, MapPin, Activity, FileText, ShoppingCart, PackageSearch, ClipboardList, Truck, Clipboard, BarChart2, Layers, Users, Clock, Car, Scan, CheckCircle2, RefreshCw, Lightbulb, GitMerge, Search, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
@@ -16,7 +16,6 @@ import { LanguageProvider } from "@/components/language/LanguageProvider";
 import LanguageToggle from "@/components/language/LanguageToggle";
 import { useLanguage } from "@/components/language/LanguageProvider";
 import { t, tOrderStatus, tStage, tWorkOrderStatus, tPriority } from "@/components/language/translations";
-import { ArrowLeft } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ErrorBoundary from "@/components/utils/ErrorBoundary";
@@ -79,6 +78,8 @@ function LayoutContent({ children, currentPageName }) {
     { name: "BatchReanalyze", label: "Omanalysera", icon: RefreshCw },
     { name: "UsersManagement", label: "Användare", icon: Users },
     { name: "MigrationCenter", label: "Migration", icon: RefreshCw },
+    { name: "MatchReview", label: "Match Review", icon: Search },
+    { name: "PatternRules", label: "Mönster", icon: GitMerge },
   ];
 
   const visibleNavItems = NAV_ITEMS.filter(item => !item.module || userModules.includes(item.module));

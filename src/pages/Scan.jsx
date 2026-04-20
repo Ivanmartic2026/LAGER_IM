@@ -171,16 +171,6 @@ export default function ScanPage() {
   };
 
   const handleModeSelect = (selectedMode) => {
-    // Synka kontext med valt mode
-    const modeToContext = {
-      inbound: 'article_creation',
-      inventory: 'manual_scan',
-      repair: 'repair_return',
-      site_documentation: 'site_report',
-      pending_verification: 'article_creation',
-      unknown: 'manual_scan'
-    };
-    if (!scanContext) setScanContext(modeToContext[selectedMode] || 'manual_scan');
     setMode(selectedMode);
     if (selectedMode === "barcode") {
       setStep("barcode");
@@ -1018,43 +1008,8 @@ Returnera som strukturerad JSON med denna format:
     setStep("review");
   };
 
-  const handleNoMatchDecision = async (decision, extra) => {
-    setNoMatchData(null);
-    if (!noMatchData) return;
-    setIsSaving(true);
-    try {
-      const payload = {
-        image_urls: imageUrls,
-        context: scanContext || 'manual_scan',
-        context_reference_id: scanContextRef || undefined,
-        user_decision: decision,
-        user_selected_article_id: extra?.article_id,
-        article_data: extra?.article_data
-      };
-      const resp = await base44.functions.invoke('scanAndProcess', payload);
-      const result = resp.data;
-      if (result.success) {
-        const msg = decision === 'manual_review'
-          ? 'Sparad för manuell granskning'
-          : decision === 'new_article_and_batch'
-          ? 'Ny artikel och batch skapade'
-          : 'Ny batch kopplad till artikel';
-        toast.success(msg);
-        setStep('success');
-      }
-    } catch (e) {
-      toast.error(`Kunde inte slutföra: ${e.message}`);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   const handleReset = () => {
     setMode(null);
-    setScanContext(null);
-    setScanContextRef(null);
-    setNoMatchData(null);
-    setScanAndProcessResult(null);
     setStep("mode");
     setImageFiles([]);
     setImageUrls([]);
@@ -1922,15 +1877,26 @@ För varje fält ge confidence (0-1):
           )}
         </AnimatePresence>
 
-        {/* No Match Decision Modal */}
+        {/* No-Match Decision Modal */}
         <AnimatePresence>
           {noMatchData && (
             <NoMatchDecisionModal
-              imageUrl={noMatchData.imageUrl}
               extractedSummary={noMatchData.extractedSummary}
               barcodeValues={noMatchData.barcodeValues}
-              onDecision={handleNoMatchDecision}
-              onClose={() => { setNoMatchData(null); setStep('capture'); }}
+              imageUrl={noMatchData.imageUrl}
+              labelScanId={noMatchData.labelScanId}
+              patternSuggestion={scanAndProcessResult?.pattern_suggestion}
+              onCreated={(result) => {
+                setNoMatchData(null);
+                setSavedArticle(result?.article || null);
+                setStep('success');
+                toast.success('Artikel och batch skapade!');
+              }}
+              onCancel={() => {
+                setNoMatchData(null);
+                toast.info('Scanningen sparades som manuell granskning');
+                setStep('mode');
+              }}
             />
           )}
         </AnimatePresence>

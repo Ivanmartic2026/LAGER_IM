@@ -248,6 +248,18 @@ function App() {
                 <MigrationCenter />
               </LayoutWrapper>
             } />
+            {/* Match Review Queue */}
+            <Route path="/MatchReview" element={
+              <LayoutWrapper currentPageName="Admin">
+                <MatchReview />
+              </LayoutWrapper>
+            } />
+            {/* Pattern Rules */}
+            <Route path="/PatternRules" element={
+              <LayoutWrapper currentPageName="Admin">
+                <PatternRules />
+              </LayoutWrapper>
+            } />
             {/* Print views - public, no layout */}
             <Route path="/PrintWorkOrder" element={<PrintWorkOrder />} />
             <Route path="/PrintPickList" element={<PrintPickList />} />

@@ -1,6 +1,7 @@
 /**
  * NoMatchDecisionModal — visas när scanAndProcess returnerar needs_user_decision=true
  * Tre val: ny artikel+batch, ny batch för befintlig artikel, avbryt/manuell granskning
+ * Stöder patternSuggestion för AI-inferred leverantörsförslag
  */
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,23 +9,32 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
-import { Search, Plus, BookOpen, X, Package, Layers, AlertTriangle } from 'lucide-react';
+import { Search, Plus, BookOpen, X, Package, Layers, AlertTriangle, Cpu } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function NoMatchDecisionModal({
   imageUrl,
   extractedSummary = {},
   barcodeValues = [],
-  onDecision,   // (decision, extra) => void
+  labelScanId,
+  patternSuggestion = null, // { supplier_name, supplier_id, category, series, explanation, rule_ids }
+  onCreated,   // (result) => void — called after article/batch created
+  onCancel,    // () => void — called on manual_review or close
+  // Legacy compat
+  onDecision,
   onClose
 }) {
-  const [view, setView] = useState('choose'); // choose | new_article_form | pick_article
+  const [view, setView] = useState('choose');
   const [articleSearch, setArticleSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [newArticleName, setNewArticleName] = useState(extractedSummary.article_name || '');
   const [newArticleSku, setNewArticleSku] = useState(extractedSummary.article_sku || '');
-  const [newStorageType, setNewStorageType] = useState('company_owned');
+  const [newStorageType] = useState('company_owned');
+
+  const handleClose = onCancel || onClose || (() => {});
+  const handleDecision = onDecision || (() => {});
 
   const handleSearchArticle = async (q) => {
     setArticleSearch(q);
@@ -44,6 +54,134 @@ export default function NoMatchDecisionModal({
     }
   };
 
+  const handleCreateNewArticleAndBatch = async () => {
+    if (!newArticleName.trim()) { toast.error('Artikelnamn krävs'); return; }
+    setSaving(true);
+    try {
+      const me = await base44.auth.me();
+      const batchNum = (extractedSummary.batch_number || '').toUpperCase().replace(/\s+/g, '').trim();
+      const allIdentifiers = [batchNum, newArticleSku].filter(Boolean);
+      // Also add barcode values
+      for (const bv of barcodeValues) {
+        if (bv.raw_value) allIdentifiers.push(bv.raw_value);
+        if (bv.canonical_core) allIdentifiers.push(bv.canonical_core);
+      }
+      const uniqueAliases = [...new Set(allIdentifiers.filter(Boolean))];
+
+      const article = await base44.entities.Article.create({
+        name: newArticleName,
+        sku: newArticleSku || undefined,
+        storage_type: newStorageType,
+        supplier_id: patternSuggestion?.supplier_id || undefined,
+        supplier_name: patternSuggestion?.supplier_name || extractedSummary.supplier_name || undefined,
+        category: patternSuggestion?.category || undefined,
+        series: patternSuggestion?.series || undefined,
+        ai_extracted_data: extractedSummary,
+        status: 'pending_verification'
+      });
+
+      let batch = null;
+      if (batchNum) {
+        batch = await base44.entities.Batch.create({
+          article_id: article.id,
+          batch_number: batchNum,
+          raw_batch_number: extractedSummary.batch_number || batchNum,
+          aliases: uniqueAliases,
+          article_sku: article.sku,
+          article_name: article.name,
+          supplier_id: patternSuggestion?.supplier_id || undefined,
+          supplier_name: patternSuggestion?.supplier_name || extractedSummary.supplier_name || undefined,
+          status: 'pending_verification',
+          source_context: 'article_creation'
+        });
+
+        // Write BatchEvent
+        await base44.entities.BatchEvent.create({
+          batch_id: batch.id,
+          event_type: 'created',
+          actor: me.email,
+          timestamp: new Date().toISOString(),
+          payload: { label_scan_id: labelScanId, identifiers: uniqueAliases, pattern_suggestion: patternSuggestion },
+          source_entity: 'LabelScan',
+          source_id: labelScanId
+        });
+      }
+
+      // Update LabelScan
+      if (labelScanId) {
+        await base44.entities.LabelScan.update(labelScanId, {
+          batch_id: batch?.id || null,
+          status: 'completed',
+          match_results: { article_match_id: article.id, batch_match_id: batch?.id || null }
+        }).catch(() => {});
+      }
+
+      if (onCreated) onCreated({ article, batch });
+      else handleDecision('new_article_and_batch', { article, batch });
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLinkToArticle = async (article) => {
+    setSaving(true);
+    try {
+      const me = await base44.auth.me();
+      const batchNum = (extractedSummary.batch_number || '').toUpperCase().replace(/\s+/g, '').trim();
+      const allIdentifiers = [batchNum].filter(Boolean);
+      for (const bv of barcodeValues) {
+        if (bv.raw_value) allIdentifiers.push(bv.raw_value);
+        if (bv.canonical_core) allIdentifiers.push(bv.canonical_core);
+      }
+      const uniqueAliases = [...new Set(allIdentifiers.filter(Boolean))];
+
+      const batch = await base44.entities.Batch.create({
+        article_id: article.id,
+        batch_number: batchNum || `SCAN-${Date.now()}`,
+        raw_batch_number: extractedSummary.batch_number || batchNum,
+        aliases: uniqueAliases,
+        article_sku: article.sku,
+        article_name: article.name,
+        supplier_id: article.supplier_id || patternSuggestion?.supplier_id || undefined,
+        supplier_name: article.supplier_name || patternSuggestion?.supplier_name || undefined,
+        status: 'pending_verification',
+        source_context: 'article_creation'
+      });
+
+      await base44.entities.BatchEvent.create({
+        batch_id: batch.id,
+        event_type: 'created',
+        actor: me.email,
+        timestamp: new Date().toISOString(),
+        payload: { label_scan_id: labelScanId, linked_to_existing_article: article.id, identifiers: uniqueAliases },
+        source_entity: 'LabelScan',
+        source_id: labelScanId
+      });
+
+      if (labelScanId) {
+        await base44.entities.LabelScan.update(labelScanId, {
+          batch_id: batch.id,
+          status: 'completed',
+          match_results: { article_match_id: article.id, batch_match_id: batch.id }
+        }).catch(() => {});
+      }
+
+      if (onCreated) onCreated({ article, batch });
+      else handleDecision('new_batch_for_article', { article, batch });
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleManualReview = () => {
+    if (onCancel) onCancel();
+    else handleDecision('manual_review', {});
+  };
+
   const barcodeDisplay = barcodeValues.map(bv => `[${bv.type || 'code'}] ${bv.raw_value}`).join('\n');
   const ocrDisplay = extractedSummary.batch_number || extractedSummary.article_name || '(ingen OCR-text)';
 
@@ -53,7 +191,7 @@ export default function NoMatchDecisionModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-4"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <motion.div
         initial={{ y: 60, opacity: 0 }}
@@ -74,7 +212,7 @@ export default function NoMatchDecisionModal({
               <p className="text-zinc-400 text-xs mt-0.5">Ska detta läggas till som…</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white p-1">
+          <button onClick={handleClose} className="text-zinc-500 hover:text-white p-1">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -91,18 +229,20 @@ export default function NoMatchDecisionModal({
             </div>
             {barcodeDisplay && (
               <div>
-                <p className="text-zinc-500 text-[10px] uppercase tracking-wider">Barcode / Data Matrix</p>
+                <p className="text-zinc-500 text-[10px] uppercase tracking-wider">Barcode</p>
                 <p className="text-white text-xs font-mono break-all whitespace-pre-line">{barcodeDisplay}</p>
-              </div>
-            )}
-            {extractedSummary.supplier_name && (
-              <div>
-                <p className="text-zinc-500 text-[10px] uppercase tracking-wider">Leverantör</p>
-                <p className="text-white text-xs">{extractedSummary.supplier_name}</p>
               </div>
             )}
           </div>
         </div>
+
+        {/* Pattern suggestion banner */}
+        {patternSuggestion?.explanation && (
+          <div className="mx-4 mt-4 p-3 rounded-xl bg-signal/10 border border-signal/20 flex items-start gap-2">
+            <Cpu className="w-4 h-4 text-signal mt-0.5 shrink-0" />
+            <p className="text-signal text-xs leading-relaxed">{patternSuggestion.explanation}</p>
+          </div>
+        )}
 
         {/* Choose view */}
         <AnimatePresence mode="wait">
@@ -135,7 +275,7 @@ export default function NoMatchDecisionModal({
               </button>
 
               <button
-                onClick={() => onDecision('manual_review', {})}
+                onClick={handleManualReview}
                 className="w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-left"
               >
                 <div className="w-10 h-10 rounded-lg bg-zinc-700 flex items-center justify-center shrink-0">
@@ -155,6 +295,15 @@ export default function NoMatchDecisionModal({
                 ← Tillbaka
               </button>
               <h3 className="text-white font-medium">Ny artikel + ny batch</h3>
+
+              {patternSuggestion?.supplier_name && (
+                <div className="p-3 rounded-lg bg-signal/5 border border-signal/20 text-xs text-zinc-300">
+                  <span className="text-signal font-semibold">AI-förslag: </span>
+                  Leverantör <span className="text-white">{patternSuggestion.supplier_name}</span>
+                  {patternSuggestion.category && <>, kategori <span className="text-white">{patternSuggestion.category}</span></>}
+                </div>
+              )}
+
               <div className="space-y-3">
                 <div>
                   <Label className="text-zinc-400 text-xs">Artikelnamn *</Label>
@@ -184,15 +333,11 @@ export default function NoMatchDecisionModal({
                 </div>
               </div>
               <Button
-                onClick={() => {
-                  if (!newArticleName.trim()) { toast.error('Artikelnamn krävs'); return; }
-                  onDecision('new_article_and_batch', {
-                    article_data: { name: newArticleName, sku: newArticleSku, storage_type: newStorageType }
-                  });
-                }}
+                onClick={handleCreateNewArticleAndBatch}
+                disabled={saving}
                 className="w-full bg-signal hover:bg-signal-hover uppercase tracking-wider"
               >
-                <Plus className="w-4 h-4 mr-2" /> Skapa artikel + batch
+                {saving ? 'Skapar...' : <><Plus className="w-4 h-4 mr-2" /> Skapa artikel + batch</>}
               </Button>
             </motion.div>
           )}
@@ -217,14 +362,16 @@ export default function NoMatchDecisionModal({
                 {searchResults.map(art => (
                   <button
                     key={art.id}
-                    onClick={() => onDecision('new_batch_for_article', { article_id: art.id })}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-left"
+                    onClick={() => handleLinkToArticle(art)}
+                    disabled={saving}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-left disabled:opacity-50"
                   >
                     <Package className="w-5 h-5 text-zinc-400 shrink-0" />
                     <div className="min-w-0">
                       <p className="text-white text-sm truncate">{art.name}</p>
                       {art.sku && <p className="text-zinc-500 text-xs">{art.sku}</p>}
                     </div>
+                    {saving && <span className="text-zinc-500 text-xs ml-auto">Sparar…</span>}
                   </button>
                 ))}
                 {articleSearch.length >= 2 && !searching && searchResults.length === 0 && (
