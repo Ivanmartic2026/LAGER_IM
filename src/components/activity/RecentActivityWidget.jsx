@@ -269,7 +269,7 @@ export default function RecentActivityWidget() {
       onMouseLeave={() => { if (isExpanded) { timerRef.current = setTimeout(() => setIsExpanded(false), 8000); } }}
     >
       {/* Header */}
-      <div className="px-4 py-3 border-b border-white/15 flex-shrink-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent" onClick={() => { setIsExpanded(e => !e); clearTimeout(timerRef.current); }} style={{cursor: 'pointer'}}>
+      <div className="px-4 py-3 border-b border-white/15 flex-shrink-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent" onClick={() => { setIsExpanded(prev => !prev); clearTimeout(timerRef.current); }} style={{cursor: 'pointer'}}>
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-blue-400" />
           <h3 className="text-sm font-semibold text-white">Senaste uppdateringar</h3>
