@@ -1,36 +1,28 @@
+/* IM Vision Brand — signal color utilities (used by Tailwind safelist) */
+:root {
+  --signal: #6300FF;
+  --signal-hover: #5200D9;
+  --signal-active: #4400B3;
+  --signal-subtle: #F3EAFF;
+  --signal-light: #E0C8FF;
+}
+
+/* Tailwind arbitrary-value helpers for signal color */
+.bg-signal        { background-color: #6300FF !important; }
+.bg-signal-hover  { background-color: #5200D9 !important; }
+.bg-signal-active { background-color: #4400B3 !important; }
+.bg-signal\/10    { background-color: rgba(99,0,255,0.10) !important; }
+.bg-signal\/20    { background-color: rgba(99,0,255,0.20) !important; }
+.text-signal      { color: #6300FF !important; }
+.border-signal    { border-color: #6300FF !important; }
+.ring-signal      { --tw-ring-color: #6300FF !important; }
+.shadow-signal\/30{ --tw-shadow-color: rgba(99,0,255,0.30) !important; }
+.hover\:bg-signal-hover:hover { background-color: #5200D9 !important; }
+.active\:bg-signal-active:active { background-color: #4400B3 !important; }
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Theme Variables */
-:root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-elevated: #ffffff;
-  --text-primary: #000000;
-  --text-secondary: #6c757d;
-  --border-color: rgba(0, 0, 0, 0.1);
-  --card-bg: rgba(255, 255, 255, 0.05);
-  --card-border: rgba(0, 0, 0, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-primary: #000000;
-    --bg-secondary: #111111;
-    --bg-elevated: #1a1a1a;
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.6);
-    --border-color: rgba(255, 255, 255, 0.1);
-    --card-bg: rgba(255, 255, 255, 0.05);
-    --card-border: rgba(255, 255, 255, 0.1);
-  }
-}
-
-body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-}
 
 /* PWA Mobile Optimizations */
 body {
@@ -88,11 +80,6 @@ input, textarea, select {
     transform: translateZ(0);
   }
   
-  /* Disable backdrop blur on mobile for performance */
-  .backdrop-blur-2xl {
-    backdrop-filter: none;
-    background-color: rgba(255, 255, 255, 0.05);
-  }
 }
 
 /* Safe area insets for notch devices */

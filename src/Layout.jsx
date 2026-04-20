@@ -160,7 +160,7 @@ function LayoutContent({ children, currentPageName }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <PWAOptimizer />
       <PushManager />
       <OfflineIndicator />
@@ -183,8 +183,8 @@ function LayoutContent({ children, currentPageName }) {
         </div>
       </div>
 
-      {/* Desktop Navigation - Bottom - No transition on mobile */}
-      <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4">
+      {/* Desktop Navigation - Bottom */}
+      <nav className="hidden md:flex fixed bottom-0 left-0 right-0 h-20 bg-black border-t border-zinc-800 shadow-2xl z-50 overflow-x-auto px-4">
         <div className="flex items-center gap-2 min-w-max mx-auto relative">
           <button
             onClick={() => {
@@ -206,21 +206,21 @@ function LayoutContent({ children, currentPageName }) {
             <button
               key={item.name}
               onClick={() => handleTabClick(item.name)}
-              className={cn("flex items-center gap-2 transition-all duration-300", navCollapsed ? "flex-col" : "flex-row")}
+              className={cn("flex items-center gap-2 transition-all duration-200", navCollapsed ? "flex-col" : "flex-row")}
             >
               <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center md:transition-all duration-300 flex-shrink-0",
+                "w-10 h-10 rounded-md flex items-center justify-center transition-all duration-200 flex-shrink-0",
                 currentPageName === item.name
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/50"
-                  : "text-white/50 hover:text-white hover:bg-white/10"
+                  ? "bg-signal/10 text-signal"
+                  : "text-white/50 hover:text-white hover:bg-zinc-800"
               )}>
                 <item.icon className="w-4 h-4" />
               </div>
               {!navCollapsed && (
                 <span className={cn(
-                  "text-xs font-medium md:transition-colors whitespace-nowrap tracking-tight min-w-fit",
+                  "text-xs font-brand whitespace-nowrap tracking-wide min-w-fit transition-colors",
                   currentPageName === item.name
-                    ? "text-blue-400"
+                    ? "text-signal"
                     : "text-white/50"
                 )}>
                   {item.label}
@@ -228,9 +228,9 @@ function LayoutContent({ children, currentPageName }) {
               )}
             </button>
           ))}
-          {/* Admin sub-items — always visible after Admin */}
+          {/* Admin sub-items */}
           {!navCollapsed && (
-            <div className="flex items-center gap-1 border-l border-white/10 pl-2 ml-1">
+            <div className="flex items-center gap-1 border-l border-zinc-800 pl-2 ml-1">
               {ADMIN_SUB_ITEMS.map(item => (
                 <button
                   key={item.name}
@@ -238,16 +238,16 @@ function LayoutContent({ children, currentPageName }) {
                   className="flex flex-col items-center gap-1"
                 >
                   <div className={cn(
-                    "w-9 h-9 rounded-xl flex items-center justify-center md:transition-all duration-300",
+                    "w-9 h-9 rounded-md flex items-center justify-center transition-all duration-200",
                     currentPageName === item.name
-                      ? "bg-purple-600 text-white shadow-lg shadow-purple-500/50"
-                      : "text-white/30 hover:text-white hover:bg-white/10"
+                      ? "bg-signal/10 text-signal"
+                      : "text-white/30 hover:text-white hover:bg-zinc-800"
                   )}>
                     <item.icon className="w-4 h-4" />
                   </div>
                   <span className={cn(
-                    "text-[10px] font-medium md:transition-colors whitespace-nowrap tracking-tight",
-                    currentPageName === item.name ? "text-purple-400" : "text-white/30"
+                    "text-[10px] font-brand whitespace-nowrap tracking-wide transition-colors",
+                    currentPageName === item.name ? "text-signal" : "text-white/30"
                   )}>
                     {item.label}
                   </span>
@@ -259,7 +259,7 @@ function LayoutContent({ children, currentPageName }) {
       </nav>
 
       {/* Mobile Header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/5 backdrop-blur-2xl border-b border-white/10 shadow-sm z-50 flex items-center justify-between px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-black border-b border-zinc-800 shadow-sm z-50 flex items-center justify-between px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
        <div className="flex items-center gap-3">
          {isDeepPage ? (
            <Button
@@ -298,73 +298,72 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-       <div className="md:hidden fixed inset-0 z-40 bg-black flex flex-col" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
-         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-             {visibleNavItems.map(item => (
-               <button
-                 key={item.name}
-                 onClick={() => {
-                   handleTabClick(item.name);
-                   setMobileMenuOpen(false);
-                 }}
-                 className={cn(
-                   "w-full text-left",
-                 "flex items-center gap-4 p-4 rounded-xl",
-                 currentPageName === item.name
-                   ? "bg-blue-600 text-white shadow-lg shadow-blue-500/50"
-                   : "text-white/70 hover:text-white hover:bg-white/10"
-               )}
-             >
-               <item.icon className="w-5 h-5" />
-               <span className="font-medium tracking-tight">{item.label}</span>
-             </button>
-             ))}
-             {/* Admin sub-items */}
-             <div className="pt-2 border-t border-white/10">
-               <p className="text-xs text-white/30 uppercase tracking-widest px-4 py-1">Admin</p>
-               {ADMIN_SUB_ITEMS.map(item => (
-                 <button
-                   key={item.name}
-                   onClick={() => {
-                     handleTabClick(item.name);
-                     setMobileMenuOpen(false);
-                   }}
-                   className={cn(
-                     "w-full text-left flex items-center gap-4 p-4 rounded-xl",
-                     currentPageName === item.name
-                       ? "bg-purple-600 text-white"
-                       : "text-white/50 hover:text-white hover:bg-white/10"
-                   )}
-                 >
-                   <item.icon className="w-5 h-5" />
-                   <span className="font-medium tracking-tight">{item.label}</span>
-                 </button>
-               ))}
-             </div>
-         </nav>
-       </div>
+        <div className="md:hidden fixed inset-0 z-40 bg-black flex flex-col" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            {visibleNavItems.map(item => (
+              <button
+                key={item.name}
+                onClick={() => {
+                  handleTabClick(item.name);
+                  setMobileMenuOpen(false);
+                }}
+                className={cn(
+                  "w-full text-left flex items-center gap-4 px-4 py-3 rounded-md transition-colors",
+                  currentPageName === item.name
+                    ? "bg-signal/10 text-signal border-l-4 border-signal"
+                    : "text-white/70 hover:text-white hover:bg-zinc-800 border-l-4 border-transparent"
+                )}
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="font-brand tracking-wide text-sm">{item.label}</span>
+              </button>
+            ))}
+            {/* Admin sub-items */}
+            <div className="pt-2 border-t border-zinc-800">
+              <p className="font-brand text-[11px] text-white/30 tracking-widest px-4 py-2">ADMIN</p>
+              {ADMIN_SUB_ITEMS.map(item => (
+                <button
+                  key={item.name}
+                  onClick={() => {
+                    handleTabClick(item.name);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={cn(
+                    "w-full text-left flex items-center gap-4 px-4 py-3 rounded-md transition-colors",
+                    currentPageName === item.name
+                      ? "bg-signal/10 text-signal border-l-4 border-signal"
+                      : "text-white/50 hover:text-white hover:bg-zinc-800 border-l-4 border-transparent"
+                  )}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="font-brand tracking-wide text-sm">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </nav>
+        </div>
       )}
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/5 backdrop-blur-2xl border-t border-white/10 shadow-2xl shadow-white/5 z-50 overflow-x-auto px-4 pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-black border-t border-zinc-800 shadow-2xl z-50 overflow-x-auto px-4 pb-safe">
         <div className="flex items-center gap-1 min-w-max h-full">
           {visibleNavItems.map(item => (
             <button
               key={item.name}
               onClick={() => handleTabClick(item.name)}
               className={cn(
-                "flex flex-col items-center gap-1 px-3 py-2 rounded-xl",
+                "flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors",
                 currentPageName === item.name
-                  ? "text-blue-400"
+                  ? "text-signal"
                   : "text-white/50"
               )}
             >
               <item.icon className="w-5 h-5" />
-              <span className="text-xs font-medium whitespace-nowrap tracking-tight">{item.label}</span>
+              <span className="text-[11px] font-brand whitespace-nowrap tracking-wide">{item.label}</span>
             </button>
-            ))}
-            </div>
-            </nav>
+          ))}
+        </div>
+      </nav>
 
       {/* Main Content */}
       <main className="md:pt-20 pb-24 md:pb-24 min-h-screen will-change-auto" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
@@ -387,16 +386,16 @@ function LayoutContent({ children, currentPageName }) {
         </ErrorBoundary>
       </main>
 
-      {/* Floating Camera Button */}
+      {/* Floating Camera Button — Signal CTA */}
       <motion.button
-        whileHover={{ scale: 1.1 }}
+        whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => navigate(createPageUrl("Scan"))}
-        className="fixed bottom-28 md:bottom-24 right-6 w-16 h-16 rounded-full bg-white/10 hover:bg-white/15 text-white shadow-lg backdrop-blur-xl border border-white/20 hover:border-white/40 transition-all z-40 flex items-center justify-center"
+        className="fixed bottom-28 md:bottom-24 right-6 w-14 h-14 rounded-full bg-signal hover:bg-signal-hover active:bg-signal-active text-white shadow-lg shadow-signal/30 transition-all z-40 flex items-center justify-center"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         title="Öppna kamera"
       >
-        <Camera className="w-7 h-7" />
+        <Camera className="w-6 h-6" />
       </motion.button>
     </div>
   );
