@@ -23,6 +23,7 @@ import { RepairMatchStep, RepairLabelStep } from "@/components/scanner/RepairSte
 import SiteDocumentationFlow from "@/components/scan/SiteDocumentationFlow";
 import ImageZoomViewer from "@/components/scanner/ImageZoomViewer";
 import NoMatchDecisionModal from "@/components/scanner/NoMatchDecisionModal";
+import MobileScanResult from "@/components/scanner/MobileScanResult";
 import { createPageUrl } from "@/utils";
 import ScanQuickActionDialog from "@/components/scanner/ScanQuickActionDialog";
 
@@ -153,6 +154,7 @@ export default function ScanPage() {
   const [step, setStep] = useState(() => urlContext ? 'capture' : 'mode');
 
   const [noMatchData, setNoMatchData] = useState(null);
+  const [mobileScanResult, setMobileScanResult] = useState(null); // { allNumbers, allMatches, imageUrl, labelScanId }
   const [quickMatchResult, setQuickMatchResult] = useState(null); // { batch, article, labelScanId }
   const [barcodeResult, setBarcodeResult] = useState(null);
   const [searchingArticle, setSearchingArticle] = useState(false);
@@ -231,11 +233,11 @@ export default function ScanPage() {
       setImageUrls(urls);
       setProgress(30);
 
-      // ── scanAndProcess for all contexts (match-first) ──
+      // ── mobileScan: extract all numbers, search, let user choose ──
       const resolvedContext = scanContext || (mode === 'inbound' ? 'article_creation' : 'manual_scan');
 
       try {
-        const scanResp = await base44.functions.invoke('scanAndProcess', {
+        const scanResp = await base44.functions.invoke('mobileScan', {
           image_urls: urls,
           context: resolvedContext,
           context_reference_id: scanContextRef || undefined
@@ -243,57 +245,19 @@ export default function ScanPage() {
         const result = scanResp.data;
         setScanAndProcessResult(result);
         setProgress(100);
-
-        if (result.needs_user_decision) {
-          setNoMatchData({
-            extractedSummary: result.extracted_summary || {},
-            barcodeValues: result.barcode_values || [],
-            imageUrl: result.image_url || urls[0],
-            labelScanId: result.label_scan_id
-          });
-          setIsProcessing(false);
-          setProgress(0);
-          return;
-        }
-
-        if (result.needs_review) {
-          toast.info('Ärendet skickades till granskning (ambiguous match)');
-          setIsProcessing(false);
-          setProgress(0);
-          setStep('success');
-          return;
-        }
-
-        if (result.batch_id || result.article_id) {
-          // Auto-linked! For QuickScan: show "what do you want to do?" dialog
-          if (mode === 'quickscan') {
-            // Fetch batch/article details for display
-            const batch = result.batch_id
-              ? await base44.entities.Batch.filter({ id: result.batch_id }).then(r => r[0]).catch(() => null)
-              : null;
-            const article = result.article_id
-              ? await base44.entities.Article.filter({ id: result.article_id }).then(r => r[0]).catch(() => null)
-              : (batch?.article_id ? await base44.entities.Article.filter({ id: batch.article_id }).then(r => r[0]).catch(() => null) : null);
-            setQuickMatchResult({
-              batch,
-              article,
-              labelScanId: result.label_scan_id,
-              batchId: result.batch_id,
-              articleId: result.article_id
-            });
-            setIsProcessing(false);
-            setProgress(0);
-            return;
-          }
-          // Context-specific success
-          toast.success('Match hittad och länkad automatiskt');
-          setIsProcessing(false);
-          setProgress(0);
-          setStep('success');
-          return;
-        }
+        setIsProcessing(false);
+        setProgress(0);
+        setMobileScanResult({
+          allNumbers: result.all_numbers || [],
+          allMatches: result.all_matches || [],
+          imageUrl: result.image_url || urls[0],
+          labelScanId: result.label_scan_id,
+          extractedSummary: result.extracted_summary || {}
+        });
+        setStep('mobile_result');
+        return;
       } catch (scanErr) {
-        console.log('scanAndProcess failed, falling back:', scanErr.message);
+        console.log('mobileScan failed, falling back:', scanErr.message);
       }
 
       // ── Fallback: pending_verification ──
@@ -527,6 +491,7 @@ export default function ScanPage() {
     setRepairNotes(""); setIsManualEntry(false); setShowLinkToOrder(false);
     setPendingArticleForLink(null); setQuickMatchResult(null);
     setScanContext(null); setScanContextRef(null); setScanAndProcessResult(null);
+    setMobileScanResult(null);
   };
 
   const getCaptureTitle = () => {
@@ -671,6 +636,50 @@ export default function ScanPage() {
                 }}
                 onCancel={() => setStep("auto_review")}
                 isLoading={isSaving}
+              />
+            </motion.div>
+          )}
+
+          {/* ── MOBILE SCAN RESULT ── */}
+          {step === "mobile_result" && mobileScanResult && (
+            <motion.div key="mobile_result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <MobileScanResult
+                imageUrl={mobileScanResult.imageUrl}
+                allNumbers={mobileScanResult.allNumbers}
+                allMatches={mobileScanResult.allMatches}
+                labelScanId={mobileScanResult.labelScanId}
+                onConfirmMatch={async (match) => {
+                  // Update LabelScan with user's chosen match, then proceed to success
+                  if (mobileScanResult.labelScanId) {
+                    base44.entities.LabelScan.update(mobileScanResult.labelScanId, {
+                      status: 'completed',
+                      match_results: {
+                        article_match_id: match.article_id || (match.entity_type === 'Article' ? match.entity_id : null),
+                        batch_match_id: match.entity_type === 'Batch' ? match.entity_id : null,
+                        batch_match_method: match.matched_field || 'user_selected',
+                        review_queued: false,
+                        user_selected: true
+                      }
+                    }).catch(() => {});
+                  }
+                  toast.success(`Matchad: ${match.article_name || match.entity_name}`);
+                  setMobileScanResult(null);
+                  setStep('success');
+                }}
+                onCreateNew={(type, prefill) => {
+                  // Pre-fill extracted data and go to manual entry
+                  const firstNumber = prefill.allNumbers?.[0] || '';
+                  setExtractedData({ batch_number: firstNumber, name: '' });
+                  setIsManualEntry(true);
+                  setMobileScanResult(null);
+                  setStep('review');
+                }}
+                onRetake={() => {
+                  setMobileScanResult(null);
+                  setImageFiles([]);
+                  setImageUrls([]);
+                  setStep('capture');
+                }}
               />
             </motion.div>
           )}
