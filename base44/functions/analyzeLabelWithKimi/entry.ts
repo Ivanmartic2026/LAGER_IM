@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
 
     const kimiPayload = {
       model: config.model_name,
-      temperature: 0.0,
+      temperature: 1,
       max_tokens: 2048,
       response_format: { type: "json_object" },
       chat_template_kwargs: { thinking: config.thinking_mode || false },

@@ -54,19 +54,53 @@ Deno.serve(async (req) => {
       });
     } catch (_e) {}
 
-    // ── 3. AI analysis with 28s timeout (leave 2s for response) ──
+    // ── 3. AI analysis with 28s timeout ──
     let analysis = null;
     let kimiError = null;
+    const kimiStart = Date.now();
     try {
-      const kimiPromise = base44.asServiceRole.functions.invoke('analyzeLabelWithKimi', { fileUrls });
+      const kimiPromise = base44.asServiceRole.functions.invoke('analyzeLabelWithKimi', {
+        image_url: firstUrl,
+        context: context || 'manual_scan',
+        context_reference_id
+      });
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Kimi timeout')), 28000)
+        setTimeout(() => reject(new Error('Kimi timeout after 28s')), 28000)
       );
       const r = await Promise.race([kimiPromise, timeoutPromise]);
       analysis = r.data;
+
+      // Log success to SyncLog
+      base44.asServiceRole.entities.SyncLog.create({
+        sync_type: 'kimi_label_scan',
+        status: 'success',
+        entity_type: 'LabelScan',
+        entity_id: labelScan?.id || null,
+        direction: 'internal',
+        duration_ms: Date.now() - kimiStart,
+        details: {
+          model: analysis?.model_used,
+          tokens: analysis?.tokens_used,
+          confidence: analysis?.confidence?.overall,
+          prompt_version: analysis?.prompt_version
+        },
+        triggered_by: user.email
+      }).catch(() => {});
     } catch (e) {
       kimiError = e.message;
       console.warn('[mobileScan] Kimi failed:', e.message, '— continuing with barcode-only fallback');
+
+      // Log failure to SyncLog
+      base44.asServiceRole.entities.SyncLog.create({
+        sync_type: 'kimi_label_scan',
+        status: 'error',
+        entity_type: 'LabelScan',
+        entity_id: labelScan?.id || null,
+        direction: 'internal',
+        duration_ms: Date.now() - kimiStart,
+        error_message: e.message,
+        triggered_by: user.email
+      }).catch(() => {});
     }
 
     const extracted = analysis?.extracted_fields || {};

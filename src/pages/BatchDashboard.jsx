@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { AlertTriangle, CheckCircle2, TrendingUp, DollarSign, Scan, Users } from "lucide-react";
+import { AlertTriangle, CheckCircle2, TrendingUp, DollarSign, Scan, Users, Activity, RefreshCw } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,105 @@ function KPICard({ label, value, sub, icon: IconComponent, color = "blue" }) {
           </div>
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colors[color]}`}>
             <Icon className="w-5 h-5" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function KimiStatusWidget() {
+  const [checking, setChecking] = useState(false);
+  const [checkResult, setCheckResult] = useState(null);
+
+  const { data: recentHealthchecks = [] } = useQuery({
+    queryKey: ['kimi_healthchecks'],
+    queryFn: () => base44.entities.SyncLog.filter({ sync_type: 'kimi_healthcheck' }, '-created_date', 5),
+    refetchInterval: 60000
+  });
+
+  const { data: scanLogs7d = [] } = useQuery({
+    queryKey: ['kimi_scan_logs_7d'],
+    queryFn: () => base44.entities.SyncLog.filter({ sync_type: 'kimi_label_scan' }, '-created_date', 200)
+  });
+
+  const lastCheck = recentHealthchecks[0];
+  const isHealthy = lastCheck?.status === 'success';
+
+  const scans7d = scanLogs7d.filter(l => {
+    if (!l.created_date) return false;
+    return (Date.now() - new Date(l.created_date).getTime()) < 7 * 86400000;
+  });
+  const fails7d = scans7d.filter(l => l.status === 'error').length;
+  const avgConf = scans7d.filter(l => l.details?.confidence).length > 0
+    ? (scans7d.reduce((sum, l) => sum + (l.details?.confidence || 0), 0) / scans7d.filter(l => l.details?.confidence).length * 100).toFixed(0)
+    : null;
+
+  const runHealthcheck = async () => {
+    setChecking(true);
+    setCheckResult(null);
+    try {
+      const r = await base44.functions.invoke('kimiHealthcheck', {});
+      setCheckResult(r.data);
+    } catch (e) {
+      setCheckResult({ ok: false, error: e.message });
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  return (
+    <Card className={`border ${isHealthy ? 'border-green-500/30 bg-green-500/5' : lastCheck ? 'border-red-500/30 bg-red-500/5' : 'border-white/10 bg-white/5'}`}>
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isHealthy ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+              <Activity className={`w-5 h-5 ${isHealthy ? 'text-green-400' : 'text-red-400'}`} />
+            </div>
+            <div>
+              <p className="text-white font-semibold text-sm">Kimi AI-status</p>
+              {lastCheck ? (
+                <p className={`text-xs mt-0.5 ${isHealthy ? 'text-green-400' : 'text-red-400'}`}>
+                  {isHealthy ? '✅ Online' : `❌ ${lastCheck.error_message || 'Offline'}`}
+                  {lastCheck.created_date && (
+                    <span className="text-white/30 ml-2">· {format(new Date(lastCheck.created_date), 'HH:mm dd/MM')}</span>
+                  )}
+                </p>
+              ) : (
+                <p className="text-xs text-white/40 mt-0.5">Ingen healthcheck körts än</p>
+              )}
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={runHealthcheck}
+            disabled={checking}
+            className="border-white/20 text-white hover:bg-white/10 text-xs shrink-0"
+          >
+            <RefreshCw className={`w-3 h-3 mr-1.5 ${checking ? 'animate-spin' : ''}`} />
+            {checking ? 'Testar...' : 'Testa nu'}
+          </Button>
+        </div>
+
+        {checkResult && (
+          <div className={`mt-3 p-2.5 rounded-lg text-xs ${checkResult.ok ? 'bg-green-500/10 text-green-300' : 'bg-red-500/10 text-red-300'}`}>
+            {checkResult.ok ? `✅ API svarar (${checkResult.duration_ms}ms)` : `❌ ${checkResult.error}`}
+          </div>
+        )}
+
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          <div className="bg-white/5 rounded-lg p-2.5 text-center">
+            <p className="text-white font-bold text-lg">{scans7d.length}</p>
+            <p className="text-white/40 text-xs">Scanningar 7d</p>
+          </div>
+          <div className="bg-white/5 rounded-lg p-2.5 text-center">
+            <p className={`font-bold text-lg ${fails7d > 0 ? 'text-red-400' : 'text-green-400'}`}>{fails7d}</p>
+            <p className="text-white/40 text-xs">Fel 7d</p>
+          </div>
+          <div className="bg-white/5 rounded-lg p-2.5 text-center">
+            <p className="text-white font-bold text-lg">{avgConf !== null ? `${avgConf}%` : '—'}</p>
+            <p className="text-white/40 text-xs">Avg confidence</p>
           </div>
         </div>
       </CardContent>
@@ -112,6 +211,9 @@ export default function BatchDashboard() {
             </Button>
           </div>
         </div>
+
+        {/* Kimi AI Status */}
+        <KimiStatusWidget />
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
