@@ -76,7 +76,7 @@ export default function InventoryPage() {
 
   const storedState = getStoredState();
   
-  const [searchQuery, setSearchQuery] = useState(storedState.searchQuery || "");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [viewMode, setViewMode] = useState(storedState.viewMode || "grid");
   const [statusFilter, setStatusFilter] = useState(initialStatus !== 'all' ? initialStatus : (storedState.statusFilter || 'all'));
@@ -516,7 +516,6 @@ export default function InventoryPage() {
   // Save state to localStorage when filters change
   React.useEffect(() => {
     const state = {
-      searchQuery,
       viewMode,
       statusFilter,
       warehouseFilter,
@@ -525,7 +524,7 @@ export default function InventoryPage() {
       shelfFilter
     };
     localStorage.setItem('inventory_state', JSON.stringify(state));
-  }, [searchQuery, viewMode, statusFilter, warehouseFilter, storageTypeFilter, categoryFilter, shelfFilter]);
+  }, [viewMode, statusFilter, warehouseFilter, storageTypeFilter, categoryFilter, shelfFilter]);
 
   // Check URL for article selection and edit mode
   React.useEffect(() => {
