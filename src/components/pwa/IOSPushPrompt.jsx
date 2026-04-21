@@ -99,7 +99,7 @@ export default function IOSPushPrompt() {
         });
       }
 
-      // Safely extract keys — iOS returns ArrayBuffer from getKey(), not strings from toJSON()
+      // Extract keys from subscription
       function arrayBufferToBase64Url(buffer) {
         const bytes = new Uint8Array(buffer);
         let binary = '';
@@ -109,22 +109,41 @@ export default function IOSPushPrompt() {
 
       let p256dh = '';
       let auth = '';
+
+      // Try getKey first (works on some browsers)
       try {
         const p256dhKey = sub.getKey('p256dh');
         const authKey = sub.getKey('auth');
         if (p256dhKey) p256dh = arrayBufferToBase64Url(p256dhKey);
         if (authKey) auth = arrayBufferToBase64Url(authKey);
-      } catch {
-        // Fallback to toJSON
-        const j = sub.toJSON();
-        p256dh = j?.keys?.p256dh || '';
-        auth = j?.keys?.auth || '';
+      } catch (e) {
+        console.warn('[IOSPushPrompt] getKey failed, trying toJSON:', e.message);
+      }
+
+      // Fallback to toJSON if getKey didn't work
+      if (!p256dh || !auth) {
+        try {
+          const j = sub.toJSON();
+          p256dh = j?.keys?.p256dh || p256dh;
+          auth = j?.keys?.auth || auth;
+        } catch (e) {
+          console.error('[IOSPushPrompt] toJSON also failed:', e.message);
+        }
+      }
+
+      if (!p256dh || !auth) {
+        console.error('[IOSPushPrompt] Failed to extract keys from subscription');
+        setStatus('register_failed');
+        setLoading(false);
+        return;
       }
 
       const safeSubscription = {
         endpoint: sub.endpoint,
         keys: { p256dh, auth }
       };
+
+      console.log('[IOSPushPrompt] Sending subscription:', { endpoint: sub.endpoint, hasKeys: !!p256dh });
 
       const result = await base44.functions.invoke('setupPushNotifications', {
         subscription: safeSubscription,
