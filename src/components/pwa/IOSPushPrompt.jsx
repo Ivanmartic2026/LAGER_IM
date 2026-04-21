@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, X } from 'lucide-react';
+import { Bell, X, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 
@@ -23,7 +23,7 @@ function isStandalone() {
 export default function IOSPushPrompt() {
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null); // 'granted' | 'denied'
+  const [status, setStatus] = useState(null); // 'granted' | 'denied' | 'registered' | 'register_failed'
 
   useEffect(() => {
     // Only show in standalone PWA mode
@@ -54,32 +54,45 @@ export default function IOSPushPrompt() {
     setLoading(true);
     try {
       const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        setStatus('granted');
-        // Register SW + push subscription
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
-          const reg = await navigator.serviceWorker.ready;
-          let sub = await reg.pushManager.getSubscription();
-          if (!sub) {
-            sub = await reg.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-            });
-          }
-          await base44.functions.invoke('setupPushNotifications', {
-            subscription: sub.toJSON(),
-            action: 'subscribe'
-          });
-        }
-      } else {
+      if (permission !== 'granted') {
         setStatus('denied');
+        setLoading(false);
+        return;
+      }
+
+      // Register SW + push subscription
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setStatus('denied');
+        setLoading(false);
+        return;
+      }
+
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+
+      // Save to backend and verify
+      const result = await base44.functions.invoke('setupPushNotifications', {
+        subscription: sub.toJSON(),
+        action: 'subscribe'
+      });
+
+      if (result?.data?.success) {
+        setStatus('registered');
+        setTimeout(() => setVisible(false), 2500);
+      } else {
+        setStatus('register_failed');
       }
     } catch (err) {
       console.warn('[IOSPushPrompt] Push setup error:', err.message);
-      setStatus('denied');
+      setStatus('register_failed');
     } finally {
       setLoading(false);
-      setTimeout(() => setVisible(false), 1800);
     }
   };
 
@@ -111,8 +124,19 @@ export default function IOSPushPrompt() {
         </div>
 
         <div className="px-5 pb-4">
-          {status === 'granted' ? (
-            <p className="text-green-400 text-sm font-medium">✓ Notiser aktiverade!</p>
+          {status === 'registered' ? (
+            <div className="flex items-center gap-2 text-green-400">
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm font-medium">Notiser aktiverade och registrerade!</p>
+            </div>
+          ) : status === 'register_failed' ? (
+            <div className="flex items-start gap-2 text-amber-400">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium mb-1">Registrering misslyckades</p>
+                <p className="text-white/50 text-xs">Notiser gavs men kunde inte registreras på servern. Försök igen.</p>
+              </div>
+            </div>
           ) : status === 'denied' ? (
             <>
               <h2 className="font-brand text-white text-base mb-1">Notiser är blockerade</h2>
@@ -130,7 +154,7 @@ export default function IOSPushPrompt() {
           )}
         </div>
 
-        {!status && (
+        {(!status || status === 'register_failed') && (
           <div className="px-5 pb-6 flex gap-3">
             <Button variant="ghost" className="flex-1 text-white/50 text-sm" onClick={handleDismiss}>
               Inte nu
@@ -140,7 +164,7 @@ export default function IOSPushPrompt() {
               onClick={handleActivate}
               disabled={loading}
             >
-              {loading ? 'Aktiverar...' : 'Aktivera'}
+              {loading ? 'Aktiverar...' : status === 'register_failed' ? 'Försök igen' : 'Aktivera'}
             </Button>
           </div>
         )}

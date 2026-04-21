@@ -86,6 +86,11 @@ export default function PushManager() {
 
       let permission = Notification.permission;
       if (permission === 'default') {
+        // On iOS, don't auto-request — IOSPushPrompt handles this via user gesture
+        if (isIOS) {
+          console.log('[PushManager] iOS — skipping auto permission request, IOSPushPrompt will handle it');
+          return;
+        }
         permission = await Notification.requestPermission();
         console.log('[PushManager] Permission response:', permission);
       }
