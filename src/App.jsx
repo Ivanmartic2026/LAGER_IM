@@ -120,9 +120,9 @@ function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
+    <QueryClientProvider client={queryClientInstance}>
+      <Router>
+        <AuthProvider>
           <NavigationTracker />
           <Routes>
             {/* Public order dashboard - no auth required */}
@@ -267,11 +267,11 @@ function App() {
             {/* All other routes require auth */}
             <Route path="*" element={<AuthenticatedApp />} />
           </Routes>
-        </Router>
-        <Toaster />
-        <VisualEditAgent />
+        </AuthProvider>
+      </Router>
+      <Toaster />
+      <VisualEditAgent />
       </QueryClientProvider>
-    </AuthProvider>
   )
 }
 
