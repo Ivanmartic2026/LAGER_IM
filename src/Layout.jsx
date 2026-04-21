@@ -20,6 +20,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ErrorBoundary from "@/components/utils/ErrorBoundary";
 import IOSInstallPrompt from "@/components/pwa/IOSInstallPrompt";
+import IOSPushPrompt from "@/components/pwa/IOSPushPrompt";
 
 // Detect if mobile for performance optimization
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
@@ -261,7 +262,7 @@ function LayoutContent({ children, currentPageName }) {
       </nav>
 
       {/* Mobile Header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-black border-b border-zinc-800 shadow-sm z-50 flex items-center justify-between px-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <header className="md:hidden fixed top-0 left-0 right-0 bg-black border-b border-zinc-800 shadow-sm z-50 flex items-center justify-between px-4" style={{ paddingTop: 'env(safe-area-inset-top)', height: 'calc(4rem + env(safe-area-inset-top))' }}>
        <div className="flex items-center gap-3">
          {isDeepPage ? (
            <Button
@@ -347,7 +348,7 @@ function LayoutContent({ children, currentPageName }) {
       )}
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-black border-t border-zinc-800 shadow-2xl z-50 overflow-x-auto px-4 pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-black border-t border-zinc-800 shadow-2xl z-50 overflow-x-auto px-4" style={{ paddingBottom: 'env(safe-area-inset-bottom)', height: 'calc(5rem + env(safe-area-inset-bottom))' }}>
         <div className="flex items-center gap-1 min-w-max h-full">
           {visibleNavItems.map(item => (
             <button
@@ -368,7 +369,7 @@ function LayoutContent({ children, currentPageName }) {
       </nav>
 
       {/* Main Content */}
-      <main className="md:pt-20 pb-24 md:pb-24 min-h-screen will-change-auto" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
+      <main className="md:pt-20 min-h-screen will-change-auto" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))', paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
         <ErrorBoundary>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
@@ -389,6 +390,7 @@ function LayoutContent({ children, currentPageName }) {
       </main>
 
       <IOSInstallPrompt />
+      <IOSPushPrompt />
 
       {/* Floating Camera Button — Signal CTA */}
       <motion.button

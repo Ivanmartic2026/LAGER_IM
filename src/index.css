@@ -259,6 +259,10 @@ input[type="number"] {
 }
 
 /* PWA Mobile Optimizations */
+html, body, #root {
+  background-color: #000000;
+}
+
 body {
   -webkit-user-select: none;
   user-select: none;
