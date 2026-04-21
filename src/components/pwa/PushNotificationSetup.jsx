@@ -67,11 +67,31 @@ export default function PushNotificationSetup() {
         return;
       }
 
-      toast.error('Push-notifikationer kräver ytterligare plattformskonfiguration som inte är tillgänglig än.');
+      // Get SW registration and create push subscription
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+
+      if (!subscription) {
+        // Create new subscription with VAPID public key
+        const VAPID_PUBLIC_KEY = 'BHzJy9-MhN0-6L-VJVnZkWQhLMv5zpLBRwCMN7eYhEWk3hD5T8lBLBnPzYHvKxVLesFfJ3_dLu-bX6CHqxHVvEo';
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+
+      // Save subscription to backend
+      await base44.functions.invoke('setupPushNotifications', {
+        subscription: subscription.toJSON(),
+        action: 'subscribe'
+      });
+
+      setIsSubscribed(true);
+      toast.success('Push-notiser aktiverade');
       
     } catch (error) {
       console.error('Subscribe error:', error);
-      toast.error('Push-notifikationer stöds inte i denna miljö');
+      toast.error('Kunde inte aktivera push-notiser');
     } finally {
       setLoading(false);
     }
