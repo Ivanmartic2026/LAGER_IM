@@ -256,6 +256,10 @@
       "type": "boolean",
       "default": false,
       "description": "F\u00f6rs\u00e4ljning slutf\u00f6rd"
+    },
+    "project_notes": {
+      "type": "string",
+      "description": "Projektanteckningar fr\u00e5n CRM"
     }
   },
   "required": [

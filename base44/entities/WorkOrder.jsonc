@@ -451,6 +451,38 @@
           }
         }
       }
+    },
+    "project_notes": {
+      "type": "string",
+      "description": "Projektanteckningar fr\u00e5n CRM (PROJEKTANTECKNINGAR)"
+    },
+    "workorder_notes": {
+      "type": "string",
+      "description": "Interna anteckningar fr\u00e5n CRM WorkOrder"
+    },
+    "workorder_title": {
+      "type": "string",
+      "description": "Arbetsorderns titel i CRM"
+    },
+    "workorder_description": {
+      "type": "string",
+      "description": "Arbetsorderbeskrivning fr\u00e5n CRM"
+    },
+    "role_sections": {
+      "type": "object",
+      "description": "Roll-sektioner: {construction, project, it} med notes och checklist per roll"
+    },
+    "construction_lead_name": {
+      "type": "string",
+      "description": "Ansvarig konstrukt\u00f6r (namn)"
+    },
+    "project_lead_name": {
+      "type": "string",
+      "description": "Ansvarig projektledare (namn)"
+    },
+    "it_lead_name": {
+      "type": "string",
+      "description": "Ansvarig IT (namn)"
     }
   },
   "required": [
