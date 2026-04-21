@@ -1,0 +1,67 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Mottagarens email"
+    },
+    "title": {
+      "type": "string",
+      "description": "Notifieringens titel"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notifieringsmeddelande"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "order_status",
+        "low_stock",
+        "stock_alert",
+        "repair_update",
+        "purchase_order",
+        "system",
+        "chat_mention",
+        "chat_dm",
+        "chat_new_message"
+      ],
+      "description": "Typ av notifiering"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "critical"
+      ],
+      "default": "normal",
+      "description": "Prioritet"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om notifieringen \u00e4r l\u00e4st"
+    },
+    "link_to": {
+      "type": "string",
+      "description": "L\u00e4nk till relevant sida (t.ex. orderId, articleId)"
+    },
+    "link_page": {
+      "type": "string",
+      "description": "Sidnamn att l\u00e4nka till"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Extra metadata"
+    }
+  },
+  "required": [
+    "user_email",
+    "title",
+    "message",
+    "type"
+  ]
+}

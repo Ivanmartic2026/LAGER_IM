@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer, AlertTriangle, ShoppingCart, FileText, MessageSquare } from "lucide-react";
+import ChatPanel from "@/components/workorders/ChatPanel";
 import PurchaseOrderForm from "@/components/orders/PurchaseOrderForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -29,6 +30,11 @@ export default function WorkOrderViewPage() {
   const workOrderId = workOrderIdParam || urlSearchParams.get('id');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
+  }, []);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [files, setFiles] = useState([]);
 
@@ -424,6 +430,9 @@ export default function WorkOrderViewPage() {
             )}
           </div>
         )}
+
+        {/* Dialog / Chatt */}
+        <ChatPanel workOrder={workOrder} currentUser={currentUser} />
 
         {/* Aktivitetslogg */}
         <div className="bg-black rounded-2xl border border-white/10 p-5">

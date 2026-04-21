@@ -1,0 +1,78 @@
+{
+  "name": "NotificationSettings",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Anv\u00e4ndarens email"
+    },
+    "in_app_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "In-app notifieringar aktiverade"
+    },
+    "email_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Email notifieringar aktiverade"
+    },
+    "order_status_updates": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notifiering vid orderstatus \u00e4ndringar"
+    },
+    "low_stock_alerts": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notifiering vid l\u00e5gt lager"
+    },
+    "purchase_order_updates": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notifiering vid ink\u00f6psorder uppdateringar"
+    },
+    "repair_updates": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notifiering vid reparationsuppdateringar"
+    },
+    "critical_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "Endast kritiska notifieringar"
+    },
+    "chat_mentions_push": {
+      "type": "boolean",
+      "default": true,
+      "description": "Push vid @omn\u00e4mnanden i chatt"
+    },
+    "chat_dm_push": {
+      "type": "boolean",
+      "default": true,
+      "description": "Push vid direktmeddelanden"
+    },
+    "chat_all_messages_push": {
+      "type": "boolean",
+      "default": false,
+      "description": "Push f\u00f6r alla nya meddelanden i prenumererade tr\u00e5dar"
+    },
+    "quiet_hours_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Tysta timmar aktiverade"
+    },
+    "quiet_hours_start": {
+      "type": "string",
+      "default": "22:00",
+      "description": "Start f\u00f6r tysta timmar (HH:MM)"
+    },
+    "quiet_hours_end": {
+      "type": "string",
+      "default": "06:00",
+      "description": "Slut f\u00f6r tysta timmar (HH:MM)"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}
