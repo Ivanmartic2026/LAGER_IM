@@ -131,14 +131,17 @@ export default function IOSPushPrompt() {
         action: 'subscribe'
       });
 
-      if (result?.data?.success || (result?.data && !result?.data?.error)) {
+      console.log('[IOSPushPrompt] Setup response:', { status: result?.status, data: result?.data });
+
+      if (result?.data?.success) {
         setStatus('registered');
         setTimeout(() => setVisible(false), 2500);
       } else {
+        console.error('[IOSPushPrompt] Setup failed:', result?.data?.error || 'Unknown error');
         setStatus('register_failed');
       }
     } catch (err) {
-      console.warn('[IOSPushPrompt] Push setup error:', err.message);
+      console.error('[IOSPushPrompt] Push setup error:', err.message, err.response?.data);
       setStatus('register_failed');
     } finally {
       setLoading(false);

@@ -12,10 +12,20 @@ Deno.serve(async (req) => {
     const { subscription, action } = await req.json();
 
     if (action === 'subscribe') {
+      if (!subscription || !subscription.endpoint) {
+        console.error('[setupPushNotifications] Missing endpoint', { subscription });
+        return Response.json({ error: 'Missing endpoint in subscription' }, { status: 400 });
+      }
+
+      if (!subscription.keys || !subscription.keys.p256dh || !subscription.keys.auth) {
+        console.error('[setupPushNotifications] Missing keys', { keys: subscription.keys });
+        return Response.json({ error: 'Missing encryption keys in subscription' }, { status: 400 });
+      }
+
       const endpoint = subscription.endpoint;
       const keys = {
-        p256dh: subscription.keys?.p256dh || '',
-        auth: subscription.keys?.auth || ''
+        p256dh: subscription.keys.p256dh,
+        auth: subscription.keys.auth
       };
 
       const existing = await base44.asServiceRole.entities.PushSubscription.filter({
@@ -29,17 +39,18 @@ Deno.serve(async (req) => {
           is_active: true,
           user_agent: req.headers.get('user-agent') || ''
         });
+        console.log('[setupPushNotifications] Updated subscription for', user.email);
       } else {
         await base44.asServiceRole.entities.PushSubscription.create({
           user_email: user.email,
-          endpoint: endpoint || '',
+          endpoint: endpoint,
           keys,
           is_active: true,
           user_agent: req.headers.get('user-agent') || ''
         });
+        console.log('[setupPushNotifications] Created new subscription for', user.email);
       }
 
-      console.log('[setupPushNotifications] Subscription saved for', user.email);
       return Response.json({ success: true });
     }
 
