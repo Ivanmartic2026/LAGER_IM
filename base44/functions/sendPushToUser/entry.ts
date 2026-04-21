@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
         if (s[typeKey] === false) {
           // Still create in-app notification record
           await base44.asServiceRole.entities.Notification.create({
-            user_email, title, body: message, type: type || 'general',
+            user_email, title, message, type: type || 'general',
             priority: priority || 'normal', is_read: false, link_page, link_to
           }).catch(() => {});
           return Response.json({ success: true, skipped: 'user_opt_out', sent: 0 });
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     if (!vapidPublicKey || !vapidPrivateKey) {
       console.warn('[sendPushToUser] VAPID keys not configured — creating in-app notification only');
       await base44.asServiceRole.entities.Notification.create({
-        user_email, title, body: message, type: type || 'general',
+        user_email, title, message, type: type || 'general',
         priority: priority || 'normal', is_read: false, link_page, link_to
       }).catch(() => {});
       return Response.json({ success: true, skipped: 'no_vapid', sent: 0 });
@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
 
     // Always create in-app notification record
     await base44.asServiceRole.entities.Notification.create({
-      user_email, title, body: message, type: type || 'general',
+      user_email, title, message, type: type || 'general',
       priority: priority || 'normal', is_read: false, link_page, link_to
     }).catch(() => {});
 
