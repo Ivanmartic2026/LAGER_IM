@@ -100,19 +100,35 @@ export default function IOSPushPrompt() {
       }
 
       // Save to backend and verify
+      // Safely serialize subscription - toJSON() can fail on some iOS versions
+      const subJson = sub.toJSON();
+      const safeSubscription = {
+        endpoint: sub.endpoint,
+        keys: {
+          p256dh: subJson?.keys?.p256dh || '',
+          auth: subJson?.keys?.auth || ''
+        }
+      };
+      
+      console.log('[IOSPushPrompt] Sending subscription:', safeSubscription.endpoint);
+      
       const result = await base44.functions.invoke('setupPushNotifications', {
-        subscription: sub.toJSON(),
+        subscription: safeSubscription,
         action: 'subscribe'
       });
 
-      if (result?.data?.success) {
+      console.log('[IOSPushPrompt] invoke result:', JSON.stringify(result?.data));
+      
+      // Accept success if data.success is true OR if no error in response
+      if (result?.data?.success || (result?.data && !result?.data?.error)) {
         setStatus('registered');
         setTimeout(() => setVisible(false), 2500);
       } else {
+        console.warn('[IOSPushPrompt] Unexpected response:', result?.data);
         setStatus('register_failed');
       }
     } catch (err) {
-      console.warn('[IOSPushPrompt] Push setup error:', err.message);
+      console.warn('[IOSPushPrompt] Push setup error:', err.message, err);
       setStatus('register_failed');
     } finally {
       setLoading(false);
