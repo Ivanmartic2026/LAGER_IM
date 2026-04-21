@@ -43,8 +43,6 @@ export default function IOSPushPrompt() {
       }
       return;
     }
-    // Already prompted once (default permission)
-    if (localStorage.getItem(PROMPTED_KEY)) return;
     // Wait for auth then show after short delay
     base44.auth.isAuthenticated().then(authed => {
       if (!authed) return;
@@ -81,17 +79,13 @@ export default function IOSPushPrompt() {
       setStatus('denied');
     } finally {
       setLoading(false);
-      localStorage.setItem(PROMPTED_KEY, '1');
       setTimeout(() => setVisible(false), 1800);
     }
   };
 
   const handleDismiss = () => {
-    if (status === 'denied') {
-      localStorage.setItem(PROMPTED_KEY + '_blocked_shown', '1');
-    } else {
-      localStorage.setItem(PROMPTED_KEY, '1');
-    }
+    // Only suppress temporarily (until next app open), never permanently
+    // This ensures the prompt returns on every launch until granted
     setVisible(false);
   };
 
