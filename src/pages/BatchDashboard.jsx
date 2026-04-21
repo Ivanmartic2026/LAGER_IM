@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { AlertTriangle, CheckCircle2, TrendingUp, DollarSign, Scan, Users, Activity, RefreshCw } from "lucide-react";
+import PWAStatusPanel from "@/components/pwa/PWAStatusPanel";
 import { format, subDays } from "date-fns";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -274,6 +275,9 @@ export default function BatchDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* PWA & Push Health */}
+        <PWAStatusPanel />
 
         {/* Quarantine alert */}
         {quarantineBatches.length > 0 && (

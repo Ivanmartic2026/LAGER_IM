@@ -104,6 +104,7 @@ export default function ChatInput({ onSend, users = [], disabled = false }) {
   };
 
   return (
+    <>
     <div className="relative">
       {/* Mention dropdown */}
       {showMentions && filteredUsers.length > 0 && (
@@ -186,5 +187,8 @@ export default function ChatInput({ onSend, users = [], disabled = false }) {
         </button>
       </div>
     </div>
+    {/* Safe area spacer for iOS home indicator in standalone mode */}
+    <div style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
+    </>
   );
 }

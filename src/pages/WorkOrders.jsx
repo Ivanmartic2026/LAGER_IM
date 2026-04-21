@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Search, Package, Factory, CheckCircle2, Truck,
-  Clock, ArrowRight, AlertCircle, Zap, ClipboardList, Plus, Trash2, Edit2, Download
+  Clock, ArrowRight, AlertCircle, Zap, ClipboardList, Plus, Trash2, Edit2, Download, MessageSquare
 } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import CreateProductionWorkOrderModal from "@/components/workorders/CreateProductionWorkOrderModal";
 import ProcessFlow, { ProcessFlowCompact, ORDER_STAGES, resolveStage } from "@/components/workorders/ProcessFlow";
+import UnreadBadge from "@/components/workorders/UnreadBadge";
 
 
 const STAGE_CONFIG = {
@@ -44,8 +45,13 @@ export default function WorkOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
+  }, []);
 
   const { data: workOrders = [], isLoading } = useQuery({
     queryKey: ['workOrders'],
@@ -53,6 +59,38 @@ export default function WorkOrdersPage() {
     staleTime: 30000,
     refetchOnWindowFocus: true
   });
+
+  // Fetch unread counts: all ChatMessages + ChatReads for current user
+  const { data: allMessages = [] } = useQuery({
+    queryKey: ['chat_messages_all_wo'],
+    queryFn: () => base44.entities.ChatMessage.filter({ deleted: false }, '-created_date', 500),
+    enabled: !!currentUser,
+    staleTime: 30000,
+    refetchInterval: 60000
+  });
+
+  const { data: myReads = [] } = useQuery({
+    queryKey: ['chat_reads_mine', currentUser?.email],
+    queryFn: () => base44.entities.ChatRead.filter({ user_email: currentUser.email }, '-read_at', 1000),
+    enabled: !!currentUser,
+    staleTime: 30000,
+    refetchInterval: 60000
+  });
+
+  // Build unread count per work_order_id
+  const unreadByWO = React.useMemo(() => {
+    if (!currentUser) return {};
+    const readMessageIds = new Set(myReads.map(r => r.message_id));
+    const counts = {};
+    for (const msg of allMessages) {
+      if (msg.author_email === currentUser.email) continue;
+      if (readMessageIds.has(msg.id)) continue;
+      counts[msg.work_order_id] = (counts[msg.work_order_id] || 0) + 1;
+    }
+    return counts;
+  }, [allMessages, myReads, currentUser]);
+
+  const unreadByWOMemo = useMemo(() => unreadByWO, [unreadByWO]);
 
   const activeOrders = workOrders.filter(wo => wo.status !== 'klar' && wo.status !== 'completed' && wo.status !== 'avbruten' && wo.status !== 'cancelled');
   const completedOrders = workOrders.filter(wo => wo.status === 'klar' || wo.status === 'completed');
@@ -212,6 +250,7 @@ export default function WorkOrdersPage() {
               const status = STATUS_CONFIG[wo.status] || STATUS_CONFIG.pending;
               const responsibleName = wo[`assigned_to_${resolvedStageKey}_name`] || wo[`assigned_to_${resolvedStageKey}`];
               const isUrgent = wo.priority === 'urgent' || wo.priority === 'high';
+              const unreadCount = unreadByWOMemo[wo.id] || 0;
 
               return (
                 <motion.div
@@ -263,6 +302,12 @@ export default function WorkOrdersPage() {
 
                       {/* Details Row: Customer, Delivery, Status, Delete */}
                       <div className="flex items-end justify-between gap-4">
+                       {unreadCount > 0 && (
+                         <div className="flex items-center gap-1.5 self-start">
+                           <MessageSquare className="w-3.5 h-3.5 text-white/30" />
+                           <UnreadBadge count={unreadCount} />
+                         </div>
+                       )}
                         <div className="grid grid-cols-3 gap-6 text-sm flex-1">
                           <div className="flex flex-col gap-1">
                             <span className="text-white/40 text-xs">Kund</span>

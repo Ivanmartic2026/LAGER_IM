@@ -19,6 +19,7 @@ import { t, tOrderStatus, tStage, tWorkOrderStatus, tPriority } from "@/componen
 import { useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ErrorBoundary from "@/components/utils/ErrorBoundary";
+import IOSInstallPrompt from "@/components/pwa/IOSInstallPrompt";
 
 // Detect if mobile for performance optimization
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
@@ -386,6 +387,8 @@ function LayoutContent({ children, currentPageName }) {
           </AnimatePresence>
         </ErrorBoundary>
       </main>
+
+      <IOSInstallPrompt />
 
       {/* Floating Camera Button — Signal CTA */}
       <motion.button

@@ -2,7 +2,7 @@
 <html lang="sv" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
 
     <!-- Google Fonts: IM Vision brand typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,39 +13,32 @@
     <link rel="manifest" href="/manifest.json" />
 
     <!-- Theme & status bar -->
-    <meta name="theme-color" content="#2563eb" />
+    <meta name="theme-color" content="#6300FF" />
     <meta name="background-color" content="#000000" />
 
-    <!-- iOS PWA -->
+    <!-- iOS PWA — CRITICAL for standalone/fullscreen on iPhone/iPad -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="IMvision" />
+    <meta name="apple-mobile-web-app-title" content="Lager AI" />
     <link rel="apple-touch-icon" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" />
 
-    <!-- Android -->
+    <!-- Android PWA -->
     <meta name="mobile-web-app-capable" content="yes" />
 
     <!-- SEO & Social -->
     <meta name="description" content="Lagerstyrning och orderhantering för IMvision" />
-    <meta name="application-name" content="IMvision" />
-    <meta property="og:title" content="IMvision Lager & Order" />
+    <meta name="application-name" content="Lager AI" />
+    <meta property="og:title" content="Lager AI — IMvision" />
     <meta property="og:description" content="Lagerstyrning och orderhantering" />
     <meta property="og:type" content="website" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png" />
 
-    <title>IMvision</title>
+    <title>Lager AI</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch(err => {
-          console.log('Service Worker registration failed:', err);
-        });
-      }
-    </script>
   </body>
 </html>
