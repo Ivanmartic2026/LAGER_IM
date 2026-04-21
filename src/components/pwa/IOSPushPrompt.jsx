@@ -99,36 +99,46 @@ export default function IOSPushPrompt() {
         });
       }
 
-      // Save to backend and verify
-      // Safely serialize subscription - toJSON() can fail on some iOS versions
-      const subJson = sub.toJSON();
+      // Safely extract keys — iOS returns ArrayBuffer from getKey(), not strings from toJSON()
+      function arrayBufferToBase64Url(buffer) {
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+        return window.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      }
+
+      let p256dh = '';
+      let auth = '';
+      try {
+        const p256dhKey = sub.getKey('p256dh');
+        const authKey = sub.getKey('auth');
+        if (p256dhKey) p256dh = arrayBufferToBase64Url(p256dhKey);
+        if (authKey) auth = arrayBufferToBase64Url(authKey);
+      } catch {
+        // Fallback to toJSON
+        const j = sub.toJSON();
+        p256dh = j?.keys?.p256dh || '';
+        auth = j?.keys?.auth || '';
+      }
+
       const safeSubscription = {
         endpoint: sub.endpoint,
-        keys: {
-          p256dh: subJson?.keys?.p256dh || '',
-          auth: subJson?.keys?.auth || ''
-        }
+        keys: { p256dh, auth }
       };
-      
-      console.log('[IOSPushPrompt] Sending subscription:', safeSubscription.endpoint);
-      
+
       const result = await base44.functions.invoke('setupPushNotifications', {
         subscription: safeSubscription,
         action: 'subscribe'
       });
 
-      console.log('[IOSPushPrompt] invoke result:', JSON.stringify(result?.data));
-      
-      // Accept success if data.success is true OR if no error in response
       if (result?.data?.success || (result?.data && !result?.data?.error)) {
         setStatus('registered');
         setTimeout(() => setVisible(false), 2500);
       } else {
-        console.warn('[IOSPushPrompt] Unexpected response:', result?.data);
         setStatus('register_failed');
       }
     } catch (err) {
-      console.warn('[IOSPushPrompt] Push setup error:', err.message, err);
+      console.warn('[IOSPushPrompt] Push setup error:', err.message);
       setStatus('register_failed');
     } finally {
       setLoading(false);
