@@ -30,26 +30,47 @@ export default function IOSPushPrompt() {
     if (!isStandalone()) return;
     // Only show if Notification API exists
     if (!('Notification' in window)) return;
-    // Already granted — nothing to do
-    if (Notification.permission === 'granted') return;
-    // If denied — show blocked message once per session so user knows how to fix it
-    if (Notification.permission === 'denied') {
-      setStatus('denied');
-      const shownKey = PROMPTED_KEY + '_blocked_shown';
-      if (!sessionStorage.getItem(shownKey)) {
-        base44.auth.isAuthenticated().then(authed => {
-          if (!authed) return;
+
+    const init = async () => {
+      const authed = await base44.auth.isAuthenticated().catch(() => false);
+      if (!authed) return;
+
+      if (Notification.permission === 'granted') {
+        // Permission already granted — silently try to register if no subscription exists
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+          const reg = await navigator.serviceWorker.ready.catch(() => null);
+          if (reg) {
+            const sub = await reg.pushManager.getSubscription().catch(() => null);
+            if (!sub) {
+              // No browser subscription — show prompt so user can re-register
+              setTimeout(() => setVisible(true), 2000);
+            } else {
+              // Has browser subscription — silently try to save to backend
+              base44.functions.invoke('setupPushNotifications', {
+                subscription: sub.toJSON(),
+                action: 'subscribe'
+              }).catch(() => {});
+            }
+          }
+        }
+        return;
+      }
+
+      if (Notification.permission === 'denied') {
+        setStatus('denied');
+        const shownKey = PROMPTED_KEY + '_blocked_shown';
+        if (!sessionStorage.getItem(shownKey)) {
           sessionStorage.setItem(shownKey, '1');
           setTimeout(() => setVisible(true), 3000);
-        }).catch(() => {});
+        }
+        return;
       }
-      return;
-    }
-    // Wait for auth then show after short delay
-    base44.auth.isAuthenticated().then(authed => {
-      if (!authed) return;
+
+      // 'default' — show activation prompt
       setTimeout(() => setVisible(true), 3000);
-    }).catch(() => {});
+    };
+
+    init();
   }, []);
 
   const handleActivate = async () => {
