@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Smartphone, Bell, Wifi, Send, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Smartphone, Bell, Wifi, Send, CheckCircle2, XCircle, RefreshCw, Bug } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -27,6 +27,51 @@ export default function PWASetupPage() {
   };
 
   useEffect(() => { loadSubscriptions(); }, []);
+
+  const [diag, setDiag] = useState(null);
+  const [diagLoading, setDiagLoading] = useState(false);
+
+  const runDiagnostics = async () => {
+    setDiagLoading(true);
+    const result = {
+      standalone: window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches,
+      notificationSupport: 'Notification' in window,
+      serviceWorkerSupport: 'serviceWorker' in navigator,
+      pushManagerSupport: 'PushManager' in window,
+      permission: 'Notification' in window ? Notification.permission : 'not supported',
+      swRegistered: false,
+      swScope: null,
+      subscription: null,
+      subscriptionEndpoint: null,
+      dbSubscriptions: 0,
+      myDbSubscriptions: 0,
+      error: null,
+    };
+
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        result.swRegistered = !!reg;
+        result.swScope = reg?.scope || null;
+
+        if (reg) {
+          const sub = await reg.pushManager.getSubscription();
+          result.subscription = !!sub;
+          result.subscriptionEndpoint = sub ? sub.endpoint.substring(0, 60) + '…' : null;
+        }
+      }
+
+      const user = await base44.auth.me();
+      const allSubs = await base44.entities.PushSubscription.list('-created_date', 200);
+      result.dbSubscriptions = allSubs.length;
+      result.myDbSubscriptions = allSubs.filter(s => s.user_email === user.email && s.is_active).length;
+    } catch (e) {
+      result.error = e.message;
+    }
+
+    setDiag(result);
+    setDiagLoading(false);
+  };
 
   const sendTestNotification = async () => {
     setSendingTest(true);
@@ -125,6 +170,93 @@ export default function PWASetupPage() {
                 </div>
               )}
             </CardContent>
+          </Card>
+
+          {/* Diagnostics */}
+          <Card className="bg-slate-900 border-slate-700">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Bug className="w-5 h-5 text-amber-400" />
+                  Push-diagnostik
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={runDiagnostics} disabled={diagLoading} className="text-amber-400 hover:text-amber-300">
+                  {diagLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Kör diagnostik'}
+                </Button>
+              </div>
+              <CardDescription className="text-slate-400">
+                Visar exakt status för push-notiser på denna enhet
+              </CardDescription>
+            </CardHeader>
+            {diag && (
+              <CardContent>
+                <div className="space-y-2 font-mono text-xs">
+                  {[
+                    ['Standalone PWA', diag.standalone],
+                    ['Notification API', diag.notificationSupport],
+                    ['Service Worker API', diag.serviceWorkerSupport],
+                    ['PushManager API', diag.pushManagerSupport],
+                    ['SW registrerad', diag.swRegistered],
+                  ].map(([label, val]) => (
+                    <div key={label} className="flex items-center justify-between p-2 rounded bg-white/5">
+                      <span className="text-white/60">{label}</span>
+                      {val
+                        ? <span className="text-green-400 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Ja</span>
+                        : <span className="text-red-400 flex items-center gap-1"><XCircle className="w-3 h-3" /> Nej</span>
+                      }
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between p-2 rounded bg-white/5">
+                    <span className="text-white/60">Notification.permission</span>
+                    <span className={`${diag.permission === 'granted' ? 'text-green-400' : diag.permission === 'denied' ? 'text-red-400' : 'text-amber-400'}`}>
+                      {diag.permission}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-white/5">
+                    <span className="text-white/60">Push-prenumeration i browser</span>
+                    {diag.subscription
+                      ? <span className="text-green-400 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Ja</span>
+                      : <span className="text-red-400 flex items-center gap-1"><XCircle className="w-3 h-3" /> Nej</span>
+                    }
+                  </div>
+                  {diag.subscriptionEndpoint && (
+                    <div className="p-2 rounded bg-white/5">
+                      <span className="text-white/40">Endpoint: </span>
+                      <span className="text-white/70">{diag.subscriptionEndpoint}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between p-2 rounded bg-white/5">
+                    <span className="text-white/60">Mina aktiva prenumerationer i DB</span>
+                    <span className={`${diag.myDbSubscriptions > 0 ? 'text-green-400' : 'text-red-400'}`}>{diag.myDbSubscriptions}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-white/5">
+                    <span className="text-white/60">Totalt prenumerationer i DB</span>
+                    <span className="text-white/70">{diag.dbSubscriptions}</span>
+                  </div>
+                  {diag.swScope && (
+                    <div className="p-2 rounded bg-white/5">
+                      <span className="text-white/40">SW scope: </span>
+                      <span className="text-white/70">{diag.swScope}</span>
+                    </div>
+                  )}
+                  {diag.error && (
+                    <div className="p-2 rounded bg-red-900/30 border border-red-700">
+                      <span className="text-red-400">Fel: {diag.error}</span>
+                    </div>
+                  )}
+                  {diag.permission === 'denied' && (
+                    <div className="p-3 rounded bg-amber-900/30 border border-amber-700 text-amber-300">
+                      ⚠️ Notiser är blockerade av iOS. Gå till <strong>Inställningar → [Appnamn] → Notiser</strong> och aktivera dem manuellt.
+                    </div>
+                  )}
+                  {!diag.standalone && (
+                    <div className="p-3 rounded bg-blue-900/30 border border-blue-700 text-blue-300">
+                      ℹ️ Appen körs INTE i standalone-läge. Push-notiser på iOS kräver att appen är installerad på hemskärmen.
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            )}
           </Card>
 
           {/* Cache Manager */}
