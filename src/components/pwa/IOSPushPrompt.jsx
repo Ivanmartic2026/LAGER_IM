@@ -32,12 +32,14 @@ export default function IOSPushPrompt() {
     if (!('Notification' in window)) return;
     // Already granted — nothing to do
     if (Notification.permission === 'granted') return;
-    // If denied — show blocked message so user knows how to fix it
+    // If denied — show blocked message once per session so user knows how to fix it
     if (Notification.permission === 'denied') {
       setStatus('denied');
-      if (!localStorage.getItem(PROMPTED_KEY + '_blocked_shown')) {
+      const shownKey = PROMPTED_KEY + '_blocked_shown';
+      if (!sessionStorage.getItem(shownKey)) {
         base44.auth.isAuthenticated().then(authed => {
           if (!authed) return;
+          sessionStorage.setItem(shownKey, '1');
           setTimeout(() => setVisible(true), 3000);
         }).catch(() => {});
       }
@@ -153,6 +155,14 @@ export default function IOSPushPrompt() {
             </>
           )}
         </div>
+
+        {status === 'denied' && (
+          <div className="px-5 pb-6">
+            <Button variant="ghost" className="w-full text-white/50 text-sm" onClick={handleDismiss}>
+              Stäng
+            </Button>
+          </div>
+        )}
 
         {(!status || status === 'register_failed') && (
           <div className="px-5 pb-6 flex gap-3">
