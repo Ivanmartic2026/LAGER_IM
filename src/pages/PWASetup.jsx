@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Smartphone, Bell, Wifi, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Smartphone, Bell, Wifi, Send, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -11,6 +11,22 @@ import CacheManager from "@/components/pwa/CacheManager";
 
 export default function PWASetupPage() {
   const [sendingTest, setSendingTest] = useState(false);
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [loadingSubs, setLoadingSubs] = useState(true);
+
+  const loadSubscriptions = async () => {
+    setLoadingSubs(true);
+    try {
+      const subs = await base44.entities.PushSubscription.list('-created_date', 100);
+      setSubscriptions(subs);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingSubs(false);
+    }
+  };
+
+  useEffect(() => { loadSubscriptions(); }, []);
 
   const sendTestNotification = async () => {
     setSendingTest(true);
@@ -60,6 +76,57 @@ export default function PWASetupPage() {
         </div>
 
         <div className="space-y-6">
+          {/* Registered Devices */}
+          <Card className="bg-slate-900 border-slate-700">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Smartphone className="w-5 h-5" />
+                  Registrerade enheter
+                </CardTitle>
+                <Button variant="ghost" size="icon" onClick={loadSubscriptions} className="text-white/50 hover:text-white">
+                  <RefreshCw className={`w-4 h-4 ${loadingSubs ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+              <CardDescription className="text-slate-400">
+                Telefoner/enheter med aktiv push-prenumeration
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingSubs ? (
+                <p className="text-white/40 text-sm">Laddar...</p>
+              ) : subscriptions.length === 0 ? (
+                <p className="text-white/40 text-sm">Inga registrerade enheter ännu.</p>
+              ) : (
+                <div className="space-y-2">
+                  {subscriptions.map(sub => {
+                    const ua = sub.user_agent || '';
+                    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+                    const isAndroid = /Android/i.test(ua);
+                    const deviceLabel = isIOS ? '🍎 iOS' : isAndroid ? '🤖 Android' : '💻 Desktop';
+                    return (
+                      <div key={sub.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div className="flex items-center gap-3">
+                          {sub.is_active
+                            ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                            : <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                          }
+                          <div>
+                            <p className="text-white text-sm font-medium">{sub.user_email}</p>
+                            <p className="text-white/40 text-xs">{deviceLabel} · {ua.substring(0, 60)}{ua.length > 60 ? '…' : ''}</p>
+                          </div>
+                        </div>
+                        <span className={`text-xs px-2 py-1 rounded-full ${sub.is_active ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                          {sub.is_active ? 'Aktiv' : 'Inaktiv'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Cache Manager */}
           <CacheManager />
 
