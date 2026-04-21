@@ -1,86 +1,127 @@
-// IMvision Service Worker — v3
-const CACHE_NAME = 'imvision-v3';
+// Service Worker for Lager AI PWA
+// Handles push notifications and offline functionality
 
+const CACHE_NAME = 'lager-ai-v1';
+const VAPID_PUBLIC_KEY = 'BHzJy9-MhN0-6L-VJVnZkWQhLMv5zpLBRwCMN7eYhEWk3hD5T8lBLBnPzYHvKxVLesFfJ3_dLu-bX6CHqxHVvEo';
+
+// Install event
 self.addEventListener('install', (event) => {
+  console.log('[SW] Installing service worker');
   self.skipWaiting();
 });
 
+// Activate event
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  );
+  console.log('[SW] Activating service worker');
+  event.waitUntil(clients.claim());
 });
 
-// ── Push notification received (background push) ──
-self.addEventListener('push', (event) => {
-  let data = {};
-  try {
-    data = event.data ? event.data.json() : {};
-  } catch (_e) {
-    data = { title: 'IMvision', message: event.data?.text() || 'Ny notifikation' };
-  }
+// Fetch event — serve from cache, fall back to network
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
 
-  const title = data.title || 'IMvision';
-  const options = {
-    body: data.message || data.body || '',
-    icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png',
-    badge: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png',
-    tag: data.type || 'notification',
-    renotify: true,
-    requireInteraction: data.priority === 'high',
-    data: {
-      link_page: data.link_page || null,
-      link_to: data.link_to || null,
-      type: data.type || 'general'
-    }
-  };
-
-  event.waitUntil(self.registration.showNotification(title, options));
-});
-
-// ── Notification click — deep-link into app ──
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-
-  const { link_page, link_to } = event.notification.data || {};
-  let url = '/';
-
-  if (link_page) {
-    url = `/${link_page}`;
-    if (link_to) url += `?id=${link_to}`;
-  }
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Focus existing window if open
-      for (const client of clientList) {
-        if (client.url.includes(self.location.origin)) {
-          client.focus();
-          client.postMessage({ type: 'NAVIGATE', url });
-          return;
-        }
-      }
-      // Open new window
-      return clients.openWindow(url);
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request)
+        .then((response) => {
+          if (!response || response.status !== 200) return response;
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+          return response;
+        })
+        .catch(() => {
+          // Return a placeholder for offline
+          if (event.request.destination === 'image') {
+            return new Response('<svg></svg>', { headers: { 'Content-Type': 'image/svg+xml' } });
+          }
+          return null;
+        });
     })
   );
 });
 
-// ── Fetch: network-first for API, cache-first for assets ──
-self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-
-  // Skip non-GET and API calls
-  if (event.request.method !== 'GET') return;
-  if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase') || url.hostname.includes('base44')) return;
-
-  // For HTML navigation — always network first
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
-    );
+// Handle push events
+self.addEventListener('push', (event) => {
+  if (!event.data) {
+    console.log('[SW] Push received with no data');
     return;
   }
+
+  let notificationData;
+  try {
+    notificationData = event.data.json();
+  } catch {
+    notificationData = {
+      title: 'Lager AI',
+      body: event.data.text()
+    };
+  }
+
+  const {
+    title = 'Lager AI',
+    body = 'Du har ett nytt meddelande',
+    icon = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png',
+    badge = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69455d52c9eab36b7d26cc74/d7db28e4b_LogoLIGGANDE_IMvision_VITtkopia.png',
+    tag = 'notification',
+    workOrderId = null,
+    chatThreadId = null
+  } = notificationData;
+
+  const options = {
+    body,
+    icon,
+    badge,
+    tag,
+    requireInteraction: false,
+    vibrate: [200, 100, 200],
+    data: {
+      workOrderId,
+      chatThreadId,
+      timestamp: Date.now()
+    }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+      .then(() => console.log('[SW] Notification shown:', title))
+      .catch((err) => console.error('[SW] Notification error:', err))
+  );
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const { workOrderId, chatThreadId } = event.notification.data || {};
+  let targetUrl = '/';
+
+  if (workOrderId) {
+    targetUrl = `/WorkOrders/${workOrderId}`;
+    if (chatThreadId) {
+      targetUrl += `?thread=${chatThreadId}`;
+    }
+  }
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then((clientList) => {
+      // Check if any window already has the target URL
+      for (let client of clientList) {
+        if (client.url.includes(targetUrl)) {
+          client.focus();
+          return;
+        }
+      }
+      // Otherwise, open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});
+
+// Handle notification close (for tracking dismissal)
+self.addEventListener('notificationclose', (event) => {
+  console.log('[SW] Notification closed by user');
 });

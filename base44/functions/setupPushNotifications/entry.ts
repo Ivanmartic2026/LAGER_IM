@@ -26,7 +26,8 @@ Deno.serve(async (req) => {
       if (existing.length > 0) {
         await base44.asServiceRole.entities.PushSubscription.update(existing[0].id, {
           keys,
-          is_active: true
+          is_active: true,
+          user_agent: req.headers.get('user-agent') || ''
         });
       } else {
         await base44.asServiceRole.entities.PushSubscription.create({

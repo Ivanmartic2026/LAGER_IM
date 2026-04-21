@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Bell, Mail, Settings, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import PushStatusCard from "@/components/pwa/PushStatusCard";
 
 export default function NotificationSettingsPage() {
   const [user, setUser] = useState(null);
@@ -78,6 +79,9 @@ export default function NotificationSettingsPage() {
 
         <div className="space-y-6">
           
+          {/* Push Status */}
+          <PushStatusCard />
+
           {/* General Settings */}
           <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
             <div className="flex items-center gap-3 mb-4">
@@ -181,15 +185,74 @@ export default function NotificationSettingsPage() {
                   <p className="text-sm text-slate-400">När artiklar skickas till eller kommer från reparation</p>
                 </div>
                 <Switch
-                  checked={settings.repair_updates}
-                  onCheckedChange={(value) => handleToggle('repair_updates', value)}
-                  disabled={settings.critical_only}
-                />
-              </div>
-            </div>
-          </div>
+                    checked={settings.repair_updates}
+                    onCheckedChange={(value) => handleToggle('repair_updates', value)}
+                    disabled={settings.critical_only}
+                  />
+                </div>
 
-          {/* Info */}
+                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-800/50">
+                  <div>
+                    <p className="font-medium text-white">Chatt-omnämnanden push</p>
+                    <p className="text-sm text-slate-400">Skicka push när du omnämns (@mention)</p>
+                  </div>
+                  <Switch
+                    checked={settings.chat_mentions_push ?? true}
+                    onCheckedChange={(value) => handleToggle('chat_mentions_push', value)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-800/50">
+                  <div>
+                    <p className="font-medium text-white">Direktmeddelanden push</p>
+                    <p className="text-sm text-slate-400">Skicka push vid direktmeddelanden</p>
+                  </div>
+                  <Switch
+                    checked={settings.chat_dm_push ?? true}
+                    onCheckedChange={(value) => handleToggle('chat_dm_push', value)}
+                  />
+                </div>
+                </div>
+                </div>
+
+                {/* Quiet Hours */}
+                <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                 <Bell className="w-5 h-5 text-yellow-400" />
+                 <h2 className="text-lg font-semibold text-white">Tysta timmar</h2>
+                </div>
+                <Switch
+                 checked={settings.quiet_hours_enabled ?? true}
+                 onCheckedChange={(value) => handleToggle('quiet_hours_enabled', value)}
+                />
+                </div>
+
+                {settings.quiet_hours_enabled && (
+                <div className="space-y-3">
+                 <div className="p-3 bg-slate-800/50 rounded-lg">
+                   <label className="text-sm text-slate-300">Från</label>
+                   <input
+                     type="time"
+                     value={settings.quiet_hours_start || '22:00'}
+                     onChange={(e) => handleToggle('quiet_hours_start', e.target.value)}
+                     className="w-full mt-1 bg-slate-700 text-white px-3 py-2 rounded border border-slate-600"
+                   />
+                 </div>
+                 <div className="p-3 bg-slate-800/50 rounded-lg">
+                   <label className="text-sm text-slate-300">Till</label>
+                   <input
+                     type="time"
+                     value={settings.quiet_hours_end || '06:00'}
+                     onChange={(e) => handleToggle('quiet_hours_end', e.target.value)}
+                     className="w-full mt-1 bg-slate-700 text-white px-3 py-2 rounded border border-slate-600"
+                   />
+                 </div>
+                </div>
+                )}
+                </div>
+
+                {/* Info */}
           <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
             <p className="text-sm text-blue-300">
               💡 Kritiska notifieringar (t.ex. artiklar helt slut i lager) skickas alltid, oavsett dina inställningar.
