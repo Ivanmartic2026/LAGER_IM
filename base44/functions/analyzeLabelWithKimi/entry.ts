@@ -2,6 +2,67 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const MOONSHOT_API_KEY = Deno.env.get("KIMI_API_KEY");
 
+// ── Image fetch limits ──────────────────────────────────────────────────────
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB hard limit (Moonshot)
+const IMAGE_FETCH_TIMEOUT_MS = 10_000;   // 10s for image download
+const KIMI_TIMEOUT_MS = 60_000;          // 60s for Kimi API call (large images can be slow)
+
+// ── Safe base64 encoding (no stack overflow) ────────────────────────────────
+// btoa(String.fromCharCode.apply(null, bigArray)) overflows the stack for
+// large images. Use small fixed chunks instead.
+function uint8ToBase64(bytes) {
+  const CHUNK = 32768; // 0x8000 — safe chunk size for apply()
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
+
+// ── MIME detection from magic bytes ─────────────────────────────────────────
+function detectMime(bytes, headerContentType) {
+  if (bytes.length >= 4) {
+    if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) return 'image/jpeg';
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) return 'image/png';
+    if (bytes.length >= 12 &&
+        bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+        bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return 'image/webp';
+  }
+  if (headerContentType) {
+    const ct = headerContentType.split(';')[0].trim().toLowerCase();
+    if (ct.startsWith('image/')) return ct;
+  }
+  return 'image/jpeg';
+}
+
+// ── Fetch image → base64 data URI ───────────────────────────────────────────
+// Works for Base44 private storage URLs and any public URL.
+// Enforces size limit and timeout.
+async function fetchImageDataUri(imageUrl) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), IMAGE_FETCH_TIMEOUT_MS);
+  let resp;
+  try {
+    resp = await fetch(imageUrl, { signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!resp.ok) throw new Error(`Image fetch HTTP ${resp.status} for URL: ${imageUrl}`);
+
+  const ctHeader = resp.headers.get('content-type') || '';
+  const buf = await resp.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+
+  if (bytes.length > MAX_IMAGE_BYTES) {
+    throw new Error(`Image too large: ${(bytes.length / 1024 / 1024).toFixed(1)} MB (max 5 MB). Please use a smaller image.`);
+  }
+
+  const mime = detectMime(bytes, ctHeader);
+  const b64 = uint8ToBase64(bytes);
+  return { dataUri: `data:${mime};base64,${b64}`, sizeBytes: bytes.length, mime };
+}
+
+// ── Prompts ──────────────────────────────────────────────────────────────────
 const PROMPT_V1 = `You are a specialized OCR and label analysis system for warehouse management.
 Analyze the provided label/product image and extract all information.
 Return ONLY valid JSON (no markdown, no prose explanations) with this exact structure:
@@ -89,10 +150,13 @@ Return ONLY valid JSON (no markdown, no prose) with this exact structure:
   "warnings": ["array of observations about illegibility, damage, or unusual format"]
 }`;
 
-// Rate limiting: simple in-memory store per isolate
+// ── Rate limit store ─────────────────────────────────────────────────────────
 const rateLimitStore = new Map();
 
+// ── Main handler ─────────────────────────────────────────────────────────────
 Deno.serve(async (req) => {
+  const overallStart = Date.now();
+
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -100,28 +164,25 @@ Deno.serve(async (req) => {
 
     // Rate limit: 60/min per user
     const now = Date.now();
-    const userKey = user.email;
     const windowStart = now - 60000;
-    const calls = (rateLimitStore.get(userKey) || []).filter(t => t > windowStart);
+    const calls = (rateLimitStore.get(user.email) || []).filter(t => t > windowStart);
     if (calls.length >= 60) {
       return Response.json({ error: 'Rate limit exceeded: max 60 calls/min' }, { status: 429 });
     }
     calls.push(now);
-    rateLimitStore.set(userKey, calls);
+    rateLimitStore.set(user.email, calls);
 
     const body = await req.json();
     const { image_url, context, context_reference_id } = body;
 
     if (!image_url) return Response.json({ error: 'image_url required' }, { status: 400 });
-    if (!MOONSHOT_API_KEY) return Response.json({ error: 'MOONSHOT_API_KEY not configured' }, { status: 500 });
+    if (!MOONSHOT_API_KEY) return Response.json({ error: 'KIMI_API_KEY not configured' }, { status: 500 });
 
-    // Get KimiConfig
+    // Load KimiConfig
     let config = {
       model_name: 'kimi-k2.5',
       api_base_url: 'https://api.moonshot.ai/v1',
-      thinking_mode: false,
       prompt_version: 'v1',
-      timeout_ms: 30000,
       confidence_threshold_auto_approve: 0.85,
       confidence_threshold_manual_review: 0.60
     };
@@ -132,10 +193,7 @@ Deno.serve(async (req) => {
         config = { ...config, ...configs[0] };
         configId = configs[0].id;
       }
-    } catch (e) { /* use defaults */ }
-
-    const apiUrl = `${config.api_base_url}/chat/completions`;
-    const startTime = Date.now();
+    } catch (_e) { /* use defaults */ }
 
     // Create LabelScan record
     const labelScan = await base44.asServiceRole.entities.LabelScan.create({
@@ -150,37 +208,54 @@ Deno.serve(async (req) => {
       context_reference_id: context_reference_id || null
     });
 
+    // ── Step 1: Fetch + encode image (10s timeout) ───────────────────────────
+    let imageContent;
+    let imageSizeBytes = 0;
+    try {
+      const { dataUri, sizeBytes } = await fetchImageDataUri(image_url);
+      imageSizeBytes = sizeBytes;
+      imageContent = { type: "image_url", image_url: { url: dataUri } };
+    } catch (imgErr) {
+      // Fallback: barcode-only mode — image could not be fetched/encoded
+      const errMsg = imgErr.name === 'AbortError'
+        ? 'Image fetch timeout (>10s)'
+        : `Image fetch error: ${imgErr.message}`;
+
+      await base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
+        status: 'failed',
+        error_message: errMsg
+      });
+
+      // Log to SyncLog
+      await base44.asServiceRole.entities.SyncLog.create({
+        sync_type: 'kimi_label_scan',
+        status: 'error',
+        entity_type: 'LabelScan',
+        entity_id: labelScan.id,
+        direction: 'internal',
+        error_message: 'Image fetch failed — AI-läsning misslyckades, använder streckkod',
+        error_detail: errMsg,
+        triggered_by: user.email,
+        duration_ms: Date.now() - overallStart
+      }).catch(() => {});
+
+      return Response.json({
+        success: false,
+        label_scan_id: labelScan.id,
+        error: 'AI-läsning misslyckades, använder streckkod',
+        error_detail: errMsg,
+        barcode_only: true
+      }, { status: 200 }); // 200 so the frontend can handle gracefully
+    }
+
+    // ── Step 2: Call Kimi API (30s timeout) ──────────────────────────────────
     const promptVersion = config.prompt_version || 'v1';
     const activePrompt = promptVersion === 'v2' ? PROMPT_V2 : PROMPT_V1;
     const userText = promptVersion === 'v2'
       ? "Analysera denna etikett noggrant. Prioritera barkod/Data Matrix-värden framför OCR för batch_number och article_sku. Skilj tydligt på batch_number, article_sku och serienummer. Returnera JSON enligt angiven struktur."
       : "Extrahera batch-info från denna etikett som JSON med fälten: batch_number, article_sku, article_name, supplier_name, manufacturing_date, expiry_date, production_date, quantity, series, pixel_pitch, other_text[]. För varje fält även confidence 0-1. Lägg även overall_confidence 0-1.";
 
-    // Kimi requires base64 data URIs — fetch and encode the image
-    let imageContent;
-    try {
-      const imgResp = await fetch(image_url);
-      if (!imgResp.ok) throw new Error(`Image fetch failed: ${imgResp.status}`);
-      const contentType = imgResp.headers.get('content-type') || 'image/jpeg';
-      const imgBuffer = await imgResp.arrayBuffer();
-      // Safe base64 encoding for large images
-      const bytes = new Uint8Array(imgBuffer);
-      let binary = '';
-      const chunkSize = 8192;
-      for (let i = 0; i < bytes.length; i += chunkSize) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-      }
-      const base64 = btoa(binary);
-      const dataUri = `data:${contentType};base64,${base64}`;
-      imageContent = { type: "image_url", image_url: { url: dataUri } };
-    } catch (fetchImgErr) {
-      await base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
-        status: 'failed',
-        error_message: `Image fetch error: ${fetchImgErr.message}`
-      });
-      return Response.json({ error: `Could not fetch image: ${fetchImgErr.message}` }, { status: 400 });
-    }
-
+    const apiUrl = `${config.api_base_url}/chat/completions`;
     const kimiPayload = {
       model: config.model_name,
       temperature: 1,
@@ -188,20 +263,15 @@ Deno.serve(async (req) => {
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: activePrompt },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: userText },
-            imageContent
-          ]
-        }
+        { role: "user", content: [{ type: "text", text: userText }, imageContent] }
       ]
     };
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), config.timeout_ms || 90000);
+    const kimiCtrl = new AbortController();
+    const kimiTimer = setTimeout(() => kimiCtrl.abort(), KIMI_TIMEOUT_MS);
 
     let kimiData;
+    const kimiStart = Date.now();
     try {
       const kimiResponse = await fetch(apiUrl, {
         method: 'POST',
@@ -210,38 +280,67 @@ Deno.serve(async (req) => {
           'Authorization': `Bearer ${MOONSHOT_API_KEY}`
         },
         body: JSON.stringify(kimiPayload),
-        signal: controller.signal
+        signal: kimiCtrl.signal
       });
-      clearTimeout(timeoutId);
+      clearTimeout(kimiTimer);
 
       if (!kimiResponse.ok) {
         const errText = await kimiResponse.text();
+        const errMsg = `Kimi API error ${kimiResponse.status}: ${errText}`;
         await base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
           status: 'failed',
-          error_message: `Kimi API error ${kimiResponse.status}: ${errText}`
+          error_message: errMsg
         });
+        await base44.asServiceRole.entities.SyncLog.create({
+          sync_type: 'kimi_label_scan', status: 'error',
+          entity_type: 'LabelScan', entity_id: labelScan.id,
+          direction: 'internal',
+          error_message: 'Kimi API returned error',
+          error_detail: errMsg,
+          triggered_by: user.email,
+          duration_ms: Date.now() - overallStart
+        }).catch(() => {});
         return Response.json({ error: `Kimi API error: ${kimiResponse.status}`, detail: errText }, { status: 500 });
       }
       kimiData = await kimiResponse.json();
-    } catch (fetchErr) {
-      clearTimeout(timeoutId);
+    } catch (kimiErr) {
+      clearTimeout(kimiTimer);
+      const errMsg = kimiErr.name === 'AbortError'
+        ? `Kimi API timeout (>${KIMI_TIMEOUT_MS / 1000}s) — AI-läsning misslyckades, använder streckkod`
+        : kimiErr.message;
+
       await base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
         status: 'failed',
-        error_message: fetchErr.message
+        error_message: errMsg
       });
-      return Response.json({ error: fetchErr.message }, { status: 500 });
+      await base44.asServiceRole.entities.SyncLog.create({
+        sync_type: 'kimi_label_scan', status: 'error',
+        entity_type: 'LabelScan', entity_id: labelScan.id,
+        direction: 'internal',
+        error_message: 'Kimi API call failed',
+        error_detail: errMsg,
+        triggered_by: user.email,
+        duration_ms: Date.now() - overallStart
+      }).catch(() => {});
+
+      return Response.json({
+        success: false,
+        label_scan_id: labelScan.id,
+        error: 'AI-läsning misslyckades, använder streckkod',
+        error_detail: errMsg,
+        barcode_only: true
+      }, { status: 200 });
     }
 
-    const duration = Date.now() - startTime;
+    const duration = Date.now() - kimiStart;
     const rawContent = kimiData.choices?.[0]?.message?.content;
     const tokensUsed = kimiData.usage?.total_tokens || 0;
-    // Kimi K2.5 pricing placeholder: $0.0000012 per token
     const costUsd = tokensUsed * 0.0000012;
 
     let parsed;
     try {
       parsed = typeof rawContent === 'string' ? JSON.parse(rawContent) : rawContent;
-    } catch (e) {
+    } catch (_e) {
       await base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
         status: 'failed',
         error_message: 'Failed to parse Kimi JSON response',
@@ -255,19 +354,17 @@ Deno.serve(async (req) => {
       ? 'completed'
       : 'manual_review';
 
-    // ── Barcode authority: if barcode_values present, override OCR fields ──
+    // Barcode authority
     let extractedFields = { ...(parsed.fields || {}) };
     const barcodeValues = parsed.barcode_values || extractedFields.barcode_values || [];
     const fieldConfidence = { ...(parsed.confidence || {}) };
 
     if (barcodeValues.length > 0) {
       const topBarcode = barcodeValues[0];
-      // Override batch_number from barcode canonical_core if available
       if (topBarcode.canonical_core && !extractedFields._barcode_batch_set) {
         extractedFields.batch_number = topBarcode.canonical_core;
         fieldConfidence.batch_number = 0.98;
       }
-      // If segments contain a SKU-like value (short alphanumeric), use as article_sku
       for (const seg of (topBarcode.parsed_segments || [])) {
         if (seg && /^[A-Z0-9\-\.]{3,20}$/.test(seg) && !extractedFields.article_sku) {
           extractedFields.article_sku = seg;
@@ -275,19 +372,20 @@ Deno.serve(async (req) => {
           break;
         }
       }
-      // Include barcode_values in extracted_fields for downstream use
       extractedFields.barcode_values = barcodeValues;
     }
 
-    // ── v2 date normalization: map single date object back to legacy fields ──
+    // v2 date normalization
     if (promptVersion === 'v2' && extractedFields.date?.value) {
       const { value, type } = extractedFields.date;
       if (type === 'manufacturing') extractedFields.manufacturing_date = value;
       else if (type === 'production') extractedFields.production_date = value;
       else if (type === 'expiry') extractedFields.expiry_date = value;
-      else extractedFields.manufacturing_date = value; // fallback
+      else extractedFields.manufacturing_date = value;
       fieldConfidence.manufacturing_date = fieldConfidence.date || 0;
     }
+
+    const totalDuration = Date.now() - overallStart;
 
     // Update LabelScan
     await base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
@@ -300,13 +398,33 @@ Deno.serve(async (req) => {
       status: scanStatus
     });
 
-    // Update monthly spend on KimiConfig
+    // Update monthly spend
     if (configId && costUsd > 0) {
-      const newSpend = (config.current_month_spend || 0) + costUsd;
       await base44.asServiceRole.entities.KimiConfig.update(configId, {
-        current_month_spend: newSpend
-      });
+        current_month_spend: (config.current_month_spend || 0) + costUsd
+      }).catch(() => {});
     }
+
+    // Log success to SyncLog
+    await base44.asServiceRole.entities.SyncLog.create({
+      sync_type: 'kimi_label_scan',
+      status: 'success',
+      entity_type: 'LabelScan',
+      entity_id: labelScan.id,
+      direction: 'internal',
+      records_processed: 1,
+      duration_ms: totalDuration,
+      details: {
+        image_size_bytes: imageSizeBytes,
+        tokens_used: tokensUsed,
+        cost_usd: costUsd,
+        overall_confidence: overallConfidence,
+        scan_status: scanStatus,
+        prompt_version: promptVersion,
+        model: config.model_name
+      },
+      triggered_by: user.email
+    }).catch(() => {});
 
     return Response.json({
       success: true,
@@ -316,6 +434,7 @@ Deno.serve(async (req) => {
       label_layout_description: parsed.label_layout_description || '',
       warnings: parsed.warnings || [],
       processing_duration_ms: duration,
+      total_duration_ms: totalDuration,
       tokens_used: tokensUsed,
       cost_usd: costUsd,
       status: scanStatus,
