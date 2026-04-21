@@ -58,22 +58,41 @@ export default function PushManager() {
   };
 
   const setupPushSubscription = async (registration) => {
-    if (!('PushManager' in window)) return;
+    if (!('PushManager' in window)) {
+      console.log('[PushManager] PushManager not supported in this browser');
+      return;
+    }
+    if (!('Notification' in window)) {
+      console.log('[PushManager] Notification API not supported');
+      return;
+    }
 
     // Check if iOS and not standalone — skip (iOS push only works in installed PWA)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-    if (isIOS && !isStandalone) return;
+    if (isIOS && !isStandalone) {
+      console.log('[PushManager] iOS non-standalone — skipping push setup');
+      return;
+    }
+
+    console.log('[PushManager] Notification.permission =', Notification.permission);
 
     try {
       // Check current permission — don't re-request if already denied
-      if (Notification.permission === 'denied') return;
+      if (Notification.permission === 'denied') {
+        console.warn('[PushManager] Notifications BLOCKED by user in browser settings');
+        return;
+      }
 
       let permission = Notification.permission;
       if (permission === 'default') {
         permission = await Notification.requestPermission();
+        console.log('[PushManager] Permission response:', permission);
       }
-      if (permission !== 'granted') return;
+      if (permission !== 'granted') {
+        console.warn('[PushManager] Permission not granted:', permission);
+        return;
+      }
 
       // Get or create subscription
       let subscription = await registration.pushManager.getSubscription();
@@ -83,14 +102,16 @@ export default function PushManager() {
           applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
         });
         console.log('[PushManager] New push subscription created');
+      } else {
+        console.log('[PushManager] Existing push subscription found');
       }
 
       // Save subscription to backend
-      await base44.functions.invoke('setupPushNotifications', {
+      const result = await base44.functions.invoke('setupPushNotifications', {
         subscription: subscription.toJSON(),
         action: 'subscribe'
       });
-      console.log('[PushManager] Push subscription saved');
+      console.log('[PushManager] Push subscription saved:', result?.data);
     } catch (err) {
       console.warn('[PushManager] Push setup failed:', err.message);
     }

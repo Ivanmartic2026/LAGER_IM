@@ -70,10 +70,11 @@ Deno.serve(async (req) => {
         const pushSub = {
           endpoint: sub.endpoint,
           keys: {
-            p256dh: sub.key_p256dh || sub.keys?.p256dh,
-            auth: sub.key_auth || sub.keys?.auth
+            p256dh: sub.keys?.p256dh || sub.key_p256dh || '',
+            auth: sub.keys?.auth || sub.key_auth || ''
           }
         };
+        console.log('[sendPushToUser] Sending to endpoint:', sub.endpoint?.substring(0, 60));
         await webpush.sendNotification(pushSub, payload);
         sentCount++;
       } catch (error) {

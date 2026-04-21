@@ -30,9 +30,20 @@ export default function IOSPushPrompt() {
     if (!isStandalone()) return;
     // Only show if Notification API exists
     if (!('Notification' in window)) return;
-    // Already granted or denied — no prompt needed
-    if (Notification.permission !== 'default') return;
-    // Already prompted once
+    // Already granted — nothing to do
+    if (Notification.permission === 'granted') return;
+    // If denied — show blocked message so user knows how to fix it
+    if (Notification.permission === 'denied') {
+      setStatus('denied');
+      if (!localStorage.getItem(PROMPTED_KEY + '_blocked_shown')) {
+        base44.auth.isAuthenticated().then(authed => {
+          if (!authed) return;
+          setTimeout(() => setVisible(true), 3000);
+        }).catch(() => {});
+      }
+      return;
+    }
+    // Already prompted once (default permission)
     if (localStorage.getItem(PROMPTED_KEY)) return;
     // Wait for auth then show after short delay
     base44.auth.isAuthenticated().then(authed => {
@@ -76,7 +87,11 @@ export default function IOSPushPrompt() {
   };
 
   const handleDismiss = () => {
-    localStorage.setItem(PROMPTED_KEY, '1');
+    if (status === 'denied') {
+      localStorage.setItem(PROMPTED_KEY + '_blocked_shown', '1');
+    } else {
+      localStorage.setItem(PROMPTED_KEY, '1');
+    }
     setVisible(false);
   };
 
@@ -105,7 +120,12 @@ export default function IOSPushPrompt() {
           {status === 'granted' ? (
             <p className="text-green-400 text-sm font-medium">✓ Notiser aktiverade!</p>
           ) : status === 'denied' ? (
-            <p className="text-red-400 text-sm">Notiser blockerades. Aktivera i Inställningar → Lager AI.</p>
+            <>
+              <h2 className="font-brand text-white text-base mb-1">Notiser är blockerade</h2>
+              <p className="text-white/60 text-sm leading-relaxed">
+                För att aktivera: gå till <span className="text-white font-medium">Inställningar → Lager AI → Notiser</span> och slå på dem.
+              </p>
+            </>
           ) : (
             <>
               <h2 className="font-brand text-white text-base mb-1">Aktivera push-notiser</h2>
