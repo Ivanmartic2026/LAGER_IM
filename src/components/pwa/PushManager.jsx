@@ -41,84 +41,112 @@ export default function PushManager() {
   }, []);
 
   const registerServiceWorker = async () => {
-    if (!('serviceWorker' in navigator)) return;
+    if (!('serviceWorker' in navigator)) {
+      console.warn('[PushManager] ServiceWorker not supported');
+      return;
+    }
 
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      // Force update strategy for PWA (bypass cache)
+      const registration = await navigator.serviceWorker.register('/sw.js', { 
+        scope: '/',
+        updateViaCache: 'none'
+      });
       console.log('[PushManager] SW registered:', registration.scope);
+
+      // Force check for updates every time
+      registration.update().catch(err => console.warn('[PushManager] SW update check failed:', err.message));
 
       // Auto-setup push after SW is ready
       const isAuthenticated = await base44.auth.isAuthenticated().catch(() => false);
-      if (!isAuthenticated) return;
+      if (!isAuthenticated) {
+        console.log('[PushManager] User not authenticated, skipping push setup');
+        return;
+      }
+
+      // Wait for SW to be active
+      if (!registration.active) {
+        console.log('[PushManager] Waiting for SW to become active...');
+        await new Promise(resolve => {
+          const checkActive = () => {
+            if (registration.active) {
+              resolve();
+            } else {
+              registration.addEventListener('updatefound', checkActive);
+            }
+          };
+          checkActive();
+        });
+      }
 
       await setupPushSubscription(registration);
     } catch (err) {
-      console.warn('[PushManager] SW registration failed:', err.message);
+      console.error('[PushManager] SW registration failed:', err.message, err);
     }
   };
 
   const setupPushSubscription = async (registration) => {
     if (!('PushManager' in window)) {
-      console.log('[PushManager] PushManager not supported in this browser');
+      console.warn('[PushManager] PushManager not supported');
       return;
     }
     if (!('Notification' in window)) {
-      console.log('[PushManager] Notification API not supported');
+      console.warn('[PushManager] Notification API not supported');
       return;
     }
 
-    // Check if iOS and not standalone — skip (iOS push only works in installed PWA)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    
+    console.log('[PushManager] iOS:', isIOS, '| Standalone:', isStandalone, '| Permission:', Notification.permission);
+
     if (isIOS && !isStandalone) {
       console.log('[PushManager] iOS non-standalone — skipping push setup');
       return;
     }
 
-    console.log('[PushManager] Notification.permission =', Notification.permission);
-
     try {
-      // Check current permission — don't re-request if already denied
       if (Notification.permission === 'denied') {
-        console.warn('[PushManager] Notifications BLOCKED by user in browser settings');
+        console.warn('[PushManager] Notifications BLOCKED');
         return;
       }
 
       let permission = Notification.permission;
       if (permission === 'default') {
-        // On iOS, don't auto-request — IOSPushPrompt handles this via user gesture
         if (isIOS) {
-          console.log('[PushManager] iOS — skipping auto permission request, IOSPushPrompt will handle it');
+          console.log('[PushManager] iOS — skipping auto permission, IOSPushPrompt will handle');
           return;
         }
         permission = await Notification.requestPermission();
-        console.log('[PushManager] Permission response:', permission);
+        console.log('[PushManager] Permission granted:', permission);
       }
       if (permission !== 'granted') {
-        console.warn('[PushManager] Permission not granted:', permission);
+        console.warn('[PushManager] Permission denied:', permission);
         return;
       }
 
       // Get or create subscription
       let subscription = await registration.pushManager.getSubscription();
       if (!subscription) {
+        console.log('[PushManager] Creating new subscription...');
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
         });
-        console.log('[PushManager] New push subscription created');
+        console.log('[PushManager] Subscription created:', subscription.endpoint.substring(0, 50) + '...');
       } else {
-        console.log('[PushManager] Existing push subscription found');
+        console.log('[PushManager] Using existing subscription');
       }
 
-      // Save subscription to backend
+      // Save to backend
+      console.log('[PushManager] Saving subscription to backend...');
       const result = await base44.functions.invoke('setupPushNotifications', {
         subscription: subscription.toJSON(),
         action: 'subscribe'
       });
-      console.log('[PushManager] Push subscription saved:', result?.data);
+      console.log('[PushManager] Subscription saved:', result?.data);
     } catch (err) {
-      console.warn('[PushManager] Push setup failed:', err.message);
+      console.error('[PushManager] Push setup error:', err.message, err.stack);
     }
   };
 

@@ -21,6 +21,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import ErrorBoundary from "@/components/utils/ErrorBoundary";
 import IOSInstallPrompt from "@/components/pwa/IOSInstallPrompt";
 import IOSPushPrompt from "@/components/pwa/IOSPushPrompt";
+import SWUpdateForcer from "@/components/pwa/SWUpdateForcer";
 
 // Detect if mobile for performance optimization
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
@@ -164,6 +165,7 @@ function LayoutContent({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-background">
+      <SWUpdateForcer />
       <PWAOptimizer />
       <PushManager />
       <OfflineIndicator />
