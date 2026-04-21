@@ -13,8 +13,10 @@ Deno.serve(async (req) => {
 
     if (action === 'subscribe') {
       const endpoint = subscription.endpoint;
-      const p256dh = subscription.keys?.p256dh || subscription.getKey?.('p256dh');
-      const auth = subscription.keys?.auth || subscription.getKey?.('auth');
+      const keys = {
+        p256dh: subscription.keys?.p256dh || '',
+        auth: subscription.keys?.auth || ''
+      };
 
       const existing = await base44.asServiceRole.entities.PushSubscription.filter({
         user_email: user.email,
@@ -23,20 +25,20 @@ Deno.serve(async (req) => {
 
       if (existing.length > 0) {
         await base44.asServiceRole.entities.PushSubscription.update(existing[0].id, {
-          key_p256dh: p256dh || '',
-          key_auth: auth || '',
+          keys,
           is_active: true
         });
       } else {
         await base44.asServiceRole.entities.PushSubscription.create({
           user_email: user.email,
           endpoint: endpoint || '',
-          key_p256dh: p256dh || '',
-          key_auth: auth || '',
-          is_active: true
+          keys,
+          is_active: true,
+          user_agent: req.headers.get('user-agent') || ''
         });
       }
 
+      console.log('[setupPushNotifications] Subscription saved for', user.email);
       return Response.json({ success: true });
     }
 
