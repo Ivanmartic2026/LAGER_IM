@@ -8,10 +8,11 @@ import CameraCapture from "@/components/scanner/CameraCapture";
 import AIProcessingScreen from "@/components/scanner/AIProcessingScreen";
 import { createPageUrl } from "@/utils";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ScanPage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [step, setStep] = useState("capture"); // capture | result_found | result_not_found
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingError, setProcessingError] = useState(null);
@@ -33,9 +34,9 @@ export default function ScanPage() {
       const newQty = Math.max(0, currentQty + delta);
       await base44.entities.Article.update(foundArticle.id, { stock_qty: newQty });
       setFoundArticle(prev => ({ ...prev, stock_qty: newQty }));
-      toast.success(delta > 0 ? `+${delta} st tillagd` : `${delta} st uttagen`);
+      toast({ title: delta > 0 ? `+${delta} st tillagd` : `${delta} st uttagen` });
     } catch {
-      toast.error("Kunde inte uppdatera lagersaldo");
+      toast({ title: "Kunde inte uppdatera lagersaldo", variant: "destructive" });
     } finally {
       setIsAdjusting(false);
     }
