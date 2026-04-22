@@ -4,8 +4,8 @@
   "properties": {
     "model_name": {
       "type": "string",
-      "default": "kimi-k2.5",
-      "description": "Kimi-modell att anv\u00e4nda"
+      "default": "moonshot-v1-8k",
+      "description": "Kimi-modell att anv\u00e4nda (moonshot-v1-8k st\u00f6djer vision)"
     },
     "api_base_url": {
       "type": "string",
@@ -15,7 +15,7 @@
     "thinking_mode": {
       "type": "boolean",
       "default": false,
-      "description": "Aktivera Kimi K2.5 thinking mode \u2014 av f\u00f6r deterministisk label-parsing"
+      "description": "Aktivera thinking mode \u2014 av f\u00f6r deterministisk label-parsing"
     },
     "prompt_version": {
       "type": "string",
@@ -39,8 +39,8 @@
     },
     "timeout_ms": {
       "type": "number",
-      "default": 30000,
-      "description": "Timeout i millisekunder"
+      "default": 90000,
+      "description": "Timeout i millisekunder (90s)"
     },
     "is_active": {
       "type": "boolean",

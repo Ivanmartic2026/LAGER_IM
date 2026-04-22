@@ -5,7 +5,7 @@ const MOONSHOT_API_KEY = Deno.env.get("KIMI_API_KEY");
 // ── Image fetch limits ──────────────────────────────────────────────────────
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB hard limit (Moonshot)
 const IMAGE_FETCH_TIMEOUT_MS = 10_000;   // 10s for image download
-const KIMI_TIMEOUT_MS = 60_000;          // 60s for Kimi API call (large images can be slow)
+const KIMI_TIMEOUT_MS = 90_000;          // 90s for Kimi API call
 
 // ── Safe base64 encoding (no stack overflow) ────────────────────────────────
 // btoa(String.fromCharCode.apply(null, bigArray)) overflows the stack for
@@ -180,7 +180,7 @@ Deno.serve(async (req) => {
 
     // Load KimiConfig
     let config = {
-      model_name: 'kimi-k2.5',
+      model_name: 'moonshot-v1-8k',
       api_base_url: 'https://api.moonshot.ai/v1',
       prompt_version: 'v1',
       confidence_threshold_auto_approve: 0.85,
@@ -306,8 +306,8 @@ Deno.serve(async (req) => {
     } catch (kimiErr) {
       clearTimeout(kimiTimer);
       const errMsg = kimiErr.name === 'AbortError'
-        ? `Kimi API timeout (>${KIMI_TIMEOUT_MS / 1000}s) — AI-läsning misslyckades, använder streckkod`
-        : kimiErr.message;
+        ? `Kimi API timeout (>${KIMI_TIMEOUT_MS / 1000}s) med modell '${config.model_name}' — AI-läsning misslyckades, använder streckkod`
+        : `Kimi API fel (modell: ${config.model_name}): ${kimiErr.message}`;
 
       await base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
         status: 'failed',

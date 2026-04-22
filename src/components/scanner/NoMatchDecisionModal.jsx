@@ -3,13 +3,13 @@
  * Tre val: ny artikel+batch, ny batch för befintlig artikel, avbryt/manuell granskning
  * Stöder patternSuggestion för AI-inferred leverantörsförslag
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
-import { Search, Plus, BookOpen, X, Package, Layers, AlertTriangle, Cpu } from 'lucide-react';
+import { Search, Plus, BookOpen, X, Package, Layers, AlertTriangle, Cpu, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function NoMatchDecisionModal({
@@ -33,9 +33,28 @@ export default function NoMatchDecisionModal({
   const [newArticleName, setNewArticleName] = useState(extractedSummary.article_name || '');
   const [newArticleSku, setNewArticleSku] = useState(extractedSummary.article_sku || '');
   const [newStorageType] = useState('company_owned');
+  const [visualMatches, setVisualMatches] = useState([]);
+  const [loadingVisual, setLoadingVisual] = useState(false);
 
   const handleClose = onCancel || onClose || (() => {});
   const handleDecision = onDecision || (() => {});
+
+  // Determine if visual search is relevant: no SKU and no batch_number found
+  const noTextMatch = !extractedSummary.batch_number && !extractedSummary.article_sku;
+
+  // Load visual candidates when view switches to visual_match
+  useEffect(() => {
+    if (view !== 'visual_match') return;
+    setLoadingVisual(true);
+    base44.entities.Article.list('-updated_date', 50)
+      .then(all => {
+        // Only show articles that have images
+        const withImages = all.filter(a => a.image_urls?.length > 0).slice(0, 20);
+        setVisualMatches(withImages);
+      })
+      .catch(() => setVisualMatches([]))
+      .finally(() => setLoadingVisual(false));
+  }, [view]);
 
   const handleSearchArticle = async (q) => {
     setArticleSearch(q);
@@ -183,6 +202,56 @@ export default function NoMatchDecisionModal({
     else handleDecision('manual_review', {});
   };
 
+  const handleVisualMatch = async (article) => {
+    setSaving(true);
+    try {
+      const me = await base44.auth.me();
+      const batch = await base44.entities.Batch.create({
+        article_id: article.id,
+        batch_number: `VISUAL-${Date.now()}`,
+        raw_batch_number: null,
+        aliases: [],
+        article_sku: article.sku,
+        article_name: article.name,
+        supplier_id: article.supplier_id || undefined,
+        supplier_name: article.supplier_name || undefined,
+        status: 'pending_verification',
+        source_context: 'article_creation'
+      });
+
+      await base44.entities.BatchEvent.create({
+        batch_id: batch.id,
+        event_type: 'created',
+        actor: me.email,
+        timestamp: new Date().toISOString(),
+        payload: { label_scan_id: labelScanId, match_method: 'visual_manual' },
+        source_entity: 'LabelScan',
+        source_id: labelScanId
+      });
+
+      if (labelScanId) {
+        await base44.entities.LabelScan.update(labelScanId, {
+          batch_id: batch.id,
+          status: 'completed',
+          match_results: {
+            article_match_id: article.id,
+            batch_match_id: batch.id,
+            article_match_method: 'visual_manual',
+            image_search_attempted: true
+          }
+        }).catch(() => {});
+      }
+
+      toast.success(`Kopplad till ${article.name}`);
+      if (onCreated) onCreated({ article, batch });
+      else handleDecision('visual_match', { article, batch });
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const barcodeDisplay = barcodeValues.map(bv => `[${bv.type || 'code'}] ${bv.raw_value}`).join('\n');
   const ocrDisplay = extractedSummary.batch_number || extractedSummary.article_name || '(ingen OCR-text)';
 
@@ -309,6 +378,22 @@ export default function NoMatchDecisionModal({
                 </button>
               )}
 
+              {/* Visual match option — shown when no text identifiers were found */}
+              {noTextMatch && (
+                <button
+                  onClick={() => setView('visual_match')}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-purple-500/30 transition-all text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0">
+                    <Eye className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-medium text-sm">Visuell matchning</p>
+                    <p className="text-zinc-400 text-xs mt-0.5">Ingen text hittades — jämför visuellt med kända artiklar</p>
+                  </div>
+                </button>
+              )}
+
               <button
                 onClick={handleManualReview}
                 className="w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-left"
@@ -413,6 +498,44 @@ export default function NoMatchDecisionModal({
                   <p className="text-zinc-500 text-sm text-center py-4">Inga artiklar hittades</p>
                 )}
               </div>
+            </motion.div>
+          )}
+
+          {view === 'visual_match' && (
+            <motion.div key="visual_match" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 space-y-4">
+              <button onClick={() => setView('choose')} className="text-zinc-400 text-sm flex items-center gap-1 hover:text-white">
+                ← Tillbaka
+              </button>
+              <div>
+                <h3 className="text-white font-medium">Visuell matchning</h3>
+                <p className="text-zinc-400 text-xs mt-1">Välj den artikel som ser likadan ut som den scannede etiketten</p>
+              </div>
+              {loadingVisual && <p className="text-zinc-500 text-xs text-center py-4">Laddar artiklar…</p>}
+              {!loadingVisual && visualMatches.length === 0 && (
+                <p className="text-zinc-500 text-sm text-center py-4">Inga artiklar med bilder hittades</p>
+              )}
+              <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                {visualMatches.map(art => (
+                  <button
+                    key={art.id}
+                    onClick={() => handleVisualMatch(art)}
+                    disabled={saving}
+                    className="flex flex-col rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-purple-500/40 overflow-hidden text-left disabled:opacity-50 transition-all"
+                  >
+                    <img
+                      src={art.image_urls[0]}
+                      alt={art.name}
+                      className="w-full h-24 object-cover bg-zinc-900"
+                      onError={e => { e.target.style.display = 'none'; }}
+                    />
+                    <div className="p-2">
+                      <p className="text-white text-xs font-medium truncate">{art.name}</p>
+                      {art.sku && <p className="text-zinc-500 text-[10px]">{art.sku}</p>}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-zinc-600 text-[10px] text-center">Matchning sparas med metod: visual_manual • image_search_attempted: true</p>
             </motion.div>
           )}
         </AnimatePresence>
