@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import AIProcessingScreen from "./AIProcessingScreen";
 import { toast } from "sonner";
 
-export default function CameraCapture({ onImageCaptured, isProcessing, progress = 0 }) {
+export default function CameraCapture({ onImageCaptured, isProcessing, progress = 0, onManual }) {
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const [previews, setPreviews] = useState([]);
@@ -120,7 +120,7 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
   return (
     <div className="w-full relative">
       <AnimatePresence>
-        {isProcessing && <AIProcessingScreen progress={progress} />}
+        {isProcessing && <AIProcessingScreen progress={progress} onManual={onManual} />}
       </AnimatePresence>
       
       <input

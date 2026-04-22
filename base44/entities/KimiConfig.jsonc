@@ -4,8 +4,8 @@
   "properties": {
     "model_name": {
       "type": "string",
-      "default": "moonshot-v1-8k",
-      "description": "Kimi-modell att anv\u00e4nda (moonshot-v1-8k st\u00f6djer vision)"
+      "default": "moonshot-v1-8k-vision",
+      "description": "Kimi-modell att anv\u00e4nda (moonshot-v1-8k-vision st\u00f6djer vision/bilder)"
     },
     "api_base_url": {
       "type": "string",
