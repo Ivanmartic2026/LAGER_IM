@@ -188,7 +188,7 @@ Deno.serve(async (req) => {
     };
     let configId = null;
     try {
-      const configs = await base44.asServiceRole.entities.KimiConfig.filter({ is_active: true }, '-created_date', 1);
+      const configs = await base44.asServiceRole.entities.KimiConfig.list('-created_date', 1);
       if (configs.length > 0) {
         config = { ...config, ...configs[0] };
         configId = configs[0].id;
