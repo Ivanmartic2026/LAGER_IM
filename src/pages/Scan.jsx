@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Package, ArrowLeft, CheckCircle2, Camera, MapPin, XCircle, Plus, RotateCcw } from "lucide-react";
+import { Package, ArrowLeft, CheckCircle2, Camera, MapPin, XCircle, Plus, RotateCcw, Minus, ArrowDownToLine, ArrowUpFromLine, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CameraCapture from "@/components/scanner/CameraCapture";
 import AIProcessingScreen from "@/components/scanner/AIProcessingScreen";
 import { createPageUrl } from "@/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function ScanPage() {
+  const navigate = useNavigate();
   const [step, setStep] = useState("capture"); // capture | result_found | result_not_found
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingError, setProcessingError] = useState(null);
@@ -18,6 +20,26 @@ export default function ScanPage() {
   const [foundArticle, setFoundArticle] = useState(null);
   const [extractedBatchNumber, setExtractedBatchNumber] = useState("");
   const [imageUrls, setImageUrls] = useState([]);
+
+  // Stock adjustment state
+  const [adjustQty, setAdjustQty] = useState(1);
+  const [isAdjusting, setIsAdjusting] = useState(false);
+
+  const handleStockAdjust = async (delta) => {
+    if (!foundArticle?.id) return;
+    setIsAdjusting(true);
+    try {
+      const currentQty = foundArticle.stock_qty ?? 0;
+      const newQty = Math.max(0, currentQty + delta);
+      await base44.entities.Article.update(foundArticle.id, { stock_qty: newQty });
+      setFoundArticle(prev => ({ ...prev, stock_qty: newQty }));
+      toast.success(delta > 0 ? `+${delta} st tillagd` : `${delta} st uttagen`);
+    } catch {
+      toast.error("Kunde inte uppdatera lagersaldo");
+    } finally {
+      setIsAdjusting(false);
+    }
+  };
 
   const handleReset = () => {
     setStep("capture");
@@ -184,16 +206,46 @@ export default function ScanPage() {
                 <img src={foundArticle.image_urls[0]} alt={foundArticle.name} className="w-full h-40 object-contain rounded-xl bg-slate-900 border border-slate-800" />
               )}
 
-              {/* Actions */}
-              <div className="flex gap-3">
+              {/* Quantity selector */}
+              <div className="bg-slate-900 border border-slate-700 rounded-2xl p-4">
+                <p className="text-xs font-brand text-slate-400 tracking-wider mb-3">ANTAL ATT JUSTERA</p>
+                <div className="flex items-center gap-4 mb-4">
+                  <button onClick={() => setAdjustQty(q => Math.max(1, q - 1))} className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-white transition-colors">
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="text-3xl font-bold text-white flex-1 text-center">{adjustQty}</span>
+                  <button onClick={() => setAdjustQty(q => q + 1)} className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-white transition-colors">
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    onClick={() => handleStockAdjust(-adjustQty)}
+                    disabled={isAdjusting || (foundArticle.stock_qty ?? 0) === 0}
+                    className="h-12 bg-orange-500/20 border border-orange-500/40 hover:bg-orange-500/30 text-orange-300 disabled:opacity-40"
+                  >
+                    <ArrowUpFromLine className="w-4 h-4 mr-2" />Plocka ut
+                  </Button>
+                  <Button
+                    onClick={() => handleStockAdjust(adjustQty)}
+                    disabled={isAdjusting}
+                    className="h-12 bg-emerald-500/20 border border-emerald-500/40 hover:bg-emerald-500/30 text-emerald-300 disabled:opacity-40"
+                  >
+                    <ArrowDownToLine className="w-4 h-4 mr-2" />Lägg till
+                  </Button>
+                </div>
+              </div>
+
+              {/* Navigation actions */}
+              <div className="grid grid-cols-2 gap-3">
+                <Link to={`/Inventory?articleId=${foundArticle.id}`} className="flex-1">
+                  <Button variant="outline" className="w-full h-12 bg-slate-800 border-slate-600 hover:bg-slate-700 text-white">
+                    <ExternalLink className="w-4 h-4 mr-2" />Produktsida
+                  </Button>
+                </Link>
                 <Button onClick={handleReset} className="flex-1 h-12 bg-signal hover:bg-signal-hover">
                   <Camera className="w-4 h-4 mr-2" />Skanna igen
                 </Button>
-                <Link to={`${createPageUrl("Inventory")}?articleId=${foundArticle.id}`} className="flex-1">
-                  <Button variant="outline" className="w-full h-12 border-slate-600 bg-slate-800 hover:bg-slate-700 text-white">
-                    <Package className="w-4 h-4 mr-2" />Visa artikel
-                  </Button>
-                </Link>
               </div>
             </motion.div>
           )}
