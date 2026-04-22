@@ -255,9 +255,18 @@ Deno.serve(async (req) => {
       ? "Analysera denna etikett noggrant. Prioritera barkod/Data Matrix-värden framför OCR för batch_number och article_sku. Skilj tydligt på batch_number, article_sku och serienummer. Returnera JSON enligt angiven struktur."
       : "Extrahera batch-info från denna etikett som JSON med fälten: batch_number, article_sku, article_name, supplier_name, manufacturing_date, expiry_date, production_date, quantity, series, pixel_pitch, other_text[]. För varje fält även confidence 0-1. Lägg även overall_confidence 0-1.";
 
+    // Bugg 1: Ensure correct model name for vision
+    const modelName = (!config.model_name || config.model_name === 'kimi-k2.5' || !config.model_name.includes('moonshot-v1'))
+      ? 'moonshot-v1-8k'
+      : config.model_name;
+
+    // Bugg 3: Minimum 60s timeout regardless of config
+    const effectiveTimeout = Math.max(KIMI_TIMEOUT_MS, config.timeout_ms || 0);
+
     const apiUrl = `${config.api_base_url}/chat/completions`;
+    // Bugg 2: Never send thinking params for vision calls
     const kimiPayload = {
-      model: config.model_name,
+      model: modelName,
       temperature: 1,
       max_tokens: 2048,
       response_format: { type: "json_object" },
@@ -265,10 +274,11 @@ Deno.serve(async (req) => {
         { role: "system", content: activePrompt },
         { role: "user", content: [{ type: "text", text: userText }, imageContent] }
       ]
+      // NOTE: thinking/reasoning params intentionally omitted — not supported for vision
     };
 
     const kimiCtrl = new AbortController();
-    const kimiTimer = setTimeout(() => kimiCtrl.abort(), KIMI_TIMEOUT_MS);
+    const kimiTimer = setTimeout(() => kimiCtrl.abort(), effectiveTimeout);
 
     let kimiData;
     const kimiStart = Date.now();
@@ -387,6 +397,59 @@ Deno.serve(async (req) => {
 
     const totalDuration = Date.now() - overallStart;
 
+    // ── Bugg 4: Match against existing Batch / Article records ───────────────
+    const matchResults = {};
+    const normalize = (s) => (s || '').toUpperCase().replace(/[\s\-_]/g, '').trim();
+
+    const batchNum = extractedFields.batch_number ? normalize(extractedFields.batch_number) : null;
+    const articleSku = extractedFields.article_sku ? extractedFields.article_sku.trim().toLowerCase() : null;
+
+    if (batchNum) {
+      // Search Batch by batch_number or aliases
+      const batchCandidates = await base44.asServiceRole.entities.Batch.list('-updated_date', 2000).catch(() => []);
+      const batchMatch = batchCandidates.find(b => {
+        if (normalize(b.batch_number) === batchNum) return true;
+        if (Array.isArray(b.aliases) && b.aliases.some(a => normalize(a) === batchNum)) return true;
+        return false;
+      });
+      if (batchMatch) {
+        matchResults.batch_match_id = batchMatch.id;
+        matchResults.batch_match_confidence = 0.95;
+        matchResults.batch_match_method = 'exact';
+        if (batchMatch.article_id) {
+          matchResults.article_match_id = batchMatch.article_id;
+          matchResults.article_match_confidence = 0.90;
+          matchResults.article_match_method = 'via_batch';
+        }
+      }
+    }
+
+    if (articleSku && !matchResults.article_match_id) {
+      // Search Article by SKU (case-insensitive)
+      const articleCandidates = await base44.asServiceRole.entities.Article.list('-updated_date', 1000).catch(() => []);
+      const artMatch = articleCandidates.find(a =>
+        a.sku && a.sku.trim().toLowerCase() === articleSku
+      );
+      if (artMatch) {
+        matchResults.article_match_id = artMatch.id;
+        matchResults.article_match_confidence = 0.95;
+        matchResults.article_match_method = 'sku_exact';
+      }
+    }
+
+    // Fallback: search Article.batch_number field
+    if (batchNum && !matchResults.batch_match_id && !matchResults.article_match_id) {
+      const articleCandidates2 = await base44.asServiceRole.entities.Article.list('-updated_date', 1000).catch(() => []);
+      const artByBatch = articleCandidates2.find(a =>
+        a.batch_number && normalize(a.batch_number) === batchNum
+      );
+      if (artByBatch) {
+        matchResults.article_match_id = artByBatch.id;
+        matchResults.article_match_confidence = 0.80;
+        matchResults.article_match_method = 'article_batch_number_field';
+      }
+    }
+
     // Update LabelScan
     await base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
       ai_raw_response: kimiData,
@@ -395,6 +458,7 @@ Deno.serve(async (req) => {
       ai_cost_usd: costUsd,
       extracted_fields: extractedFields,
       field_confidence: fieldConfidence,
+      match_results: Object.keys(matchResults).length > 0 ? matchResults : undefined,
       status: scanStatus
     });
 
@@ -438,8 +502,9 @@ Deno.serve(async (req) => {
       tokens_used: tokensUsed,
       cost_usd: costUsd,
       status: scanStatus,
-      model_used: config.model_name,
-      prompt_version: promptVersion
+      model_used: modelName,
+      prompt_version: promptVersion,
+      match_results: matchResults
     });
 
   } catch (error) {
