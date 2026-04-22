@@ -216,12 +216,12 @@ export default function MobileScanResult({
             <Button
               onClick={handleConfirm}
               disabled={!selected || confirming}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white h-12 text-base font-semibold"
+              className="w-full bg-signal hover:bg-signal-hover text-white h-12 text-base font-semibold"
             >
               {confirming
                 ? "Bekräftar..."
                 : selected
-                  ? `Välj "${selected.article_name || selected.entity_name}"`
+                  ? "Visa artikel i Lager"
                   : "Välj ett alternativ ovan"}
             </Button>
             <Button
@@ -233,7 +233,7 @@ export default function MobileScanResult({
             </Button>
             <Button onClick={onRetake} variant="ghost" className="w-full text-slate-400 hover:text-white h-10">
               <Camera className="w-4 h-4 mr-2" />
-              Ta nytt foto
+              Skanna igen
             </Button>
           </div>
         </div>
