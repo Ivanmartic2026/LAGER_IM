@@ -180,6 +180,7 @@ export default function ScanPage() {
   const [showLinkToOrder, setShowLinkToOrder] = useState(false);
   const [pendingArticleForLink, setPendingArticleForLink] = useState(null);
   const [scanAndProcessResult, setScanAndProcessResult] = useState(null);
+  const [kimiMatchResults, setKimiMatchResults] = useState(null);
 
   const levenshteinDistance = (str1, str2) => {
     const matrix = [];
@@ -252,6 +253,7 @@ export default function ScanPage() {
         setProgress(100);
         setIsProcessing(false);
         setProgress(0);
+        if (result.match_results) setKimiMatchResults(result.match_results);
         setMobileScanResult({
           allNumbers: result.all_numbers || [],
           allMatches: result.all_matches || [],
@@ -511,7 +513,7 @@ export default function ScanPage() {
     setRepairNotes(""); setIsManualEntry(false); setShowLinkToOrder(false);
     setPendingArticleForLink(null); setQuickMatchResult(null);
     setScanContext(null); setScanContextRef(null); setScanAndProcessResult(null);
-    setMobileScanResult(null);
+    setMobileScanResult(null); setKimiMatchResults(null);
   };
 
   const getCaptureTitle = () => {
@@ -717,8 +719,9 @@ export default function ScanPage() {
             <motion.div key="auto_review" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
               <AutoAnalysisReview
                 imageUrl={imageUrls[0]} extractedData={extractedData} confidences={confidences}
+                matchResults={kimiMatchResults}
                 onAccept={() => handleSave()}
-                onReject={() => { setStep("capture"); setImageFiles([]); setImageUrls([]); setExtractedData({}); setConfidences({}); setProgress(0); }}
+                onReject={() => { setStep("capture"); setImageFiles([]); setImageUrls([]); setExtractedData({}); setConfidences({}); setProgress(0); setKimiMatchResults(null); }}
                 onEdit={handleFieldChange}
                 onManualReview={() => setStep("review")}
                 isLoading={isSaving}
