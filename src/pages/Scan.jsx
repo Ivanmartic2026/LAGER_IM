@@ -26,6 +26,7 @@ import NoMatchDecisionModal from "@/components/scanner/NoMatchDecisionModal";
 import MobileScanResult from "@/components/scanner/MobileScanResult";
 import { createPageUrl } from "@/utils";
 import ScanQuickActionDialog from "@/components/scanner/ScanQuickActionDialog";
+import AIProcessingScreen from "@/components/scanner/AIProcessingScreen";
 
 // ── Context → mode mapping ──
 const CTX_TO_MODE = {
@@ -181,6 +182,7 @@ export default function ScanPage() {
   const [pendingArticleForLink, setPendingArticleForLink] = useState(null);
   const [scanAndProcessResult, setScanAndProcessResult] = useState(null);
   const [kimiMatchResults, setKimiMatchResults] = useState(null);
+  const [processingError, setProcessingError] = useState(null);
 
   const levenshteinDistance = (str1, str2) => {
     const matrix = [];
@@ -266,19 +268,10 @@ export default function ScanPage() {
         setStep('mobile_result');
         return;
       } catch (scanErr) {
-        console.warn('mobileScan failed, showing empty result:', scanErr.message);
-        // Never block — show empty result so user can retry or create new
+        console.warn('mobileScan failed:', scanErr.message);
         setIsProcessing(false);
         setProgress(0);
-        setMobileScanResult({
-          allNumbers: [],
-          allMatches: [],
-          imageUrl: urls[0],
-          labelScanId: null,
-          extractedSummary: {},
-          kimiError: scanErr.message
-        });
-        setStep('mobile_result');
+        setProcessingError(scanErr.message || 'Analysen misslyckades');
         return;
       }
 
@@ -312,9 +305,7 @@ export default function ScanPage() {
 
     } catch (error) {
       console.error("Error processing image:", error);
-      toast.error(`Kunde inte analysera bilden: ${error.message || 'Okänt fel'}`);
-      setStep("capture");
-    } finally {
+      setProcessingError(error.message || 'Okänt fel');
       setIsProcessing(false);
       setProgress(0);
     }
@@ -513,7 +504,7 @@ export default function ScanPage() {
     setRepairNotes(""); setIsManualEntry(false); setShowLinkToOrder(false);
     setPendingArticleForLink(null); setQuickMatchResult(null);
     setScanContext(null); setScanContextRef(null); setScanAndProcessResult(null);
-    setMobileScanResult(null); setKimiMatchResults(null);
+    setMobileScanResult(null); setKimiMatchResults(null); setProcessingError(null);
   };
 
   const getCaptureTitle = () => {
@@ -546,6 +537,26 @@ export default function ScanPage() {
             <Package className="w-4 h-4 mr-2" />Lager
           </Button>
         </div>
+
+        {/* ── AI PROCESSING OVERLAY ── */}
+        {(isProcessing || processingError) && (
+          <AIProcessingScreen
+            progress={progress}
+            error={processingError}
+            onRetry={() => {
+              setProcessingError(null);
+              setImageFiles([]);
+              setImageUrls([]);
+              setStep('capture');
+            }}
+            onManual={() => {
+              setProcessingError(null);
+              setIsManualEntry(true);
+              setExtractedData({});
+              setStep('review');
+            }}
+          />
+        )}
 
         <AnimatePresence mode="wait">
 
