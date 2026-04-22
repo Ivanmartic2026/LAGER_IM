@@ -255,6 +255,7 @@ export default function ScanPage() {
         setMobileScanResult({
           allNumbers: result.all_numbers || [],
           allMatches: result.all_matches || [],
+          visualSuggestions: result.visual_suggestions || [],
           imageUrl: result.image_url || urls[0],
           labelScanId: result.label_scan_id,
           extractedSummary: result.extracted_summary || {},
@@ -666,6 +667,7 @@ export default function ScanPage() {
                 imageUrl={mobileScanResult.imageUrl}
                 allNumbers={mobileScanResult.allNumbers}
                 allMatches={mobileScanResult.allMatches}
+                visualSuggestions={mobileScanResult.visualSuggestions || []}
                 labelScanId={mobileScanResult.labelScanId}
                 onConfirmMatch={async (match) => {
                   // Update LabelScan with user's chosen match, then proceed to success

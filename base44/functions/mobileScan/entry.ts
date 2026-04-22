@@ -113,7 +113,17 @@ Deno.serve(async (req) => {
     const allMatches = await searchAllEntities(base44, allNumbers);
     const duration = Date.now() - t0;
 
-    // ── 6. Update LabelScan with results (non-blocking, never fails user) ──
+    // ── 6. Visual AI fallback — if zero text matches, try image similarity ──
+    let visualSuggestions = [];
+    if (allMatches.length === 0 && firstUrl) {
+      try {
+        visualSuggestions = await visualMatchFallback(base44, firstUrl);
+      } catch (e) {
+        console.warn('[mobileScan] visual fallback failed:', e.message);
+      }
+    }
+
+    // ── 7. Update LabelScan with results (non-blocking, never fails user) ──
     if (labelScan) {
       base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
         ai_model_used: analysis?.model_used || (kimiError ? 'barcode_only' : 'kimi-k2.5'),
@@ -125,7 +135,8 @@ Deno.serve(async (req) => {
         match_results: {
           review_queued: false,
           all_identifiers_searched: allNumbers,
-          all_matches: allMatches
+          all_matches: allMatches,
+          visual_suggestions: visualSuggestions
         }
       }).catch(() => {});
 
@@ -134,15 +145,15 @@ Deno.serve(async (req) => {
         label_scan_id: labelScan.id,
         identifiers_searched: allNumbers,
         matches_found: allMatches.map(m => ({ entity: m.entity_type, id: m.entity_id, matched_on: m.matched_field, confidence: 1.0 })),
-        decision: allMatches.length > 0 ? 'review_queue' : 'no_match_prompt_create',
-        confidence: allMatches.length > 0 ? 0.7 : 0.0,
+        decision: allMatches.length > 0 ? 'auto_link' : visualSuggestions.length > 0 ? 'review_queue' : 'no_match_prompt_create',
+        confidence: allMatches.length > 0 ? 1.0 : visualSuggestions.length > 0 ? (visualSuggestions[0]?.confidence || 0.5) : 0.0,
         timestamp: new Date().toISOString(),
         duration_ms: duration,
         actor: user.email
       }).catch(() => {});
     }
 
-    // ── 7. Send push notification in background ──
+    // ── 8. Send push notification in background ──
     sendScanPush(base44, user, allMatches, labelScan?.id, kimiError).catch(() => {});
 
     // ── 8. Apply pattern rules in background (admin use only) ──
@@ -152,6 +163,7 @@ Deno.serve(async (req) => {
       label_scan_id: labelScan?.id || null,
       all_numbers: allNumbers,
       all_matches: allMatches,
+      visual_suggestions: visualSuggestions,
       image_url: firstUrl,
       extracted_summary: extracted,
       kimi_error: kimiError || null
@@ -201,30 +213,38 @@ async function searchAllEntities(base44, numbers) {
   };
 
   const [batches, articles] = await Promise.all([
-    base44.asServiceRole.entities.Batch.list('-updated_date', 1000),
-    base44.asServiceRole.entities.Article.list('-updated_date', 500)
+    base44.asServiceRole.entities.Batch.list('-updated_date', 2000),
+    base44.asServiceRole.entities.Article.list('-updated_date', 1000)
   ]);
+
+  const articleMap = new Map(articles.map(a => [a.id, a]));
 
   for (const number of numbers) {
     const n = norm(number);
     if (!n || n.length < 2) continue;
 
     for (const batch of batches) {
-      const article = articles.find(a => a.id === batch.article_id);
-      if (norm(batch.batch_number) === n) {
+      const article = articleMap.get(batch.article_id);
+
+      const normBatch = norm(batch.batch_number);
+      const normRaw = norm(batch.raw_batch_number);
+
+      if (normBatch && normBatch === n) {
         addMatch('Batch', batch.id, batch.batch_number, 'batch_number', number, {
           article_name: article?.name || batch.article_name || null,
           article_sku: article?.sku || batch.article_sku || null,
           article_id: batch.article_id || null,
+          article_image_url: article?.image_urls?.[0] || null,
           shelf_address: article?.shelf_address || null,
           stock_qty: article?.stock_qty ?? null,
           supplier_name: batch.supplier_name || null
         });
-      } else if (norm(batch.raw_batch_number) === n) {
+      } else if (normRaw && normRaw === n) {
         addMatch('Batch', batch.id, batch.batch_number, 'raw_batch_number', number, {
           article_name: article?.name || batch.article_name || null,
           article_sku: article?.sku || batch.article_sku || null,
           article_id: batch.article_id || null,
+          article_image_url: article?.image_urls?.[0] || null,
           shelf_address: article?.shelf_address || null,
           stock_qty: article?.stock_qty ?? null,
           supplier_name: batch.supplier_name || null
@@ -232,31 +252,52 @@ async function searchAllEntities(base44, numbers) {
       } else if ((batch.aliases || []).some(a => norm(a) === n)) {
         addMatch('Batch', batch.id, batch.batch_number, 'alias', number, {
           article_name: article?.name || batch.article_name || null,
+          article_sku: article?.sku || batch.article_sku || null,
           article_id: batch.article_id || null,
+          article_image_url: article?.image_urls?.[0] || null,
           shelf_address: article?.shelf_address || null,
           stock_qty: article?.stock_qty ?? null
         });
       } else if (batch.batch_pattern?.canonical_core && norm(batch.batch_pattern.canonical_core) === n) {
         addMatch('Batch', batch.id, batch.batch_number, 'canonical_core', number, {
           article_name: article?.name || batch.article_name || null,
+          article_sku: article?.sku || batch.article_sku || null,
           article_id: batch.article_id || null,
+          article_image_url: article?.image_urls?.[0] || null,
           shelf_address: article?.shelf_address || null,
           stock_qty: article?.stock_qty ?? null
+        });
+      } else if (normBatch && n.length >= 4 && (normBatch.includes(n) || n.includes(normBatch))) {
+        // Partial/substring match — lower priority
+        addMatch('Batch', batch.id, batch.batch_number, 'partial_match', number, {
+          article_name: article?.name || batch.article_name || null,
+          article_sku: article?.sku || batch.article_sku || null,
+          article_id: batch.article_id || null,
+          article_image_url: article?.image_urls?.[0] || null,
+          shelf_address: article?.shelf_address || null,
+          stock_qty: article?.stock_qty ?? null,
+          supplier_name: batch.supplier_name || null,
+          partial: true
         });
       }
     }
 
     for (const article of articles) {
-      if (norm(article.sku) === n) {
+      const normSku = norm(article.sku);
+      const normLegacy = norm(article.batch_number);
+
+      if (normSku && normSku === n) {
         addMatch('Article', article.id, article.name, 'sku', number, {
           article_sku: article.sku,
+          article_image_url: article.image_urls?.[0] || null,
           shelf_address: article.shelf_address,
           stock_qty: article.stock_qty ?? null,
           supplier_name: article.supplier_name || null
         });
-      } else if (norm(article.batch_number) === n) {
+      } else if (normLegacy && normLegacy === n) {
         addMatch('Article', article.id, article.name, 'legacy_batch_number', number, {
           article_sku: article.sku,
+          article_image_url: article.image_urls?.[0] || null,
           shelf_address: article.shelf_address,
           stock_qty: article.stock_qty ?? null
         });
@@ -333,6 +374,91 @@ async function sendScanPush(base44, user, allMatches, labelScanId, kimiError) {
     link_to: linkTo || labelScanId,
     type: 'scan_result'
   });
+}
+
+// ── Visual AI match fallback ──
+// Called when text-based matching returns zero results.
+// Fetches up to 20 articles with images, sends them + the scan image to Kimi vision,
+// asks which label looks most similar.
+async function visualMatchFallback(base44, scanImageUrl) {
+  // Get articles with images, most recently updated first
+  const articlesWithImages = await base44.asServiceRole.entities.Article.list('-updated_date', 200);
+  const candidates = articlesWithImages
+    .filter(a => a.image_urls && a.image_urls.length > 0)
+    .slice(0, 20);
+
+  if (candidates.length === 0) return [];
+
+  // Build prompt with candidate list
+  const candidateList = candidates.map((a, i) =>
+    `${i + 1}. article_id="${a.id}" name="${a.name}" sku="${a.sku || ''}" image="${a.image_urls[0]}"`
+  ).join('\n');
+
+  const prompt = `Du är ett system för visuell matchning av lagretiketter.
+
+Du fick en nyscannad etikett (bilden bifogad) och ${candidates.length} befintliga artiklar.
+Vilken av de befintliga artiklarna liknar den scannrade etiketten mest, baserat på synlig text, mönster och layout?
+
+Befintliga artiklar:
+${candidateList}
+
+Svara ENDAST med JSON. Om ingen liknar, sätt confidence till 0.
+Returnera top 3 kandidater (eller färre om inga liknar).`;
+
+  const imageUrls = [scanImageUrl];
+
+  let result;
+  try {
+    result = await base44.asServiceRole.integrations.Core.InvokeLLM({
+      prompt,
+      file_urls: imageUrls,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          matches: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                article_id: { type: 'string' },
+                confidence: { type: 'number' },
+                reason: { type: 'string' }
+              }
+            }
+          }
+        }
+      }
+    });
+  } catch (e) {
+    console.warn('[visualMatchFallback] LLM call failed:', e.message);
+    return [];
+  }
+
+  const matches = result?.matches || [];
+  // Enrich with article data and filter confidence >= 0.3
+  return matches
+    .filter(m => m.confidence >= 0.3)
+    .map(m => {
+      const article = candidates.find(a => a.id === m.article_id);
+      if (!article) return null;
+      return {
+        entity_type: 'Article',
+        entity_id: article.id,
+        entity_name: article.name,
+        matched_field: 'visual_ai',
+        matched_value: 'image_similarity',
+        article_name: article.name,
+        article_sku: article.sku || null,
+        article_image_url: article.image_urls?.[0] || null,
+        shelf_address: article.shelf_address || null,
+        stock_qty: article.stock_qty ?? null,
+        supplier_name: article.supplier_name || null,
+        confidence: m.confidence,
+        visual_reason: m.reason || null,
+        is_visual_suggestion: true
+      };
+    })
+    .filter(Boolean);
 }
 
 async function applyPatternRulesBackground(base44, identifiers) {
