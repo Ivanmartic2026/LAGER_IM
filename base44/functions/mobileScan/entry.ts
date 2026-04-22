@@ -1,6 +1,64 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { createHash } from 'node:crypto';
 
+const MOONSHOT_API_KEY = Deno.env.get("KIMI_API_KEY");
+const KIMI_MODEL = 'moonshot-v1-8k-vision-preview';
+const KIMI_PROMPT = `You are a specialized OCR and barcode analysis system for warehouse management of LED display products.
+Analyze the provided label/product image and extract all information with high precision.
+batch_number is a production/manufacturing batch identifier (e.g. "JC22-2009-262", "APP20240115"). NOT a serial number or SKU.
+Return ONLY valid JSON with this structure:
+{
+  "fields": { "batch_number": "string or null", "article_sku": "string or null", "article_name": "string or null", "supplier_name": "string or null", "other_text": [] },
+  "confidence": { "batch_number": 0.0, "overall": 0.0 }
+}`;
+
+async function kimiAnalyze(imageUrl) {
+  // Fetch image and encode as base64
+  const imgResp = await fetch(imageUrl, { signal: AbortSignal.timeout(10000) });
+  if (!imgResp.ok) throw new Error(`Image fetch ${imgResp.status}`);
+  const buf = await imgResp.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  const CHUNK = 32768;
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  const b64 = btoa(binary);
+  // Detect MIME
+  let mime = 'image/jpeg';
+  if (bytes[0] === 0x89 && bytes[1] === 0x50) mime = 'image/png';
+  else if (bytes[0] === 0xFF && bytes[1] === 0xD8) mime = 'image/jpeg';
+  const dataUri = `data:${mime};base64,${b64}`;
+
+  const resp = await fetch('https://api.moonshot.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${MOONSHOT_API_KEY}` },
+    body: JSON.stringify({
+      model: KIMI_MODEL,
+      temperature: 1,
+      max_tokens: 1024,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: KIMI_PROMPT },
+        { role: "user", content: [
+          { type: "image_url", image_url: { url: dataUri } },
+          { type: "text", text: "Extract batch number and other fields from this label. Return JSON." }
+        ]}
+      ]
+    }),
+    signal: AbortSignal.timeout(45000)
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new Error(`Kimi ${resp.status}: ${errText}`);
+  }
+  const data = await resp.json();
+  const raw = data.choices?.[0]?.message?.content;
+  const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  return parsed?.fields || {};
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -54,56 +112,19 @@ Deno.serve(async (req) => {
       });
     } catch (_e) {}
 
-    // ── 3. AI analysis with 28s timeout ──
-    let analysis = null;
+    // ── 3. AI analysis — direct Kimi API call ──
+    let extracted = {};
     let kimiError = null;
-    const kimiStart = Date.now();
-    try {
-      const kimiPromise = base44.asServiceRole.functions.invoke('analyzeLabelWithKimi', {
-        image_url: firstUrl,
-        context: context || 'manual_scan',
-        context_reference_id
-      });
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Kimi timeout after 28s')), 28000)
-      );
-      const r = await Promise.race([kimiPromise, timeoutPromise]);
-      analysis = r.data;
-
-      // Log success to SyncLog
-      base44.asServiceRole.entities.SyncLog.create({
-        sync_type: 'kimi_label_scan',
-        status: 'success',
-        entity_type: 'LabelScan',
-        entity_id: labelScan?.id || null,
-        direction: 'internal',
-        duration_ms: Date.now() - kimiStart,
-        details: {
-          model: analysis?.model_used,
-          tokens: analysis?.tokens_used,
-          confidence: analysis?.confidence?.overall,
-          prompt_version: analysis?.prompt_version
-        },
-        triggered_by: user.email
-      }).catch(() => {});
-    } catch (e) {
-      kimiError = e.message;
-      console.warn('[mobileScan] Kimi failed:', e.message, '— continuing with barcode-only fallback');
-
-      // Log failure to SyncLog
-      base44.asServiceRole.entities.SyncLog.create({
-        sync_type: 'kimi_label_scan',
-        status: 'error',
-        entity_type: 'LabelScan',
-        entity_id: labelScan?.id || null,
-        direction: 'internal',
-        duration_ms: Date.now() - kimiStart,
-        error_message: e.message,
-        triggered_by: user.email
-      }).catch(() => {});
+    if (MOONSHOT_API_KEY) {
+      try {
+        extracted = await kimiAnalyze(firstUrl);
+      } catch (e) {
+        kimiError = e.message;
+        console.warn('[mobileScan] Kimi failed:', e.message, '— continuing with barcode-only fallback');
+      }
+    } else {
+      kimiError = 'KIMI_API_KEY not configured';
     }
-
-    const extracted = analysis?.extracted_fields || {};
 
     // ── 4. Collect ALL numbers — barcode always first, OCR if available ──
     const allNumbers = collectAllNumbers(extracted);
@@ -126,10 +147,10 @@ Deno.serve(async (req) => {
     // ── 7. Update LabelScan with results (non-blocking, never fails user) ──
     if (labelScan) {
       base44.asServiceRole.entities.LabelScan.update(labelScan.id, {
-        ai_model_used: analysis?.model_used || (kimiError ? 'barcode_only' : 'kimi-k2.5'),
-        ai_prompt_version: analysis?.prompt_version || 'v2',
+        ai_model_used: kimiError ? 'barcode_only' : KIMI_MODEL,
+        ai_prompt_version: 'v2',
         extracted_fields: extracted,
-        field_confidence: analysis?.confidence || {},
+        field_confidence: {},
         status: 'completed',
         error_message: kimiError || null,
         match_results: {

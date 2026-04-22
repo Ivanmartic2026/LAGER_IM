@@ -255,8 +255,8 @@ Deno.serve(async (req) => {
       ? "Analysera denna etikett noggrant. Prioritera barkod/Data Matrix-värden framför OCR för batch_number och article_sku. Skilj tydligt på batch_number, article_sku och serienummer. Returnera JSON enligt angiven struktur."
       : "Extrahera batch-info från denna etikett som JSON med fälten: batch_number, article_sku, article_name, supplier_name, manufacturing_date, expiry_date, production_date, quantity, series, pixel_pitch, other_text[]. För varje fält även confidence 0-1. Lägg även overall_confidence 0-1.";
 
-    // Always use vision model — moonshot-v1-8k does NOT support image input
-    const modelName = 'moonshot-v1-8k-vision';
+    // Use Kimi vision-preview model for image understanding
+    const modelName = 'moonshot-v1-8k-vision-preview';
 
     // Bugg 3: Minimum 60s timeout regardless of config
     const effectiveTimeout = Math.max(KIMI_TIMEOUT_MS, config.timeout_ms || 0);
