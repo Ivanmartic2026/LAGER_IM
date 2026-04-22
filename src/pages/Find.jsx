@@ -8,12 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Search, MapPin, Package, Hash, Factory, 
   Ruler, Scale, Calendar, Grid3X3, X,
-  ArrowRight, ScanLine, Sparkles, Camera, Plus, Printer, Wrench
+  ArrowRight, ScanLine, Sparkles, Camera, Plus, Printer, Wrench, ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import CameraCapture from "@/components/scanner/CameraCapture";
@@ -28,6 +28,7 @@ export async function getPublicAccess() {
 }
 
 export default function FindPage() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState(null);
@@ -933,6 +934,13 @@ VIKTIGT: batch_number ska vara det EXAKTA numret från etiketten, inte ett appro
 
               {/* Action Buttons */}
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-2 md:grid-cols-4 gap-3">
+               <Button
+                 onClick={() => navigate(`/Inventory?articleId=${selectedArticle.id}`)}
+                 className="col-span-2 md:col-span-4 h-[52px] bg-signal hover:bg-signal-hover text-white text-base font-semibold mb-1"
+               >
+                 <ExternalLink className="w-5 h-5 mr-2" />
+                 Visa artikel i Lager
+               </Button>
                <Button
                  onClick={() => setShowRepairModal(true)}
                  disabled={selectedArticle.status === "on_repair"}
