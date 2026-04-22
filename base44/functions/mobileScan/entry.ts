@@ -4,11 +4,12 @@ import { createHash } from 'node:crypto';
 const MOONSHOT_API_KEY = Deno.env.get("KIMI_API_KEY");
 const KIMI_MODEL = 'moonshot-v1-8k-vision-preview';
 const KIMI_PROMPT = `You are a specialized OCR and barcode analysis system for warehouse management of LED display products.
-Analyze the provided label/product image and extract all information with high precision.
-batch_number is a production/manufacturing batch identifier (e.g. "JC22-2009-262", "APP20240115"). NOT a serial number or SKU.
+Analyze the provided label/product image and extract ALL visible text and identifiers with high precision.
+batch_number is ANY alphanumeric identifier on the label that looks like a production/batch/lot code (e.g. "JC22-2009-262", "APP20240115", "EBBC0301K-1", "1963", "EMC-123"). Extract it even if the format is unusual.
+also extract ALL other alphanumeric codes, numbers, and text you see into other_text array - this is critical for matching.
 Return ONLY valid JSON with this structure:
 {
-  "fields": { "batch_number": "string or null", "article_sku": "string or null", "article_name": "string or null", "supplier_name": "string or null", "other_text": [] },
+  "fields": { "batch_number": "string or null", "article_sku": "string or null", "article_name": "string or null", "supplier_name": "string or null", "other_text": ["all", "other", "visible", "codes", "and", "numbers"] },
   "confidence": { "batch_number": 0.0, "overall": 0.0 }
 }`;
 
@@ -214,6 +215,10 @@ function collectAllNumbers(extracted) {
   add(extracted.article_sku);
   add(extracted.series);
 
+  for (const txt of (extracted.other_text || [])) {
+    if (txt && txt.length > 1) add(txt.trim());
+  }
+
   for (const r of (extracted.ocr_regions || [])) {
     if (r.text && r.text.length > 2) add(r.text.trim());
   }
@@ -288,7 +293,7 @@ async function searchAllEntities(base44, numbers) {
           shelf_address: article?.shelf_address || null,
           stock_qty: article?.stock_qty ?? null
         });
-      } else if (normBatch && n.length >= 4 && (normBatch.includes(n) || n.includes(normBatch))) {
+      } else if (normBatch && n.length >= 3 && normBatch.length >= 3 && (normBatch.includes(n) || n.includes(normBatch))) {
         // Partial/substring match — lower priority
         addMatch('Batch', batch.id, batch.batch_number, 'partial_match', number, {
           article_name: article?.name || batch.article_name || null,
