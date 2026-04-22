@@ -1,7 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
-import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -27,8 +26,14 @@ export const AuthProvider = ({ children }) => {
       try {
         const headers = { 'X-App-Id': appParams.appId };
         if (appParams.token) headers['Authorization'] = `Bearer ${appParams.token}`;
-        const resp = await axios.get(`/api/apps/public/prod/public-settings/by-id/${appParams.appId}`, { headers });
-        const publicSettings = resp.data;
+        const resp = await fetch(`/api/apps/public/prod/public-settings/by-id/${appParams.appId}`, { headers });
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          const err = new Error(errData?.message || `HTTP ${resp.status}`);
+          err.response = { status: resp.status, data: errData };
+          throw err;
+        }
+        const publicSettings = await resp.json();
         setAppPublicSettings(publicSettings);
         
         // If we got the app public settings successfully, check if user is authenticated
