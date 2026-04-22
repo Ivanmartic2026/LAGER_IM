@@ -397,56 +397,108 @@ Deno.serve(async (req) => {
 
     const totalDuration = Date.now() - overallStart;
 
-    // ── Bugg 4: Match against existing Batch / Article records ───────────────
+    // ── Match against existing Batch / Article records ───────────────────────
     const matchResults = {};
-    const normalize = (s) => (s || '').toUpperCase().replace(/[\s\-_]/g, '').trim();
 
-    const batchNum = extractedFields.batch_number ? normalize(extractedFields.batch_number) : null;
+    // Normalize: uppercase, O→0, strip spaces/hyphens/underscores
+    const normalize = (s) => (s || '').toUpperCase().replace(/O/g, '0').replace(/[\s\-_]/g, '').trim();
+
+    // Simple fuzzy similarity (0–1) using longest common substring ratio
+    function similarity(a, b) {
+      if (!a || !b) return 0;
+      const na = normalize(a);
+      const nb = normalize(b);
+      if (na === nb) return 1.0;
+      if (na.includes(nb) || nb.includes(na)) return 0.85;
+      // Count matching chars in order
+      let matches = 0, j = 0;
+      for (let i = 0; i < na.length && j < nb.length; i++) {
+        if (na[i] === nb[j]) { matches++; j++; }
+      }
+      return (2 * matches) / (na.length + nb.length);
+    }
+
+    const rawBatch = extractedFields.batch_number || null;
     const articleSku = extractedFields.article_sku ? extractedFields.article_sku.trim().toLowerCase() : null;
 
-    if (batchNum) {
-      // Search Batch by batch_number or aliases
-      const batchCandidates = await base44.asServiceRole.entities.Batch.list('-updated_date', 2000).catch(() => []);
-      const batchMatch = batchCandidates.find(b => {
-        if (normalize(b.batch_number) === batchNum) return true;
-        if (Array.isArray(b.aliases) && b.aliases.some(a => normalize(a) === batchNum)) return true;
+    // Fetch all articles and batches in parallel
+    const [allArticles, allBatches] = await Promise.all([
+      base44.asServiceRole.entities.Article.list('-updated_date', 2000).catch(() => []),
+      base44.asServiceRole.entities.Batch.list('-updated_date', 2000).catch(() => [])
+    ]);
+
+    if (rawBatch) {
+      // Step A — Exact match on Article.batch_number (case-insensitive, before normalize)
+      const exactArticle = allArticles.find(a =>
+        a.batch_number && a.batch_number.trim().toLowerCase() === rawBatch.trim().toLowerCase()
+      );
+      if (exactArticle) {
+        matchResults.article_match_id = exactArticle.id;
+        matchResults.article_match_confidence = 0.98;
+        matchResults.article_match_method = 'exact';
+        matchResults.article_match_name = exactArticle.name;
+      }
+
+      // Step B — Fuzzy match on Article.batch_number (O→0, > 80%)
+      if (!matchResults.article_match_id) {
+        let bestScore = 0, bestArticle = null;
+        for (const a of allArticles) {
+          if (!a.batch_number) continue;
+          const score = similarity(a.batch_number, rawBatch);
+          if (score > bestScore) { bestScore = score; bestArticle = a; }
+        }
+        if (bestScore >= 0.80 && bestArticle) {
+          matchResults.article_match_id = bestArticle.id;
+          matchResults.article_match_confidence = Math.round(bestScore * 100) / 100;
+          matchResults.article_match_method = bestScore === 1.0 ? 'exact' : 'fuzzy';
+          matchResults.article_match_name = bestArticle.name;
+        }
+      }
+
+      // Step C — Batch entity: exact match or alias match
+      const batchExact = allBatches.find(b => {
+        if (normalize(b.batch_number) === normalize(rawBatch)) return true;
+        if (Array.isArray(b.aliases) && b.aliases.some(a => normalize(a) === normalize(rawBatch))) return true;
         return false;
       });
-      if (batchMatch) {
-        matchResults.batch_match_id = batchMatch.id;
-        matchResults.batch_match_confidence = 0.95;
+      if (batchExact) {
+        matchResults.batch_match_id = batchExact.id;
+        matchResults.batch_match_confidence = 0.98;
         matchResults.batch_match_method = 'exact';
-        if (batchMatch.article_id) {
-          matchResults.article_match_id = batchMatch.article_id;
+        matchResults.batch_match_name = batchExact.batch_number;
+        // If batch links to article and we haven't matched yet
+        if (!matchResults.article_match_id && batchExact.article_id) {
+          matchResults.article_match_id = batchExact.article_id;
           matchResults.article_match_confidence = 0.90;
           matchResults.article_match_method = 'via_batch';
+          matchResults.article_match_name = batchExact.article_name || null;
+        }
+      }
+
+      // Step D — Fuzzy match on Batch.batch_number
+      if (!matchResults.batch_match_id) {
+        let bestBatchScore = 0, bestBatch = null;
+        for (const b of allBatches) {
+          const score = similarity(b.batch_number, rawBatch);
+          if (score > bestBatchScore) { bestBatchScore = score; bestBatch = b; }
+        }
+        if (bestBatchScore >= 0.80 && bestBatch) {
+          matchResults.batch_match_id = bestBatch.id;
+          matchResults.batch_match_confidence = Math.round(bestBatchScore * 100) / 100;
+          matchResults.batch_match_method = bestBatchScore === 1.0 ? 'exact' : 'fuzzy';
+          matchResults.batch_match_name = bestBatch.batch_number;
         }
       }
     }
 
+    // Step E — SKU exact match (if no article matched yet)
     if (articleSku && !matchResults.article_match_id) {
-      // Search Article by SKU (case-insensitive)
-      const articleCandidates = await base44.asServiceRole.entities.Article.list('-updated_date', 1000).catch(() => []);
-      const artMatch = articleCandidates.find(a =>
-        a.sku && a.sku.trim().toLowerCase() === articleSku
-      );
-      if (artMatch) {
-        matchResults.article_match_id = artMatch.id;
+      const artBySku = allArticles.find(a => a.sku && a.sku.trim().toLowerCase() === articleSku);
+      if (artBySku) {
+        matchResults.article_match_id = artBySku.id;
         matchResults.article_match_confidence = 0.95;
         matchResults.article_match_method = 'sku_exact';
-      }
-    }
-
-    // Fallback: search Article.batch_number field
-    if (batchNum && !matchResults.batch_match_id && !matchResults.article_match_id) {
-      const articleCandidates2 = await base44.asServiceRole.entities.Article.list('-updated_date', 1000).catch(() => []);
-      const artByBatch = articleCandidates2.find(a =>
-        a.batch_number && normalize(a.batch_number) === batchNum
-      );
-      if (artByBatch) {
-        matchResults.article_match_id = artByBatch.id;
-        matchResults.article_match_confidence = 0.80;
-        matchResults.article_match_method = 'article_batch_number_field';
+        matchResults.article_match_name = artBySku.name;
       }
     }
 

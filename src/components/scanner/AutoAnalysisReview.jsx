@@ -13,6 +13,7 @@ export default function AutoAnalysisReview({
   imageUrl,
   extractedData, 
   confidences,
+  matchResults,
   onAccept,
   onReject,
   onEdit,
@@ -21,47 +22,51 @@ export default function AutoAnalysisReview({
 }) {
   const [editingBatch, setEditingBatch] = useState(false);
   const [batchValue, setBatchValue] = useState(extractedData.batch_number || '');
-  const [matchingArticles, setMatchingArticles] = useState([]);
+  const [localArticle, setLocalArticle] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
   const [showAlternatives, setShowAlternatives] = useState(false);
 
   useEffect(() => {
     setBatchValue(extractedData.batch_number || '');
   }, [extractedData.batch_number]);
 
-  const searchForMatches = async (batchNum) => {
+  // Fetch article details if matchResults has article_match_id
+  useEffect(() => {
+    if (matchResults?.article_match_id) {
+      base44.entities.Article.filter({ id: matchResults.article_match_id })
+        .then(results => { if (results?.[0]) setLocalArticle(results[0]); })
+        .catch(() => {});
+    }
+  }, [matchResults?.article_match_id]);
+
+  // Fallback: local DB search if no backend matchResults
+  useEffect(() => {
+    if (matchResults?.article_match_id) return; // backend already matched
+    const batchNum = extractedData.batch_number;
     if (!batchNum) return;
     setIsSearching(true);
-    setHasSearched(false);
-    try {
-      const byBatch = await base44.entities.Article.filter({ batch_number: batchNum });
-      let allMatches = [...byBatch];
-      if (byBatch.length === 0 && batchNum.length >= 6) {
-        const allArticles = await base44.entities.Article.list();
-        const fuzzy = allArticles.filter(a => {
-          if (!a.batch_number || a.batch_number.length < 4) return false;
-          const a1 = a.batch_number.toUpperCase().replace(/\s+/g, '');
-          const a2 = batchNum.toUpperCase().replace(/\s+/g, '');
-          const minLen = Math.min(a1.length, a2.length);
-          if (minLen < 6) return false;
-          return (a1.includes(a2) || a2.includes(a1));
-        });
-        allMatches = fuzzy;
-      }
-      setMatchingArticles(allMatches);
-    } catch (e) {
-      console.error('Match search failed:', e);
-    } finally {
-      setIsSearching(false);
-      setHasSearched(true);
-    }
-  };
+    base44.entities.Article.filter({ batch_number: batchNum })
+      .then(async (byBatch) => {
+        if (byBatch.length > 0) { setLocalArticle(byBatch[0]); return; }
+        if (batchNum.length >= 6) {
+          const all = await base44.entities.Article.list();
+          const norm = (s) => (s || '').toUpperCase().replace(/O/g, '0').replace(/[\s\-_]/g, '');
+          const nb = norm(batchNum);
+          const fuzzy = all.find(a => {
+            if (!a.batch_number) return false;
+            const na = norm(a.batch_number);
+            return na === nb || na.includes(nb) || nb.includes(na);
+          });
+          if (fuzzy) setLocalArticle(fuzzy);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsSearching(false));
+  }, [extractedData.batch_number, matchResults?.article_match_id]);
 
   const saveBatch = () => {
     onEdit('batch_number', batchValue);
     setEditingBatch(false);
-    searchForMatches(batchValue);
   };
 
   const batchConfidence = confidences?.batch_number || 0;
@@ -69,26 +74,18 @@ export default function AutoAnalysisReview({
   const batchNumber = extractedData.batch_number || null;
   const supplierName = extractedData.supplier_name || null;
 
-  // Filtered secondary fields — exclude other_text and already-shown primary fields
+  // Determine effective match (backend wins over local)
+  const hasBackendMatch = !!(matchResults?.article_match_id || matchResults?.batch_match_id);
+  const effectiveArticle = localArticle;
+  const isFuzzy = matchResults?.article_match_method === 'fuzzy' || matchResults?.batch_match_method === 'fuzzy';
+  const matchedName = matchResults?.article_match_name || matchResults?.batch_match_name || effectiveArticle?.name;
+  const matchConfidence = matchResults?.article_match_confidence || matchResults?.batch_match_confidence;
+
+  // Filtered secondary fields
   const secondaryFields = Object.entries(extractedData).filter(([k, v]) => 
     v && 
-    k !== 'batch_number' && 
-    k !== 'article_name' && 
-    k !== 'name' &&
-    k !== 'other_text' && 
-    k !== 'barcode_values' &&
-    k !== 'ocr_regions' &&
-    k !== 'image_urls' &&
-    k !== 'date'
+    !['batch_number','article_name','name','other_text','barcode_values','ocr_regions','image_urls','date'].includes(k)
   );
-
-  // Auto-trigger search on mount
-  useEffect(() => {
-    if (extractedData.batch_number && !hasSearched && !isSearching) {
-      const timer = setTimeout(() => searchForMatches(extractedData.batch_number), 300);
-      return () => clearTimeout(timer);
-    }
-  }, [extractedData.batch_number]);
 
   return (
     <motion.div
@@ -104,121 +101,122 @@ export default function AutoAnalysisReview({
         </div>
       )}
 
-      {/* PRIMARY ROW — stor och tydlig */}
-      <div className={cn(
-        "p-5 rounded-2xl border-2",
-        batchConfidence >= 0.88 ? "bg-emerald-500/10 border-emerald-500/40" :
-        batchConfidence >= 0.70 ? "bg-amber-500/10 border-amber-500/30" :
-        "bg-slate-800/60 border-slate-600"
-      )}>
-        {isSearching ? (
-          <div className="flex items-center gap-3">
-            <Loader2 className="w-5 h-5 text-blue-400 animate-spin flex-shrink-0" />
-            <p className="text-slate-300 text-sm">Söker i lagret...</p>
-          </div>
-        ) : hasSearched && matchingArticles.length > 0 ? (
-          /* Known article — show primary match */
-          <div className="flex items-start gap-4">
-            {matchingArticles[0].image_urls?.[0] && (
-              <img
-                src={matchingArticles[0].image_urls[0]}
-                alt={matchingArticles[0].name}
-                className="w-14 h-14 rounded-lg object-cover bg-slate-900 flex-shrink-0"
-              />
+      {/* MATCH RESULT PANEL */}
+      {isSearching ? (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/60 border border-slate-700">
+          <Loader2 className="w-5 h-5 text-blue-400 animate-spin flex-shrink-0" />
+          <p className="text-slate-300 text-sm">Söker i lagret...</p>
+        </div>
+      ) : (effectiveArticle || hasBackendMatch) && matchedName ? (
+        <div className={cn(
+          "p-4 rounded-xl border-2",
+          isFuzzy
+            ? "bg-amber-500/10 border-amber-500/40"
+            : "bg-emerald-500/10 border-emerald-500/40"
+        )}>
+          <div className="flex items-start gap-3">
+            {effectiveArticle?.image_urls?.[0] && (
+              <img src={effectiveArticle.image_urls[0]} alt={matchedName}
+                className="w-12 h-12 rounded-lg object-cover bg-slate-900 flex-shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-lg font-bold text-white leading-tight truncate">
-                Det här är {matchingArticles[0].name}
-              </p>
+              <div className="flex items-center gap-2 mb-1">
+                {isFuzzy
+                  ? <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  : <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                }
+                <span className={cn("text-xs font-semibold uppercase tracking-wider",
+                  isFuzzy ? "text-amber-400" : "text-emerald-400"
+                )}>
+                  {isFuzzy ? "Möjlig matchning (OCR-variant)" : "Artikel hittad"}
+                </span>
+                {matchConfidence && (
+                  <Badge className={cn("text-xs ml-auto",
+                    isFuzzy ? "bg-amber-500/20 text-amber-300" : "bg-emerald-500/20 text-emerald-300"
+                  )}>
+                    {Math.round(matchConfidence * 100)}%
+                  </Badge>
+                )}
+              </div>
+              <p className="text-white font-semibold text-base leading-tight truncate">{matchedName}</p>
               {batchNumber && (
-                <p className="text-sm text-slate-400 mt-0.5 font-mono">
+                <p className="text-xs text-slate-400 font-mono mt-0.5">
                   Batch: <span className="text-white">{batchNumber}</span>
                 </p>
               )}
-              <div className="flex items-center gap-2 mt-1">
-                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs">
-                  I lager: {matchingArticles[0].stock_qty || 0} st
-                </Badge>
-                {matchingArticles[0].shelf_address && (
-                  <Badge className="bg-slate-700 text-slate-300 text-xs border-0">
-                    📍 {Array.isArray(matchingArticles[0].shelf_address) ? matchingArticles[0].shelf_address[0] : matchingArticles[0].shelf_address}
+              {effectiveArticle && (
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs">
+                    I lager: {effectiveArticle.stock_qty || 0} st
                   </Badge>
-                )}
-                {batchConfidence > 0 && (
-                  <Badge className={cn("text-xs",
-                    batchConfidence >= 0.88 ? "bg-emerald-500/20 text-emerald-400" :
-                    "bg-amber-500/20 text-amber-400"
-                  )}>
-                    {Math.round(batchConfidence * 100)}%
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* No match found — show extracted data */
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">📦</span>
-                <span className="font-semibold text-white">Batchnummer</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {batchConfidence > 0 && (
-                  <Badge className={cn("text-xs",
-                    batchConfidence >= 0.88 ? "bg-emerald-500/20 text-emerald-400" :
-                    batchConfidence >= 0.70 ? "bg-amber-500/20 text-amber-400" :
-                    "bg-red-500/20 text-red-400"
-                  )}>
-                    {Math.round(batchConfidence * 100)}%
-                  </Badge>
-                )}
-                {!editingBatch && (
-                  <button onClick={() => setEditingBatch(true)} className="text-blue-400 hover:text-blue-300 p-1">
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-            {editingBatch ? (
-              <div className="space-y-2">
-                <Input
-                  value={batchValue}
-                  onChange={(e) => setBatchValue(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white font-mono"
-                  autoFocus
-                  onKeyDown={(e) => e.key === 'Enter' && saveBatch()}
-                />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={saveBatch} className="flex-1 bg-emerald-600 hover:bg-emerald-500 h-8">Spara</Button>
-                  <Button size="sm" variant="outline" onClick={() => setEditingBatch(false)} className="bg-white/5 border-white/10 h-8">Avbryt</Button>
+                  {effectiveArticle.shelf_address?.length > 0 && (
+                    <Badge className="bg-slate-700 text-slate-300 text-xs border-0">
+                      📍 {Array.isArray(effectiveArticle.shelf_address) ? effectiveArticle.shelf_address[0] : effectiveArticle.shelf_address}
+                    </Badge>
+                  )}
                 </div>
-              </div>
-            ) : (
-              <span className="text-white font-mono text-lg">
-                {batchNumber || <span className="text-slate-500 italic text-sm">Inget batchnummer hittat</span>}
-              </span>
-            )}
-            {articleName && (
-              <p className="text-sm text-slate-400 mt-1">{articleName}{supplierName && ` · ${supplierName}`}</p>
-            )}
-            {hasSearched && matchingArticles.length === 0 && (
-              <p className="text-xs text-amber-300 mt-2">⚠ Inte funnen i lagret — ny artikel</p>
+              )}
+              {matchResults?.batch_match_id && (
+                <p className="text-xs text-blue-300 mt-1">
+                  ✓ Batch-post: <span className="font-mono">{matchResults.batch_match_name || matchResults.batch_match_id}</span>
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Batch number display when no match */
+        <div className={cn(
+          "p-4 rounded-xl border-2",
+          batchConfidence >= 0.88 ? "bg-slate-800/60 border-slate-600" : "bg-slate-800/60 border-slate-600"
+        )}>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <span className="text-base">📦</span>
+              <span className="font-semibold text-white text-sm">Batchnummer</span>
+              {batchConfidence > 0 && (
+                <Badge className={cn("text-xs",
+                  batchConfidence >= 0.88 ? "bg-emerald-500/20 text-emerald-400" :
+                  batchConfidence >= 0.70 ? "bg-amber-500/20 text-amber-400" :
+                  "bg-red-500/20 text-red-400"
+                )}>
+                  {Math.round(batchConfidence * 100)}%
+                </Badge>
+              )}
+            </div>
+            {!editingBatch && (
+              <button onClick={() => setEditingBatch(true)} className="text-blue-400 hover:text-blue-300 p-1">
+                <Edit3 className="w-4 h-4" />
+              </button>
             )}
           </div>
-        )}
-      </div>
+          {editingBatch ? (
+            <div className="space-y-2">
+              <Input value={batchValue} onChange={(e) => setBatchValue(e.target.value)}
+                className="bg-white/5 border-white/10 text-white font-mono" autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && saveBatch()} />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={saveBatch} className="flex-1 bg-emerald-600 hover:bg-emerald-500 h-8">Spara</Button>
+                <Button size="sm" variant="outline" onClick={() => setEditingBatch(false)} className="bg-white/5 border-white/10 h-8">Avbryt</Button>
+              </div>
+            </div>
+          ) : (
+            <span className="text-white font-mono text-base">
+              {batchNumber || <span className="text-slate-500 italic text-sm">Inget batchnummer hittat</span>}
+            </span>
+          )}
+          {articleName && <p className="text-sm text-slate-400 mt-1">{articleName}{supplierName && ` · ${supplierName}`}</p>}
+          <p className="text-xs text-amber-300 mt-2">⚠ Inte funnen i lagret — kommer skapas som ny artikel</p>
+        </div>
+      )}
 
       {/* ALTERNATIV — collapsed by default */}
-      {(secondaryFields.length > 0 || (hasSearched && matchingArticles.length > 1)) && (
+      {secondaryFields.length > 0 && (
         <button
           onClick={() => setShowAlternatives(v => !v)}
           className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 text-sm transition-all"
         >
-          <span>
-            Visa alternativ
-            {matchingArticles.length > 1 && ` (${matchingArticles.length} matchningar)`}
-          </span>
+          <span>Extraherade fält ({secondaryFields.length})</span>
           {showAlternatives ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
       )}
@@ -229,34 +227,16 @@ export default function AutoAnalysisReview({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden space-y-3"
+            className="overflow-hidden"
           >
-            {/* Other match candidates */}
-            {matchingArticles.slice(1, 3).map(article => (
-              <div key={article.id} className="p-3 rounded-xl bg-slate-800/50 border border-slate-700 flex items-center gap-3">
-                {article.image_urls?.[0] && (
-                  <img src={article.image_urls[0]} alt={article.name} className="w-10 h-10 rounded-lg object-cover bg-slate-900 flex-shrink-0" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{article.name}</p>
-                  <p className="text-xs text-slate-400 font-mono">{article.batch_number}</p>
+            <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
+              {secondaryFields.map(([key, value]) => (
+                <div key={key} className="flex justify-between text-sm">
+                  <span className="text-slate-400 capitalize">{key.replace(/_/g, ' ')}</span>
+                  <span className="text-white font-mono text-xs truncate max-w-[60%] text-right">{String(value)}</span>
                 </div>
-                <span className="text-xs text-slate-400">{article.stock_qty || 0} st</span>
-              </div>
-            ))}
-
-            {/* Secondary extracted fields — no other_text */}
-            {secondaryFields.length > 0 && (
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
-                <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Extraherade fält</p>
-                {secondaryFields.map(([key, value]) => (
-                  <div key={key} className="flex justify-between text-sm">
-                    <span className="text-slate-400 capitalize">{key.replace(/_/g, ' ')}</span>
-                    <span className="text-white font-mono text-xs truncate max-w-[60%] text-right">{String(value)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
