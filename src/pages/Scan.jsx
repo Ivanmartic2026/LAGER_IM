@@ -81,24 +81,31 @@ export default function ScanPage() {
       const result = scanResp.data;
       setProgress(90);
 
-      const batchNum = result.extracted_summary?.batch_number || result.all_numbers?.[0] || "";
+      const extracted = result.extracted_summary || {};
+      const batchNum = extracted.batch_number || result.all_numbers?.[0] || "";
       setExtractedBatchNumber(batchNum);
-      setExtractedFields(result.extracted_summary || {});
+      setExtractedFields(extracted);
 
-      // Check matches
+      // Use match data directly from response — no extra entity fetches needed
       const matches = result.all_matches || [];
-      const articleMatch = matches.find(m => m.entity_type === 'Article');
       const batchMatch = matches.find(m => m.entity_type === 'Batch');
+      const articleMatch = matches.find(m => m.entity_type === 'Article');
+      const topMatch = batchMatch || articleMatch;
 
-      if (articleMatch || batchMatch) {
-        // Fetch full article record
-        if (articleMatch?.entity_id) {
-          const arts = await base44.entities.Article.filter({ id: articleMatch.entity_id }).catch(() => []);
-          if (arts[0]) setFoundArticle(arts[0]);
-        }
-        if (batchMatch?.entity_id) {
-          const batches = await base44.entities.Batch.filter({ id: batchMatch.entity_id }).catch(() => []);
-          if (batches[0]) setFoundBatch(batches[0]);
+      if (topMatch) {
+        // Build article object from match data
+        const articleFromMatch = {
+          id: topMatch.article_id || topMatch.entity_id,
+          name: topMatch.article_name || topMatch.entity_name || "Okänd artikel",
+          stock_qty: topMatch.stock_qty ?? 0,
+          shelf_address: topMatch.shelf_address || null,
+          sku: topMatch.article_sku || null,
+          supplier_name: topMatch.supplier_name || null,
+          image_urls: topMatch.article_image_url ? [topMatch.article_image_url] : [],
+        };
+        setFoundArticle(articleFromMatch);
+        if (batchMatch) {
+          setFoundBatch({ id: batchMatch.entity_id, batch_number: batchMatch.entity_name });
         }
         setStep("found");
       } else {
@@ -119,25 +126,24 @@ export default function ScanPage() {
     if (!selectedPurpose) return;
     setIsSaving(true);
     try {
-      if (foundArticle) {
-        const prev = foundArticle.stock_qty || 0;
-        if (selectedPurpose === "inbound") {
-          await base44.entities.Article.update(foundArticle.id, { stock_qty: prev + 1 });
-          await base44.entities.StockMovement.create({
-            article_id: foundArticle.id, movement_type: "inbound",
-            quantity: 1, previous_qty: prev, new_qty: prev + 1,
-            reason: "Inleverans via scanning"
-          });
-        } else if (selectedPurpose === "inventory_count") {
-          await base44.entities.StockMovement.create({
-            article_id: foundArticle.id, movement_type: "inventory_count",
-            quantity: prev, previous_qty: prev, new_qty: prev,
-            reason: "Inventering via scanning"
-          });
-        }
-        // Update LabelScan context if we have label_scan_id
-        toast.success(`${foundArticle.name} — ${PURPOSE_OPTIONS.find(p => p.id === selectedPurpose)?.label} registrerad!`);
+      const articleId = foundArticle?.id;
+      const prev = foundArticle?.stock_qty || 0;
+      if (articleId && selectedPurpose === "inbound") {
+        await base44.entities.Article.update(articleId, { stock_qty: prev + 1 });
+        await base44.entities.StockMovement.create({
+          article_id: articleId, movement_type: "inbound",
+          quantity: 1, previous_qty: prev, new_qty: prev + 1,
+          reason: "Inleverans via scanning"
+        });
+      } else if (articleId && selectedPurpose === "inventory_count") {
+        await base44.entities.StockMovement.create({
+          article_id: articleId, movement_type: "inventory_count",
+          quantity: prev, previous_qty: prev, new_qty: prev,
+          reason: "Inventering via scanning"
+        });
       }
+      const purposeLabel = PURPOSE_OPTIONS.find(p => p.id === selectedPurpose)?.label || "";
+      toast.success(`${foundArticle?.name || "Artikel"} — ${purposeLabel} registrerad!`);
       setStep("success");
     } catch {
       toast.error("Kunde inte spara. Försök igen.");

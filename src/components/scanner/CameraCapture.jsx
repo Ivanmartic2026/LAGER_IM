@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Camera, Upload, X, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import AIProcessingScreen from "./AIProcessingScreen";
 import { toast } from "sonner";
 
 export default function CameraCapture({ onImageCaptured, isProcessing, progress = 0, onManual }) {
@@ -119,9 +118,6 @@ export default function CameraCapture({ onImageCaptured, isProcessing, progress 
 
   return (
     <div className="w-full relative">
-      <AnimatePresence>
-        {isProcessing && <AIProcessingScreen progress={progress} onManual={onManual} />}
-      </AnimatePresence>
       
       <input
         type="file"
