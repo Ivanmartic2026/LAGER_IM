@@ -412,7 +412,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
           supplier_id: supplierId || prev.supplier_id,
           supplier_name: supplierName || prev.supplier_name,
           order_date: data.invoice_date || prev.order_date,
-          // invoice_file_url is already set above
+          invoice_file_url: file_url, // explicit to ensure it's not lost from earlier setState
         }));
 
         // Add items
