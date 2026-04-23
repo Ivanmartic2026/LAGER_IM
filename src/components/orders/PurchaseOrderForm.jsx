@@ -625,14 +625,15 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                 Projekt (Fortnox)
               </label>
               <Select
-                value={formData.fortnox_project_number}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, fortnox_project_number: value }))}
+                value={formData.fortnox_project_number || '__none__'}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, fortnox_project_number: value === '__none__' ? '' : value }))}
                 onOpenChange={(open) => { if (open) loadFortnoxProjects(); }}
               >
                 <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                  <SelectValue placeholder={loadingProjects ? "Hämtar projekt..." : "Välj projekt..."} />
+                  <SelectValue placeholder="Välj projekt (valfritt)..." />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__none__">— Inget projekt —</SelectItem>
                   {loadingProjects && (
                     <div className="px-3 py-2 text-sm text-slate-400">Hämtar projekt från Fortnox...</div>
                   )}
@@ -644,7 +645,6 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
                   {!loadingProjects && projectsLoaded && fortnoxProjects.length === 0 && (
                     <div className="px-3 py-2 text-sm text-slate-400">Inga projekt hittades</div>
                   )}
-                  {/* Allow keeping a manually entered value if not in list */}
                   {formData.fortnox_project_number && !fortnoxProjects.find(p => p.projectNumber === formData.fortnox_project_number) && (
                     <SelectItem value={formData.fortnox_project_number}>
                       {formData.fortnox_project_number} (nuvarande)
