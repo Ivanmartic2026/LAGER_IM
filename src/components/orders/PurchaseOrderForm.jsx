@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { X, Plus, Trash2, Package, FileText, Sparkles, Edit2, CheckCircle2, ExternalLink, Zap, AlertTriangle } from "lucide-react";
+import { X, Plus, Trash2, Package, FileText, Sparkles, Edit2, CheckCircle2, ExternalLink, Zap, AlertTriangle, Search } from "lucide-react";
 
 export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [formData, setFormData] = useState({
@@ -67,6 +67,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [fortnoxProjects, setFortnoxProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [projectsLoaded, setProjectsLoaded] = useState(false);
+  const [projectSearch, setProjectSearch] = useState('');
 
   const loadFortnoxProjects = async () => {
     if (projectsLoaded || loadingProjects) return;
@@ -627,21 +628,39 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
               <Select
                 value={formData.fortnox_project_number || '__none__'}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, fortnox_project_number: value === '__none__' ? '' : value }))}
-                onOpenChange={(open) => { if (open) loadFortnoxProjects(); }}
+                onOpenChange={(open) => { if (open) { loadFortnoxProjects(); setProjectSearch(''); } }}
               >
                 <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                  <SelectValue placeholder="Välj projekt (valfritt)..." />
+                  <SelectValue placeholder="Välj projekt (valfritt)...">
+                    {formData.fortnox_project_number
+                      ? (() => { const p = fortnoxProjects.find(p => p.projectNumber === formData.fortnox_project_number); return p ? `${p.projectNumber} – ${p.description}` : formData.fortnox_project_number; })()
+                      : 'Välj projekt...'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
+                  <div className="px-2 py-2 sticky top-0 bg-popover">
+                    <div className="flex items-center gap-2 rounded-md border border-slate-700 bg-slate-800 px-2">
+                      <Search className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                      <input
+                        className="flex-1 bg-transparent text-sm text-white placeholder-slate-400 outline-none py-1.5"
+                        placeholder="Sök projekt..."
+                        value={projectSearch}
+                        onChange={(e) => setProjectSearch(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
                   <SelectItem value="__none__">— Inget projekt —</SelectItem>
                   {loadingProjects && (
                     <div className="px-3 py-2 text-sm text-slate-400">Hämtar projekt från Fortnox...</div>
                   )}
-                  {fortnoxProjects.map((p) => (
-                    <SelectItem key={p.projectNumber} value={p.projectNumber}>
-                      {p.projectNumber} – {p.description}
-                    </SelectItem>
-                  ))}
+                  {fortnoxProjects
+                    .filter(p => !projectSearch || `${p.projectNumber} ${p.description}`.toLowerCase().includes(projectSearch.toLowerCase()))
+                    .map((p) => (
+                      <SelectItem key={p.projectNumber} value={p.projectNumber}>
+                        {p.projectNumber} – {p.description}
+                      </SelectItem>
+                    ))}
                   {!loadingProjects && projectsLoaded && fortnoxProjects.length === 0 && (
                     <div className="px-3 py-2 text-sm text-slate-400">Inga projekt hittades</div>
                   )}
