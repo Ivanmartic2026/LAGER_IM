@@ -332,7 +332,6 @@ export default function InvoiceScanButton() {
         invoice_file_url: result.file_url,
         order_date: result.invoice_date || new Date().toISOString().split('T')[0],
         status: 'draft',
-        fortnox_project_number: '-',
         notes: `Skapad från faktura ${result.invoice_number || ''}`.trim(),
       });
 
@@ -350,7 +349,17 @@ export default function InvoiceScanButton() {
               (item.article_number && a.batch_number?.toLowerCase() === item.article_number.toLowerCase()) ||
               a.name?.toLowerCase().includes(item.name.toLowerCase().slice(0, 20))
             );
-            if (match) articleId = match.id;
+            if (match) {
+              articleId = match.id;
+              // Update invoice reference if not set
+              if (!match.source_invoice_url) {
+                await base44.entities.Article.update(articleId, {
+                  source_invoice_url: result.file_url,
+                  source_invoice_number: result.invoice_number || '',
+                  source_purchase_order_id: po.id,
+                });
+              }
+            }
           } catch {}
 
           // If no article found, create a placeholder article
@@ -366,16 +375,6 @@ export default function InvoiceScanButton() {
               source_purchase_order_id: po.id,
             });
             articleId = newArticle.id;
-          } else {
-            // Update existing article with invoice reference if not already set
-            const existingArticle = (await base44.entities.Article.list()).find(a => a.id === articleId);
-            if (existingArticle && !existingArticle.source_invoice_url) {
-              await base44.entities.Article.update(articleId, {
-                source_invoice_url: result.file_url,
-                source_invoice_number: result.invoice_number || '',
-                source_purchase_order_id: po.id,
-              });
-            }
           }
 
           await base44.entities.PurchaseOrderItem.create({
@@ -406,7 +405,7 @@ export default function InvoiceScanButton() {
       await base44.entities.PurchaseOrder.update(po.id, {
         invoice_number: result.invoice_number || po.invoice_number,
         invoice_amount: result.total_amount || po.invoice_amount,
-        invoice_currency: result.currency || po.invoice_currency || 'SEK',
+        invoice_currency: (['SEK','EUR','USD','GBP','NOK','DKK'].includes((result.currency || '').toUpperCase()) ? result.currency.toUpperCase() : (po.invoice_currency || 'SEK')),
         invoice_file_url: result.file_url,
       });
       queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
