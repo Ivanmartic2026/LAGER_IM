@@ -45,6 +45,7 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
   const [isReceiving, setIsReceiving] = useState(false);
   const [receivedQuantities, setReceivedQuantities] = useState({});
   const invoiceInputRef = React.useRef(null);
+  const invoiceFileUrlRef = React.useRef(purchaseOrder?.invoice_file_url || '');
 
   const queryClient = useQueryClient();
 
@@ -347,7 +348,8 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
       toast.loading('Laddar upp faktura...', { id: loadingToast });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Save the original file URL immediately in form state
+      // Save the original file URL immediately - both in ref (sync) and state (async)
+      invoiceFileUrlRef.current = file_url;
       setFormData(prev => ({ ...prev, invoice_file_url: file_url }));
 
       // Extract data with AI
@@ -512,7 +514,8 @@ export default function PurchaseOrderForm({ purchaseOrder, onClose }) {
       return;
     }
 
-    savePOMutation.mutate(formData);
+    // Use ref for invoice_file_url to avoid stale React state closure
+    savePOMutation.mutate({ ...formData, invoice_file_url: invoiceFileUrlRef.current || formData.invoice_file_url });
   };
 
   const totalCost = poItems.reduce((sum, item) => {
