@@ -328,7 +328,7 @@ export default function InvoiceScanButton() {
         po_number: result.po_number || result.invoice_number || '',
         invoice_number: result.invoice_number || '',
         invoice_amount: result.total_amount || 0,
-        invoice_currency: result.currency || 'USD',
+        invoice_currency: (['SEK','EUR','USD','GBP','NOK','DKK'].includes((result.currency || '').toUpperCase()) ? result.currency.toUpperCase() : 'USD'),
         invoice_file_url: result.file_url,
         order_date: result.invoice_date || new Date().toISOString().split('T')[0],
         status: 'draft',
