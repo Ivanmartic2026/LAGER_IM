@@ -390,7 +390,7 @@ export default function WorkOrderViewPage() {
         </div>
 
         {/* SEKTION 6: Material / Artiklar */}
-        <MaterialsSection orderItems={orderItems} articles={articles} />
+        <MaterialsSection orderItems={orderItems} articles={articles} orderId={workOrder?.order_id} />
 
         {/* Rollfördelning */}
         <RoleAssignmentSection workOrder={workOrder}

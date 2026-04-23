@@ -1,6 +1,12 @@
-import { Package } from "lucide-react";
+import { useState } from "react";
+import { Package, Pencil, Trash2, X, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const STATUS_MAP = {
   picked: { label: 'Plockat', cls: 'bg-green-500/20 border-green-500/30 text-green-400' },
@@ -8,8 +14,50 @@ const STATUS_MAP = {
   pending: { label: 'Ej plockat', cls: 'bg-white/10 border-white/20 text-white/50' },
 };
 
-export default function MaterialsSection({ orderItems, articles }) {
+export default function MaterialsSection({ orderItems, articles, orderId }) {
+  const queryClient = useQueryClient();
+  const [editingId, setEditingId] = useState(null);
+  const [editQty, setEditQty] = useState('');
+  const [saving, setSaving] = useState(false);
+
   if (!orderItems?.length) return null;
+
+  const handleEdit = (item) => {
+    setEditingId(item.id);
+    setEditQty(String(item.quantity_ordered || 1));
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditQty('');
+  };
+
+  const handleSaveEdit = async (item) => {
+    const qty = parseInt(editQty);
+    if (isNaN(qty) || qty < 1) { toast.error('Ogiltigt antal'); return; }
+    setSaving(true);
+    try {
+      await base44.entities.OrderItem.update(item.id, { quantity_ordered: qty });
+      queryClient.invalidateQueries({ queryKey: ['orderItems', orderId] });
+      toast.success('Antal uppdaterat');
+      setEditingId(null);
+    } catch (e) {
+      toast.error('Kunde inte spara');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (item) => {
+    if (!confirm(`Ta bort "${item.article_name}" från ordern?`)) return;
+    try {
+      await base44.entities.OrderItem.delete(item.id);
+      queryClient.invalidateQueries({ queryKey: ['orderItems', orderId] });
+      toast.success('Artikel borttagen');
+    } catch (e) {
+      toast.error('Kunde inte ta bort');
+    }
+  };
 
   return (
     <div className="bg-black rounded-2xl border border-white/10 overflow-hidden">
@@ -26,9 +74,10 @@ export default function MaterialsSection({ orderItems, articles }) {
           const stockQty = article?.stock_qty ?? 0;
           const needed = item.quantity_ordered || 0;
           const shortage = needed - stockQty;
+          const isEditing = editingId === item.id;
 
           return (
-            <div key={item.id} className="px-5 py-3 flex items-center gap-3">
+            <div key={item.id} className="px-5 py-3 flex items-center gap-3 group">
               {article?.image_urls?.[0] ? (
                 <img src={article.image_urls[0]} alt={item.article_name}
                   className="w-9 h-9 rounded-lg object-cover flex-shrink-0 border border-white/10" />
@@ -57,23 +106,58 @@ export default function MaterialsSection({ orderItems, articles }) {
                 </div>
               </div>
 
-              <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-white/50">Best:</span>
-                  <span className="font-bold text-white">{item.quantity_ordered}</span>
-                  {item.quantity_picked != null && item.quantity_picked > 0 && (
-                    <>
-                      <span className="text-white/30">·</span>
-                      <span className="text-white/50">Plockat:</span>
-                      <span className={cn("font-bold", item.quantity_picked >= item.quantity_ordered ? 'text-green-400' : 'text-amber-400')}>
-                        {item.quantity_picked}
-                      </span>
-                    </>
-                  )}
-                </div>
-                <Badge className={cn("text-[10px] px-1.5 py-0 border", statusInfo.cls)}>
-                  {statusInfo.label}
-                </Badge>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {isEditing ? (
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min="1"
+                      value={editQty}
+                      onChange={e => setEditQty(e.target.value)}
+                      className="w-16 h-7 text-sm bg-white/10 border-white/20 text-white text-center px-1"
+                      autoFocus
+                    />
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-green-400 hover:text-green-300"
+                      onClick={() => handleSaveEdit(item)} disabled={saving}>
+                      <Check className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-white/40 hover:text-white"
+                      onClick={handleCancelEdit}>
+                      <X className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-white/50">Best:</span>
+                        <span className="font-bold text-white">{item.quantity_ordered}</span>
+                        {item.quantity_picked != null && item.quantity_picked > 0 && (
+                          <>
+                            <span className="text-white/30">·</span>
+                            <span className="text-white/50">Plockat:</span>
+                            <span className={cn("font-bold", item.quantity_picked >= item.quantity_ordered ? 'text-green-400' : 'text-amber-400')}>
+                              {item.quantity_picked}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <Badge className={cn("text-[10px] px-1.5 py-0 border", statusInfo.cls)}>
+                        {statusInfo.label}
+                      </Badge>
+                    </div>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-white/40 hover:text-white"
+                        onClick={() => handleEdit(item)}>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-red-400/60 hover:text-red-400"
+                        onClick={() => handleDelete(item)}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           );
