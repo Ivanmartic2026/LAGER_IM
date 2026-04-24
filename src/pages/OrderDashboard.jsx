@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 
 const STAGE_COLORS = {
   'KONSTRUKTION': '#3b82f6',
@@ -165,12 +166,8 @@ export default function OrderDashboard() {
     let workOrders = [];
 
     try {
-      const res = await fetch('https://backend.base44.app/api/apps/69455d52c9eab36b7d26cc74/functions/getPublicOrders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}'
-      });
-      const data = await res.json();
+      const res = await base44.functions.invoke('getPublicOrders', {});
+      const data = res.data || {};
       orders = data.orders || [];
       workOrders = data.workOrders || [];
     } catch (error) {
