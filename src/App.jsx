@@ -113,16 +113,19 @@ const AuthenticatedApp = () => {
 };
 
 
-function App() {
-  // Run data migrations on app start
+function MigrationRunner() {
   useEffect(() => {
     runMigrationsOnce();
   }, []);
+  return null;
+}
 
+function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <Router>
         <AuthProvider>
+          <MigrationRunner />
           <NavigationTracker />
           <Routes>
             {/* Public order dashboard - no auth required */}
