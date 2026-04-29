@@ -267,10 +267,10 @@ function App() {
             {/* All other routes require auth */}
             <Route path="*" element={<AuthenticatedApp />} />
           </Routes>
+          <Toaster />
+          <VisualEditAgent />
         </AuthProvider>
       </Router>
-      <Toaster />
-      <VisualEditAgent />
       </QueryClientProvider>
   )
 }
