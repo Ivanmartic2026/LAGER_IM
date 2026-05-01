@@ -84,6 +84,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: "MatchReview", label: "Match Review", icon: Search },
     { name: "PatternRules", label: "Mönster", icon: GitMerge },
     { name: "Eskaleringar", label: "Eskaleringar", icon: AlertTriangle },
+    { name: "BatchMigration", label: "Batch Mig.", icon: RefreshCw },
   ];
 
   const visibleNavItems = NAV_ITEMS.filter(item => !item.module || userModules.includes(item.module));

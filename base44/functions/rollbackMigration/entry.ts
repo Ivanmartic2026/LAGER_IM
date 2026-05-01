@@ -4,70 +4,71 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-
     if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const { migration_run_id } = await req.json();
-
-    const migrationRun = await base44.asServiceRole.entities.MigrationRun.get(migration_run_id);
-    if (!migrationRun.rollback_available) {
-      return Response.json({ error: 'Rollback not available for this migration' }, { status: 400 });
+    const body = await req.json().catch(() => ({}));
+    const { migration_run_id } = body;
+    if (!migration_run_id) {
+      return Response.json({ error: 'migration_run_id required' }, { status: 400 });
     }
 
-    if (migrationRun.rolled_back) {
-      return Response.json({ error: 'Migration already rolled back' }, { status: 400 });
+    const runs = await base44.asServiceRole.entities.MigrationRun.filter({ id: migration_run_id });
+    const run = runs[0];
+    if (!run) return Response.json({ error: 'MigrationRun not found' }, { status: 404 });
+    if (run.rolled_back) return Response.json({ error: 'Already rolled back' }, { status: 400 });
+    if (!run.rollback_available) return Response.json({ error: 'Rollback not available' }, { status: 400 });
+
+    const snapshot = run.rollback_snapshot || {};
+    const output = run.output_summary || {};
+
+    let restored = 0;
+    let deleted = 0;
+
+    // 1. Restore articles
+    for (const [articleId, snap] of Object.entries(snapshot)) {
+      await base44.asServiceRole.entities.Article.update(articleId, {
+        batch_number: snap.batch_number || '',
+        primary_batch_id: snap.primary_batch_id || null,
+        legacy_batch_number: snap.legacy_batch_number || null
+      }).catch(e => console.error('restore article', articleId, e.message));
+      restored++;
     }
 
-    const snapshot = migrationRun.rollback_snapshot;
-    if (!snapshot) {
-      return Response.json({ error: 'No rollback snapshot available' }, { status: 400 });
+    // 2. Delete created Batch entities
+    const createdBatchIds = output.created_batch_ids || [];
+    for (const batchId of createdBatchIds) {
+      await base44.asServiceRole.entities.Batch.delete(batchId).catch(() => {});
+      deleted++;
     }
 
-    let recordsRestored = 0;
-    let recordsDeleted = 0;
-
-    // Återskapa modified-poster från snapshot
-    for (const [id, post] of Object.entries(snapshot.modified_records || {})) {
-      const { entity, data } = post;
-      const dataWithoutId = { ...data };
-      delete dataWithoutId.id;
-      delete dataWithoutId.created_date;
-      delete dataWithoutId.updated_date;
-      delete dataWithoutId.created_by;
-
-      try {
-        await base44.asServiceRole.entities[entity].update(id, dataWithoutId);
-        recordsRestored++;
-      } catch (e) {
-        console.error(`Failed to restore ${entity} ${id}:`, e.message);
-      }
+    // 3. Delete BatchEvents created during this run
+    const createdEventIds = output.created_batch_event_ids || [];
+    for (const evId of createdEventIds) {
+      await base44.asServiceRole.entities.BatchEvent.delete(evId).catch(() => {});
     }
 
-    // Radera newly-created poster
-    for (const createdRecord of snapshot.created_records || []) {
-      const { entity, id } = createdRecord;
-      try {
-        await base44.asServiceRole.entities[entity].delete(id);
-        recordsDeleted++;
-      } catch (e) {
-        console.error(`Failed to delete ${entity} ${id}:`, e.message);
-      }
+    // 4. Delete MergeApprovalQueue entries
+    const createdQueueIds = output.created_queue_ids || [];
+    for (const qId of createdQueueIds) {
+      await base44.asServiceRole.entities.MergeApprovalQueue.delete(qId).catch(() => {});
     }
 
-    // Uppdatera MigrationRun
+    // 5. Mark run as rolled back
     await base44.asServiceRole.entities.MigrationRun.update(migration_run_id, {
       rolled_back: true,
       rolled_back_at: new Date().toISOString()
     });
 
     return Response.json({
-      rollback_completed: true,
-      records_restored: recordsRestored,
-      records_deleted: recordsDeleted
+      success: true,
+      records_restored: restored,
+      records_deleted: deleted
     });
+
   } catch (error) {
+    console.error('Rollback error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
