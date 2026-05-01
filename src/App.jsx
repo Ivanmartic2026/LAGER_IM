@@ -3,7 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { lazy, Suspense, useEffect } from 'react'
 const VisualEditAgent = lazy(() => import('@/lib/VisualEditAgent'))
-import NavigationTracker from '@/lib/NavigationTracker'
+const NavigationTracker = lazy(() => import('@/lib/NavigationTracker'))
 import { runMigrationsOnce } from '@/lib/initializeMigrations'
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
@@ -129,7 +129,7 @@ function App() {
       <Router>
         <AuthProvider>
           <MigrationRunner />
-          <NavigationTracker />
+          <Suspense fallback={null}><NavigationTracker /></Suspense>
           <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center bg-black"><div className="w-8 h-8 border-4 border-zinc-700 border-t-white rounded-full animate-spin"></div></div>}>
           <Routes>
             {/* Public order dashboard - no auth required */}

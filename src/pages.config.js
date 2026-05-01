@@ -48,7 +48,7 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import { lazy } from 'react';
-const __Layout = lazy(() => import('./Layout.jsx'));
+import __Layout from './Layout.jsx';
 
 const Admin = lazy(() => import('./pages/Admin'));
 const KilometerErsattning = lazy(() => import('./pages/KilometerErsattning'));
