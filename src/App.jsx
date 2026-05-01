@@ -47,11 +47,8 @@ const MigrationCenter = lazy(() => import('@/pages/MigrationCenter'));
 const PatternRules = lazy(() => import('@/pages/PatternRules'));
 const MatchReview = lazy(() => import('@/pages/MatchReview'));
 
-const { Pages, Layout, mainPage } = pagesConfig;
-const mainPageKey = mainPage ?? Object.keys(Pages)[0];
-const MainPage = mainPageKey ? Pages[mainPageKey] : null;
-
 function LayoutWrapper({ children, currentPageName }) {
+  const { Layout } = pagesConfig;
   if (Layout) {
     return (
       <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center bg-black"><div className="w-8 h-8 border-4 border-zinc-700 border-t-white rounded-full animate-spin"></div></div>}>
@@ -65,6 +62,11 @@ function LayoutWrapper({ children, currentPageName }) {
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const location = useLocation();
+
+  // Derive page config inside component, never at module level
+  const { Pages, mainPage } = pagesConfig;
+  const mainPageKey = mainPage ?? Object.keys(Pages)[0];
+  const MainPage = mainPageKey ? Pages[mainPageKey] : null;
 
   // Skip auth checks for public pages
   if (location.pathname === '/OrderDashboard') {
@@ -90,7 +92,6 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }

@@ -7,7 +7,8 @@ import { pagesConfig } from '@/pages.config';
 export default function NavigationTracker() {
     const location = useLocation();
     const { isAuthenticated } = useAuth();
-    const { Pages, mainPage } = pagesConfig;
+    const Pages = pagesConfig.Pages;
+    const mainPage = pagesConfig.mainPage;
     const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 
     // Post navigation changes to parent window
