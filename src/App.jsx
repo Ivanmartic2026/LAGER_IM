@@ -51,9 +51,16 @@ const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : null;
 
-const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+function LayoutWrapper({ children, currentPageName }) {
+  if (Layout) {
+    return (
+      <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center bg-black"><div className="w-8 h-8 border-4 border-zinc-700 border-t-white rounded-full animate-spin"></div></div>}>
+        <Layout currentPageName={currentPageName}>{children}</Layout>
+      </Suspense>
+    );
+  }
+  return <>{children}</>;
+}
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
