@@ -65,6 +65,12 @@ export default function WorkOrderViewPage() {
     return unsubscribe;
   }, [workOrderId, queryClient]);
 
+  // Trigger material recalculation when work order loads
+  useEffect(() => {
+    if (!workOrderId || !workOrder) return;
+    base44.functions.invoke('recalcMaterialStatus', { work_order_id: workOrderId }).catch(() => {});
+  }, [workOrderId, workOrder?.id]);
+
   const { data: order } = useQuery({
     queryKey: ['order', workOrder?.order_id],
     queryFn: async () => {
@@ -132,6 +138,8 @@ export default function WorkOrderViewPage() {
       } catch (e) {
         console.error('Activity log failed:', e);
       }
+      // Trigger material recalculation after save
+      base44.functions.invoke('recalcMaterialStatus', { work_order_id: workOrderId }).catch(() => {});
     }
   });
 
