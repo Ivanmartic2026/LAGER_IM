@@ -88,7 +88,7 @@
     },
     "batch_number": {
       "type": "string",
-      "description": "LEGACY \u2014 migreras till Batch-entity, anv\u00e4nds bara f\u00f6r s\u00f6kning. Nya data skrivs till Batch.batch_number"
+      "description": "LEGACY \u2014 migreras till Batch-entity"
     },
     "legacy_batch_number": {
       "type": "string",
@@ -233,6 +233,36 @@
       "type": "boolean",
       "default": false,
       "description": "Om artikeln \u00e4r synkad till Fortnox och kan auto-synkas"
+    },
+    "escalation_level": {
+      "type": "string",
+      "enum": [
+        "none",
+        "warned",
+        "escalated",
+        "critical"
+      ],
+      "default": "none",
+      "description": "Eskaleringsniv\u00e5 f\u00f6r statusbevakning (LAGER-SPEC-2026-002)"
+    },
+    "last_escalation_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt f\u00f6r senaste eskalering"
+    },
+    "escalation_snoozed_until": {
+      "type": "string",
+      "format": "date",
+      "description": "Eskalering pausad till detta datum"
+    },
+    "escalation_snooze_reason": {
+      "type": "string",
+      "description": "Anledning till paus"
+    },
+    "escalation_resolved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Markerad som hanterad i eskaleringsvyn"
     }
   },
   "required": [

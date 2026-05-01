@@ -48,6 +48,7 @@ const UsersManagement = lazy(() => import('@/pages/UsersManagement'));
 const MigrationCenter = lazy(() => import('@/pages/MigrationCenter'));
 const PatternRules = lazy(() => import('@/pages/PatternRules'));
 const MatchReview = lazy(() => import('@/pages/MatchReview'));
+const Eskaleringar = lazy(() => import('@/pages/Eskaleringar'));
 
 const Spinner = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-black">
@@ -157,6 +158,7 @@ function App() {
               <Route path="/MigrationCenter" element={<LayoutWrapper currentPageName="Admin"><MigrationCenter /></LayoutWrapper>} />
               <Route path="/MatchReview" element={<LayoutWrapper currentPageName="Admin"><MatchReview /></LayoutWrapper>} />
               <Route path="/PatternRules" element={<LayoutWrapper currentPageName="Admin"><PatternRules /></LayoutWrapper>} />
+              <Route path="/Eskaleringar" element={<LayoutWrapper currentPageName="Admin"><Eskaleringar /></LayoutWrapper>} />
               {/* Order routes */}
               <Route path="/OrderEdit" element={<LayoutWrapper currentPageName="Orders"><OrderEdit /></LayoutWrapper>} />
               <Route path="/OrderDetail" element={<LayoutWrapper currentPageName="Orders"><OrderDetail /></LayoutWrapper>} />
