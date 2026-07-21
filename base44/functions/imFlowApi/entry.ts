@@ -1,4 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { timingSafeEqual } from 'node:crypto';
+
+/**
+ * Timing-safe string comparison.
+ * Returns false if lengths differ (without leaking length info via early return).
+ */
+function safeEqual(a: string, b: string): boolean {
+  const aBuf = new TextEncoder().encode(a);
+  const bBuf = new TextEncoder().encode(b);
+  if (aBuf.length !== bBuf.length) {
+    // Constant-time-ish: compare a against itself to avoid timing leaks, then return false
+    timingSafeEqual(aBuf, aBuf);
+    return false;
+  }
+  return timingSafeEqual(aBuf, bBuf);
+}
 
 /**
  * IM Flow Integration API
@@ -113,8 +129,12 @@ Deno.serve(async (req) => {
     if (!expectedKey) {
       return json({ error: 'EXTERNAL_API_KEY not configured on server' }, 500);
     }
-    if (!authHeader || authHeader !== `Bearer ${expectedKey}`) {
-      return json({ error: 'Unauthorized: invalid or missing API key' }, 401);
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Unauthorized: missing Bearer token' }, 401);
+    }
+    const token = authHeader.slice('Bearer '.length);
+    if (!token || !safeEqual(token, expectedKey)) {
+      return json({ error: 'Unauthorized: invalid API key' }, 401);
     }
 
     const base44 = createClientFromRequest(req);
