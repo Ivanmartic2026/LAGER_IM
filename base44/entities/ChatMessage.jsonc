@@ -1,0 +1,95 @@
+{
+  "name": "ChatMessage",
+  "type": "object",
+  "properties": {
+    "work_order_id": {
+      "type": "string",
+      "description": "ID f\u00f6r arbetsordern som meddelandet tillh\u00f6r"
+    },
+    "thread_type": {
+      "type": "string",
+      "enum": [
+        "general",
+        "role",
+        "dm"
+      ],
+      "default": "general",
+      "description": "Typ av tr\u00e5d: general (alla), role (rollbaserad), dm (privat)"
+    },
+    "thread_key": {
+      "type": "string",
+      "description": "F\u00f6r role-tr\u00e5dar: rollnamn (t.ex. 'konstruktor', 'lager'). F\u00f6r DM: det andra user_email:et. Tomt f\u00f6r general."
+    },
+    "author_email": {
+      "type": "string",
+      "description": "Email f\u00f6r anv\u00e4ndaren som skrivit meddelandet"
+    },
+    "author_name": {
+      "type": "string",
+      "description": "Namn (cacheat f\u00f6r visning)"
+    },
+    "author_role": {
+      "type": "string",
+      "description": "Anv\u00e4ndarens prim\u00e4ra roll vid s\u00e4ndningstillf\u00e4llet"
+    },
+    "body": {
+      "type": "string",
+      "description": "Meddelandetext"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "mime_type": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          }
+        }
+      },
+      "default": [],
+      "description": "Bifogade filer (URL till uppladdad fil)"
+    },
+    "mentions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Lista av user_emails som @omn\u00e4mnts"
+    },
+    "edited": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om meddelandet har redigerats efter att det skickats"
+    },
+    "edited_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r meddelandet senast redigerades"
+    },
+    "deleted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Soft-delete flagga"
+    },
+    "reply_to_message_id": {
+      "type": "string",
+      "description": "Om detta \u00e4r ett svar p\u00e5 ett annat meddelande"
+    }
+  },
+  "required": [
+    "work_order_id",
+    "thread_type",
+    "author_email",
+    "body"
+  ]
+}

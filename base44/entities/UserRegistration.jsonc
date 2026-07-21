@@ -1,0 +1,51 @@
+{
+  "name": "UserRegistration",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "E-postadress f\u00f6r registrering"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Anv\u00e4ndarens fullst\u00e4ndiga namn"
+    },
+    "registration_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Registreringsdatum och tid"
+    },
+    "registration_method": {
+      "type": "string",
+      "enum": [
+        "invite",
+        "self_register",
+        "admin_created"
+      ],
+      "description": "Hur anv\u00e4ndaren registrerades"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP-adress fr\u00e5n registreringen"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Webbl\u00e4sare/enhet information"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "verified"
+      ],
+      "default": "pending",
+      "description": "Status p\u00e5 registreringen"
+    }
+  },
+  "required": [
+    "email",
+    "registration_date",
+    "registration_method"
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "name": "ReportSchedule",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Namn p\u00e5 rapporten"
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "stock_summary",
+        "stock_movements",
+        "low_stock",
+        "full_inventory"
+      ],
+      "description": "Typ av rapport"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "description": "Hur ofta rapporten ska skickas"
+    },
+    "email_recipients": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "E-postadresser att skicka till"
+    },
+    "filters": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "warehouse": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "description": "Filter f\u00f6r rapporten"
+    },
+    "date_range": {
+      "type": "object",
+      "properties": {
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "end_date": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "description": "Tidsperiod f\u00f6r rapporten"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om schemat \u00e4r aktivt"
+    },
+    "last_sent": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r rapporten senast skickades"
+    },
+    "next_send": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r rapporten n\u00e4sta ska skickas"
+    }
+  },
+  "required": [
+    "name",
+    "report_type",
+    "frequency",
+    "email_recipients"
+  ]
+}

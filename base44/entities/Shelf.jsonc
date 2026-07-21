@@ -1,0 +1,55 @@
+{
+  "name": "Shelf",
+  "type": "object",
+  "properties": {
+    "warehouse_id": {
+      "type": "string",
+      "description": "Referens till lagerst\u00e4lle"
+    },
+    "shelf_code": {
+      "type": "string",
+      "description": "Hyllkod (t.ex. A1-B2, G-04-03)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beskrivning av hyllan"
+    },
+    "aisle": {
+      "type": "string",
+      "description": "G\u00e5ng/sektion (t.ex. A, B, C)"
+    },
+    "rack": {
+      "type": "string",
+      "description": "St\u00e4llning/hylla (t.ex. 1, 2, 3)"
+    },
+    "level": {
+      "type": "string",
+      "description": "Hyllplan/niv\u00e5 (t.ex. 1, 2, 3)"
+    },
+    "width_cm": {
+      "type": "number",
+      "description": "Hyllans bredd i cm"
+    },
+    "height_cm": {
+      "type": "number",
+      "description": "Hyllans h\u00f6jd i cm"
+    },
+    "depth_cm": {
+      "type": "number",
+      "description": "Hyllans djup i cm"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om hyllan \u00e4r aktiv"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar"
+    }
+  },
+  "required": [
+    "warehouse_id",
+    "shelf_code"
+  ]
+}

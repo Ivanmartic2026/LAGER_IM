@@ -1,0 +1,38 @@
+{
+  "name": "SupplierUser",
+  "type": "object",
+  "properties": {
+    "supplier_id": {
+      "type": "string",
+      "description": "Referens till leverant\u00f6r"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-postadress f\u00f6r inloggning"
+    },
+    "password_hash": {
+      "type": "string",
+      "description": "Hash av l\u00f6senord"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Fullst\u00e4ndigt namn"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om anv\u00e4ndaren \u00e4r aktiv"
+    },
+    "last_login": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Senaste inloggning"
+    }
+  },
+  "required": [
+    "supplier_id",
+    "email",
+    "password_hash",
+    "full_name"
+  ]
+}

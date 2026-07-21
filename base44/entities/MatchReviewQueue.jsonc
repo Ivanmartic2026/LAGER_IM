@@ -1,0 +1,100 @@
+{
+  "name": "MatchReviewQueue",
+  "type": "object",
+  "properties": {
+    "label_scan_id": {
+      "type": "string",
+      "description": "FK till LabelScan"
+    },
+    "candidate_batch_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Kandidat-batch-IDs som matchning hittade"
+    },
+    "candidate_article_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Kandidat-artikel-IDs"
+    },
+    "confidence_scores": {
+      "type": "object",
+      "description": "Mappning id \u2192 confidence (0-1) f\u00f6r varje kandidat"
+    },
+    "extracted_summary": {
+      "type": "object",
+      "description": "Kopia av LabelScan.extracted_fields f\u00f6r snabb visning"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Bild-URL f\u00f6r visning i review-UI"
+    },
+    "context": {
+      "type": "string",
+      "description": "Scanning-kontext"
+    },
+    "context_reference_id": {
+      "type": "string",
+      "description": "ID till kontextreferensen"
+    },
+    "suggested_action": {
+      "type": "string",
+      "enum": [
+        "link_existing_batch",
+        "create_new_batch",
+        "merge_into",
+        "reject"
+      ],
+      "description": "AI:s f\u00f6reslagna \u00e5tg\u00e4rd"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "low_confidence",
+        "ambiguous_match",
+        "supplier_mismatch",
+        "no_po_match",
+        "no_article_match"
+      ],
+      "description": "Anledning till manuell granskning"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Status p\u00e5 gransknings\u00e4rendet"
+    },
+    "approved_batch_id": {
+      "type": "string",
+      "description": "Valt batch-ID vid godk\u00e4nnande"
+    },
+    "approved_article_id": {
+      "type": "string",
+      "description": "Valt artikel-ID vid godk\u00e4nnande"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Granskad av (email)"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Granskningstidpunkt"
+    },
+    "review_notes": {
+      "type": "string",
+      "description": "Noteringar fr\u00e5n granskning"
+    }
+  },
+  "required": [
+    "label_scan_id",
+    "status"
+  ]
+}

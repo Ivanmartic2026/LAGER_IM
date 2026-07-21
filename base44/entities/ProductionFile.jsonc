@@ -1,0 +1,65 @@
+{
+  "name": "ProductionFile",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "Referens till order/projekt"
+    },
+    "file_type": {
+      "type": "string",
+      "enum": [
+        "drawing",
+        "assembly_instruction",
+        "special_instruction",
+        "customer_requirements",
+        "technical_notes",
+        "other"
+      ],
+      "description": "Typ av fil"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL till filen"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Filnamn"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version (t.ex. v1, v2, v3)"
+    },
+    "version_number": {
+      "type": "number",
+      "description": "Versionsnummer f\u00f6r sortering"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "Vem som laddade upp (email)"
+    },
+    "uploaded_by_name": {
+      "type": "string",
+      "description": "Namn p\u00e5 uppladdaren"
+    },
+    "upload_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r filen laddades upp"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar om filen"
+    },
+    "is_current": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om detta \u00e4r den aktuella versionen"
+    }
+  },
+  "required": [
+    "order_id",
+    "file_type",
+    "file_url"
+  ]
+}

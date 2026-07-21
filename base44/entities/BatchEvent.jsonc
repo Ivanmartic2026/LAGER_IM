@@ -1,0 +1,61 @@
+{
+  "name": "BatchEvent",
+  "type": "object",
+  "properties": {
+    "batch_id": {
+      "type": "string",
+      "description": "FK till Batch (required)"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "created",
+        "received",
+        "inspected",
+        "deployed",
+        "returned",
+        "repaired",
+        "quarantined",
+        "merged",
+        "alias_added",
+        "status_changed",
+        "verified",
+        "rejected"
+      ],
+      "description": "Typ av h\u00e4ndelse"
+    },
+    "actor": {
+      "type": "string",
+      "description": "Akt\u00f6rens email"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidpunkt"
+    },
+    "from_status": {
+      "type": "string",
+      "description": "Status innan \u00e4ndringen"
+    },
+    "to_status": {
+      "type": "string",
+      "description": "Status efter \u00e4ndringen"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Extra data kopplad till h\u00e4ndelsen (t.ex. alias som lades till, m\u00e4ngd, noteringar)"
+    },
+    "source_entity": {
+      "type": "string",
+      "description": "Entity-namn f\u00f6r k\u00e4llan (LabelScan, MatchReviewQueue, RepairLog etc)"
+    },
+    "source_id": {
+      "type": "string",
+      "description": "ID p\u00e5 k\u00e4llposten"
+    }
+  },
+  "required": [
+    "batch_id",
+    "event_type"
+  ]
+}

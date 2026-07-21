@@ -1,0 +1,40 @@
+{
+  "name": "PushSubscription",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Anv\u00e4ndarens email"
+    },
+    "endpoint": {
+      "type": "string",
+      "description": "Push-tj\u00e4nstens endpoint URL"
+    },
+    "keys": {
+      "type": "object",
+      "properties": {
+        "p256dh": {
+          "type": "string"
+        },
+        "auth": {
+          "type": "string"
+        }
+      },
+      "description": "Krypteringsnycklar f\u00f6r push"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Webbl\u00e4sare och enhetsinfo"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Om prenumerationen \u00e4r aktiv"
+    }
+  },
+  "required": [
+    "user_email",
+    "endpoint",
+    "keys"
+  ]
+}

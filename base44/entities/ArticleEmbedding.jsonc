@@ -1,0 +1,40 @@
+{
+  "name": "ArticleEmbedding",
+  "type": "object",
+  "properties": {
+    "article_id": {
+      "type": "string",
+      "description": "Referens till artikel"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Bild-URL fr\u00e5n lager"
+    },
+    "description": {
+      "type": "string",
+      "description": "AI-genererad visuell beskrivning"
+    },
+    "form_template": {
+      "type": "string",
+      "enum": [
+        "led_module",
+        "power_supply",
+        "cable",
+        "controller",
+        "cabinet",
+        "other"
+      ],
+      "description": "Vilket formul\u00e4r som ska anv\u00e4ndas"
+    },
+    "indexed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r bilden indexerades"
+    }
+  },
+  "required": [
+    "article_id",
+    "image_url",
+    "description"
+  ]
+}

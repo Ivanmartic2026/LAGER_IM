@@ -1,0 +1,81 @@
+{
+  "name": "ArticleDocument",
+  "type": "object",
+  "properties": {
+    "purchase_order_id": {
+      "type": "string",
+      "description": "Referens till ink\u00f6psorder"
+    },
+    "article_id": {
+      "type": "string",
+      "description": "Referens till artikel (valfritt)"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "quality_report",
+        "test_protocol",
+        "packing_list",
+        "commercial_invoice",
+        "ce_certificate",
+        "rohs_certificate",
+        "other_certificate",
+        "qc_photos",
+        "bill_of_lading",
+        "airway_bill",
+        "customs_document",
+        "warranty_document",
+        "receiving_protocol",
+        "other"
+      ],
+      "description": "Typ av dokument"
+    },
+    "document_phase": {
+      "type": "string",
+      "enum": [
+        "production",
+        "ready_for_shipment",
+        "in_transit",
+        "arrived",
+        "stocked"
+      ],
+      "description": "Vilken fas dokumentet tillh\u00f6r"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL till dokumentet"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Filnamn"
+    },
+    "mime_type": {
+      "type": "string",
+      "description": "MIME-typ (t.ex. image/png, application/pdf)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beskrivning av dokumentet"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "Uppladdad av (email eller 'supplier')"
+    },
+    "uploaded_by_supplier": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om dokumentet laddades upp av leverant\u00f6ren"
+    },
+    "is_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om dokumentet \u00e4r godk\u00e4nt internt"
+    }
+  },
+  "required": [
+    "purchase_order_id",
+    "document_type",
+    "document_phase",
+    "file_url"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "ArticleComment",
+  "type": "object",
+  "properties": {
+    "article_id": {
+      "type": "string",
+      "description": "Referens till artikeln"
+    },
+    "content": {
+      "type": "string",
+      "description": "Kommentartext"
+    },
+    "mentioned_users": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista med email-adresser p\u00e5 @-mentioned anv\u00e4ndare"
+    }
+  },
+  "required": [
+    "article_id",
+    "content"
+  ]
+}

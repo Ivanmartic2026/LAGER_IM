@@ -1,0 +1,45 @@
+{
+  "name": "StockMovement",
+  "type": "object",
+  "properties": {
+    "article_id": {
+      "type": "string",
+      "description": "Referens till artikel"
+    },
+    "movement_type": {
+      "type": "string",
+      "enum": [
+        "inbound",
+        "outbound",
+        "adjustment",
+        "inventory"
+      ],
+      "description": "Typ av r\u00f6relse"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Antal (positivt f\u00f6r in, negativt f\u00f6r ut)"
+    },
+    "previous_qty": {
+      "type": "number",
+      "description": "Tidigare lagersaldo"
+    },
+    "new_qty": {
+      "type": "number",
+      "description": "Nytt lagersaldo"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Anledning till r\u00f6relse"
+    },
+    "reference": {
+      "type": "string",
+      "description": "Referens t.ex. ordernummer"
+    }
+  },
+  "required": [
+    "article_id",
+    "movement_type",
+    "quantity"
+  ]
+}

@@ -4,11 +4,18 @@
   "properties": {
     "batch_number": {
       "type": "string",
-      "description": "Normaliserat batchnummer (prim\u00e4rt index)"
+      "description": "Normaliserat batchnummer (prim\u00e4rt index / canonical core)"
     },
     "raw_batch_number": {
       "type": "string",
       "description": "Originalt batchnummer exakt som det l\u00e4stes"
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Alla k\u00e4nda varianter av batchidentiteten (OCR-l\u00e4st, Data Matrix-l\u00e4st, handmatad, prefixed, suffixed)"
     },
     "article_id": {
       "type": "string",
@@ -75,6 +82,12 @@
         "prefix": {
           "type": "string"
         },
+        "suffix": {
+          "type": "string"
+        },
+        "canonical_core": {
+          "type": "string"
+        },
         "length": {
           "type": "number"
         },
@@ -82,7 +95,7 @@
           "type": "string"
         }
       },
-      "description": "M\u00f6nsteranalys av batchnummer"
+      "description": "M\u00f6nsteranalys: prefix, suffix, canonical_core, l\u00e4ngd och struktur"
     },
     "risk_score": {
       "type": "number",
@@ -140,7 +153,7 @@
     "coupling_count": {
       "type": "number",
       "default": 0,
-      "description": "Antal kopplingar (PO-items, receiving, repair, orders, withdrawals)"
+      "description": "Antal kopplingar"
     },
     "source_context": {
       "type": "string",

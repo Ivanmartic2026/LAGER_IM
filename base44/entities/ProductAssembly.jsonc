@@ -1,0 +1,44 @@
+{
+  "name": "ProductAssembly",
+  "type": "object",
+  "properties": {
+    "parent_article_id": {
+      "type": "string",
+      "description": "Referens till f\u00e4rdig produkt (Article.id)"
+    },
+    "parent_article_name": {
+      "type": "string",
+      "description": "Namn p\u00e5 f\u00e4rdig produkt (f\u00f6r enklare s\u00f6kning)"
+    },
+    "part_article_id": {
+      "type": "string",
+      "description": "Referens till reservdel/komponent (Article.id)"
+    },
+    "part_article_name": {
+      "type": "string",
+      "description": "Namn p\u00e5 reservdel (f\u00f6r enklare s\u00f6kning)"
+    },
+    "quantity_needed": {
+      "type": "number",
+      "description": "Antal av reservdelen som beh\u00f6vs per enhet av produkten"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anteckningar om denna del i monteringen"
+    },
+    "is_critical": {
+      "type": "boolean",
+      "default": false,
+      "description": "Om denna del \u00e4r kritisk f\u00f6r produkten"
+    },
+    "position": {
+      "type": "string",
+      "description": "Position eller monteringsplats i produkten"
+    }
+  },
+  "required": [
+    "parent_article_id",
+    "part_article_id",
+    "quantity_needed"
+  ]
+}

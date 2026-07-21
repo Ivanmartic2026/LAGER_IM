@@ -1,0 +1,73 @@
+{
+  "name": "ExtractedValueLog",
+  "type": "object",
+  "properties": {
+    "article_id": {
+      "type": "string",
+      "description": "Referens till artikel (om sparad)"
+    },
+    "image_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs till analyserade bilder"
+    },
+    "all_extracted_values": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "Omr\u00e5de p\u00e5 kortet d\u00e4r texten hittades"
+          },
+          "text": {
+            "type": "string",
+            "description": "Den identifierade texten"
+          },
+          "selected": {
+            "type": "boolean",
+            "description": "Om anv\u00e4ndaren valde detta v\u00e4rde"
+          },
+          "selected_category": {
+            "type": "string",
+            "description": "Vilken kategori anv\u00e4ndaren sparade det under"
+          }
+        }
+      },
+      "description": "Alla v\u00e4rden som AI identifierade"
+    },
+    "selected_values": {
+      "type": "object",
+      "description": "De v\u00e4rden som anv\u00e4ndaren sparade med sina kategorier"
+    },
+    "final_extracted_data": {
+      "type": "object",
+      "description": "Slutlig extraherad data som sparades"
+    },
+    "ai_confidence_scores": {
+      "type": "object",
+      "description": "AI:s confidence f\u00f6r varje f\u00e4lt"
+    },
+    "analysis_notes": {
+      "type": "string",
+      "description": "Noter fr\u00e5n analys"
+    },
+    "match_confidence": {
+      "type": "number",
+      "description": "Matchningskonfidens med befintlig artikel"
+    },
+    "matched_article_id": {
+      "type": "string",
+      "description": "ID p\u00e5 matchad artikel om s\u00e5dan fanns"
+    },
+    "processing_duration_ms": {
+      "type": "number",
+      "description": "Hur l\u00e5ng tid analysen tog"
+    }
+  },
+  "required": [
+    "all_extracted_values"
+  ]
+}

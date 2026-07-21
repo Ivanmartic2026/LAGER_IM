@@ -1,0 +1,28 @@
+{
+  "name": "ChatRead",
+  "type": "object",
+  "properties": {
+    "message_id": {
+      "type": "string",
+      "description": "ID f\u00f6r det meddelande som l\u00e4sts"
+    },
+    "work_order_id": {
+      "type": "string",
+      "description": "ID f\u00f6r arbetsordern (denormaliserat f\u00f6r snabba queries)"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email f\u00f6r anv\u00e4ndaren som l\u00e4st meddelandet"
+    },
+    "read_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "N\u00e4r meddelandet l\u00e4stes"
+    }
+  },
+  "required": [
+    "message_id",
+    "user_email",
+    "read_at"
+  ]
+}

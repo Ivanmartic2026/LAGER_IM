@@ -1,0 +1,70 @@
+{
+  "name": "SupplierDocument",
+  "type": "object",
+  "properties": {
+    "purchase_order_id": {
+      "type": "string",
+      "description": "Referens till ink\u00f6psorder"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "packing_list",
+        "commercial_invoice",
+        "test_protocol",
+        "qc_document",
+        "certificate_ce",
+        "certificate_rohs",
+        "certificate_ip",
+        "certificate_other",
+        "manual",
+        "datasheet",
+        "batch_image",
+        "label_image",
+        "other"
+      ],
+      "description": "Typ av dokument"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL till dokumentet"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Filnamn"
+    },
+    "version": {
+      "type": "string",
+      "description": "Dokumentversion"
+    },
+    "upload_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Uppladdningsdatum"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "Uppladdad av (leverant\u00f6r email)"
+    },
+    "uploaded_by_name": {
+      "type": "string",
+      "description": "Leverant\u00f6rens namn"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Kommentarer om dokumentet"
+    },
+    "related_batch_numbers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Relaterade batchnummer"
+    }
+  },
+  "required": [
+    "purchase_order_id",
+    "document_type",
+    "file_url"
+  ]
+}

@@ -6,9 +6,21 @@
       "type": "string",
       "description": "Artikelnummer"
     },
+    "ean_code": {
+      "type": "string",
+      "description": "EAN-kod / GTIN"
+    },
     "name": {
       "type": "string",
       "description": "Ben\u00e4mning"
+    },
+    "model": {
+      "type": "string",
+      "description": "Modellbeteckning"
+    },
+    "description": {
+      "type": "string",
+      "description": "Produktbeskrivning"
     },
     "supplier_id": {
       "type": "string",
