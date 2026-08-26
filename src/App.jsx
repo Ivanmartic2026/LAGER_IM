@@ -50,6 +50,7 @@ const PatternRules = lazy(() => import('@/pages/PatternRules'));
 const MatchReview = lazy(() => import('@/pages/MatchReview'));
 const Eskaleringar = lazy(() => import('@/pages/Eskaleringar'));
 const BatchMigration = lazy(() => import('@/pages/BatchMigration'));
+const OAuthConsent = lazy(() => import('@/pages/OAuthConsent'));
 
 const Spinner = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-black">
@@ -138,6 +139,7 @@ function App() {
           <Suspense fallback={<Spinner />}>
             <Routes>
               {/* Public routes - no auth required */}
+              <Route path="/oauth/consent" element={<OAuthConsent />} />
               <Route path="/OrderDashboard" element={<OrderDashboard />} />
               <Route path="/SupplierPOView" element={<SupplierPOView />} />
               <Route path="/SupplierLogin" element={<SupplierLogin />} />
